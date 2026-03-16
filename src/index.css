@@ -197,7 +197,7 @@ ul { list-style: none; }
   border-color: var(--sky);
 }
 .btn-outline:hover {
-  background: var(--green-only);
+  background: var(--sky);
   color: var(--white);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(0,191,255,0.25);

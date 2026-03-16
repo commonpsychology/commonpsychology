@@ -38,6 +38,16 @@ const NAV = [
     ],
   },
   {
+    label: 'Our Works',
+    path: '/our-works',
+    children: [
+      { label: 'Workshops',    path: '/workshops',   icon: '🎓', desc: 'Live & recorded sessions' },
+      { label: 'Social Work',  path: '/social-work', icon: '🤝', desc: 'Community outreach programs' },
+      { label: 'Gallery',      path: '/gallery',     icon: '🖼️', desc: 'Photos & event memories' },
+     
+    ],
+  },
+  {
     label: 'About',
     path: '/about',
     children: [
