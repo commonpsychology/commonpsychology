@@ -1,295 +1,327 @@
-import { useState } from 'react'
+// src/pages/ClientsPortalPage.jsx
+import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
+import { useAuth } from '../context/AuthContext'
+import { appointments, wellness, notifications } from '../services/api'
 
-const TABS = ['Overview','Appointments','Mood Diary','Resources','Messages','Progress']
-
-const UPCOMING = [
-  { therapist:'Dr. Anita Shrestha', type:'Individual Therapy', mode:'Online', date:'Wed 18 Jun', time:'10:00 AM', status:'confirmed' },
-  { therapist:'Dr. Anita Shrestha', type:'Individual Therapy', mode:'Online', date:'Wed 25 Jun', time:'10:00 AM', status:'pending' },
-]
-
-const PAST = [
-  { therapist:'Dr. Anita Shrestha', date:'Wed 11 Jun', time:'10:00 AM', notes:'Discussed CBT techniques for anxiety management.' },
-  { therapist:'Dr. Anita Shrestha', date:'Wed 4 Jun',  time:'10:00 AM', notes:'Explored thought distortions and reframing.' },
-]
-
-const MOODS = [
-  { day:'Mon', score:6, emoji:'😐' },
-  { day:'Tue', score:8, emoji:'😊' },
-  { day:'Wed', score:5, emoji:'😔' },
-  { day:'Thu', score:7, emoji:'🙂' },
-  { day:'Fri', score:9, emoji:'😄' },
-  { day:'Sat', score:7, emoji:'🙂' },
-  { day:'Sun', score:6, emoji:'😐' },
-]
-
-const WORKSHEETS = [
-  { title:'Thought Record Sheet',   type:'CBT',        uploaded:'Jun 10', status:'reviewed' },
-  { title:'Anxiety Trigger Log',    type:'Homework',   uploaded:'Jun 5',  status:'pending' },
-  { title:'Sleep Diary — Week 3',   type:'Tracking',   uploaded:'May 28', status:'reviewed' },
-]
-
-const MESSAGES = [
-  { from:'Dr. Anita Shrestha', time:'2h ago',  text:'Great progress this week! Please complete the thought record before our next session.', mine:false },
-  { from:'You',                time:'1d ago',  text:"I've been feeling much more grounded after practicing the breathing exercises. Thank you!", mine:true },
-  { from:'Dr. Anita Shrestha', time:'1d ago',  text:"That's wonderful to hear! Keep up the practice. See you Wednesday.", mine:false },
-]
-
-const GOALS = [
-  { label:'Anxiety management',  pct:72 },
-  { label:'Sleep quality',       pct:58 },
-  { label:'Social confidence',   pct:45 },
-  { label:'Mindfulness practice',pct:80 },
-]
-
-function ProgressBar({ pct, color='var(--sky)' }) {
-  return (
-    <div style={{ height:8, background:'var(--blue-pale)', borderRadius:4, overflow:'hidden' }}>
-      <div style={{ height:'100%', width:`${pct}%`, background:color, borderRadius:4, transition:'width 1s ease' }}/>
-    </div>
-  )
-}
+const TABS = ['Overview','Appointments','Mood Diary','Journal','Notifications']
+const MOODS = ['😞','😔','😐','🙂','😊','😄','🤩']
 
 export default function ClientPortalPage() {
-  // eslint-disable-next-line no-unused-vars
-  const { navigate } = useRouter()
-  const [tab, setTab] = useState('Overview')
-  const [moodToday, setMoodToday] = useState(null)
-  const [msg, setMsg] = useState('')
-  const [messages, setMessages] = useState(MESSAGES)
+  const { navigate }          = useRouter()
+  const { user, logout }      = useAuth()
+  const [tab, setTab]         = useState('Overview')
 
-  function sendMsg() {
-    if (!msg.trim()) return
-    setMessages(prev => [...prev, { from:'You', time:'just now', text:msg, mine:true }])
-    setMsg('')
+  // Overview state
+  const [stats, setStats]     = useState(null)
+  const [moodToday, setMoodToday] = useState(null)
+  const [moodSaved, setMoodSaved] = useState(false)
+
+  // Appointments
+  const [upcoming, setUpcoming]   = useState([])
+  const [past, setPast]           = useState([])
+  const [loadingAppts, setLoadingAppts] = useState(false)
+
+  // Mood diary
+  const [moodLogs, setMoodLogs]   = useState([])
+
+  // Journal
+  const [entries, setEntries]     = useState([])
+  const [newEntry, setNewEntry]   = useState({ title:'', content:'' })
+  const [savingEntry, setSavingEntry] = useState(false)
+
+  // Notifications
+  const [notifs, setNotifs]       = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    if (!user) { navigate('/signin'); return }
+    loadOverview()
+  }, [user])
+
+  useEffect(() => {
+    if (tab === 'Appointments') loadAppointments()
+    if (tab === 'Mood Diary')   loadMoodLogs()
+    if (tab === 'Journal')      loadJournal()
+    if (tab === 'Notifications')loadNotifications()
+  }, [tab])
+
+  async function loadOverview() {
+    try {
+      const [apptRes, moodRes] = await Promise.all([
+        appointments.list({ limit:5, status:'confirmed' }),
+        wellness.getMoodLogs({ limit:7 }),
+      ])
+      const upcoming = apptRes.appointments?.filter(a=>new Date(a.scheduled_at)>=new Date()) || []
+      const moodAvg  = moodRes.logs?.reduce((s,l)=>s+l.mood_score,0) / (moodRes.logs?.length||1)
+      setStats({
+        sessions:   apptRes.pagination?.total || 0,
+        nextSession: upcoming[0] ? new Date(upcoming[0].scheduled_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—',
+        moodAvg:    moodAvg ? moodAvg.toFixed(1) : '—',
+        streak:     moodRes.logs?.length || 0,
+      })
+    } catch {}
   }
+
+  async function loadAppointments() {
+    setLoadingAppts(true)
+    try {
+      const res = await appointments.list({ limit:20 })
+      const all = res.appointments || []
+      setUpcoming(all.filter(a=>['pending','confirmed'].includes(a.status)))
+      setPast(all.filter(a=>['completed','cancelled'].includes(a.status)))
+    } catch {} finally { setLoadingAppts(false) }
+  }
+
+  async function loadMoodLogs() {
+    try { const res = await wellness.getMoodLogs({limit:14}); setMoodLogs(res.logs||[]) } catch {}
+  }
+
+  async function loadJournal() {
+    try { const res = await wellness.getJournal({limit:10}); setEntries(res.entries||[]) } catch {}
+  }
+
+  async function loadNotifications() {
+    try { const res = await notifications.list({limit:20}); setNotifs(res.notifications||[]); setUnreadCount(res.unreadCount||0) } catch {}
+  }
+
+  async function saveMood(idx) {
+    setMoodToday(idx)
+    try {
+      await wellness.addMoodLog({ moodScore: idx+1, emotions:[], notes:'' })
+      setMoodSaved(true)
+      setTimeout(()=>setMoodSaved(false),3000)
+    } catch {}
+  }
+
+  async function saveJournalEntry() {
+    if (!newEntry.content.trim()) return
+    setSavingEntry(true)
+    try {
+      await wellness.createEntry({ title:newEntry.title, content:newEntry.content })
+      setNewEntry({title:'',content:''})
+      loadJournal()
+    } catch {} finally { setSavingEntry(false) }
+  }
+
+  async function markNotifRead(id) {
+    try {
+      await notifications.markRead(id)
+      setNotifs(n=>n.map(x=>x.id===id?{...x,is_read:true}:x))
+      setUnreadCount(c=>Math.max(0,c-1))
+    } catch {}
+  }
+
+  async function markAllRead() {
+    try { await notifications.markAllRead(); setNotifs(n=>n.map(x=>({...x,is_read:true}))); setUnreadCount(0) } catch {}
+  }
+
+  async function cancelAppt(id) {
+    try { await appointments.cancel(id); loadAppointments() } catch {}
+  }
+
+  const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+  const fmtTime = d => new Date(d).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})
 
   return (
     <div className="page-wrapper" style={{ background:'var(--off-white)' }}>
-      {/* Portal header */}
-      <div style={{ background:'var(--white)', borderBottom:'1px solid var(--blue-pale)', padding:'1.5rem 4rem', display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:0 }}>
+      {/* Header */}
+      <div style={{ background:'var(--white)', borderBottom:'1px solid var(--blue-pale)', padding:'1.5rem 2rem', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div>
-          <div style={{ fontFamily:'var(--font-display)', fontSize:'1.4rem', color:'var(--blue-deep)' }}>Welcome back, <em>Priya</em> 👋</div>
-          <div style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'var(--text-light)', marginTop:2 }}>Next session: Wednesday 18 Jun · 10:00 AM with Dr. Anita</div>
+          <div style={{ fontFamily:'var(--font-display)', fontSize:'1.4rem', color:'var(--blue-deep)' }}>
+            Welcome back, <em>{user?.fullName?.split(' ')[0] || 'there'}</em> 👋
+          </div>
+          <div style={{ fontSize:'0.82rem', color:'var(--text-light)', marginTop:2 }}>
+            {stats?.nextSession !== '—' ? `Next session: ${stats?.nextSession}` : 'No upcoming sessions'}
+          </div>
         </div>
-        
+        <button onClick={logout} style={{ padding:'0.45rem 1rem', borderRadius:8, border:'1px solid var(--earth-cream)', background:'none', fontSize:'0.82rem', color:'var(--text-light)', cursor:'pointer' }}>
+          🚪 Log Out
+        </button>
       </div>
 
-      {/* Tab bar */}
-      <div style={{ background:'var(--white)', borderBottom:'1px solid var(--blue-pale)', padding:'0 4rem', display:'flex', gap:0 }}>
+      {/* Tabs */}
+      <div style={{ background:'var(--white)', borderBottom:'1px solid var(--blue-pale)', padding:'0 2rem', display:'flex', gap:0, overflowX:'auto' }}>
         {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            padding:'1rem 1.5rem', border:'none', background:'none',
-            fontFamily:'var(--font-body)', fontSize:'0.85rem', fontWeight: tab === t ? 700 : 500,
-            color: tab === t ? 'var(--sky)' : 'var(--text-light)',
-            borderBottom: tab === t ? '2.5px solid var(--sky)' : '2.5px solid transparent',
-            cursor:'pointer', transition:'all 0.2s', whiteSpace:'nowrap',
-          }}>{t}</button>
+          <button key={t} onClick={()=>setTab(t)} style={{ padding:'1rem 1.25rem', border:'none', background:'none', fontFamily:'var(--font-body)', fontSize:'0.85rem', fontWeight:tab===t?700:500, color:tab===t?'var(--sky)':'var(--text-light)', borderBottom:tab===t?'2.5px solid var(--sky)':'2.5px solid transparent', cursor:'pointer', transition:'all 0.2s', whiteSpace:'nowrap' }}>
+            {t}{t==='Notifications'&&unreadCount>0?` (${unreadCount})`:''}
+          </button>
         ))}
       </div>
 
-      <div style={{ padding:'2.5rem 4rem', maxWidth:1100, margin:'0 auto' }}>
+      <div style={{ padding:'2rem', maxWidth:1100, margin:'0 auto' }}>
 
         {/* OVERVIEW */}
-        {tab === 'Overview' && (
+        {tab==='Overview' && (
           <div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'1.25rem', marginBottom:'2rem' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:'1.25rem', marginBottom:'2rem' }}>
               {[
-                { label:'Sessions Completed', val:12, icon:'✅', color:'var(--sky-light)' },
-                { label:'Next Appointment',   val:'Wed 18', icon:'📅', color:'var(--green-mist)' },
-                { label:'Current Streak',     val:'5 days', icon:'🔥', color:'#fff5e6' },
-                { label:'Avg Mood (week)',     val:'7.0 / 10', icon:'😊', color:'var(--blue-mist)' },
-              ].map((c, i) => (
+                { label:'Sessions Completed', val:stats?.sessions??'…', icon:'✅', color:'var(--sky-light)' },
+                { label:'Next Appointment',   val:stats?.nextSession??'…', icon:'📅', color:'var(--green-mist)' },
+                { label:'Log Streak',         val:`${stats?.streak??'…'} days`, icon:'🔥', color:'#fff5e6' },
+                { label:'Avg Mood (7 days)',  val:stats?.moodAvg??'…', icon:'😊', color:'var(--blue-mist)' },
+              ].map((c,i)=>(
                 <div key={i} style={{ background:c.color, borderRadius:'var(--radius-md)', padding:'1.25rem', border:'1px solid var(--blue-pale)' }}>
                   <div style={{ fontSize:'1.5rem', marginBottom:'0.4rem' }}>{c.icon}</div>
                   <div style={{ fontFamily:'var(--font-display)', fontSize:'1.3rem', color:'var(--blue-deep)' }}>{c.val}</div>
-                  <div style={{ fontFamily:'var(--font-body)', fontSize:'0.75rem', color:'var(--text-light)', fontWeight:600 }}>{c.label}</div>
+                  <div style={{ fontSize:'0.75rem', color:'var(--text-light)', fontWeight:600 }}>{c.label}</div>
                 </div>
               ))}
             </div>
 
-            {/* Today's mood check-in */}
+            {/* Mood check-in */}
             <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)', marginBottom:'1.5rem' }}>
               <div style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--blue-deep)', marginBottom:'1rem' }}>How are you feeling today?</div>
-              <div style={{ display:'flex', gap:'1rem', flexWrap:'wrap' }}>
-                {['😞','😔','😐','🙂','😊','😄','🤩'].map((e, i) => (
-                  <button key={i} onClick={() => setMoodToday(i)} style={{
-                    fontSize:'1.8rem', padding:'0.5rem', border:`2px solid ${moodToday === i ? 'var(--sky)' : 'var(--blue-pale)'}`,
-                    borderRadius:'var(--radius-sm)', background: moodToday === i ? 'var(--sky-light)' : 'var(--off-white)',
-                    cursor:'pointer', transition:'all 0.2s',
-                  }}>{e}</button>
+              <div style={{ display:'flex', gap:'0.75rem', flexWrap:'wrap' }}>
+                {MOODS.map((e,i)=>(
+                  <button key={i} onClick={()=>saveMood(i)} style={{ fontSize:'1.8rem', padding:'0.5rem', border:`2px solid ${moodToday===i?'var(--sky)':'var(--blue-pale)'}`, borderRadius:'var(--radius-sm)', background:moodToday===i?'var(--sky-light)':'var(--off-white)', cursor:'pointer', transition:'all 0.2s' }}>{e}</button>
                 ))}
               </div>
-              {moodToday !== null && <p style={{ marginTop:'0.75rem', color:'var(--green-deep)', fontFamily:'var(--font-body)', fontSize:'0.85rem', fontWeight:600 }}>✓ Mood logged. Keep it up!</p>}
+              {moodSaved && <p style={{ marginTop:'0.75rem', color:'var(--green-deep)', fontSize:'0.85rem', fontWeight:600 }}>✓ Mood logged. Keep it up!</p>}
             </div>
 
-            {/* Goals progress */}
-            <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)' }}>
-              <div style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--blue-deep)', marginBottom:'1.5rem' }}>Therapy Goals Progress</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
-                {GOALS.map((g,i) => (
-                  <div key={i}>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.4rem' }}>
-                      <span style={{ fontFamily:'var(--font-body)', fontSize:'0.85rem', fontWeight:600, color:'var(--text-mid)' }}>{g.label}</span>
-                      <span style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'var(--sky)', fontWeight:700 }}>{g.pct}%</span>
-                    </div>
-                    <ProgressBar pct={g.pct}/>
-                  </div>
-                ))}
-              </div>
+            <div style={{ display:'flex', gap:'1rem', flexWrap:'wrap' }}>
+              <button className="btn btn-primary" onClick={()=>navigate('/book')}>Book New Session</button>
+              <button className="btn btn-outline" onClick={()=>setTab('Mood Diary')}>Mood Diary →</button>
+              <button className="btn btn-outline" onClick={()=>setTab('Journal')}>Journal →</button>
             </div>
           </div>
         )}
 
         {/* APPOINTMENTS */}
-        {tab === 'Appointments' && (
+        {tab==='Appointments' && (
           <div>
-            <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.25rem' }}>Upcoming Sessions</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'1rem', marginBottom:'2.5rem' }}>
-              {UPCOMING.map((a,i) => (
-                <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--blue-pale)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                  <div style={{ display:'flex', gap:'1rem', alignItems:'center' }}>
-                    <div style={{ width:48, height:48, borderRadius:'50%', background:'var(--sky-light)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.3rem' }}>📅</div>
-                    <div>
-                      <div style={{ fontFamily:'var(--font-body)', fontWeight:700, color:'var(--blue-deep)' }}>{a.type} · {a.mode}</div>
-                      <div style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'var(--text-light)' }}>{a.therapist} · {a.date} at {a.time}</div>
-                    </div>
-                  </div>
-                  <div style={{ display:'flex', gap:'0.75rem', alignItems:'center' }}>
-                    <span style={{ fontSize:'0.72rem', fontWeight:800, padding:'3px 10px', borderRadius:100, background: a.status==='confirmed' ? 'var(--green-mist)' : 'var(--earth-cream)', color: a.status==='confirmed' ? 'var(--green-deep)' : 'var(--earth-warm)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{a.status}</span>
-                    {a.status === 'confirmed' && <button className="btn btn-primary" style={{ fontSize:'0.8rem', padding:'0.4rem 1rem' }}>Join Call →</button>}
-                    <button className="btn btn-outline" style={{ fontSize:'0.78rem', padding:'0.35rem 0.9rem' }}>Reschedule</button>
-                  </div>
-                </div>
-              ))}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.25rem' }}>
+              <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)' }}>Upcoming Sessions</h2>
+              <button className="btn btn-primary" style={{ fontSize:'0.82rem', padding:'0.5rem 1rem' }} onClick={()=>navigate('/book')}>+ Book New</button>
             </div>
-            <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.25rem' }}>Past Sessions</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem' }}>
-              {PAST.map((a,i) => (
-                <div key={i} style={{ background:'var(--off-white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--earth-cream)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+
+            {loadingAppts ? <p style={{ color:'var(--text-light)' }}>Loading…</p>
+            : upcoming.length===0 ? (
+              <div style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'2rem', textAlign:'center', border:'1px solid var(--blue-pale)', marginBottom:'2rem' }}>
+                <p style={{ color:'var(--text-light)', marginBottom:'1rem' }}>No upcoming appointments.</p>
+                <button className="btn btn-primary" onClick={()=>navigate('/book')}>Book Your First Session →</button>
+              </div>
+            ) : upcoming.map((a,i)=>(
+              <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--blue-pale)', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.75rem', flexWrap:'wrap', gap:'1rem' }}>
+                <div style={{ display:'flex', gap:'1rem', alignItems:'center' }}>
+                  <div style={{ width:48, height:48, borderRadius:'50%', background:'var(--sky-light)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.3rem' }}>📅</div>
                   <div>
-                    <div style={{ fontFamily:'var(--font-body)', fontWeight:600, color:'var(--text-mid)' }}>{a.therapist} · {a.date} at {a.time}</div>
-                    <div style={{ fontFamily:'var(--font-body)', fontSize:'0.8rem', color:'var(--text-light)', marginTop:2 }}>{a.notes}</div>
+                    <div style={{ fontWeight:700, color:'var(--blue-deep)' }}>{a.type} · {a.therapists?.profiles?.full_name||'Therapist'}</div>
+                    <div style={{ fontSize:'0.82rem', color:'var(--text-light)' }}>{fmtDate(a.scheduled_at)} at {fmtTime(a.scheduled_at)}</div>
                   </div>
-                  <button className="btn btn-outline" style={{ fontSize:'0.78rem', padding:'0.35rem 0.9rem' }}>View Notes</button>
                 </div>
-              ))}
-            </div>
+                <div style={{ display:'flex', gap:'0.75rem', alignItems:'center' }}>
+                  <span style={{ fontSize:'0.72rem', fontWeight:800, padding:'3px 10px', borderRadius:100, background:a.status==='confirmed'?'var(--green-mist)':'var(--earth-cream)', color:a.status==='confirmed'?'var(--green-deep)':'var(--earth-warm)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{a.status}</span>
+                  <button className="btn btn-outline" style={{ fontSize:'0.78rem', padding:'0.35rem 0.9rem' }} onClick={()=>cancelAppt(a.id)}>Cancel</button>
+                </div>
+              </div>
+            ))}
+
+            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', margin:'2rem 0 1rem' }}>Past Sessions</h2>
+            {past.length===0 ? <p style={{ color:'var(--text-light)' }}>No past sessions yet.</p>
+            : past.map((a,i)=>(
+              <div key={i} style={{ background:'var(--off-white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--earth-cream)', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.75rem', flexWrap:'wrap', gap:'0.75rem' }}>
+                <div>
+                  <div style={{ fontWeight:600, color:'var(--text-mid)' }}>{a.therapists?.profiles?.full_name||'Therapist'} · {fmtDate(a.scheduled_at)}</div>
+                  <span style={{ fontSize:'0.75rem', fontWeight:700, color: a.status==='completed'?'var(--green-deep)':'#c0392b', textTransform:'uppercase' }}>{a.status}</span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         {/* MOOD DIARY */}
-        {tab === 'Mood Diary' && (
+        {tab==='Mood Diary' && (
           <div>
-            <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.5rem' }}>This Week's Mood Log</div>
-            <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)', marginBottom:'2rem' }}>
-              <div style={{ display:'flex', alignItems:'flex-end', gap:'1.25rem', height:140 }}>
-                {MOODS.map((m,i) => (
-                  <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
-                    <span style={{ fontSize:'0.82rem', fontWeight:700, color:'var(--sky)' }}>{m.score}</span>
-                    <div style={{ width:'100%', background:'var(--sky)', borderRadius:'var(--radius-sm) var(--radius-sm) 0 0', height: m.score * 11, transition:'height 1s' }}/>
-                    <span style={{ fontSize:'1.1rem' }}>{m.emoji}</span>
-                    <span style={{ fontSize:'0.7rem', color:'var(--text-light)', fontWeight:700 }}>{m.day}</span>
+            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.5rem' }}>Mood Log</h2>
+            {moodLogs.length===0 ? (
+              <div style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'2rem', textAlign:'center', border:'1px solid var(--blue-pale)' }}>
+                <p style={{ color:'var(--text-light)', marginBottom:'1rem' }}>No mood logs yet. Log your first mood above!</p>
+                <button className="btn btn-outline" onClick={()=>setTab('Overview')}>Log Mood Now</button>
+              </div>
+            ) : (
+              <>
+                {/* Bar chart */}
+                <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)', marginBottom:'1.5rem' }}>
+                  <div style={{ display:'flex', alignItems:'flex-end', gap:'1rem', height:140, marginBottom:'0.5rem' }}>
+                    {moodLogs.slice(0,14).reverse().map((m,i)=>(
+                      <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+                        <span style={{ fontSize:'0.78rem', fontWeight:700, color:'var(--sky)' }}>{m.mood_score}</span>
+                        <div style={{ width:'100%', background:'var(--sky)', borderRadius:'var(--radius-sm) var(--radius-sm) 0 0', height:m.mood_score*11, transition:'height 1s' }}/>
+                        <span style={{ fontSize:'0.65rem', color:'var(--text-light)' }}>{new Date(m.logged_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Log list */}
+                {moodLogs.map((m,i)=>(
+                  <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'1rem 1.25rem', border:'1px solid var(--blue-pale)', marginBottom:'0.5rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <div>
+                      <span style={{ fontSize:'1.5rem', marginRight:'0.75rem' }}>{MOODS[Math.min(m.mood_score-1,MOODS.length-1)]}</span>
+                      <strong>{m.mood_score}/10</strong>
+                      {m.notes && <span style={{ fontSize:'0.82rem', color:'var(--text-light)', marginLeft:'0.75rem' }}>{m.notes}</span>}
+                    </div>
+                    <span style={{ fontSize:'0.75rem', color:'var(--text-light)' }}>{fmtDate(m.logged_at)}</span>
                   </div>
                 ))}
-              </div>
-            </div>
-            <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)' }}>
-              <div style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--blue-deep)', marginBottom:'1rem' }}>Log Today's Mood</div>
-              <div style={{ display:'flex', gap:'0.75rem', marginBottom:'1rem', flexWrap:'wrap' }}>
-                {['😞','😔','😐','🙂','😊','😄','🤩'].map((e,i) => (
-                  <button key={i} onClick={() => setMoodToday(i)} style={{
-                    fontSize:'2rem', padding:'0.6rem', border:`2px solid ${moodToday===i ? 'var(--sky)' : 'var(--blue-pale)'}`,
-                    borderRadius:'var(--radius-sm)', background: moodToday===i ? 'var(--sky-light)' : 'var(--off-white)', cursor:'pointer',
-                  }}>{e}</button>
-                ))}
-              </div>
-              <button className="btn btn-primary" onClick={() => moodToday !== null && alert('Mood saved!')}>Save Today's Mood</button>
-            </div>
+              </>
+            )}
           </div>
         )}
 
-        {/* RESOURCES */}
-        {tab === 'Resources' && (
+        {/* JOURNAL */}
+        {tab==='Journal' && (
           <div>
-            <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.5rem' }}>Therapy Materials</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-              {WORKSHEETS.map((w,i) => (
-                <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--blue-pale)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                  <div style={{ display:'flex', gap:'1rem', alignItems:'center' }}>
-                    <div style={{ width:42, height:42, borderRadius:'var(--radius-sm)', background:'var(--blue-mist)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem' }}>📄</div>
-                    <div>
-                      <div style={{ fontFamily:'var(--font-body)', fontWeight:700, color:'var(--blue-deep)' }}>{w.title}</div>
-                      <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:'var(--text-light)' }}>{w.type} · Uploaded {w.uploaded}</div>
-                    </div>
-                  </div>
-                  <div style={{ display:'flex', gap:'0.75rem', alignItems:'center' }}>
-                    <span style={{ fontSize:'0.72rem', fontWeight:800, padding:'3px 10px', borderRadius:100, background: w.status==='reviewed' ? 'var(--green-mist)' : 'var(--earth-cream)', color: w.status==='reviewed' ? 'var(--green-deep)' : 'var(--earth-warm)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{w.status}</span>
-                    <button className="btn btn-outline" style={{ fontSize:'0.78rem', padding:'0.35rem 0.9rem' }}>Download</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop:'1.5rem' }}>
-              <button className="btn btn-primary" style={{ gap:8 }}>
-                ↑ Upload Assignment
+            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.5rem' }}>My Journal</h2>
+            <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)', marginBottom:'2rem' }}>
+              <h3 style={{ fontSize:'1rem', color:'var(--blue-deep)', marginBottom:'1rem' }}>New Entry</h3>
+              <input placeholder="Title (optional)" value={newEntry.title}
+                onChange={e=>setNewEntry(n=>({...n,title:e.target.value}))}
+                style={{ width:'100%', padding:'0.65rem 0.85rem', border:'1px solid var(--blue-pale)', borderRadius:8, fontSize:'0.9rem', marginBottom:'0.75rem', boxSizing:'border-box', outline:'none' }}/>
+              <textarea placeholder="What's on your mind today?" value={newEntry.content} rows={4}
+                onChange={e=>setNewEntry(n=>({...n,content:e.target.value}))}
+                style={{ width:'100%', padding:'0.65rem 0.85rem', border:'1px solid var(--blue-pale)', borderRadius:8, fontSize:'0.88rem', resize:'vertical', boxSizing:'border-box', outline:'none', fontFamily:'var(--font-body)' }}/>
+              <button className="btn btn-primary" style={{ marginTop:'0.75rem' }} onClick={saveJournalEntry} disabled={savingEntry||!newEntry.content.trim()}>
+                {savingEntry ? 'Saving…' : 'Save Entry →'}
               </button>
             </div>
-          </div>
-        )}
 
-        {/* MESSAGES */}
-        {tab === 'Messages' && (
-          <div style={{ display:'flex', flexDirection:'column', height:'60vh' }}>
-            <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1rem' }}>Secure Messaging · Dr. Anita Shrestha</div>
-            <div style={{ flex:1, overflowY:'auto', background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'1.5rem', border:'1px solid var(--blue-pale)', display:'flex', flexDirection:'column', gap:'1rem', marginBottom:'1rem' }}>
-              {messages.map((m,i) => (
-                <div key={i} style={{ display:'flex', justifyContent: m.mine ? 'flex-end' : 'flex-start' }}>
-                  <div style={{ maxWidth:'70%', background: m.mine ? 'var(--sky)' : 'var(--off-white)', borderRadius: m.mine ? '16px 16px 4px 16px' : '16px 16px 16px 4px', padding:'0.85rem 1.1rem', border: m.mine ? 'none' : '1px solid var(--blue-pale)' }}>
-                    {!m.mine && <div style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', fontWeight:700, color:'var(--sky)', marginBottom:4 }}>{m.from}</div>}
-                    <p style={{ fontFamily:'var(--font-body)', fontSize:'0.88rem', color: m.mine ? 'white' : 'var(--text-dark)', margin:0, lineHeight:1.5 }}>{m.text}</p>
-                    <div style={{ fontFamily:'var(--font-body)', fontSize:'0.68rem', color: m.mine ? 'rgba(255,255,255,0.7)' : 'var(--text-light)', marginTop:4, textAlign:'right' }}>{m.time}</div>
-                  </div>
+            {entries.map((e,i)=>(
+              <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--blue-pale)', marginBottom:'0.75rem' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.5rem' }}>
+                  <strong style={{ color:'var(--blue-deep)' }}>{e.title||'Untitled'}</strong>
+                  <span style={{ fontSize:'0.75rem', color:'var(--text-light)' }}>{fmtDate(e.created_at)}</span>
                 </div>
-              ))}
-            </div>
-            <div style={{ display:'flex', gap:'0.75rem' }}>
-              <input value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMsg()} placeholder="Type a message... (Enter to send)" style={{ flex:1, padding:'0.7rem 1rem', border:'1.5px solid var(--blue-pale)', borderRadius:'var(--radius-sm)', fontFamily:'var(--font-body)', fontSize:'0.9rem', background:'var(--off-white)', outline:'none' }}/>
-              <button className="btn btn-primary" onClick={sendMsg}>Send →</button>
-            </div>
+                {e.mood_score&&<span style={{ fontSize:'0.75rem', background:'var(--sky-light)', color:'var(--sky)', padding:'0.15rem 0.5rem', borderRadius:100, fontWeight:600, marginBottom:'0.5rem', display:'inline-block' }}>Mood: {e.mood_score}/10</span>}
+              </div>
+            ))}
+            {entries.length===0&&<p style={{ color:'var(--text-light)' }}>No journal entries yet. Write your first one above!</p>}
           </div>
         )}
 
-        {/* PROGRESS */}
-        {tab === 'Progress' && (
+        {/* NOTIFICATIONS */}
+        {tab==='Notifications' && (
           <div>
-            <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.5rem' }}>Your Therapy Progress</div>
-            <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)', marginBottom:'1.5rem' }}>
-              <div style={{ fontFamily:'var(--font-body)', fontWeight:700, color:'var(--text-mid)', marginBottom:'1.5rem', fontSize:'0.85rem', textTransform:'uppercase', letterSpacing:'0.08em' }}>Goal Progress</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:'1.5rem' }}>
-                {GOALS.map((g,i) => (
-                  <div key={i}>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.5rem' }}>
-                      <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-dark)' }}>{g.label}</span>
-                      <span style={{ fontFamily:'var(--font-body)', fontSize:'0.88rem', color:'var(--sky)', fontWeight:700 }}>{g.pct}%</span>
-                    </div>
-                    <ProgressBar pct={g.pct} color={i%2===0?'var(--sky)':'var(--green-soft)'}/>
-                  </div>
-                ))}
-              </div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.25rem' }}>
+              <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)' }}>Notifications</h2>
+              {unreadCount>0&&<button className="btn btn-outline" style={{ fontSize:'0.82rem', padding:'0.4rem 0.9rem' }} onClick={markAllRead}>Mark all read</button>}
             </div>
-            <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)' }}>
-              <div style={{ fontFamily:'var(--font-body)', fontWeight:700, color:'var(--text-mid)', marginBottom:'1rem', fontSize:'0.85rem', textTransform:'uppercase', letterSpacing:'0.08em' }}>Therapist's Notes Summary</div>
-              <p style={{ fontFamily:'var(--font-body)', fontSize:'0.88rem', color:'var(--text-mid)', lineHeight:1.75 }}>
-                Significant improvement in anxiety management over the past 6 weeks. Client demonstrates growing ability to identify and challenge cognitive distortions. Sleep quality has improved following implementation of sleep hygiene protocols. Continue CBT exercises and mindfulness practices.
-              </p>
-              <div style={{ marginTop:'1rem', padding:'0.75rem 1rem', background:'var(--green-mist)', borderRadius:'var(--radius-sm)', fontSize:'0.8rem', color:'var(--green-deep)', fontWeight:600 }}>
-                ✓ 12 sessions completed · Next review: Session 15
+            {notifs.length===0 ? <p style={{ color:'var(--text-light)' }}>No notifications yet.</p>
+            : notifs.map((n,i)=>(
+              <div key={i} onClick={()=>!n.is_read&&markNotifRead(n.id)}
+                style={{ background:n.is_read?'var(--off-white)':'var(--white)', borderRadius:'var(--radius-md)', padding:'1rem 1.25rem', border:`1px solid ${n.is_read?'var(--earth-cream)':'var(--blue-pale)'}`, marginBottom:'0.5rem', cursor:n.is_read?'default':'pointer', display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'1rem' }}>
+                <div>
+                  {!n.is_read&&<span style={{ width:8, height:8, borderRadius:'50%', background:'var(--sky)', display:'inline-block', marginRight:8 }}/>}
+                  <strong style={{ color:'var(--blue-deep)', fontSize:'0.88rem' }}>{n.title}</strong>
+                  {n.message&&<p style={{ fontSize:'0.82rem', color:'var(--text-light)', marginTop:4 }}>{n.message}</p>}
+                </div>
+                <span style={{ fontSize:'0.72rem', color:'var(--text-light)', whiteSpace:'nowrap', flexShrink:0 }}>{fmtDate(n.created_at)}</span>
               </div>
-            </div>
+            ))}
           </div>
         )}
-
       </div>
     </div>
   )

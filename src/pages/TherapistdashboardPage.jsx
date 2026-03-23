@@ -1,405 +1,514 @@
-// eslint-disable-next-line no-unused-vars
-import { useState, useMemo } from 'react'
+// src/pages/TherapistdashboardPage.jsx
+import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
-import { MOCK_CLIENTS, MOCK_BOOKINGS, THERAPISTS } from '../data/Mockdata'
+import { useAuth } from '../context/AuthContext'
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 const C = {
-  skyBright: '#00BFFF', skyMid: '#009FD4', skyDeep: '#007BA8',
-  skyFaint: '#E0F7FF', skyFainter: '#F0FBFF', skyGhost: '#F8FEFF',
-  white: '#ffffff', mint: '#e8f3ee',
-  textDark: '#1a3a4a', textMid: '#2e6080', textLight: '#7a9aaa',
-  border: '#b0d4e8', borderFaint: '#daeef8', green: '#0B6623',
+  skyBright:'#00BFFF', skyMid:'#009FD4', skyDeep:'#007BA8',
+  skyFaint:'#E0F7FF', skyFainter:'#F0FBFF', white:'#ffffff', mint:'#e8f3ee',
+  textDark:'#1a3a4a', textMid:'#2e6080', textLight:'#7a9aaa',
+  border:'#b0d4e8', borderFaint:'#daeef8',
 }
-const navbarGrad  = `linear-gradient(to right,#00BFFF 0%,#00BFFF 2%,#e8f3ee 40%,#f0f8f4 60%,#f8fcfa 80%,#ffffff 100%)`
-const heroGrad    = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyMid} 45%,${C.skyBright} 85%,#22d3ee 100%)`
-const btnGrad     = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyBright} 100%)`
-const sectionGrad = `linear-gradient(135deg,${C.skyFainter} 0%,${C.mint} 60%,${C.skyFaint} 100%)`
+const btnGrad  = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyBright} 100%)`
+const heroGrad = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyMid} 45%,${C.skyBright} 85%,#22d3ee 100%)`
+const secGrad  = `linear-gradient(135deg,${C.skyFainter} 0%,${C.mint} 60%,${C.skyFaint} 100%)`
 
-const TABS = [
-  { id: 'home',     icon: '🏠', label: 'My Dashboard' },
-  { id: 'schedule', icon: '📅', label: 'My Schedule' },
-  { id: 'clients',  icon: '👥', label: 'My Clients' },
-  { id: 'notes',    icon: '📝', label: 'Session Notes' },
-]
+const CSS = `
+  .th-layout { min-height:100vh; background:${C.skyFainter}; display:flex; flex-direction:column; }
+  .th-topbar { background:${heroGrad}; padding:0.85rem clamp(1rem,3vw,2rem); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,0.15); }
+  .th-tabbar { background:${C.white}; border-bottom:1px solid ${C.borderFaint}; display:flex; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:0 clamp(0.5rem,3vw,2rem); }
+  .th-tabbar::-webkit-scrollbar { display:none; }
+  .th-tab-btn { flex-shrink:0; padding:0.85rem clamp(0.75rem,2vw,1.5rem); border:none; background:none; font-family:var(--font-body); font-size:0.85rem; cursor:pointer; transition:all 0.2s; border-bottom:2.5px solid transparent; white-space:nowrap; color:${C.textLight}; }
+  .th-tab-btn.active { color:${C.skyDeep}; font-weight:700; border-bottom-color:${C.skyDeep}; }
+  .th-content { padding:clamp(1rem,3vw,2rem); max-width:1100px; margin:0 auto; width:100%; }
+  .th-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
+  .th-stat-card { border-radius:14px; padding:clamp(1rem,3vw,1.5rem); border:1px solid ${C.borderFaint}; }
+  .th-table-wrap { background:${C.white}; border-radius:14px; border:1px solid ${C.borderFaint}; overflow:auto; }
+  table.th-table { width:100%; border-collapse:collapse; min-width:520px; }
+  table.th-table th { padding:0.65rem 1rem; text-align:left; font-size:0.72rem; font-weight:800; color:${C.textLight}; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid ${C.borderFaint}; background:${secGrad}; white-space:nowrap; }
+  table.th-table td { padding:0.75rem 1rem; font-size:0.84rem; color:${C.textMid}; border-bottom:1px solid ${C.borderFaint}; vertical-align:middle; }
+  table.th-table tr:hover td { background:${C.skyFainter}; }
+  .th-client-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1.25rem; }
+  @media(max-width:900px){ .th-stats{grid-template-columns:repeat(2,1fr);} }
+  @media(max-width:600px){ .th-stats{grid-template-columns:1fr 1fr;gap:0.75rem;} .th-content{padding:0.85rem;} .th-topbar{padding:0.65rem 1rem;} .th-client-grid{grid-template-columns:1fr;} }
+  @media(max-width:420px){ .th-stats{grid-template-columns:1fr;gap:0.6rem;} }
+`
 
-const STATUS_STYLE = {
-  upcoming:  { bg: C.skyFaint, color: C.skyDeep, label: 'Upcoming' },
-  completed: { bg: '#d1fae5',  color: '#065f46', label: 'Done' },
-  cancelled: { bg: '#fff5f5',  color: '#c62828', label: 'Cancelled' },
+function injectCSS() {
+  if (document.getElementById('therapist-dash-css')) return
+  const s = document.createElement('style')
+  s.id = 'therapist-dash-css'; s.textContent = CSS
+  document.head.appendChild(s)
+}
+
+const STATUS_COLOR = {
+  confirmed:{ bg:'#e8f8f0', color:'#1a7a4a' },
+  pending:  { bg:'#fff5e6', color:'#8a5a1a' },
+  completed:{ bg:'#e0f7ff', color:'#007BA8'  },
+  cancelled:{ bg:'#fff0f0', color:'#c0392b'  },
+  no_show:  { bg:'#fff0f0', color:'#c0392b'  },
 }
 
 function StatusBadge({ status }) {
-  const s = STATUS_STYLE[status] || STATUS_STYLE.upcoming
-  return <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '2px 9px', borderRadius: 100, background: s.bg, color: s.color, whiteSpace: 'nowrap' }}>{s.label}</span>
+  const s = STATUS_COLOR[status] || { bg:'#eee', color:'#444' }
+  return (
+    <span style={{ padding:'0.2rem 0.65rem', borderRadius:100, fontSize:'0.72rem', fontWeight:700,
+      background:s.bg, color:s.color, textTransform:'uppercase', letterSpacing:'0.06em', whiteSpace:'nowrap' }}>
+      {status?.replace('_',' ')}
+    </span>
+  )
 }
 
+const TABS = ['Dashboard', 'My Schedule', 'Clients', 'Notes']
+
 export default function TherapistDashboard() {
-  const { navigate } = useRouter()
-  const [tab, setTab] = useState('home')
-  const [selectedClient, setSC] = useState(null)
-  const [editingNote, setEN] = useState(null)
-  const [noteText, setNT] = useState('')
+  useEffect(() => { injectCSS() }, [])
+  const { navigate }                           = useRouter()
+  const { user, loading: authLoading, logout } = useAuth()
+  const [tab, setTab]         = useState('Dashboard')
+  const [appointments, setAppointments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState('')
 
-  const staffUser = JSON.parse(sessionStorage.getItem('staffUser') || '{}')
-  const therapist = THERAPISTS.find(t => t.id === staffUser.id) || THERAPISTS[0]
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) { navigate('/staff'); return }
+    if (!['therapist','admin','staff'].includes(user.role)) { navigate('/staff'); return }
+    loadAppointments()
+  }, [user, authLoading])
 
-  function logout() {
-    sessionStorage.removeItem('staffUser')
-    navigate('/staff')
+  async function loadAppointments() {
+    setLoading(true)
+    setError('')
+    try {
+      // ── Use the therapist-specific endpoint ──────────────────
+      const token = localStorage.getItem('accessToken')
+const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      })
+      if (!res.ok) throw new Error(`Server returned ${res.status}`)
+      const data = await res.json()
+      setAppointments(data.appointments || [])
+    } catch (err) {
+      setError(err.message)
+      setAppointments([])
+    } finally {
+      setLoading(false)
+    }
   }
 
-  /* Filter to this therapist's data */
-  const myBookings = MOCK_BOOKINGS.filter(b => b.therapistId === therapist.id)
-  const myClients  = MOCK_CLIENTS.filter(c => c.therapistId === therapist.id)
-  const upcoming   = myBookings.filter(b => b.status === 'upcoming').sort((a, b) => a.date.localeCompare(b.date))
-  // eslint-disable-next-line no-unused-vars
-  const completed  = myBookings.filter(b => b.status === 'completed')
-  const todayStr   = '2025-06-18' // mock today
-  const todaySessions = upcoming.filter(b => b.date === todayStr)
+  async function updateStatus(id, status) {
+    try {
+      const token = localStorage.getItem('accessToken')
+      await fetch(`${API_BASE}/admin/appointments/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ status }),
+      })
+      loadAppointments()
+    } catch (err) {
+      console.error('Status update failed:', err.message)
+    }
+  }
 
-  /* Calendar days for June 2025 */
-  const calDays = Array.from({ length: 30 }, (_, i) => {
-    const d = String(i + 1).padStart(2, '0')
-    const dateStr = `2025-06-${d}`
-    const sessions = upcoming.filter(b => b.date === dateStr)
-    return { day: i + 1, dateStr, sessions }
-  })
-  const firstDayOffset = 0 // June 2025 starts on Sunday
+  async function handleLogout() { await logout(); navigate('/staff') }
+
+  // ── Derived lists ────────────────────────────────────────────
+  const upcoming = appointments.filter(a => ['pending','confirmed'].includes(a.status))
+  const past     = appointments.filter(a => ['completed','cancelled','no_show'].includes(a.status))
+
+  // Unique clients from all appointments
+  const uniqueClients = [
+    ...new Map(
+      appointments
+        .filter(a => a.clients?.full_name)
+        .map(a => [a.client_id, a])
+    ).values()
+  ]
+
+  const fmtDate = d => new Date(d).toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' })
+  const fmtTime = d => new Date(d).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' })
+  const fmtFull = d => `${fmtDate(d)} at ${fmtTime(d)}`
+
+  if (authLoading) return (
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:C.skyFainter }}>
+      <div style={{ textAlign:'center', color:C.textLight }}>
+        <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>🌿</div>
+        <p style={{ fontFamily:'var(--font-body)' }}>Verifying session…</p>
+      </div>
+    </div>
+  )
 
   return (
-    <div style={{ minHeight: '100vh', background: C.skyGhost, display: 'flex', flexDirection: 'column' }}>
+    <div className="th-layout">
 
-      {/* ── Navbar ── */}
-      <nav style={{ background: navbarGrad, borderBottom: `1px solid ${C.borderFaint}`, padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100, boxShadow: `0 2px 16px rgba(0,191,255,0.08)` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ width: 34, height: 34, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
-              <path d="M12 2C8.5 2 5.5 4.5 5 8c-.3 2 .5 4 2 5.5L12 22l5-8.5c1.5-1.5 2.3-3.5 2-5.5C18.5 4.5 15.5 2 12 2zm0 9a3 3 0 110-6 3 3 0 010 6z"/>
-            </svg>
-          </div>
+      {/* ── Top bar ── */}
+      <div className="th-topbar">
+        <div style={{ display:'flex', alignItems:'center', gap:'0.85rem' }}>
+          <img src="/header.png" alt="Puja Samargi" style={{ height:32, objectFit:'contain' }}
+            onError={e => e.target.style.display='none'}/>
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', color: C.green }}>Puja Samargi</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem', fontWeight: 700, color: C.textLight, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Therapist Portal</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white', fontWeight: 800 }}>{therapist.avatar}</div>
-            <div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700, color: C.textDark, lineHeight: 1 }}>{therapist.name.split(' ').slice(0,2).join(' ')}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.62rem', color: C.textLight }}>{therapist.role.split(' ').slice(0,2).join(' ')}</div>
+            <div style={{ fontFamily:'var(--font-display)', fontSize:'0.95rem', color:'white' }}>
+              Therapist Portal
+            </div>
+            <div style={{ fontFamily:'var(--font-body)', fontSize:'0.65rem', color:'rgba(255,255,255,0.65)' }}>
+              Puja Samargi
             </div>
           </div>
-          <button onClick={logout} style={{ padding: '0.38rem 0.85rem', borderRadius: 8, border: `1px solid ${C.border}`, background: C.white, color: C.textMid, fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>Log Out</button>
         </div>
-      </nav>
+        <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
+          <div style={{ textAlign:'right' }}>
+            <div style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'white', fontWeight:600 }}>
+              {user?.fullName || user?.full_name || 'Therapist'}
+            </div>
+            <div style={{ fontFamily:'var(--font-body)', fontSize:'0.65rem', color:'rgba(255,255,255,0.65)' }}>
+              {user?.email}
+            </div>
+          </div>
+          <button onClick={handleLogout}
+            style={{ padding:'0.35rem 0.8rem', borderRadius:8, border:'1.5px solid rgba(255,255,255,0.35)',
+              background:'rgba(255,255,255,0.12)', color:'white', fontSize:'0.78rem',
+              cursor:'pointer', fontFamily:'var(--font-body)', whiteSpace:'nowrap' }}>
+            Log Out
+          </button>
+        </div>
+      </div>
 
-      <div style={{ display: 'flex', flex: 1 }}>
-        {/* Sidebar */}
-        <aside style={{ width: 200, background: C.white, borderRight: `1px solid ${C.borderFaint}`, padding: '1.5rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', position: 'sticky', top: 64, height: 'calc(100vh - 64px)' }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => { setTab(t.id); setSC(null) }} style={{
-              display: 'flex', alignItems: 'center', gap: '0.65rem',
-              width: '100%', padding: '0.65rem 0.85rem', borderRadius: 10,
-              border: 'none', background: tab === t.id ? C.skyFaint : 'transparent',
-              cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', transition: 'background 0.15s',
-            }}
-              onMouseEnter={e => { if (tab !== t.id) e.currentTarget.style.background = C.skyFainter }}
-              onMouseLeave={e => { if (tab !== t.id) e.currentTarget.style.background = 'transparent' }}
-            >
-              <span style={{ fontSize: '0.95rem' }}>{t.icon}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.83rem', fontWeight: tab === t.id ? 700 : 500, color: tab === t.id ? C.skyDeep : C.textMid }}>{t.label}</span>
-              {tab === t.id && <div style={{ marginLeft: 'auto', width: 4, height: 16, borderRadius: 2, background: btnGrad }} />}
+      {/* ── Tab bar ── */}
+      <div className="th-tabbar">
+        {TABS.map(t => (
+          <button key={t} className={`th-tab-btn${tab===t?' active':''}`} onClick={() => setTab(t)}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      <div className="th-content">
+
+        {/* ── Error banner ── */}
+        {error && (
+          <div style={{ background:'#fff0f0', border:'1px solid #fca5a5', borderRadius:10,
+            padding:'0.85rem 1.25rem', marginBottom:'1.25rem',
+            fontFamily:'var(--font-body)', fontSize:'0.85rem', color:'#c0392b',
+            display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <span>⚠ {error}</span>
+            <button onClick={loadAppointments}
+              style={{ background:'none', border:'1px solid #fca5a5', borderRadius:6,
+                padding:'0.25rem 0.75rem', color:'#c0392b', cursor:'pointer',
+                fontSize:'0.78rem', fontFamily:'var(--font-body)' }}>
+              Retry
             </button>
-          ))}
-        </aside>
+          </div>
+        )}
 
-        <main style={{ flex: 1, padding: '2rem', overflowX: 'hidden' }}>
-
-          {/* ══ HOME ══ */}
-          {tab === 'home' && (
-            <div>
-              {/* Personal hero */}
-              <div style={{ background: heroGrad, borderRadius: 20, padding: '2rem', marginBottom: '1.75rem', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', position: 'relative' }}>
-                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '3px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'white', fontWeight: 800, flexShrink: 0 }}>{therapist.avatar}</div>
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 700, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>Welcome back</div>
-                    <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'white', margin: 0, lineHeight: 1.2 }}>{therapist.name}</h2>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', color: 'rgba(255,255,255,0.75)', marginTop: '0.2rem' }}>{therapist.role}</div>
+        {/* ════ DASHBOARD ════ */}
+        {tab === 'Dashboard' && (
+          <div>
+            {/* Stats */}
+            <div className="th-stats">
+              {[
+                { label:'Upcoming Sessions',    val: upcoming.length,                                   icon:'📅', color:C.skyFaint  },
+                { label:'Completed Sessions',   val: past.filter(a=>a.status==='completed').length,     icon:'✅', color:'#e8f8f0'   },
+                { label:'Pending Confirmation', val: upcoming.filter(a=>a.status==='pending').length,   icon:'⏳', color:'#fff5e6'   },
+                { label:'Total Clients',        val: uniqueClients.length,                              icon:'👥', color:secGrad     },
+              ].map((c,i) => (
+                <div key={i} className="th-stat-card" style={{ background:c.color }}>
+                  <div style={{ fontSize:'1.4rem', marginBottom:'0.3rem' }}>{c.icon}</div>
+                  <div style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.5rem,4vw,1.8rem)',
+                    color:C.textDark, fontWeight:700 }}>
+                    {loading ? '…' : c.val}
                   </div>
-                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '1.5rem', position: 'relative' }}>
-                    {[{l:'Sessions Today',v:todaySessions.length},{l:'Upcoming',v:upcoming.length},{l:'My Clients',v:myClients.length}].map(s => (
-                      <div key={s.l} style={{ textAlign: 'center' }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'white', fontWeight: 800 }}>{s.v}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.68rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{s.l}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <div style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem',
+                    color:C.textLight, fontWeight:600 }}>{c.label}</div>
                 </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                {/* Today's sessions */}
-                <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, overflow: 'hidden' }}>
-                  <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${C.borderFaint}`, background: sectionGrad }}>
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', color: C.textDark }}>Today's Sessions — {todayStr}</span>
-                  </div>
-                  {todaySessions.length === 0 ? (
-                    <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: C.textLight }}>No sessions today 🌿</div>
-                  ) : todaySessions.map(b => (
-                    <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.9rem 1.1rem', borderBottom: `1px solid ${C.borderFaint}` }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white', fontWeight: 800, flexShrink: 0 }}>
-                        {b.clientName.split(' ').map(w=>w[0]).join('').slice(0,2)}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.84rem', fontWeight: 700, color: C.textDark }}>{b.clientName}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: C.textLight }}>{b.type} · Session #{b.sessionNo}</div>
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700, color: C.skyMid }}>{b.time}</div>
-                      <StatusBadge status={b.status} />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Upcoming */}
-                <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, overflow: 'hidden' }}>
-                  <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${C.borderFaint}`, background: sectionGrad, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', color: C.textDark }}>Upcoming Sessions</span>
-                    <button onClick={() => setTab('schedule')} style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: C.skyMid, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>View all →</button>
-                  </div>
-                  {upcoming.slice(0, 5).map(b => (
-                    <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1.1rem', borderBottom: `1px solid ${C.borderFaint}` }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: C.textLight, width: 44, flexShrink: 0, textAlign: 'center' }}>
-                        <div style={{ fontWeight: 700, color: C.skyMid }}>{b.date.split('-')[2]}</div>
-                        <div>Jun</div>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.83rem', fontWeight: 700, color: C.textDark }}>{b.clientName}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.71rem', color: C.textLight }}>{b.time} · {b.type}</div>
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: b.paid ? '#065f46' : '#c62828', fontWeight: 700 }}>{b.paid ? '✓ Paid' : '⚠ Unpaid'}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
-          )}
 
-          {/* ══ SCHEDULE ══ */}
-          {tab === 'schedule' && (
-            <div>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: C.textDark, marginBottom: '1.5rem' }}>My Schedule</h1>
-              {/* Mini calendar */}
-              <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, overflow: 'hidden', marginBottom: '1.5rem' }}>
-                <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${C.borderFaint}`, background: sectionGrad }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', color: C.textDark }}>June 2025</span>
-                </div>
-                <div style={{ padding: '1rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '0.3rem', marginBottom: '0.3rem' }}>
-                    {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-                      <div key={d} style={{ textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '0.65rem', fontWeight: 800, color: C.textLight, padding: '0.35rem 0' }}>{d}</div>
-                    ))}
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '0.3rem' }}>
-                    {Array(firstDayOffset).fill(null).map((_, i) => <div key={`e${i}`} />)}
-                    {calDays.map(({ day, dateStr, sessions }) => {
-                      const isToday = dateStr === todayStr
-                      return (
-                        <div key={day} style={{
-                          textAlign: 'center', padding: '0.45rem 0.25rem', borderRadius: 10,
-                          background: isToday ? btnGrad : sessions.length > 0 ? C.skyFaint : 'transparent',
-                          border: sessions.length > 0 && !isToday ? `1px solid ${C.borderFaint}` : isToday ? 'none' : 'none',
-                          cursor: sessions.length > 0 ? 'pointer' : 'default',
-                        }}>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: isToday ? 800 : sessions.length > 0 ? 700 : 400, color: isToday ? 'white' : sessions.length > 0 ? C.skyDeep : C.textLight }}>{day}</div>
-                          {sessions.length > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: 2, marginTop: 2 }}>
-                              {sessions.slice(0,3).map((_, i) => (
-                                <div key={i} style={{ width: 4, height: 4, borderRadius: '50%', background: isToday ? 'rgba(255,255,255,0.7)' : C.skyBright }} />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* All sessions list */}
-              <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, overflow: 'hidden' }}>
-                <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${C.borderFaint}`, background: sectionGrad }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', color: C.textDark }}>All My Bookings</span>
-                </div>
-                {myBookings.map(b => (
-                  <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.9rem 1.1rem', borderBottom: `1px solid ${C.borderFaint}`, flexWrap: 'wrap' }}>
-                    <div style={{ width: 38, height: 38, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white', fontWeight: 800, flexShrink: 0 }}>
-                      {b.clientName.split(' ').map(w=>w[0]).join('').slice(0,2)}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 120 }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.84rem', fontWeight: 700, color: C.textDark }}>{b.clientName}</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: C.textLight }}>Session #{b.sessionNo} · {b.type}</div>
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: C.textMid, textAlign: 'center' }}>
-                      <div style={{ fontWeight: 600 }}>{b.date}</div>
-                      <div style={{ color: C.textLight }}>{b.time}</div>
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: b.paid ? '#065f46' : '#c62828', fontWeight: 700 }}>{b.paid ? '✓ Paid' : '⚠ Unpaid'}</div>
-                    <StatusBadge status={b.status} />
-                  </div>
-                ))}
-              </div>
+            {/* Upcoming appointments */}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
+              marginBottom:'1rem' }}>
+              <h3 style={{ fontFamily:'var(--font-display)', color:C.textDark,
+                fontSize:'clamp(1rem,2.5vw,1.2rem)', margin:0 }}>
+                Upcoming Sessions
+              </h3>
+              <button onClick={loadAppointments}
+                style={{ padding:'0.35rem 0.85rem', border:`1px solid ${C.borderFaint}`,
+                  borderRadius:8, background:C.white, color:C.textMid,
+                  fontSize:'0.78rem', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+                🔄 Refresh
+              </button>
             </div>
-          )}
 
-          {/* ══ CLIENTS ══ */}
-          {tab === 'clients' && (
-            <div>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: C.textDark, marginBottom: '1.5rem' }}>My Clients</h1>
-              {selectedClient ? (
-                <div>
-                  <button onClick={() => setSC(null)} style={{ marginBottom: '1.25rem', padding: '0.45rem 1rem', borderRadius: 8, border: `1.5px solid ${C.border}`, background: C.white, color: C.textMid, fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}>← Back to my clients</button>
-                  <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '1.5rem' }}>
-                    <div>
-                      <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, overflow: 'hidden' }}>
-                        <div style={{ background: heroGrad, padding: '1.5rem', textAlign: 'center' }}>
-                          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '3px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'white', fontWeight: 700, margin: '0 auto 0.75rem' }}>
-                            {selectedClient.name.split(' ').map(w=>w[0]).join('').slice(0,2)}
-                          </div>
-                          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'white' }}>{selectedClient.name}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: 'rgba(255,255,255,0.72)', marginTop: 4 }}>{selectedClient.email}</div>
-                          <div style={{ marginTop: '0.5rem' }}>
-                            <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '2px 10px', borderRadius: 100, background: 'rgba(255,255,255,0.2)', color: 'white' }}>{selectedClient.status.toUpperCase()}</span>
-                          </div>
-                        </div>
-                        <div style={{ padding: '1.1rem 1.25rem' }}>
-                          {[['Phone',selectedClient.phone],['Age',selectedClient.age],['Gender',selectedClient.gender],['District',selectedClient.district],['Total Sessions',selectedClient.totalSessions],['Last Session',selectedClient.lastSession||'—'],['Next Session',selectedClient.nextSession||'—']].map(([k,v]) => (
-                            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: `1px solid ${C.borderFaint}`, fontFamily: 'var(--font-body)', fontSize: '0.79rem' }}>
-                              <span style={{ color: C.textLight, fontWeight: 700 }}>{k}</span>
-                              <span style={{ color: C.textDark, fontWeight: 600 }}>{v}</span>
-                            </div>
-                          ))}
-                          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                            {selectedClient.tags.map(t => <span key={t} style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 9px', borderRadius: 100, background: C.skyFaint, color: C.skyMid }}>{t}</span>)}
-                          </div>
-                        </div>
-                      </div>
+            {loading ? (
+              <p style={{ color:C.textLight, fontFamily:'var(--font-body)' }}>Loading appointments…</p>
+            ) : upcoming.length === 0 ? (
+              <div style={{ background:C.white, borderRadius:12, padding:'2.5rem',
+                border:`1px solid ${C.borderFaint}`, textAlign:'center', color:C.textLight }}>
+                <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>📅</div>
+                <p style={{ fontFamily:'var(--font-body)', margin:0 }}>No upcoming sessions.</p>
+              </div>
+            ) : (
+              upcoming.slice(0, 8).map((a, i) => (
+                <div key={a.id || i}
+                  style={{ background:C.white, borderRadius:12,
+                    padding:'clamp(1rem,3vw,1.25rem) clamp(1rem,3vw,1.5rem)',
+                    border:`1px solid ${C.borderFaint}`, marginBottom:'0.75rem',
+                    display:'flex', justifyContent:'space-between',
+                    alignItems:'center', flexWrap:'wrap', gap:'0.75rem' }}>
+                  <div style={{ display:'flex', gap:'1rem', alignItems:'center' }}>
+                    <div style={{ width:40, height:40, borderRadius:'50%', background:C.skyFaint,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize:'1.1rem', flexShrink:0 }}>
+                      {a.clients?.avatar_url
+                        ? <img src={a.clients.avatar_url} style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }} alt="" />
+                        : '👤'}
                     </div>
                     <div>
-                      {/* My notes card */}
-                      <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, overflow: 'hidden', marginBottom: '1rem' }}>
-                        <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${C.borderFaint}`, background: sectionGrad, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: C.textDark }}>My Clinical Notes</span>
-                          <button onClick={() => { setEN(selectedClient.id); setNT(selectedClient.notes) }} style={{ padding: '0.3rem 0.8rem', borderRadius: 8, border: 'none', background: btnGrad, color: 'white', fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}>✏️ Edit</button>
-                        </div>
-                        <div style={{ padding: '1.1rem 1.25rem' }}>
-                          {editingNote === selectedClient.id ? (
-                            <div>
-                              <textarea value={noteText} onChange={e => setNT(e.target.value)}
-                                style={{ width: '100%', minHeight: 120, padding: '0.75rem', border: `1.5px solid ${C.skyBright}`, borderRadius: 10, fontFamily: 'var(--font-body)', fontSize: '0.84rem', color: C.textDark, resize: 'vertical', outline: 'none', boxSizing: 'border-box', background: C.skyGhost }} />
-                              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                                <button onClick={() => setEN(null)} style={{ padding: '0.4rem 0.85rem', borderRadius: 8, border: `1px solid ${C.border}`, background: C.white, color: C.textMid, fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                                <button onClick={() => { setEN(null); }} style={{ padding: '0.4rem 1rem', borderRadius: 8, border: 'none', background: btnGrad, color: 'white', fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>Save Notes</button>
-                              </div>
-                            </div>
-                          ) : (
-                            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.84rem', color: C.textMid, lineHeight: 1.72, margin: 0 }}>{selectedClient.notes || 'No notes yet. Click Edit to add notes.'}</p>
-                          )}
-                        </div>
+                      <div style={{ fontFamily:'var(--font-body)', fontWeight:700, color:C.textDark }}>
+                        {a.clients?.full_name || 'Client'}
                       </div>
-                      {/* Session history */}
-                      <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, overflow: 'hidden' }}>
-                        <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${C.borderFaint}`, background: sectionGrad }}>
-                          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: C.textDark }}>Session History</span>
-                        </div>
-                        {myBookings.filter(b => b.clientId === selectedClient.id).map(b => (
-                          <div key={b.id} style={{ padding: '0.85rem 1.1rem', borderBottom: `1px solid ${C.borderFaint}` }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: b.notes ? '0.4rem' : 0 }}>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', fontWeight: 700, color: C.textDark }}>Session #{b.sessionNo} — {b.date} @ {b.time}</div>
-                              <StatusBadge status={b.status} />
-                            </div>
-                            {b.notes && <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: C.textLight, lineHeight: 1.6, fontStyle: 'italic' }}>{b.notes}</div>}
-                          </div>
-                        ))}
+                      <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:C.textLight }}>
+                        {fmtFull(a.scheduled_at)} · {a.type}
                       </div>
+                      {a.clients?.phone && (
+                        <div style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', color:C.textLight }}>
+                          📞 {a.clients.phone}
+                        </div>
+                      )}
                     </div>
                   </div>
+                  <div style={{ display:'flex', gap:'0.6rem', alignItems:'center', flexWrap:'wrap' }}>
+                    <StatusBadge status={a.status} />
+                    {a.status === 'pending' && (
+                      <button onClick={() => updateStatus(a.id, 'confirmed')}
+                        style={{ padding:'0.32rem 0.85rem', border:'none', borderRadius:8,
+                          background:btnGrad, color:'white', fontSize:'0.78rem',
+                          fontWeight:700, cursor:'pointer', fontFamily:'var(--font-body)' }}>
+                        Confirm
+                      </button>
+                    )}
+                    {a.status === 'confirmed' && (
+                      <button onClick={() => updateStatus(a.id, 'completed')}
+                        style={{ padding:'0.32rem 0.85rem', border:`1px solid #22c55e`,
+                          borderRadius:8, background:'#e8f8f0', color:'#1a7a4a',
+                          fontSize:'0.78rem', fontWeight:700, cursor:'pointer',
+                          fontFamily:'var(--font-body)' }}>
+                        Mark Done
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: '1rem' }}>
-                  {myClients.map(c => (
-                    <div key={c.id} onClick={() => setSC(c)} style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s', boxShadow: `0 2px 10px rgba(0,191,255,0.05)` }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 8px 28px rgba(0,191,255,0.12)` }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 2px 10px rgba(0,191,255,0.05)` }}
-                    >
-                      <div style={{ background: heroGrad, padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                        <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'white', fontWeight: 700, flexShrink: 0 }}>
-                          {c.name.split(' ').map(w=>w[0]).join('').slice(0,2)}
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ════ MY SCHEDULE ════ */}
+        {tab === 'My Schedule' && (
+          <div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.25rem' }}>
+              <h2 style={{ fontFamily:'var(--font-display)', color:C.textDark,
+                fontSize:'clamp(1.1rem,3vw,1.4rem)', margin:0 }}>
+                My Schedule ({appointments.length} total)
+              </h2>
+              <button onClick={loadAppointments}
+                style={{ padding:'0.4rem 0.9rem', border:`1px solid ${C.borderFaint}`,
+                  borderRadius:8, background:C.white, color:C.textMid,
+                  fontSize:'0.8rem', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+                🔄 Refresh
+              </button>
+            </div>
+            <div className="th-table-wrap">
+              <table className="th-table">
+                <thead>
+                  <tr>
+                    {['Client','Phone','Date','Time','Type','Status','Action'].map(h => (
+                      <th key={h}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={7} style={{ textAlign:'center', padding:'2rem', color:C.textLight }}>
+                      Loading…
+                    </td></tr>
+                  ) : appointments.length === 0 ? (
+                    <tr><td colSpan={7} style={{ textAlign:'center', padding:'2rem', color:C.textLight }}>
+                      No appointments found.
+                    </td></tr>
+                  ) : (
+                    appointments.map((a, i) => (
+                      <tr key={a.id || i}>
+                        <td>
+                          <strong style={{ color:C.textDark, fontFamily:'var(--font-body)' }}>
+                            {a.clients?.full_name || '—'}
+                          </strong>
+                        </td>
+                        <td style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:C.textLight }}>
+                          {a.clients?.phone || '—'}
+                        </td>
+                        <td style={{ fontFamily:'var(--font-body)' }}>{fmtDate(a.scheduled_at)}</td>
+                        <td style={{ fontFamily:'var(--font-body)' }}>{fmtTime(a.scheduled_at)}</td>
+                        <td style={{ fontFamily:'var(--font-body)' }}>
+                          <span style={{ fontSize:'0.75rem', background:'#f0f4f8',
+                            padding:'0.18rem 0.5rem', borderRadius:5 }}>{a.type}</span>
+                        </td>
+                        <td><StatusBadge status={a.status} /></td>
+                        <td>
+                          <select
+                            value={a.status}
+                            onChange={e => updateStatus(a.id, e.target.value)}
+                            style={{ padding:'0.3rem 0.5rem', border:`1px solid ${C.borderFaint}`,
+                              borderRadius:6, fontSize:'0.78rem', cursor:'pointer',
+                              outline:'none', fontFamily:'var(--font-body)', color:C.textMid }}>
+                            {['pending','confirmed','completed','cancelled','no_show'].map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ════ CLIENTS ════ */}
+        {tab === 'Clients' && (
+          <div>
+            <h2 style={{ fontFamily:'var(--font-display)', color:C.textDark,
+              marginBottom:'1.25rem', fontSize:'clamp(1.1rem,3vw,1.4rem)' }}>
+              My Clients ({uniqueClients.length})
+            </h2>
+            {loading ? (
+              <p style={{ color:C.textLight, fontFamily:'var(--font-body)' }}>Loading…</p>
+            ) : uniqueClients.length === 0 ? (
+              <div style={{ background:C.white, borderRadius:14, padding:'2.5rem',
+                border:`1px solid ${C.borderFaint}`, textAlign:'center', color:C.textLight }}>
+                <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>👥</div>
+                <p style={{ fontFamily:'var(--font-body)', margin:0 }}>No clients yet.</p>
+              </div>
+            ) : (
+              <div className="th-client-grid">
+                {uniqueClients.map((a, i) => {
+                  const clientSessions = appointments.filter(ap => ap.client_id === a.client_id)
+                  const lastSession    = clientSessions[0]
+                  return (
+                    <div key={i}
+                      style={{ background:C.white, borderRadius:14, padding:'1.5rem',
+                        border:`1px solid ${C.borderFaint}`,
+                        boxShadow:`0 2px 10px rgba(0,191,255,0.05)` }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'0.85rem', marginBottom:'1rem' }}>
+                        <div style={{ width:44, height:44, borderRadius:'50%', background:btnGrad,
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          color:'white', fontWeight:800, fontSize:'1rem', flexShrink:0 }}>
+                          {(a.clients?.full_name||'C').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', color: 'white' }}>{c.name}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.72)' }}>{c.email}</div>
+                          <div style={{ fontFamily:'var(--font-body)', fontWeight:700, color:C.textDark }}>
+                            {a.clients?.full_name || '—'}
+                          </div>
+                          <div style={{ fontSize:'0.75rem', color:C.textLight, fontFamily:'var(--font-body)' }}>
+                            {a.clients?.email || ''}
+                          </div>
+                          {a.clients?.phone && (
+                            <div style={{ fontSize:'0.72rem', color:C.textLight, fontFamily:'var(--font-body)' }}>
+                              📞 {a.clients.phone}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div style={{ padding: '1rem 1.1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', fontWeight: 800, color: C.skyDeep }}>{c.totalSessions}</div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem', color: C.textLight }}>Sessions</div>
-                          </div>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: C.textDark }}>{c.nextSession || '—'}</div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem', color: C.textLight }}>Next</div>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '2px 9px', borderRadius: 100, background: c.status === 'active' ? C.skyFaint : c.status === 'new' ? '#f0e6ff' : '#fef9c3', color: c.status === 'active' ? C.skyDeep : c.status === 'new' ? '#6c3fc5' : '#854d0e' }}>
-                              {c.status.charAt(0).toUpperCase()+c.status.slice(1)}
-                            </span>
-                          </div>
+                      <div style={{ borderTop:`1px solid ${C.borderFaint}`, paddingTop:'0.75rem' }}>
+                        <div style={{ display:'flex', justifyContent:'space-between',
+                          fontFamily:'var(--font-body)', fontSize:'0.75rem', color:C.textLight,
+                          marginBottom:'0.35rem' }}>
+                          <span>Sessions</span>
+                          <strong style={{ color:C.textDark }}>{clientSessions.length}</strong>
                         </div>
-                        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                          {c.tags.map(t => <span key={t} style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 8px', borderRadius: 100, background: C.skyFainter, color: C.skyMid, border: `1px solid ${C.borderFaint}` }}>{t}</span>)}
+                        <div style={{ display:'flex', justifyContent:'space-between',
+                          fontFamily:'var(--font-body)', fontSize:'0.75rem', color:C.textLight,
+                          marginBottom:'0.5rem' }}>
+                          <span>Last session</span>
+                          <span>{lastSession ? fmtDate(lastSession.scheduled_at) : '—'}</span>
                         </div>
+                        {lastSession && <StatusBadge status={lastSession.status} />}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
-          {/* ══ NOTES ══ */}
-          {tab === 'notes' && (
-            <div>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: C.textDark, marginBottom: '1.5rem' }}>Session Notes</h1>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                {myBookings.filter(b => b.notes).map(b => (
-                  <div key={b.id} style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.borderFaint}`, padding: '1.1rem 1.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.6rem' }}>
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', color: 'white', fontWeight: 800, flexShrink: 0 }}>
-                        {b.clientName.split(' ').map(w=>w[0]).join('').slice(0,2)}
+        {/* ════ NOTES ════ */}
+        {tab === 'Notes' && (
+          <div>
+            <h2 style={{ fontFamily:'var(--font-display)', color:C.textDark,
+              marginBottom:'1.25rem', fontSize:'clamp(1.1rem,3vw,1.4rem)' }}>
+              Session Notes
+            </h2>
+            {past.filter(a => a.status === 'completed').length === 0 ? (
+              <div style={{ background:C.white, borderRadius:14, padding:'2.5rem',
+                border:`1px solid ${C.borderFaint}`, textAlign:'center', color:C.textLight }}>
+                <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>📝</div>
+                <p style={{ fontFamily:'var(--font-body)', marginBottom:'1.5rem', lineHeight:1.7 }}>
+                  Session notes appear here after sessions are marked as completed.
+                </p>
+                <button onClick={() => setTab('My Schedule')}
+                  style={{ padding:'0.65rem 1.5rem', border:`1.5px solid ${C.skyBright}`,
+                    borderRadius:10, background:'transparent', color:C.skyMid,
+                    fontFamily:'var(--font-body)', fontWeight:700, fontSize:'0.88rem',
+                    cursor:'pointer' }}>
+                  View My Schedule →
+                </button>
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+                {past.filter(a => a.status === 'completed').map((a, i) => (
+                  <div key={a.id || i}
+                    style={{ background:C.white, borderRadius:12, padding:'1.25rem 1.5rem',
+                      border:`1px solid ${C.borderFaint}` }}>
+                    <div style={{ display:'flex', justifyContent:'space-between',
+                      alignItems:'flex-start', marginBottom:'0.75rem', flexWrap:'wrap', gap:'0.5rem' }}>
+                      <div>
+                        <div style={{ fontFamily:'var(--font-body)', fontWeight:700,
+                          color:C.textDark, marginBottom:'0.2rem' }}>
+                          {a.clients?.full_name || 'Client'}
+                        </div>
+                        <div style={{ fontFamily:'var(--font-body)', fontSize:'0.75rem', color:C.textLight }}>
+                          {fmtFull(a.scheduled_at)} · {a.type}
+                        </div>
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.84rem', fontWeight: 700, color: C.textDark }}>{b.clientName} — Session #{b.sessionNo}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.7rem', color: C.textLight }}>{b.date} · {b.time} · {b.type}</div>
-                      </div>
-                      <StatusBadge status={b.status} />
+                      <StatusBadge status={a.status} />
                     </div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.83rem', color: C.textMid, lineHeight: 1.7, padding: '0.75rem', background: `linear-gradient(135deg,${C.skyFainter},${C.mint})`, borderRadius: 10, borderLeft: `3px solid ${C.skyBright}` }}>
-                      {b.notes}
-                    </div>
+                    {a.notes ? (
+                      <p style={{ fontFamily:'var(--font-body)', fontSize:'0.85rem',
+                        color:C.textMid, lineHeight:1.7, margin:0,
+                        background:C.skyFainter, padding:'0.75rem', borderRadius:8 }}>
+                        {a.notes}
+                      </p>
+                    ) : (
+                      <p style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem',
+                        color:C.textLight, margin:0, fontStyle:'italic' }}>
+                        No session notes recorded.
+                      </p>
+                    )}
                   </div>
                 ))}
-                {myBookings.filter(b => b.notes).length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '4rem', fontFamily: 'var(--font-body)', color: C.textLight }}>No session notes recorded yet.</div>
-                )}
               </div>
-            </div>
-          )}
-
-        </main>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,40 +1,84 @@
+// src/context/RouterContext.jsx
+// Fixed: now parses dynamic :param segments directly from the URL
+// so /news/some-slug sets params.slug automatically on hard-refresh or popstate
+
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 const RouterContext = createContext(null)
 
+// ── Route definitions — ADD every dynamic route here ──────────
+// Order matters: more specific patterns first
+const DYNAMIC_ROUTES = [
+  { pattern: '/news/:slug',                  param: 'slug'         },
+  { pattern: '/assessment-take/:assessmentId', param: 'assessmentId' },
+  { pattern: '/psychological-view/:slug',    param: 'slug'         },
+  { pattern: '/therapist/:id',               param: 'id'           },
+  { pattern: '/blog/:slug',                  param: 'slug'         },
+  { pattern: '/product/:slug',               param: 'slug'         },
+  { pattern: '/course/:slug',                param: 'slug'         },
+]
+
+// Extract params from the current pathname by matching against DYNAMIC_ROUTES
+function extractParams(pathname) {
+  for (const route of DYNAMIC_ROUTES) {
+    const patternParts = route.pattern.split('/')
+    const pathParts    = pathname.split('/')
+
+    if (patternParts.length !== pathParts.length) continue
+
+    const match = patternParts.every((part, i) =>
+      part.startsWith(':') || part === pathParts[i]
+    )
+
+    if (match) {
+      const extracted = {}
+      patternParts.forEach((part, i) => {
+        if (part.startsWith(':')) {
+          extracted[part.slice(1)] = decodeURIComponent(pathParts[i])
+        }
+      })
+      return extracted
+    }
+  }
+  return {}
+}
+
 export function RouterProvider({ children }) {
-  // Initialise from the real browser URL so a hard-refresh lands on the right page
   const [currentPath, setCurrentPath] = useState(
     () => window.location.pathname || '/'
   )
-  const [params, setParams] = useState({})
+  // Initialise params from the URL immediately (handles hard-refresh)
+  const [params, setParams] = useState(
+    () => extractParams(window.location.pathname || '/')
+  )
 
-  // Listen to the browser's back / forward buttons
+  // Listen to browser back/forward
   useEffect(() => {
     function onPopState() {
-      setCurrentPath(window.location.pathname || '/')
+      const path = window.location.pathname || '/'
+      setCurrentPath(path)
+      setParams(extractParams(path))
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  const navigate = useCallback((path, newParams = {}) => {
-    if (path === currentPath) return          // already here — nothing to do
-    window.history.pushState({ path }, '', path)  // update the browser URL bar
+  const navigate = useCallback((path, extraParams = {}) => {
+    if (path === currentPath) return
+    window.history.pushState({ path }, '', path)
     setCurrentPath(path)
-    setParams(newParams)
+    // Merge URL-parsed params with any extra params passed programmatically
+    setParams({ ...extractParams(path), ...extraParams })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [currentPath])
 
-  // Also expose a replace function (useful for redirects without adding history entry)
-  const replace = useCallback((path, newParams = {}) => {
+  const replace = useCallback((path, extraParams = {}) => {
     window.history.replaceState({ path }, '', path)
     setCurrentPath(path)
-    setParams(newParams)
+    setParams({ ...extractParams(path), ...extraParams })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
-  // go(-1) / go(1) wrappers around history.go
   const goBack    = useCallback(() => window.history.back(),    [])
   const goForward = useCallback(() => window.history.forward(), [])
 

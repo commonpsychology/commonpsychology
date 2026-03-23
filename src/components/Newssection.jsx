@@ -1,6 +1,7 @@
 import { useRouter } from '../context/RouterContext'
 
 const NEWS_SOURCES = [
+   { name: 'News',     url: '/our-news',        icon: '📰', desc: 'Our Works and News' },
   { name: 'Psychology Today',     url: 'https://www.psychologytoday.com/us/basics',        icon: '🧠', desc: 'Latest in mental health & behavior' },
   { name: 'APA Monitor',          url: 'https://www.apa.org/monitor',                       icon: '📰', desc: 'American Psychological Association news' },
   { name: 'WHO Mental Health',    url: 'https://www.who.int/news-room/fact-sheets/detail/mental-health-strengthening-our-response', icon: '🌍', desc: 'Global mental health facts & updates' },

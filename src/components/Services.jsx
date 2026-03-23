@@ -5,6 +5,7 @@ const services = [
     icon: '🧠', iconClass: 'si-green',
     title: 'Individual Therapy',
     desc: 'One-on-one sessions with certified psychologists and counselors, available online or in-person.',
+    features: ['Licensed therapists', 'Online & in-person', 'Flexible scheduling'],
     link: 'Book a session',
     route: '/book',
   },
@@ -12,6 +13,7 @@ const services = [
     icon: '💑', iconClass: 'si-earth',
     title: 'Couples Counseling',
     desc: 'Rebuild connection and communication with your partner through guided therapeutic sessions.',
+    features: ['Joint & individual sessions', 'Communication tools', 'Conflict resolution'],
     link: 'Learn more',
     route: '/services',
   },
@@ -19,6 +21,7 @@ const services = [
     icon: '👨‍👩‍👧', iconClass: 'si-blue',
     title: 'Family Therapy',
     desc: 'Address family dynamics, resolve conflicts, and strengthen bonds with professional guidance.',
+    features: ['All ages welcome', 'Systemic approach', 'Home visit option'],
     link: 'Learn more',
     route: '/services',
   },
@@ -26,6 +29,7 @@ const services = [
     icon: '📝', iconClass: 'si-green',
     title: 'Mental Health Assessments',
     desc: 'Validated screening tools — PHQ-9, GAD-7, DASS-21 — to understand your mental health status.',
+    features: ['Free initial screening', 'Clinical-grade tools', 'Instant results'],
     link: 'Take a free test',
     route: '/assessments',
   },
@@ -33,6 +37,7 @@ const services = [
     icon: '📚', iconClass: 'si-earth',
     title: 'Online Courses',
     desc: 'Structured self-paced programs on stress, anxiety, mindfulness, and emotional regulation.',
+    features: ['Self-paced modules', 'Expert-led content', 'Certificate on completion'],
     link: 'Browse courses',
     route: '/courses',
   },
@@ -40,6 +45,7 @@ const services = [
     icon: '🛍️', iconClass: 'si-blue',
     title: 'Books & Workbooks',
     desc: 'Curated therapeutic books, worksheets, and self-help tools delivered to your door.',
+    features: ['Clinician-curated', 'Digital & physical', 'Free worksheets'],
     link: 'Visit store',
     route: '/store',
   },
@@ -63,18 +69,38 @@ export default function Services() {
         </button>
       </div>
 
-      <div className="services-grid">
+      {/* 
+        Uses services-grid-full which is defined in your CSS.
+        Grid is: 2 columns on large screens, 1 column on mobile.
+        We override the 3-col default with an inline style here.
+      */}
+      <div
+        className="services-grid-full"
+        style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}
+      >
         {services.map((s, i) => (
           <div
-            className="service-card"
+            className="service-card-full"
             key={i}
-            style={{ cursor: 'pointer' }}
             onClick={() => navigate(s.route)}
           >
             <div className={`service-icon ${s.iconClass}`}>{s.icon}</div>
-            <h3>{s.title}</h3>
-            <p>{s.desc}</p>
-            <span className="service-link">{s.link} →</span>
+            <h3 className="service-card-title">{s.title}</h3>
+            <p className="service-card-desc">{s.desc}</p>
+            <ul className="service-card-features">
+              {s.features.map((f, fi) => (
+                <li key={fi}>
+                  <span className="service-card-check">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <button
+              className="btn btn-sky-outline service-card-btn"
+              onClick={e => { e.stopPropagation(); navigate(s.route) }}
+            >
+              {s.link} →
+            </button>
           </div>
         ))}
       </div>

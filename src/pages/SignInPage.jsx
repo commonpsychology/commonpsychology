@@ -1,356 +1,213 @@
-import { useState } from 'react'
+// src/pages/SignInPage.jsx
+import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
+import { useAuth } from '../context/AuthContext'
+
+/* ── Inject responsive CSS once ─────────────────────────────── */
+const CSS = `
+  .signin-root {
+    min-height: 100vh;
+    background: var(--green-mist);
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    align-items: stretch;
+    overflow: hidden;
+  }
+  .signin-left {
+    background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 40%, #a5d6a7 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2.5rem;
+    border-right: 1px solid rgba(0,0,0,0.06);
+  }
+  .signin-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem);
+    background: var(--green-mist);
+  }
+  .signin-card {
+    background: var(--white, #ffffff);
+    border-radius: 20px;
+    padding: clamp(1.75rem, 4vw, 2.5rem);
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.1);
+  }
+  .signin-input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--earth-cream, #e8e0d0);
+    border-radius: 10px;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    outline: none;
+    color: var(--text-dark);
+    transition: border-color 0.2s;
+    background: white;
+    box-sizing: border-box;
+  }
+  .signin-input:focus { border-color: var(--green-soft, #4caf50); }
+  .signin-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--green-deep, #1a5c38);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    font-family: var(--font-body);
+  }
+  .signin-btn:hover:not(:disabled) { background: #154a2d; transform: translateY(-1px); }
+  .signin-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .signin-feature-pill {
+    background: white;
+    border-radius: 10px;
+    padding: 0.65rem 1rem;
+    font-size: 0.83rem;
+    color: var(--text-mid);
+    font-weight: 500;
+    font-family: var(--font-body);
+  }
+  /* ── Tablet ── */
+  @media (max-width: 900px) {
+    .signin-root { grid-template-columns: 340px 1fr; }
+  }
+  /* ── Mobile ── */
+  @media (max-width: 680px) {
+    .signin-root { grid-template-columns: 1fr; }
+    .signin-left  { display: none; }
+    .signin-right { padding: 1.5rem 1rem; align-items: flex-start; padding-top: 2.5rem; }
+    .signin-card  { border-radius: 16px; max-width: 100%; }
+  }
+`
+function injectCSS() {
+  if (document.getElementById('signin-css')) return
+  const s = document.createElement('style')
+  s.id = 'signin-css'; s.textContent = CSS
+  document.head.appendChild(s)
+}
 
 export default function SignInPage() {
-  const { navigate } = useRouter()
-  const [form, setForm] = useState({ email: '', password: '' })
+  useEffect(() => { injectCSS() }, [])
+  const { navigate }          = useRouter()
+  const { login }             = useAuth()
+  const [form, setForm]       = useState({ email: '', password: '' })
   const [showStaffMenu, setShowStaffMenu] = useState(false)
+  const [showPw, setShowPw]   = useState(false)
+  const [error, setError]     = useState('')
+  const [loading, setLoading] = useState(false)
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const inputStyle = {
-    width: '100%',
-    padding: '0.85rem 1rem',
-    border: '2px solid var(--earth-cream)',
-    borderRadius: 'var(--radius-md)',
-    fontFamily: 'var(--font-body)',
-    fontSize: '0.95rem',
-    outline: 'none',
-    color: 'var(--text-dark)',
-    transition: 'border-color 0.2s',
-    background: 'var(--white)',
-    boxSizing: 'border-box',
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError('')
+    if (!form.email || !form.password) { setError('Please enter your email and password.'); return }
+    setLoading(true)
+    try {
+      const data = await login(form.email, form.password)
+      const role = data.user?.role
+      if (role === 'admin' || role === 'staff') navigate('/staff/admin')
+      else if (role === 'therapist') navigate('/staff/therapist')
+      else navigate('/portal')
+    } catch (err) {
+      setError(err.message || 'Invalid email or password.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--green-mist)',
-      display: 'flex',
-      alignItems: 'stretch',
-      overflow: 'hidden',
-    }}>
+    <div className="signin-root">
 
-      {/* ── LEFT decorative panel ── */}
-      <div className="auth-panel-left" style={{
-        overflowY: 'auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '3rem 2.5rem',
-      }}>
-        <div style={{ textAlign: 'center', width: '100%', maxWidth: 320 }}>
-          <div style={{ fontSize: '3.5rem', marginBottom: '1.25rem' }}>🌿</div>
-          <h2 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '1.9rem',
-            color: 'var(--green-deep)',
-            marginBottom: '0.9rem',
-            lineHeight: 1.3,
-          }}>
-            Your Wellness<br />Journey Awaits
+      {/* ── Left decorative panel ── */}
+      <div className="signin-left">
+        <div style={{ textAlign:'center', width:'100%', maxWidth:300 }}>
+          <div style={{ fontSize:'3.5rem', marginBottom:'1.25rem' }}>🌿</div>
+          <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.85rem', color:'var(--green-deep)', marginBottom:'0.9rem', lineHeight:1.3 }}>
+            Your Wellness<br/>Journey Awaits
           </h2>
-          <p style={{
-            color: 'var(--text-light)',
-            fontSize: '0.92rem',
-            lineHeight: 1.75,
-            maxWidth: 280,
-            margin: '0 auto',
-          }}>
-            Access your therapy sessions, assessments, mood tracker, and wellness
-            resources — all in one place.
+          <p style={{ color:'var(--text-light)', fontSize:'0.9rem', lineHeight:1.75, maxWidth:260, margin:'0 auto 1.5rem' }}>
+            Access your therapy sessions, assessments, mood tracker, and more.
           </p>
-          <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-            {[
-              '🧠 Book therapy sessions online',
-              '📋 Take free mental health assessments',
-              '📖 Access 50+ wellness resources',
-              '📊 Track your mood daily',
-            ].map((item, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                background: 'var(--white)',
-                borderRadius: 'var(--radius-md)',
-                padding: '0.7rem 1rem',
-                fontSize: '0.83rem',
-                color: 'var(--text-mid)',
-                fontWeight: 500,
-                textAlign: 'left',
-              }}>
-                {item}
-              </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:'0.55rem' }}>
+            {['🔒 Private & confidential','📋 Progress always saved','🌿 Culturally sensitive care','📱 Access from anywhere'].map((item,i) => (
+              <div key={i} className="signin-feature-pill">{item}</div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── RIGHT form panel ── */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        padding: '3rem 1.5rem',
-      }}>
-        <div style={{
-          background: 'var(--white)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '2.5rem',
-          width: '100%',
-          maxWidth: 420,
-          boxShadow: 'var(--shadow-strong)',
-          boxSizing: 'border-box',
-        }}>
-
-          {/* Logo */}
-          <div
-            style={{ textAlign: 'center', marginBottom: '1.75rem', cursor: 'pointer' }}
-            onClick={() => navigate('/')}
-          >
-            <div style={{
-              width: 46, height: 46,
-              background: 'var(--green-deep)',
-              borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 0.75rem',
-            }}>
-              <svg viewBox="0 0 24 24" style={{ width: 22, height: 22, fill: 'white' }}>
-                <path d="M12 2C8.5 2 5.5 4.5 5 8c-.3 2 .5 4 2 5.5L12 22l5-8.5c1.5-1.5 2.3-3.5 2-5.5C18.5 4.5 15.5 2 12 2zm0 9a3 3 0 110-6 3 3 0 010 6z" />
-              </svg>
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.1rem',
-              color: 'var(--green-deep)',
-            }}>
-              Puja Samargi
-            </div>
-          </div>
-
-          <h2 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '1.55rem',
-            color: 'var(--green-deep)',
-            textAlign: 'center',
-            marginBottom: '0.35rem',
-          }}>
-            Welcome Back
-          </h2>
-          <p style={{
-            textAlign: 'center',
-            color: 'var(--text-light)',
-            fontSize: '0.88rem',
-            marginBottom: '1.75rem',
-          }}>
-            Sign in to your wellness account
+      {/* ── Right form ── */}
+      <div className="signin-right">
+        <div className="signin-card">
+          <h1 style={{ fontFamily:'var(--font-display)', fontSize:'1.75rem', color:'var(--green-deep)', marginBottom:'0.3rem' }}>Welcome back</h1>
+          <p style={{ color:'var(--text-light)', fontSize:'0.88rem', marginBottom:'1.75rem', fontFamily:'var(--font-body)' }}>
+            Sign in to continue your healing journey.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {/* Email */}
-            <div>
-              <label style={{
-                display: 'block', fontSize: '0.82rem',
-                fontWeight: 600, color: 'var(--text-mid)', marginBottom: '0.4rem',
-              }}>
-                Email
-              </label>
-              <input
-                type="email"
-                placeholder="your@email.com"
-                value={form.email}
-                onChange={e => update('email', e.target.value)}
-                style={inputStyle}
-                onFocus={e => e.target.style.borderColor = 'var(--green-soft)'}
-                onBlur={e  => e.target.style.borderColor = 'var(--earth-cream)'}
-              />
+          {error && (
+            <div style={{ background:'#fff0f0', border:'1.5px solid #f5a0a0', borderRadius:8, padding:'0.75rem 1rem', marginBottom:'1.25rem', color:'#c0392b', fontSize:'0.875rem', fontFamily:'var(--font-body)' }}>
+              {error}
             </div>
+          )}
 
-            {/* Password */}
+          <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-mid)' }}>
-                  Password
-                </label>
-                <a href="#" style={{ fontSize: '0.78rem', color: 'var(--green-mid)', textDecoration: 'none' }}>
-                  Forgot password?
-                </a>
+              <label style={{ display:'block', fontSize:'0.82rem', fontWeight:600, color:'var(--text-mid)', marginBottom:'0.4rem', fontFamily:'var(--font-body)' }}>Email</label>
+              <input className="signin-input" type="email" value={form.email} placeholder="you@example.com" autoComplete="email"
+                onChange={e => update('email', e.target.value)}/>
+            </div>
+            <div>
+              <label style={{ display:'block', fontSize:'0.82rem', fontWeight:600, color:'var(--text-mid)', marginBottom:'0.4rem', fontFamily:'var(--font-body)' }}>Password</label>
+              <div style={{ position:'relative' }}>
+                <input className="signin-input" type={showPw ? 'text' : 'password'} value={form.password} placeholder="••••••••" autoComplete="current-password"
+                  onChange={e => update('password', e.target.value)} style={{ paddingRight:'3.5rem' }}/>
+                <button type="button" onClick={() => setShowPw(v => !v)}
+                  style={{ position:'absolute', right:'0.85rem', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--text-light)', cursor:'pointer', fontSize:'0.78rem', fontFamily:'var(--font-body)', fontWeight:600 }}>
+                  {showPw ? 'Hide' : 'Show'}
+                </button>
               </div>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={e => update('password', e.target.value)}
-                style={inputStyle}
-                onFocus={e => e.target.style.borderColor = 'var(--green-soft)'}
-                onBlur={e  => e.target.style.borderColor = 'var(--earth-cream)'}
-              />
             </div>
-
-            {/* Submit */}
-            <button
-              className="btn btn-primary btn-lg"
-              style={{ width: '100%', justifyContent: 'center', marginTop: '0.25rem' }}
-              onClick={() => navigate('/')}
-            >
-              Sign In →
-            </button>
-
-            {/* Divider */}
-            <div style={{ textAlign: 'center', position: 'relative', margin: '0.1rem 0' }}>
-              <div style={{
-                position: 'absolute', top: '50%', left: 0, right: 0,
-                height: 1, background: 'var(--earth-cream)',
-              }} />
-              <span style={{
-                position: 'relative', background: 'var(--white)',
-                padding: '0 0.75rem', fontSize: '0.78rem', color: 'var(--text-light)',
-              }}>
-                or continue with
-              </span>
+            <div style={{ textAlign:'right', marginTop:'-0.25rem' }}>
+              <button type="button" onClick={() => navigate('/update-password')}
+                style={{ background:'none', border:'none', color:'var(--green-deep)', fontSize:'0.82rem', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+                Forgot password?
+              </button>
             </div>
-
-            {/* Google */}
-            <button
-              className="btn btn-outline btn-lg"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => navigate('/')}
-            >
-              🌐 Google
+            <button type="submit" className="signin-btn" disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign In →'}
             </button>
-          </div>
+          </form>
 
-          {/* Register link */}
-          <p style={{
-            textAlign: 'center', fontSize: '0.82rem',
-            color: 'var(--text-light)', marginTop: '1.5rem',
-          }}>
+          <div style={{ marginTop:'1.5rem', textAlign:'center', fontSize:'0.875rem', color:'var(--text-light)', fontFamily:'var(--font-body)' }}>
             Don't have an account?{' '}
-            <span
-              style={{ color: 'var(--green-mid)', fontWeight: 600, cursor: 'pointer' }}
-              onClick={() => navigate('/register')}
-            >
-              Create one →
-            </span>
-          </p>
+            <button onClick={() => navigate('/register')} style={{ background:'none', border:'none', color:'var(--green-deep)', fontWeight:700, cursor:'pointer', fontSize:'0.875rem' }}>
+              Create one free →
+            </button>
+          </div>
 
-          {/* ── Staff portal divider ── */}
-          <div style={{
-            marginTop: '1.75rem',
-            paddingTop: '1.5rem',
-            borderTop: '1px dashed var(--earth-cream)',
-          }}>
-
-            {/* Collapsed trigger */}
-            {!showStaffMenu && (
-              <p style={{ textAlign: 'center', fontSize: '0.78rem', color: 'var(--text-light)', margin: 0 }}>
-                Are you a staff member?{' '}
-                <span
-                  style={{ color: 'var(--sky)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 3 }}
-                  onClick={() => setShowStaffMenu(true)}
-                >
-                  Staff login →
-                </span>
-              </p>
-            )}
-
-            {/* Expanded staff role picker */}
+          <div style={{ marginTop:'1.25rem', textAlign:'center' }}>
+            <button onClick={() => setShowStaffMenu(v => !v)}
+              style={{ background:'none', border:'1px solid var(--earth-cream)', borderRadius:6, padding:'0.4rem 0.85rem', fontSize:'0.78rem', color:'var(--text-light)', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+              🔑 Staff / Admin Login
+            </button>
             {showStaffMenu && (
-              <div style={{ animation: 'fadeIn 0.2s ease both' }}>
-                <p style={{
-                  textAlign: 'center', fontSize: '0.78rem',
-                  color: 'var(--text-light)', marginBottom: '0.85rem',
-                }}>
-                  Select your staff role to continue:
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
-
-                  {/* Admin */}
-                  <button
-                    onClick={() => navigate('/staff')}
-                    style={{
-                      padding: '0.75rem 0.5rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1.5px solid var(--sky)',
-                      background: 'var(--sky-light)',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-body)',
-                      display: 'flex', flexDirection: 'column',
-                      alignItems: 'center', gap: '0.35rem',
-                      transition: 'all 0.18s ease',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = 'var(--sky)'
-                      e.currentTarget.style.color = 'white'
-                      e.currentTarget.querySelectorAll('span').forEach(s => s.style.color = 'white')
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'var(--sky-light)'
-                      e.currentTarget.style.color = ''
-                      e.currentTarget.querySelectorAll('span').forEach(s => s.style.color = '')
-                    }}
-                  >
-                    <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>🛡️</span>
-                    <span style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '0.8rem', fontWeight: 700,
-                      color: 'var(--sky-dark)',
-                    }}>Admin</span>
-                    <span style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '0.65rem', color: 'var(--text-light)',
-                    }}>Full portal access</span>
-                  </button>
-
-                  {/* Therapist */}
-                  <button
-                    onClick={() => navigate('/staff')}
-                    style={{
-                      padding: '0.75rem 0.5rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1.5px solid var(--green-soft)',
-                      background: 'var(--green-mist)',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-body)',
-                      display: 'flex', flexDirection: 'column',
-                      alignItems: 'center', gap: '0.35rem',
-                      transition: 'all 0.18s ease',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = 'var(--green-soft)'
-                      e.currentTarget.querySelectorAll('span').forEach(s => s.style.color = 'white')
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'var(--green-mist)'
-                      e.currentTarget.querySelectorAll('span').forEach(s => s.style.color = '')
-                    }}
-                  >
-                    <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>👩‍⚕️</span>
-                    <span style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '0.8rem', fontWeight: 700,
-                      color: 'var(--green-deep)',
-                    }}>Therapist</span>
-                    <span style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '0.65rem', color: 'var(--text-light)',
-                    }}>My clients & schedule</span>
-                  </button>
-
-                </div>
-
-                {/* Dismiss */}
-                <p style={{ textAlign: 'center', marginTop: '0.75rem' }}>
-                  <span
-                    style={{ fontSize: '0.72rem', color: 'var(--text-light)', cursor: 'pointer' }}
-                    onClick={() => setShowStaffMenu(false)}
-                  >
-                    ← Back to client login
-                  </span>
-                </p>
+              <div style={{ marginTop:'0.75rem', display:'flex', flexDirection:'column', gap:'0.5rem' }}>
+                <button onClick={() => navigate('/staff')} style={{ background:'var(--earth-cream)', border:'none', borderRadius:6, padding:'0.5rem', fontSize:'0.82rem', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+                  ⚙️ Admin Dashboard
+                </button>
+                <button onClick={() => navigate('/staff')} style={{ background:'var(--earth-cream)', border:'none', borderRadius:6, padding:'0.5rem', fontSize:'0.82rem', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+                  🩺 Therapist Portal
+                </button>
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
