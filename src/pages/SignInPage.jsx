@@ -1,9 +1,8 @@
 // src/pages/SignInPage.jsx
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
-import { useAuth } from '../context/AuthContext'
+import { useAuth, useAuthGuard } from '../context/AuthContext'
 
-/* ── Inject responsive CSS once ─────────────────────────────── */
 const CSS = `
   .signin-root {
     min-height: 100vh;
@@ -74,11 +73,9 @@ const CSS = `
     font-weight: 500;
     font-family: var(--font-body);
   }
-  /* ── Tablet ── */
   @media (max-width: 900px) {
     .signin-root { grid-template-columns: 340px 1fr; }
   }
-  /* ── Mobile ── */
   @media (max-width: 680px) {
     .signin-root { grid-template-columns: 1fr; }
     .signin-left  { display: none; }
@@ -86,6 +83,7 @@ const CSS = `
     .signin-card  { border-radius: 16px; max-width: 100%; }
   }
 `
+
 function injectCSS() {
   if (document.getElementById('signin-css')) return
   const s = document.createElement('style')
@@ -95,6 +93,14 @@ function injectCSS() {
 
 export default function SignInPage() {
   useEffect(() => { injectCSS() }, [])
+
+  // ── FIX: replaces all pushState/popstate hacks ───────────────
+  // If the user is already logged in and lands here (e.g. via the
+  // browser back button), they are immediately redirected to their
+  // dashboard. No history manipulation needed.
+  useAuthGuard()
+  // ─────────────────────────────────────────────────────────────
+
   const { navigate }          = useRouter()
   const { login }             = useAuth()
   const [form, setForm]       = useState({ email: '', password: '' })
@@ -102,19 +108,23 @@ export default function SignInPage() {
   const [showPw, setShowPw]   = useState(false)
   const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
+
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    if (!form.email || !form.password) { setError('Please enter your email and password.'); return }
+    if (!form.email || !form.password) {
+      setError('Please enter your email and password.')
+      return
+    }
     setLoading(true)
     try {
       const data = await login(form.email, form.password)
       const role = data.user?.role
       if (role === 'admin' || role === 'staff') navigate('/staff/admin')
-      else if (role === 'therapist') navigate('/staff/therapist')
-      else navigate('/portal')
+      else if (role === 'therapist')            navigate('/staff/therapist')
+      else                                      navigate('/portal')
     } catch (err) {
       setError(err.message || 'Invalid email or password.')
     } finally {
@@ -127,16 +137,16 @@ export default function SignInPage() {
 
       {/* ── Left decorative panel ── */}
       <div className="signin-left">
-        <div style={{ textAlign:'center', width:'100%', maxWidth:300 }}>
-          <div style={{ fontSize:'3.5rem', marginBottom:'1.25rem' }}>🌿</div>
-          <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.85rem', color:'var(--green-deep)', marginBottom:'0.9rem', lineHeight:1.3 }}>
-            Your Wellness<br/>Journey Awaits
+        <div style={{ textAlign: 'center', width: '100%', maxWidth: 300 }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: '1.25rem' }}>🌿</div>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.85rem', color: 'var(--green-deep)', marginBottom: '0.9rem', lineHeight: 1.3 }}>
+            Your Wellness<br />Journey Awaits
           </h2>
-          <p style={{ color:'var(--text-light)', fontSize:'0.9rem', lineHeight:1.75, maxWidth:260, margin:'0 auto 1.5rem' }}>
+          <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', lineHeight: 1.75, maxWidth: 260, margin: '0 auto 1.5rem' }}>
             Access your therapy sessions, assessments, mood tracker, and more.
           </p>
-          <div style={{ display:'flex', flexDirection:'column', gap:'0.55rem' }}>
-            {['🔒 Private & confidential','📋 Progress always saved','🌿 Culturally sensitive care','📱 Access from anywhere'].map((item,i) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+            {['🔒 Private & confidential', '📋 Progress always saved', '🌿 Culturally sensitive care', '📱 Access from anywhere'].map((item, i) => (
               <div key={i} className="signin-feature-pill">{item}</div>
             ))}
           </div>
@@ -146,37 +156,62 @@ export default function SignInPage() {
       {/* ── Right form ── */}
       <div className="signin-right">
         <div className="signin-card">
-          <h1 style={{ fontFamily:'var(--font-display)', fontSize:'1.75rem', color:'var(--green-deep)', marginBottom:'0.3rem' }}>Welcome back</h1>
-          <p style={{ color:'var(--text-light)', fontSize:'0.88rem', marginBottom:'1.75rem', fontFamily:'var(--font-body)' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--green-deep)', marginBottom: '0.3rem' }}>
+            Welcome back
+          </h1>
+          <p style={{ color: 'var(--text-light)', fontSize: '0.88rem', marginBottom: '1.75rem', fontFamily: 'var(--font-body)' }}>
             Sign in to continue your healing journey.
           </p>
 
           {error && (
-            <div style={{ background:'#fff0f0', border:'1.5px solid #f5a0a0', borderRadius:8, padding:'0.75rem 1rem', marginBottom:'1.25rem', color:'#c0392b', fontSize:'0.875rem', fontFamily:'var(--font-body)' }}>
+            <div style={{ background: '#fff0f0', border: '1.5px solid #f5a0a0', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1.25rem', color: '#c0392b', fontSize: '0.875rem', fontFamily: 'var(--font-body)' }}>
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
-              <label style={{ display:'block', fontSize:'0.82rem', fontWeight:600, color:'var(--text-mid)', marginBottom:'0.4rem', fontFamily:'var(--font-body)' }}>Email</label>
-              <input className="signin-input" type="email" value={form.email} placeholder="you@example.com" autoComplete="email"
-                onChange={e => update('email', e.target.value)}/>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-mid)', marginBottom: '0.4rem', fontFamily: 'var(--font-body)' }}>
+                Email
+              </label>
+              <input
+                className="signin-input"
+                type="email"
+                value={form.email}
+                placeholder="you@example.com"
+                autoComplete="email"
+                onChange={e => update('email', e.target.value)}
+              />
             </div>
             <div>
-              <label style={{ display:'block', fontSize:'0.82rem', fontWeight:600, color:'var(--text-mid)', marginBottom:'0.4rem', fontFamily:'var(--font-body)' }}>Password</label>
-              <div style={{ position:'relative' }}>
-                <input className="signin-input" type={showPw ? 'text' : 'password'} value={form.password} placeholder="••••••••" autoComplete="current-password"
-                  onChange={e => update('password', e.target.value)} style={{ paddingRight:'3.5rem' }}/>
-                <button type="button" onClick={() => setShowPw(v => !v)}
-                  style={{ position:'absolute', right:'0.85rem', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--text-light)', cursor:'pointer', fontSize:'0.78rem', fontFamily:'var(--font-body)', fontWeight:600 }}>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-mid)', marginBottom: '0.4rem', fontFamily: 'var(--font-body)' }}>
+                Password
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  className="signin-input"
+                  type={showPw ? 'text' : 'password'}
+                  value={form.password}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  onChange={e => update('password', e.target.value)}
+                  style={{ paddingRight: '3.5rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(v => !v)}
+                  style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'var(--font-body)', fontWeight: 600 }}
+                >
                   {showPw ? 'Hide' : 'Show'}
                 </button>
               </div>
             </div>
-            <div style={{ textAlign:'right', marginTop:'-0.25rem' }}>
-              <button type="button" onClick={() => navigate('/update-password')}
-                style={{ background:'none', border:'none', color:'var(--green-deep)', fontSize:'0.82rem', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+            <div style={{ textAlign: 'right', marginTop: '-0.25rem' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/update-password')}
+                style={{ background: 'none', border: 'none', color: 'var(--green-deep)', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+              >
                 Forgot password?
               </button>
             </div>
@@ -185,24 +220,35 @@ export default function SignInPage() {
             </button>
           </form>
 
-          <div style={{ marginTop:'1.5rem', textAlign:'center', fontSize:'0.875rem', color:'var(--text-light)', fontFamily:'var(--font-body)' }}>
+          <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-light)', fontFamily: 'var(--font-body)' }}>
             Don't have an account?{' '}
-            <button onClick={() => navigate('/register')} style={{ background:'none', border:'none', color:'var(--green-deep)', fontWeight:700, cursor:'pointer', fontSize:'0.875rem' }}>
+            <button
+              onClick={() => navigate('/register')}
+              style={{ background: 'none', border: 'none', color: 'var(--green-deep)', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}
+            >
               Create one free →
             </button>
           </div>
 
-          <div style={{ marginTop:'1.25rem', textAlign:'center' }}>
-            <button onClick={() => setShowStaffMenu(v => !v)}
-              style={{ background:'none', border:'1px solid var(--earth-cream)', borderRadius:6, padding:'0.4rem 0.85rem', fontSize:'0.78rem', color:'var(--text-light)', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+          <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
+            <button
+              onClick={() => setShowStaffMenu(v => !v)}
+              style={{ background: 'none', border: '1px solid var(--earth-cream)', borderRadius: 6, padding: '0.4rem 0.85rem', fontSize: '0.78rem', color: 'var(--text-light)', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+            >
               🔑 Staff / Admin Login
             </button>
             {showStaffMenu && (
-              <div style={{ marginTop:'0.75rem', display:'flex', flexDirection:'column', gap:'0.5rem' }}>
-                <button onClick={() => navigate('/staff')} style={{ background:'var(--earth-cream)', border:'none', borderRadius:6, padding:'0.5rem', fontSize:'0.82rem', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+              <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <button
+                  onClick={() => navigate('/staff')}
+                  style={{ background: 'var(--earth-cream)', border: 'none', borderRadius: 6, padding: '0.5rem', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                >
                   ⚙️ Admin Dashboard
                 </button>
-                <button onClick={() => navigate('/staff')} style={{ background:'var(--earth-cream)', border:'none', borderRadius:6, padding:'0.5rem', fontSize:'0.82rem', cursor:'pointer', fontFamily:'var(--font-body)' }}>
+                <button
+                  onClick={() => navigate('/staff')}
+                  style={{ background: 'var(--earth-cream)', border: 'none', borderRadius: 6, padding: '0.5rem', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                >
                   🩺 Therapist Portal
                 </button>
               </div>

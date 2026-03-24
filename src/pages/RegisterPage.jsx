@@ -77,11 +77,9 @@ const CSS = `
     font-weight: 500;
     font-family: var(--font-body);
   }
-  /* ── Tablet ── */
   @media (max-width: 900px) {
     .reg-root { grid-template-columns: 320px 1fr; }
   }
-  /* ── Mobile ── */
   @media (max-width: 680px) {
     .reg-root  { grid-template-columns: 1fr; }
     .reg-left  { display: none; }
@@ -113,6 +111,18 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  // ── BACK BUTTON PREVENTION ──────────────────────────────────
+  useEffect(() => {
+    window.history.replaceState(null, '', window.location.href)
+
+    const blockBack = () => {
+      window.history.pushState(null, '', window.location.href)
+    }
+    window.addEventListener('popstate', blockBack)
+    return () => window.removeEventListener('popstate', blockBack)
+  }, [])
+  // ────────────────────────────────────────────────────────────
 
   async function handleSubmit(e) {
     e.preventDefault()

@@ -31,6 +31,7 @@ import UpdatePasswordPage  from './pages/UpdataPasswordPage'
 import UpgradePage         from './pages/UpgradePage'
 import ClientPortalPage    from './pages/ClientsPortalPage'
 import CommunityPage       from './pages/CommunityPage'
+import RegisterStaffPage   from './pages/RegisterStaffPage'
 import AIToolsPage         from './pages/AitoolsPage'
 import MyAccountPage       from './pages/Myaccountpage'
 import DisordersPage       from './pages/DisordersPage'
@@ -56,6 +57,7 @@ const ROUTES = {
   '/assessment-take':    AssessmentTakePage,
   '/resources':          ResourcesPage,
   '/courses':            CoursesPage,
+  '/register-staffs':     RegisterStaffPage,
   '/blog':               BlogPage,
   '/research':           ResearchPage,
   '/contact':            ContactPage,

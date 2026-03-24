@@ -1,10 +1,51 @@
-// src/pages/TherapistdashboardPage.jsx
+// src/pages/TherapistDashboardPage.jsx
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useAuth } from '../context/AuthContext'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
+const getToken   = ()      => localStorage.getItem('accessToken')
+const getRefresh = ()      => localStorage.getItem('refreshToken')
+const saveTokens = (a, r)  => {
+  localStorage.setItem('accessToken',  a)
+  localStorage.setItem('refreshToken', r)
+}
+
+async function apiFetch(path, options = {}, retry = true) {
+  const token = getToken()
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  })
+
+  if (res.status === 401 && retry) {
+    const refreshToken = getRefresh()
+    if (refreshToken) {
+      const rRes = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      })
+      if (rRes.ok) {
+        const rData = await rRes.json()
+        saveTokens(rData.accessToken, rData.refreshToken)
+        return apiFetch(path, options, false)
+      }
+    }
+    throw new Error('Session expired. Please log in again.')
+  }
+
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || 'Request failed')
+  return data
+}
+
+// ── Styles ────────────────────────────────────────────────────
 const C = {
   skyBright:'#00BFFF', skyMid:'#009FD4', skyDeep:'#007BA8',
   skyFaint:'#E0F7FF', skyFainter:'#F0FBFF', white:'#ffffff', mint:'#e8f3ee',
@@ -61,16 +102,164 @@ function StatusBadge({ status }) {
   )
 }
 
-const TABS = ['Dashboard', 'My Schedule', 'Clients', 'Notes']
+// ── Messaging contact panel ───────────────────────────────────
+const CONTACT_INFO = {
+  whatsapp: {
+    number: '+977 9849350088',
+    link: 'https://wa.me/9779849350088',
+    label: 'WhatsApp',
+    emoji: '💬',
+    color: '#25D366',
+    faint: '#e8fdf0',
+  },
+  messenger: {
+    number: 'puja.samargi',
+    link: 'https://m.me/puja.samargi',
+    label: 'Messenger',
+    emoji: '💙',
+    color: '#0084FF',
+    faint: '#e0f0ff',
+  },
+}
+
+function MessagingPanel() {
+  const [copied, setCopied] = useState('')
+
+  function copyToClipboard(text, key) {
+    navigator.clipboard.writeText(text).catch(() => {})
+    setCopied(key)
+    setTimeout(() => setCopied(''), 2500)
+  }
+
+  return (
+    <div>
+      <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.1rem,3vw,1.4rem)',
+        color:C.textDark, marginBottom:'0.4rem' }}>Message Support</h2>
+      <p style={{ fontFamily:'var(--font-body)', fontSize:'0.85rem', color:C.textLight,
+        marginBottom:'2rem', lineHeight:1.65 }}>
+        Contact admin or client support via WhatsApp or Messenger. We respond within business hours.
+      </p>
+
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:'1.25rem' }}>
+        {Object.entries(CONTACT_INFO).map(([key, info]) => (
+          <div key={key} style={{
+            background: C.white, borderRadius:16,
+            border:`1.5px solid ${C.borderFaint}`, overflow:'hidden',
+            boxShadow:`0 4px 20px rgba(0,191,255,0.06)`,
+            transition:'transform 0.2s, box-shadow 0.2s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 28px rgba(0,191,255,0.12)' }}
+            onMouseLeave={e => { e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow=`0 4px 20px rgba(0,191,255,0.06)` }}>
+
+            {/* Card header */}
+            <div style={{
+              background: info.faint,
+              borderBottom: `1.5px solid ${info.color}22`,
+              padding: '1.5rem 1.5rem 1.25rem',
+              display: 'flex', alignItems: 'center', gap: '0.85rem'
+            }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: '50%',
+                background: info.color, display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+                fontSize: '1.5rem', flexShrink: 0,
+                boxShadow: `0 4px 14px ${info.color}44`
+              }}>{info.emoji}</div>
+              <div>
+                <div style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem',
+                  color:C.textDark, fontWeight:700 }}>{info.label}</div>
+                <div style={{ fontFamily:'var(--font-body)', fontSize:'0.75rem',
+                  color:C.textLight, marginTop:2 }}>
+                  {key === 'whatsapp' ? 'Message us directly on WhatsApp' : 'Find us on Facebook Messenger'}
+                </div>
+              </div>
+            </div>
+
+            {/* Contact detail */}
+            <div style={{ padding: '1.25rem 1.5rem' }}>
+              <div style={{ fontSize:'0.65rem', fontWeight:800, color:C.textLight,
+                textTransform:'uppercase', letterSpacing:'0.09em', marginBottom:'0.5rem' }}>
+                {key === 'whatsapp' ? 'Phone Number' : 'Page Handle'}
+              </div>
+              <div style={{
+                display:'flex', alignItems:'center', justifyContent:'space-between',
+                background:'#f8fafc', borderRadius:10, padding:'0.65rem 0.85rem',
+                border:`1px solid ${C.borderFaint}`, marginBottom:'1.1rem', gap:'0.75rem'
+              }}>
+                <span style={{ fontFamily:'var(--font-display)', fontSize:'1.05rem',
+                  color:C.textDark, fontWeight:700, letterSpacing:'0.03em' }}>
+                  {info.number}
+                </span>
+                <button
+                  onClick={() => copyToClipboard(info.number, key)}
+                  style={{
+                    padding:'0.3rem 0.8rem', borderRadius:7,
+                    border: `1.5px solid ${copied === key ? '#22c55e' : C.borderFaint}`,
+                    background: copied === key ? '#e8fdf0' : C.white,
+                    color: copied === key ? '#065f46' : C.textMid,
+                    fontSize:'0.74rem', fontWeight:700, cursor:'pointer',
+                    transition:'all 0.18s', whiteSpace:'nowrap',
+                    fontFamily:'var(--font-body)'
+                  }}>
+                  {copied === key ? '✓ Copied' : '⎘ Copy'}
+                </button>
+              </div>
+
+              <a href={info.link} target="_blank" rel="noopener noreferrer"
+                style={{
+                  display:'flex', alignItems:'center', justifyContent:'center', gap:'0.5rem',
+                  width:'100%', padding:'0.8rem 1rem',
+                  background: info.color,
+                  color:'white', borderRadius:10, border:'none',
+                  fontFamily:'var(--font-body)', fontWeight:700, fontSize:'0.9rem',
+                  cursor:'pointer', textDecoration:'none',
+                  boxShadow:`0 4px 14px ${info.color}44`, transition:'opacity 0.18s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity='0.88'}
+                onMouseLeave={e => e.currentTarget.style.opacity='1'}>
+                {info.emoji} Open {info.label}
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Hours note */}
+      <div style={{
+        marginTop:'2rem', background:`${C.skyFainter}`,
+        borderRadius:12, padding:'1.25rem 1.5rem',
+        border:`1px solid ${C.borderFaint}`,
+        display:'flex', alignItems:'flex-start', gap:'0.75rem'
+      }}>
+        <span style={{ fontSize:'1.2rem', flexShrink:0, marginTop:2 }}>🕐</span>
+        <div>
+          <div style={{ fontWeight:700, color:C.textDark, fontSize:'0.88rem',
+            fontFamily:'var(--font-body)', marginBottom:'0.3rem' }}>
+            Support Hours
+          </div>
+          <div style={{ fontSize:'0.82rem', color:C.textLight,
+            fontFamily:'var(--font-body)', lineHeight:1.65 }}>
+            Sunday – Friday: 9:00 AM – 6:00 PM (NPT)<br/>
+            Saturday: 10:00 AM – 2:00 PM (NPT)<br/>
+            We aim to respond within 2–4 hours during these hours.
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const TABS = ['Dashboard', 'My Schedule', 'Clients', 'Notes', 'Messages']
 
 export default function TherapistDashboard() {
   useEffect(() => { injectCSS() }, [])
+
   const { navigate }                           = useRouter()
   const { user, loading: authLoading, logout } = useAuth()
-  const [tab, setTab]         = useState('Dashboard')
-  const [appointments, setAppointments] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState('')
+  const [tab, setTab]                          = useState('Dashboard')
+  const [appointments, setAppointments]        = useState([])
+  const [loading, setLoading]                  = useState(true)
+  const [error, setError]                      = useState('')
 
   useEffect(() => {
     if (authLoading) return
@@ -83,18 +272,10 @@ export default function TherapistDashboard() {
     setLoading(true)
     setError('')
     try {
-      // ── Use the therapist-specific endpoint ──────────────────
-      const token = localStorage.getItem('accessToken')
-const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      })
-      if (!res.ok) throw new Error(`Server returned ${res.status}`)
-      const data = await res.json()
+      const data = await apiFetch('/therapist-portal/appointments?limit=100')
       setAppointments(data.appointments || [])
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Failed to load appointments.')
       setAppointments([])
     } finally {
       setLoading(false)
@@ -103,13 +284,8 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
 
   async function updateStatus(id, status) {
     try {
-      const token = localStorage.getItem('accessToken')
-      await fetch(`${API_BASE}/admin/appointments/${id}/status`, {
+      await apiFetch(`/admin/appointments/${id}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: JSON.stringify({ status }),
       })
       loadAppointments()
@@ -118,13 +294,14 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
     }
   }
 
-  async function handleLogout() { await logout(); navigate('/staff') }
+  async function handleLogout() {
+    await logout()
+    navigate('/staff')
+  }
 
-  // ── Derived lists ────────────────────────────────────────────
   const upcoming = appointments.filter(a => ['pending','confirmed'].includes(a.status))
   const past     = appointments.filter(a => ['completed','cancelled','no_show'].includes(a.status))
 
-  // Unique clients from all appointments
   const uniqueClients = [
     ...new Map(
       appointments
@@ -152,7 +329,8 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
       {/* ── Top bar ── */}
       <div className="th-topbar">
         <div style={{ display:'flex', alignItems:'center', gap:'0.85rem' }}>
-          <img src="/header.png" alt="Puja Samargi" style={{ height:32, objectFit:'contain' }}
+          <img src="/header.png" alt="Puja Samargi"
+            style={{ height:32, objectFit:'contain' }}
             onError={e => e.target.style.display='none'}/>
           <div>
             <div style={{ fontFamily:'var(--font-display)', fontSize:'0.95rem', color:'white' }}>
@@ -173,9 +351,11 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
             </div>
           </div>
           <button onClick={handleLogout}
-            style={{ padding:'0.35rem 0.8rem', borderRadius:8, border:'1.5px solid rgba(255,255,255,0.35)',
-              background:'rgba(255,255,255,0.12)', color:'white', fontSize:'0.78rem',
-              cursor:'pointer', fontFamily:'var(--font-body)', whiteSpace:'nowrap' }}>
+            style={{ padding:'0.35rem 0.8rem', borderRadius:8,
+              border:'1.5px solid rgba(255,255,255,0.35)',
+              background:'rgba(255,255,255,0.12)', color:'white',
+              fontSize:'0.78rem', cursor:'pointer',
+              fontFamily:'var(--font-body)', whiteSpace:'nowrap' }}>
             Log Out
           </button>
         </div>
@@ -185,7 +365,7 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
       <div className="th-tabbar">
         {TABS.map(t => (
           <button key={t} className={`th-tab-btn${tab===t?' active':''}`} onClick={() => setTab(t)}>
-            {t}
+            {t === 'Messages' ? '💬 ' : ''}{t}
           </button>
         ))}
       </div>
@@ -211,18 +391,17 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
         {/* ════ DASHBOARD ════ */}
         {tab === 'Dashboard' && (
           <div>
-            {/* Stats */}
             <div className="th-stats">
               {[
-                { label:'Upcoming Sessions',    val: upcoming.length,                                   icon:'📅', color:C.skyFaint  },
-                { label:'Completed Sessions',   val: past.filter(a=>a.status==='completed').length,     icon:'✅', color:'#e8f8f0'   },
-                { label:'Pending Confirmation', val: upcoming.filter(a=>a.status==='pending').length,   icon:'⏳', color:'#fff5e6'   },
-                { label:'Total Clients',        val: uniqueClients.length,                              icon:'👥', color:secGrad     },
+                { label:'Upcoming Sessions',    val: upcoming.length,                                 icon:'📅', color:C.skyFaint },
+                { label:'Completed Sessions',   val: past.filter(a=>a.status==='completed').length,   icon:'✅', color:'#e8f8f0' },
+                { label:'Pending Confirmation', val: upcoming.filter(a=>a.status==='pending').length, icon:'⏳', color:'#fff5e6' },
+                { label:'Total Clients',        val: uniqueClients.length,                            icon:'👥', color:secGrad   },
               ].map((c,i) => (
                 <div key={i} className="th-stat-card" style={{ background:c.color }}>
                   <div style={{ fontSize:'1.4rem', marginBottom:'0.3rem' }}>{c.icon}</div>
-                  <div style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.5rem,4vw,1.8rem)',
-                    color:C.textDark, fontWeight:700 }}>
+                  <div style={{ fontFamily:'var(--font-display)',
+                    fontSize:'clamp(1.5rem,4vw,1.8rem)', color:C.textDark, fontWeight:700 }}>
                     {loading ? '…' : c.val}
                   </div>
                   <div style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem',
@@ -231,9 +410,8 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
               ))}
             </div>
 
-            {/* Upcoming appointments */}
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
-              marginBottom:'1rem' }}>
+            <div style={{ display:'flex', justifyContent:'space-between',
+              alignItems:'center', marginBottom:'1rem' }}>
               <h3 style={{ fontFamily:'var(--font-display)', color:C.textDark,
                 fontSize:'clamp(1rem,2.5vw,1.2rem)', margin:0 }}>
                 Upcoming Sessions
@@ -255,19 +433,20 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
                 <p style={{ fontFamily:'var(--font-body)', margin:0 }}>No upcoming sessions.</p>
               </div>
             ) : (
-              upcoming.slice(0, 8).map((a, i) => (
-                <div key={a.id || i}
+              upcoming.slice(0,8).map((a,i) => (
+                <div key={a.id||i}
                   style={{ background:C.white, borderRadius:12,
                     padding:'clamp(1rem,3vw,1.25rem) clamp(1rem,3vw,1.5rem)',
                     border:`1px solid ${C.borderFaint}`, marginBottom:'0.75rem',
                     display:'flex', justifyContent:'space-between',
                     alignItems:'center', flexWrap:'wrap', gap:'0.75rem' }}>
                   <div style={{ display:'flex', gap:'1rem', alignItems:'center' }}>
-                    <div style={{ width:40, height:40, borderRadius:'50%', background:C.skyFaint,
-                      display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:'1.1rem', flexShrink:0 }}>
+                    <div style={{ width:40, height:40, borderRadius:'50%',
+                      background:C.skyFaint, display:'flex', alignItems:'center',
+                      justifyContent:'center', fontSize:'1.1rem', flexShrink:0 }}>
                       {a.clients?.avatar_url
-                        ? <img src={a.clients.avatar_url} style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }} alt="" />
+                        ? <img src={a.clients.avatar_url}
+                            style={{ width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover' }} alt=""/>
                         : '👤'}
                     </div>
                     <div>
@@ -285,9 +464,9 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
                     </div>
                   </div>
                   <div style={{ display:'flex', gap:'0.6rem', alignItems:'center', flexWrap:'wrap' }}>
-                    <StatusBadge status={a.status} />
+                    <StatusBadge status={a.status}/>
                     {a.status === 'pending' && (
-                      <button onClick={() => updateStatus(a.id, 'confirmed')}
+                      <button onClick={() => updateStatus(a.id,'confirmed')}
                         style={{ padding:'0.32rem 0.85rem', border:'none', borderRadius:8,
                           background:btnGrad, color:'white', fontSize:'0.78rem',
                           fontWeight:700, cursor:'pointer', fontFamily:'var(--font-body)' }}>
@@ -295,7 +474,7 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
                       </button>
                     )}
                     {a.status === 'confirmed' && (
-                      <button onClick={() => updateStatus(a.id, 'completed')}
+                      <button onClick={() => updateStatus(a.id,'completed')}
                         style={{ padding:'0.32rem 0.85rem', border:`1px solid #22c55e`,
                           borderRadius:8, background:'#e8f8f0', color:'#1a7a4a',
                           fontSize:'0.78rem', fontWeight:700, cursor:'pointer',
@@ -313,7 +492,8 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
         {/* ════ MY SCHEDULE ════ */}
         {tab === 'My Schedule' && (
           <div>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.25rem' }}>
+            <div style={{ display:'flex', justifyContent:'space-between',
+              alignItems:'center', marginBottom:'1.25rem' }}>
               <h2 style={{ fontFamily:'var(--font-display)', color:C.textDark,
                 fontSize:'clamp(1.1rem,3vw,1.4rem)', margin:0 }}>
                 My Schedule ({appointments.length} total)
@@ -328,54 +508,37 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
             <div className="th-table-wrap">
               <table className="th-table">
                 <thead>
-                  <tr>
-                    {['Client','Phone','Date','Time','Type','Status','Action'].map(h => (
-                      <th key={h}>{h}</th>
-                    ))}
-                  </tr>
+                  <tr>{['Client','Phone','Date','Time','Type','Status','Action'].map(h=>(
+                    <th key={h}>{h}</th>
+                  ))}</tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={7} style={{ textAlign:'center', padding:'2rem', color:C.textLight }}>
-                      Loading…
-                    </td></tr>
+                    <tr><td colSpan={7} style={{ textAlign:'center',padding:'2rem',color:C.textLight }}>Loading…</td></tr>
                   ) : appointments.length === 0 ? (
-                    <tr><td colSpan={7} style={{ textAlign:'center', padding:'2rem', color:C.textLight }}>
-                      No appointments found.
-                    </td></tr>
-                  ) : (
-                    appointments.map((a, i) => (
-                      <tr key={a.id || i}>
-                        <td>
-                          <strong style={{ color:C.textDark, fontFamily:'var(--font-body)' }}>
-                            {a.clients?.full_name || '—'}
-                          </strong>
-                        </td>
-                        <td style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:C.textLight }}>
-                          {a.clients?.phone || '—'}
-                        </td>
-                        <td style={{ fontFamily:'var(--font-body)' }}>{fmtDate(a.scheduled_at)}</td>
-                        <td style={{ fontFamily:'var(--font-body)' }}>{fmtTime(a.scheduled_at)}</td>
-                        <td style={{ fontFamily:'var(--font-body)' }}>
-                          <span style={{ fontSize:'0.75rem', background:'#f0f4f8',
-                            padding:'0.18rem 0.5rem', borderRadius:5 }}>{a.type}</span>
-                        </td>
-                        <td><StatusBadge status={a.status} /></td>
-                        <td>
-                          <select
-                            value={a.status}
-                            onChange={e => updateStatus(a.id, e.target.value)}
-                            style={{ padding:'0.3rem 0.5rem', border:`1px solid ${C.borderFaint}`,
-                              borderRadius:6, fontSize:'0.78rem', cursor:'pointer',
-                              outline:'none', fontFamily:'var(--font-body)', color:C.textMid }}>
-                            {['pending','confirmed','completed','cancelled','no_show'].map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                    <tr><td colSpan={7} style={{ textAlign:'center',padding:'2rem',color:C.textLight }}>No appointments found.</td></tr>
+                  ) : appointments.map((a,i) => (
+                    <tr key={a.id||i}>
+                      <td><strong style={{ color:C.textDark,fontFamily:'var(--font-body)' }}>{a.clients?.full_name||'—'}</strong></td>
+                      <td style={{ fontFamily:'var(--font-body)',fontSize:'0.78rem',color:C.textLight }}>{a.clients?.phone||'—'}</td>
+                      <td style={{ fontFamily:'var(--font-body)' }}>{fmtDate(a.scheduled_at)}</td>
+                      <td style={{ fontFamily:'var(--font-body)' }}>{fmtTime(a.scheduled_at)}</td>
+                      <td style={{ fontFamily:'var(--font-body)' }}>
+                        <span style={{ fontSize:'0.75rem',background:'#f0f4f8',padding:'0.18rem 0.5rem',borderRadius:5 }}>{a.type}</span>
+                      </td>
+                      <td><StatusBadge status={a.status}/></td>
+                      <td>
+                        <select value={a.status} onChange={e=>updateStatus(a.id,e.target.value)}
+                          style={{ padding:'0.3rem 0.5rem',border:`1px solid ${C.borderFaint}`,
+                            borderRadius:6,fontSize:'0.78rem',cursor:'pointer',
+                            outline:'none',fontFamily:'var(--font-body)',color:C.textMid }}>
+                          {['pending','confirmed','completed','cancelled','no_show'].map(s=>(
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -399,26 +562,26 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
               </div>
             ) : (
               <div className="th-client-grid">
-                {uniqueClients.map((a, i) => {
+                {uniqueClients.map((a,i) => {
                   const clientSessions = appointments.filter(ap => ap.client_id === a.client_id)
                   const lastSession    = clientSessions[0]
                   return (
-                    <div key={i}
-                      style={{ background:C.white, borderRadius:14, padding:'1.5rem',
-                        border:`1px solid ${C.borderFaint}`,
-                        boxShadow:`0 2px 10px rgba(0,191,255,0.05)` }}>
+                    <div key={i} style={{ background:C.white, borderRadius:14, padding:'1.5rem',
+                      border:`1px solid ${C.borderFaint}`,
+                      boxShadow:`0 2px 10px rgba(0,191,255,0.05)` }}>
                       <div style={{ display:'flex', alignItems:'center', gap:'0.85rem', marginBottom:'1rem' }}>
-                        <div style={{ width:44, height:44, borderRadius:'50%', background:btnGrad,
-                          display:'flex', alignItems:'center', justifyContent:'center',
-                          color:'white', fontWeight:800, fontSize:'1rem', flexShrink:0 }}>
+                        <div style={{ width:44, height:44, borderRadius:'50%',
+                          background:btnGrad, display:'flex', alignItems:'center',
+                          justifyContent:'center', color:'white', fontWeight:800,
+                          fontSize:'1rem', flexShrink:0 }}>
                           {(a.clients?.full_name||'C').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
                         </div>
                         <div>
                           <div style={{ fontFamily:'var(--font-body)', fontWeight:700, color:C.textDark }}>
-                            {a.clients?.full_name || '—'}
+                            {a.clients?.full_name||'—'}
                           </div>
                           <div style={{ fontSize:'0.75rem', color:C.textLight, fontFamily:'var(--font-body)' }}>
-                            {a.clients?.email || ''}
+                            {a.clients?.email||''}
                           </div>
                           {a.clients?.phone && (
                             <div style={{ fontSize:'0.72rem', color:C.textLight, fontFamily:'var(--font-body)' }}>
@@ -429,18 +592,18 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
                       </div>
                       <div style={{ borderTop:`1px solid ${C.borderFaint}`, paddingTop:'0.75rem' }}>
                         <div style={{ display:'flex', justifyContent:'space-between',
-                          fontFamily:'var(--font-body)', fontSize:'0.75rem', color:C.textLight,
-                          marginBottom:'0.35rem' }}>
+                          fontFamily:'var(--font-body)', fontSize:'0.75rem',
+                          color:C.textLight, marginBottom:'0.35rem' }}>
                           <span>Sessions</span>
                           <strong style={{ color:C.textDark }}>{clientSessions.length}</strong>
                         </div>
                         <div style={{ display:'flex', justifyContent:'space-between',
-                          fontFamily:'var(--font-body)', fontSize:'0.75rem', color:C.textLight,
-                          marginBottom:'0.5rem' }}>
+                          fontFamily:'var(--font-body)', fontSize:'0.75rem',
+                          color:C.textLight, marginBottom:'0.5rem' }}>
                           <span>Last session</span>
                           <span>{lastSession ? fmtDate(lastSession.scheduled_at) : '—'}</span>
                         </div>
-                        {lastSession && <StatusBadge status={lastSession.status} />}
+                        {lastSession && <StatusBadge status={lastSession.status}/>}
                       </div>
                     </div>
                   )
@@ -457,7 +620,7 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
               marginBottom:'1.25rem', fontSize:'clamp(1.1rem,3vw,1.4rem)' }}>
               Session Notes
             </h2>
-            {past.filter(a => a.status === 'completed').length === 0 ? (
+            {past.filter(a=>a.status==='completed').length === 0 ? (
               <div style={{ background:C.white, borderRadius:14, padding:'2.5rem',
                 border:`1px solid ${C.borderFaint}`, textAlign:'center', color:C.textLight }}>
                 <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>📝</div>
@@ -474,22 +637,22 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
               </div>
             ) : (
               <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-                {past.filter(a => a.status === 'completed').map((a, i) => (
-                  <div key={a.id || i}
-                    style={{ background:C.white, borderRadius:12, padding:'1.25rem 1.5rem',
-                      border:`1px solid ${C.borderFaint}` }}>
+                {past.filter(a=>a.status==='completed').map((a,i) => (
+                  <div key={a.id||i} style={{ background:C.white, borderRadius:12,
+                    padding:'1.25rem 1.5rem', border:`1px solid ${C.borderFaint}` }}>
                     <div style={{ display:'flex', justifyContent:'space-between',
-                      alignItems:'flex-start', marginBottom:'0.75rem', flexWrap:'wrap', gap:'0.5rem' }}>
+                      alignItems:'flex-start', marginBottom:'0.75rem',
+                      flexWrap:'wrap', gap:'0.5rem' }}>
                       <div>
                         <div style={{ fontFamily:'var(--font-body)', fontWeight:700,
                           color:C.textDark, marginBottom:'0.2rem' }}>
-                          {a.clients?.full_name || 'Client'}
+                          {a.clients?.full_name||'Client'}
                         </div>
                         <div style={{ fontFamily:'var(--font-body)', fontSize:'0.75rem', color:C.textLight }}>
                           {fmtFull(a.scheduled_at)} · {a.type}
                         </div>
                       </div>
-                      <StatusBadge status={a.status} />
+                      <StatusBadge status={a.status}/>
                     </div>
                     {a.notes ? (
                       <p style={{ fontFamily:'var(--font-body)', fontSize:'0.85rem',
@@ -509,6 +672,10 @@ const res = await fetch(`${API_BASE}/therapist-portal/appointments?limit=100`, {
             )}
           </div>
         )}
+
+        {/* ════ MESSAGES ════ */}
+        {tab === 'Messages' && <MessagingPanel />}
+
       </div>
     </div>
   )

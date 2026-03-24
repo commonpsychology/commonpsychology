@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
 
 const GROUPS = [
@@ -47,7 +47,6 @@ function JoinModal({ group, onConfirm, onCancel }) {
         onClick={e=>e.stopPropagation()}>
         <button onClick={onCancel} style={{ position:'absolute', top:14, right:16, background:'none', border:'none', fontSize:'1.2rem', cursor:'pointer', color:C.textLight }}>✕</button>
 
-        {/* Group info */}
         <div style={{ display:'flex', alignItems:'center', gap:'0.85rem', marginBottom:'1.5rem', padding:'0.9rem', background:sectionGrad, borderRadius:14, border:`1px solid ${C.borderFaint}` }}>
           <span style={{ fontSize:'2rem' }}>{group.emoji}</span>
           <div>
@@ -61,7 +60,6 @@ function JoinModal({ group, onConfirm, onCancel }) {
           You can join anonymously or with your name. All groups are moderated by licensed professionals.
         </p>
 
-        {/* Anonymous toggle */}
         <div style={{ display:'flex', alignItems:'center', gap:'0.65rem', marginBottom:'1.1rem', padding:'0.75rem 1rem', background:anon?C.skyFainter:C.white, border:`1.5px solid ${anon?C.skyBright:C.borderFaint}`, borderRadius:12, cursor:'pointer', transition:'all 0.2s' }}
           onClick={()=>setAnon(a=>!a)}>
           <div style={{ width:20, height:20, borderRadius:'50%', border:`2px solid ${anon?C.skyBright:C.border}`, background:anon?btnGrad:'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.2s' }}>
@@ -73,7 +71,6 @@ function JoinModal({ group, onConfirm, onCancel }) {
           </div>
         </div>
 
-        {/* Name + email if not anonymous */}
         {!anon && (
           <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem', marginBottom:'1.1rem' }}>
             <div>
@@ -103,7 +100,6 @@ function JoinModal({ group, onConfirm, onCancel }) {
   )
 }
 
-/* ── Join success toast ── */
 function JoinToast({ group, onClose }) {
   return (
     <div style={{ position:'fixed', bottom:32, right:32, zIndex:1000, background:C.white, borderRadius:16, padding:'1rem 1.25rem', boxShadow:`0 8px 32px rgba(0,0,0,0.15)`, border:`1.5px solid ${C.borderFaint}`, display:'flex', alignItems:'center', gap:'0.85rem', maxWidth:320 }}>
@@ -119,15 +115,22 @@ function JoinToast({ group, onClose }) {
 
 export default function CommunityPage() {
   const { navigate } = useRouter()
-  const [joined, setJoined]       = useState([])      // array of group ids
-  const [joinModal, setJoinModal] = useState(null)    // group object being joined
-  const [toast, setToast]         = useState(null)    // group after joining
+  const [joined, setJoined]       = useState([])
+  const [joinModal, setJoinModal] = useState(null)
+  const [toast, setToast]         = useState(null)
   const [activeTab, setActiveTab] = useState('groups')
   const [likedPosts, setLikedPosts] = useState([])
 
+  // Responsive window width — same pattern as WorkshopsPage
+  const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
+  useEffect(() => {
+    const handler = () => setWinWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+
   function openJoin(group) {
     if (joined.includes(group.id)) {
-      // already joined → leave
       setJoined(prev => prev.filter(id => id !== group.id))
     } else {
       setJoinModal(group)
@@ -147,11 +150,53 @@ export default function CommunityPage() {
 
   return (
     <div className="page-wrapper">
+      {/* ── Responsive grid — injected once, same pattern as WorkshopsPage ── */}
+      <style>{`
+        .community-groups-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+          .community-groups-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (max-width: 600px) {
+          .community-groups-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        .community-announcement-row {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 1.5rem;
+          align-items: center;
+        }
+        @media (max-width: 600px) {
+          .community-announcement-row {
+            grid-template-columns: 1fr;
+          }
+        }
+        .community-feed-cta {
+          display: flex;
+          align-items: center;
+          flex-direction: row;
+          gap: 0.85rem;
+        }
+        @media (max-width: 600px) {
+          .community-feed-cta {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+        }
+      `}</style>
+
       <div className="page-hero" style={{ background:'var(--sky-light)' }}>
         <span className="section-tag">Community</span>
         <h1 className="section-title">You Are Not <em>Alone</em></h1>
         <p className="section-desc">Connect with peers, share your journey, and find support in moderated community spaces. All groups are facilitated by our clinical team.</p>
-        <div style={{ display:'flex', gap:'0.75rem', marginTop:'1.5rem', alignItems:'center' }}>
+        <div style={{ display:'flex', gap:'0.75rem', marginTop:'1.5rem', alignItems:'center', flexWrap:'wrap' }}>
           <div style={{ display:'flex', gap:4 }}>
             {['😊','🙂','😄','🌱','💙'].map((e,i)=>(
               <span key={i} style={{ width:32, height:32, borderRadius:'50%', background:'var(--white)', border:'2px solid var(--blue-pale)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'0.9rem', marginLeft:i>0?-8:0 }}>{e}</span>
@@ -169,9 +214,9 @@ export default function CommunityPage() {
       </div>
 
       {/* Tab bar */}
-      <div style={{ background:'var(--white)', borderBottom:'1px solid var(--blue-pale)', padding:'0 6rem', display:'flex', gap:0 }}>
+      <div style={{ background:'var(--white)', borderBottom:'1px solid var(--blue-pale)', padding:'0 1rem', display:'flex', gap:0, overflowX:'auto' }}>
         {[['groups','Support Groups'],['announcements','Group Sessions'],['feed','Recent Posts']].map(([id,label])=>(
-          <button key={id} onClick={()=>setActiveTab(id)} style={{ padding:'1rem 1.5rem', border:'none', background:'none', fontFamily:'var(--font-body)', fontSize:'0.85rem', fontWeight:activeTab===id?700:500, color:activeTab===id?'var(--sky)':'var(--text-light)', borderBottom:activeTab===id?'2.5px solid var(--sky)':'2.5px solid transparent', cursor:'pointer', transition:'all 0.2s' }}>{label}</button>
+          <button key={id} onClick={()=>setActiveTab(id)} style={{ padding:'1rem 1.5rem', border:'none', background:'none', fontFamily:'var(--font-body)', fontSize:'0.85rem', fontWeight:activeTab===id?700:500, color:activeTab===id?'var(--sky)':'var(--text-light)', borderBottom:activeTab===id?'2.5px solid var(--sky)':'2.5px solid transparent', cursor:'pointer', transition:'all 0.2s', whiteSpace:'nowrap' }}>{label}</button>
         ))}
       </div>
 
@@ -186,7 +231,9 @@ export default function CommunityPage() {
                 All community spaces are <strong>moderated by licensed professionals</strong>. Anonymous participation is supported. Please read our <a href="#" style={{ color:'var(--sky)' }}>Community Guidelines</a> before posting.
               </p>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'1.5rem' }}>
+
+            {/* Responsive grid — matches WorkshopsPage pattern */}
+            <div className="community-groups-grid">
               {GROUPS.map(g => {
                 const isJoined = joined.includes(g.id)
                 return (
@@ -223,7 +270,6 @@ export default function CommunityPage() {
               })}
             </div>
 
-            {/* My groups summary */}
             {joined.length > 0 && (
               <div style={{ marginTop:'2.5rem', background:C.white, borderRadius:18, border:`1px solid ${C.borderFaint}`, padding:'1.4rem 1.75rem', boxShadow:`0 4px 20px rgba(0,191,255,0.07)` }}>
                 <div style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:C.textDark, marginBottom:'0.9rem' }}>My Groups ({joined.length})</div>
@@ -249,18 +295,20 @@ export default function CommunityPage() {
             <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.5rem' }}>Upcoming Group Therapy Sessions</div>
             <div style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
               {ANNOUNCEMENTS.map((a,i)=>(
-                <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'1.75rem', border:'1px solid var(--blue-pale)', boxShadow:'var(--shadow-soft)', display:'grid', gridTemplateColumns:'1fr auto', gap:'1.5rem', alignItems:'center' }}>
-                  <div>
-                    <h3 style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--blue-deep)', marginBottom:'0.4rem' }}>{a.title}</h3>
-                    <div style={{ display:'flex', gap:'1.5rem', flexWrap:'wrap' }}>
-                      <span style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'var(--text-light)' }}>📅 {a.date}</span>
-                      <span style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'var(--text-light)' }}>💻 {a.mode}</span>
-                      <span style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'var(--text-light)' }}>👤 {a.facilitator}</span>
+                <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'1.75rem', border:'1px solid var(--blue-pale)', boxShadow:'var(--shadow-soft)' }}>
+                  <div className="community-announcement-row">
+                    <div>
+                      <h3 style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--blue-deep)', marginBottom:'0.4rem' }}>{a.title}</h3>
+                      <div style={{ display:'flex', gap:'1rem', flexWrap:'wrap' }}>
+                        <span style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'var(--text-light)' }}>📅 {a.date}</span>
+                        <span style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'var(--text-light)' }}>💻 {a.mode}</span>
+                        <span style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:'var(--text-light)' }}>👤 {a.facilitator}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ textAlign:'right' }}>
-                    <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:'var(--earth-warm)', fontWeight:700, marginBottom:'0.5rem' }}>{a.spots} spots left</div>
-                    <button className="btn btn-primary" onClick={()=>navigate('/book')}>Reserve Spot →</button>
+                    <div>
+                      <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:'var(--earth-warm)', fontWeight:700, marginBottom:'0.5rem' }}>{a.spots} spots left</div>
+                      <button className="btn btn-primary" onClick={()=>navigate('/book')}>Reserve Spot →</button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -276,15 +324,17 @@ export default function CommunityPage() {
               💡 All posts are anonymous by default. Your privacy is protected. Please be kind and supportive.
             </div>
             {!joined.length && (
-              <div style={{ background:'rgba(0,191,255,0.06)', border:'1px solid var(--blue-pale)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', marginBottom:'2rem', display:'flex', alignItems:'center', gap:'0.85rem' }}>
-                <span style={{ fontSize:'1.4rem' }}>🤝</span>
-                <div>
-                  <div style={{ fontFamily:'var(--font-body)', fontWeight:700, fontSize:'0.85rem', color:'var(--blue-deep)', marginBottom:'0.2rem' }}>Join a group to post and reply</div>
-                  <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:'var(--text-light)' }}>You can still read posts. Join any support group to participate.</div>
+              <div style={{ background:'rgba(0,191,255,0.06)', border:'1px solid var(--blue-pale)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', marginBottom:'2rem' }}>
+                <div className="community-feed-cta">
+                  <span style={{ fontSize:'1.4rem' }}>🤝</span>
+                  <div>
+                    <div style={{ fontFamily:'var(--font-body)', fontWeight:700, fontSize:'0.85rem', color:'var(--blue-deep)', marginBottom:'0.2rem' }}>Join a group to post and reply</div>
+                    <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:'var(--text-light)' }}>You can still read posts. Join any support group to participate.</div>
+                  </div>
+                  <button onClick={()=>setActiveTab('groups')} style={{ marginLeft:'auto', padding:'0.5rem 1.1rem', borderRadius:100, border:'none', background:btnGrad, color:'white', fontFamily:'var(--font-body)', fontSize:'0.78rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
+                    Browse Groups →
+                  </button>
                 </div>
-                <button onClick={()=>setActiveTab('groups')} style={{ marginLeft:'auto', padding:'0.5rem 1.1rem', borderRadius:100, border:'none', background:btnGrad, color:'white', fontFamily:'var(--font-body)', fontSize:'0.78rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
-                  Browse Groups →
-                </button>
               </div>
             )}
             <div style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
@@ -318,7 +368,6 @@ export default function CommunityPage() {
 
       </div>
 
-      {/* Join modal */}
       {joinModal && (
         <JoinModal
           group={joinModal}
@@ -327,7 +376,6 @@ export default function CommunityPage() {
         />
       )}
 
-      {/* Toast */}
       {toast && <JoinToast group={toast} onClose={()=>setToast(null)} />}
     </div>
   )

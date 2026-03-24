@@ -20,9 +20,7 @@ const C = {
   textDark:'#1a3a4a', textMid:'#2e6080', textLight:'#7a9aaa',
   border:'#b0d4e8', borderFaint:'#daeef8',
 }
-const btnGrad     = `linear-gradient(135deg,#007BA8 0%,#00BFFF 100%)`
-// eslint-disable-next-line no-unused-vars
-const sectionGrad = `linear-gradient(135deg,${C.skyFainter} 0%,${C.mint} 60%,${C.skyFaint} 100%)`
+const btnGrad = `linear-gradient(135deg,#007BA8 0%,#00BFFF 100%)`
 
 /* ── Premium upsell modal ── */
 function PremiumModal({ resource, onClose, onNavigate }) {
@@ -72,15 +70,14 @@ function DownloadToast({ resource, onClose }) {
 export default function ResourcesPage() {
   const { navigate } = useRouter()
   const [active, setActive]         = useState('All')
-  const [premiumRes, setPremiumRes] = useState(null)  // resource shown in premium modal
-  const [toast, setToast]           = useState(null)  // resource shown in download toast
-  const [downloaded, setDownloaded] = useState([])    // track downloaded titles
+  const [premiumRes, setPremiumRes] = useState(null)
+  const [toast, setToast]           = useState(null)
+  const [downloaded, setDownloaded] = useState([])
 
   const filtered = active === 'All' ? allResources : allResources.filter(r => r.cat === active)
 
   function handleBtn(r) {
     if (r.free) {
-      // Trigger real download if file path exists, otherwise simulate
       if (r.file) {
         const a = document.createElement('a')
         a.href = r.file
@@ -97,6 +94,30 @@ export default function ResourcesPage() {
 
   return (
     <div className="page-wrapper">
+      {/* ── Responsive grid — same pattern as WorkshopsPage ── */}
+      <style>{`
+        .resources-responsive-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1.5rem;
+        }
+        @media (max-width: 1100px) {
+          .resources-responsive-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+        @media (max-width: 768px) {
+          .resources-responsive-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (max-width: 480px) {
+          .resources-responsive-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
       <div className="page-hero" style={{ background:'var(--blue-mist)' }}>
         <span className="section-tag">Library</span>
         <h1 className="section-title">Free <em>Wellness</em> Resources</h1>
@@ -114,17 +135,26 @@ export default function ResourcesPage() {
           ))}
         </div>
 
-        <div className="resources-grid" style={{ gridTemplateColumns:'repeat(4,1fr)' }}>
+        {/* Responsive resource grid */}
+        <div className="resources-responsive-grid">
           {filtered.map((r,i) => {
             const isDone = downloaded.includes(r.title)
             return (
-              <div key={i} className="resource-card" style={{ cursor:'pointer', border:`1.5px solid ${isDone?C.skyBright:'transparent'}`, background:isDone?C.skyFainter:undefined, transition:'all 0.25s' }}
+              <div key={i} className="resource-card"
+                style={{
+                  cursor:'pointer',
+                  border:`1.5px solid ${isDone?C.skyBright:'transparent'}`,
+                  background:isDone?C.skyFainter:undefined,
+                  transition:'all 0.25s',
+                  display:'flex',
+                  flexDirection:'column',
+                }}
                 onMouseEnter={e=>e.currentTarget.style.transform='translateY(-4px)'}
                 onMouseLeave={e=>e.currentTarget.style.transform='translateY(0)'}>
                 <span className="resource-type">{r.type}</span>
                 <div className="resource-emoji">{r.emoji}</div>
-                <h4>{r.title}</h4>
-                <p>{r.desc}</p>
+                <h4 style={{ margin:'0 0 0.4rem', fontFamily:'var(--font-display)', fontSize:'0.95rem', color:'var(--blue-deep)' }}>{r.title}</h4>
+                <p style={{ margin:'0 0 auto', fontFamily:'var(--font-body)', fontSize:'0.8rem', color:'var(--text-light)', lineHeight:1.55, paddingBottom:'0.75rem' }}>{r.desc}</p>
                 <div className="resource-meta">
                   <span>{r.downloads} downloads</span>
                   <span className={r.free?'resource-free':''}>{r.free?'FREE':'Premium'}</span>
@@ -142,7 +172,6 @@ export default function ResourcesPage() {
         </div>
       </div>
 
-      {/* Premium modal */}
       {premiumRes && (
         <PremiumModal
           resource={premiumRes}
@@ -151,7 +180,6 @@ export default function ResourcesPage() {
         />
       )}
 
-      {/* Download toast */}
       {toast && <DownloadToast resource={toast} onClose={() => setToast(null)} />}
     </div>
   )

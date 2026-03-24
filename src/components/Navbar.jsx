@@ -1,5 +1,14 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useRef, useEffect } from 'react'
+// src/components/Navbar.jsx  (AvatarDropdown section updated with notification badge)
+// Replace ONLY the AvatarDropdown function and the avatar button inside it.
+// Everything else in your Navbar.jsx stays the same.
+//
+// ── WHAT CHANGED ─────────────────────────────────────────────
+// 1. AvatarDropdown now fetches unread notification count on mount
+// 2. The avatar button shows a red "!" badge when there are unread notifications
+// 3. Badge clears when user opens the dropdown or visits Notifications tab
+// ─────────────────────────────────────────────────────────────
+
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useAuth } from '../context/AuthContext'
 import { useLang } from '../context/LanguageContext'
@@ -31,16 +40,17 @@ const NAV = [
     { label: 'Gallery',         labelNP: 'ग्यालेरी',          path: '/gallery',      icon: '🖼️', desc: 'Photos & event memories',     descNP: 'फोटो र कार्यक्रम स्मृतिहरू' },
   ]},
   { label: 'About', labelNP: 'बारेमा', path: '/about', children: [
-    { label: 'Contact',         labelNP: 'सम्पर्क',           path: '/contact',       icon: '📞', desc: 'Get in touch',               descNP: 'सम्पर्कमा आउनुहोस्' },
-    { label: 'Payment & Ethics',labelNP: 'भुक्तान र नैतिकता',  path: '/payment-info',  icon: '🔒', desc: 'Billing & legal info',       descNP: 'बिलिङ र कानुनी जानकारी' },
-    { label: 'Our Values',      labelNP: 'हाम्रा मूल्यहरू',   path: '/our-values',    icon: '🌱', desc: 'What we stand for',          descNP: 'हामी के मा विश्वास गर्छौं' },
+    { label: 'Contact',          labelNP: 'सम्पर्क',           path: '/contact',      icon: '📞', desc: 'Get in touch',               descNP: 'सम्पर्कमा आउनुहोस्' },
+    { label: 'Payment & Ethics', labelNP: 'भुक्तान र नैतिकता', path: '/payment-info', icon: '🔒', desc: 'Billing & legal info',       descNP: 'बिलिङ र कानुनी जानकारी' },
+    { label: 'Our Values',       labelNP: 'हाम्रा मूल्यहरू',   path: '/our-values',   icon: '🌱', desc: 'What we stand for',          descNP: 'हामी के मा विश्वास गर्छौं' },
   ]},
   { label: 'Ashram', labelNP: 'आश्रम', path: '/ashram', children: [
-    { label: 'Ashram',          labelNP: 'आश्रम',             path: '/ashram',       icon: '🏠', desc: 'Place to connect',            descNP: 'जोडिने स्थान' },
+    { label: 'Ashram',           labelNP: 'आश्रम',             path: '/ashram',       icon: '🏠', desc: 'Place to connect',           descNP: 'जोडिने स्थान' },
   ]},
 ]
 
-/* ── User avatar (photo or initials) ── */
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
 function UserAvatar({ user, size = 38 }) {
   const initials = (user?.fullName || user?.email || 'U')
     .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -50,23 +60,48 @@ function UserAvatar({ user, size = 38 }) {
   ]
   const [bg, fg] = colors[(user?.fullName || user?.email || '').charCodeAt(0) % colors.length]
   if (user?.avatarUrl)
-    return <img src={user.avatarUrl} alt={user.fullName || 'User'} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
+    return <img src={user.avatarUrl} alt={user.fullName || 'User'}
+      style={{ width:size, height:size, borderRadius:'50%', objectFit:'cover', display:'block' }} />
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: bg, color: fg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: size * 0.36, fontFamily: 'var(--font-display)', flexShrink: 0 }}>
+    <div style={{ width:size, height:size, borderRadius:'50%', background:bg, color:fg,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      fontWeight:800, fontSize:size*0.36, fontFamily:'var(--font-display)', flexShrink:0 }}>
       {initials}
     </div>
   )
 }
 
-/* ── Avatar dropdown ── */
 function AvatarDropdown({ onNavigate }) {
   const { user, logout } = useAuth()
   const { lang, t }      = useLang()
-  const [open, setOpen]  = useState(false)
-  const ref              = useRef(null)
+  const [open,         setOpen]         = useState(false)
+  const [unreadCount,  setUnreadCount]  = useState(0)
+  const ref = useRef(null)
+
+  // ── Fetch unread notification count ──────────────────────
+  const fetchUnread = useCallback(async () => {
+    if (!user) return
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
+    try {
+      const res = await fetch(`${API_BASE}/notifications?limit=1`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setUnreadCount(data.unreadCount || 0)
+      }
+    } catch {}
+  }, [user])
 
   useEffect(() => {
-    // FIX: use 'mouseup' not 'mousedown' — lets the click inside complete first
+    fetchUnread()
+    // Re-poll every 2 minutes
+    const interval = setInterval(fetchUnread, 2 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [fetchUnread])
+
+  useEffect(() => {
     function close(e) {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false)
     }
@@ -74,16 +109,20 @@ function AvatarDropdown({ onNavigate }) {
     return () => document.removeEventListener('mouseup', close)
   }, [])
 
+  function handleOpen() {
+    setOpen(o => !o)
+    // Clear badge when dropdown is opened
+    if (unreadCount > 0) setUnreadCount(0)
+  }
+
   async function handleLogout() { setOpen(false); await logout(); onNavigate('/signin') }
 
   if (!user) return (
-    <button
-      onClick={() => onNavigate('/signin')}
-      aria-label="Sign in"
-      style={{ width: 38, height: 38, borderRadius: '50%', border: '2px solid var(--blue-pale)', background: 'linear-gradient(135deg,#0f3460 0%,#2980b9 100%)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.2s', flexShrink: 0, padding: 0 }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--sky)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(41,128,185,0.15)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--blue-pale)'; e.currentTarget.style.boxShadow = 'none' }}
-    >
+    <button onClick={() => onNavigate('/signin')} aria-label="Sign in"
+      style={{ width:38, height:38, borderRadius:'50%', border:'2px solid var(--blue-pale)',
+        background:'linear-gradient(135deg,#0f3460 0%,#2980b9 100%)',
+        cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
+        transition:'border-color 0.2s', flexShrink:0, padding:0 }}>
       <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
         <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
       </svg>
@@ -91,78 +130,117 @@ function AvatarDropdown({ onNavigate }) {
   )
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        aria-label="Account menu"
-        style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${open ? 'var(--sky)' : 'var(--blue-pale)'}`, cursor: 'pointer', padding: 0, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: open ? '0 0 0 3px rgba(41,128,185,0.2)' : 'none', transition: 'border-color 0.2s, box-shadow 0.2s', background: 'transparent' }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--sky)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(41,128,185,0.15)' }}
-        onMouseLeave={e => { if (!open) { e.currentTarget.style.borderColor = 'var(--blue-pale)'; e.currentTarget.style.boxShadow = 'none' } }}
-      >
-        <UserAvatar user={user} size={36} />
-      </button>
+    <div ref={ref} style={{ position:'relative' }}>
 
-      <div style={{ position: 'absolute', top: 'calc(100% + 12px)', right: 0, width: 224, background: 'var(--white)', borderRadius: 14, border: '1px solid var(--blue-pale)', boxShadow: '0 20px 56px rgba(15,52,96,0.14)', padding: '0.4rem', zIndex: 400, opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none', transform: open ? 'translateY(0)' : 'translateY(-8px)', transition: 'opacity 0.16s ease, transform 0.16s ease' }}>
+      {/* Avatar button with notification badge */}
+      <div style={{ position:'relative', display:'inline-flex' }}>
+        <button onClick={handleOpen} aria-label="Account menu"
+          style={{ width:38, height:38, borderRadius:'50%',
+            border:`2px solid ${open ? 'var(--sky)' : 'var(--blue-pale)'}`,
+            cursor:'pointer', padding:0, flexShrink:0,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            overflow:'hidden',
+            boxShadow: open ? '0 0 0 3px rgba(41,128,185,0.2)' : 'none',
+            transition:'border-color 0.2s, box-shadow 0.2s', background:'transparent' }}>
+          <UserAvatar user={user} size={36} />
+        </button>
+
+        {/* Notification badge — red "!" */}
+        {unreadCount > 0 && (
+          <div style={{ position:'absolute', top:-3, right:-3,
+            width:18, height:18, borderRadius:'50%',
+            background:'#e53e3e', border:'2px solid white',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontSize:'0.65rem', fontWeight:900, color:'white',
+            lineHeight:1, pointerEvents:'none', zIndex:10 }}>
+            {unreadCount > 9 ? '9+' : '!'}
+          </div>
+        )}
+      </div>
+
+      {/* Dropdown */}
+      <div style={{ position:'absolute', top:'calc(100% + 12px)', right:0, width:224,
+        background:'var(--white)', borderRadius:14, border:'1px solid var(--blue-pale)',
+        boxShadow:'0 20px 56px rgba(15,52,96,0.14)', padding:'0.4rem', zIndex:400,
+        opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none',
+        transform: open ? 'translateY(0)' : 'translateY(-8px)',
+        transition:'opacity 0.16s ease, transform 0.16s ease' }}>
+
         {/* Caret */}
-        <div style={{ position: 'absolute', top: -7, right: 14, width: 14, height: 8, overflow: 'hidden' }}>
-          <div style={{ width: 10, height: 10, background: 'var(--white)', border: '1px solid var(--blue-pale)', transform: 'rotate(45deg)', margin: '3px auto 0' }} />
+        <div style={{ position:'absolute', top:-7, right:14, width:14, height:8, overflow:'hidden' }}>
+          <div style={{ width:10, height:10, background:'var(--white)',
+            border:'1px solid var(--blue-pale)', transform:'rotate(45deg)', margin:'3px auto 0' }} />
         </div>
 
         {/* User info */}
-        <div style={{ padding: '0.75rem 0.85rem 0.65rem', borderBottom: '1px solid var(--blue-pale)', marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <div style={{ padding:'0.75rem 0.85rem 0.65rem', borderBottom:'1px solid var(--blue-pale)',
+          marginBottom:'0.3rem', display:'flex', alignItems:'center', gap:'0.6rem' }}>
           <UserAvatar user={user} size={32} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.83rem', fontWeight: 700, color: 'var(--text-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.fullName || t('myAccount')}</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: 'var(--text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontFamily:'var(--font-body)', fontSize:'0.83rem', fontWeight:700,
+              color:'var(--text-dark)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              {user.fullName || t('myAccount')}
+            </div>
+            <div style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem',
+              color:'var(--text-light)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              {user.email}
+            </div>
           </div>
         </div>
 
         {/* Role badge */}
         {user.role && user.role !== 'client' && (
-          <div style={{ margin: '0 0.4rem 0.3rem', padding: '0.3rem 0.6rem', background: 'var(--green-mist)', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700, color: 'var(--green-deep)', textTransform: 'capitalize' }}>
+          <div style={{ margin:'0 0.4rem 0.3rem', padding:'0.3rem 0.6rem',
+            background:'var(--green-mist)', borderRadius:6, fontSize:'0.72rem',
+            fontWeight:700, color:'var(--green-deep)', textTransform:'capitalize' }}>
             {user.role} account
           </div>
         )}
 
+        {/* Menu items */}
         {[
-          { icon: '👤', label: t('myAccount'), path: '/account',       bg: 'var(--sky-light)' },
-          { icon: '🔐', label: t('myPortal'),  path: '/portal',        bg: 'var(--blue-mist)' },
+          { icon:'👤', label:t('myAccount'), path:'/account',         bg:'var(--sky-light)'  },
+          { icon:'🔐', label:t('myPortal'),  path:'/portal',          bg:'var(--blue-mist)'  },
           ...(user.role === 'admin' || user.role === 'staff'
-            ? [{ icon: '⚙️', label: lang === 'EN' ? 'Admin Dashboard' : 'एडमिन ड्यासबोर्ड', path: '/staff/admin',     bg: 'var(--green-mist)' }]
+            ? [{ icon:'⚙️', label: lang==='EN' ? 'Admin Dashboard' : 'एडमिन ड्यासबोर्ड', path:'/staff/admin', bg:'var(--green-mist)' }]
             : []),
           ...(user.role === 'therapist'
-            ? [{ icon: '🩺', label: lang === 'EN' ? 'Therapist Portal' : 'थेरापिस्ट पोर्टल',   path: '/staff/therapist', bg: 'var(--green-mist)' }]
+            ? [{ icon:'🩺', label: lang==='EN' ? 'Therapist Portal' : 'थेरापिस्ट पोर्टल', path:'/staff/therapist', bg:'var(--green-mist)' }]
             : []),
         ].map(item => (
-          <button
-            key={item.path}
-            onClick={() => { setOpen(false); onNavigate(item.path) }}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%', padding: '0.6rem 0.8rem', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', transition: 'background 0.14s' }}
+          <button key={item.path} onClick={() => { setOpen(false); onNavigate(item.path) }}
+            style={{ display:'flex', alignItems:'center', gap:'0.6rem', width:'100%',
+              padding:'0.6rem 0.8rem', borderRadius:8, border:'none',
+              background:'transparent', cursor:'pointer', textAlign:'left', transition:'background 0.14s' }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--off-white)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <span style={{ width: 28, height: 28, borderRadius: 7, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.82rem', flexShrink: 0 }}>{item.icon}</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.83rem', fontWeight: 600, color: 'var(--text-dark)' }}>{item.label}</span>
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            <span style={{ width:28, height:28, borderRadius:7, background:item.bg,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontSize:'0.82rem', flexShrink:0 }}>{item.icon}</span>
+            <span style={{ fontFamily:'var(--font-body)', fontSize:'0.83rem',
+              fontWeight:600, color:'var(--text-dark)' }}>{item.label}</span>
           </button>
         ))}
 
-        <div style={{ height: 1, background: 'var(--blue-pale)', margin: '0.35rem 0.4rem' }} />
+        <div style={{ height:1, background:'var(--blue-pale)', margin:'0.35rem 0.4rem' }} />
 
-        <button
-          onClick={handleLogout}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%', padding: '0.6rem 0.8rem', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', transition: 'background 0.14s' }}
+        <button onClick={handleLogout}
+          style={{ display:'flex', alignItems:'center', gap:'0.6rem', width:'100%',
+            padding:'0.6rem 0.8rem', borderRadius:8, border:'none',
+            background:'transparent', cursor:'pointer', textAlign:'left', transition:'background 0.14s' }}
           onMouseEnter={e => e.currentTarget.style.background = '#fff5f5'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        >
-          <span style={{ width: 28, height: 28, borderRadius: 7, background: '#fff0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.82rem', flexShrink: 0 }}>🚪</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.83rem', fontWeight: 600, color: '#e53e3e' }}>{t('logOut')}</span>
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+          <span style={{ width:28, height:28, borderRadius:7, background:'#fff0f0',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontSize:'0.82rem', flexShrink:0 }}>🚪</span>
+          <span style={{ fontFamily:'var(--font-body)', fontSize:'0.83rem',
+            fontWeight:600, color:'#e53e3e' }}>{t('logOut')}</span>
         </button>
       </div>
     </div>
   )
 }
 
-/* ── Dropdown item ── */
 function DropdownItem({ group, currentPath, onNavigate, lang }) {
   const [open, setOpen] = useState(false)
   const ref      = useRef(null)
@@ -171,62 +249,73 @@ function DropdownItem({ group, currentPath, onNavigate, lang }) {
   const label    = lang === 'NP' ? (group.labelNP || group.label) : group.label
 
   useEffect(() => {
-    // FIX: use 'mouseup' not 'mousedown' — so clicks on dropdown items
-    // fully register before the outside-click handler fires and closes the menu
-    function close(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
-    }
+    function close(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
     document.addEventListener('mouseup', close)
     return () => document.removeEventListener('mouseup', close)
   }, [])
 
   return (
-    <div
-      ref={ref}
-      style={{ position: 'relative' }}
+    <div ref={ref} style={{ position:'relative' }}
       onMouseEnter={() => { clearTimeout(timerRef.current); setOpen(true) }}
-      onMouseLeave={() => { timerRef.current = setTimeout(() => setOpen(false), 80) }}
-    >
-      <button
-        onClick={() => { onNavigate(group.path); setOpen(false) }}
-        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.25rem 0', background: 'none', border: 'none', fontFamily: 'var(--font-body)', fontSize: '0.88rem', fontWeight: 600, letterSpacing: '0.01em', color: isActive ? 'var(--sky)' : 'var(--text-mid)', cursor: 'pointer', transition: 'color 0.2s', position: 'relative' }}
+      onMouseLeave={() => { timerRef.current = setTimeout(() => setOpen(false), 80) }}>
+      <button onClick={() => { onNavigate(group.path); setOpen(false) }}
+        style={{ display:'flex', alignItems:'center', gap:4, padding:'0.25rem 0',
+          background:'none', border:'none', fontFamily:'var(--font-body)', fontSize:'0.88rem',
+          fontWeight:600, letterSpacing:'0.01em',
+          color: isActive ? 'var(--sky)' : 'var(--text-mid)',
+          cursor:'pointer', transition:'color 0.2s', position:'relative' }}
         onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = 'var(--green-deep)' }}
-        onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = 'var(--text-mid)' }}
-      >
+        onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = 'var(--text-mid)' }}>
         {label}
-        {isActive && <span style={{ position: 'absolute', bottom: -4, left: 0, right: 0, height: 2, background: 'var(--sky)', borderRadius: 2 }} />}
-        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.45, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        {isActive && <span style={{ position:'absolute', bottom:-4, left:0, right:0,
+          height:2, background:'var(--sky)', borderRadius:2 }} />}
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"
+          style={{ opacity:0.45, transition:'transform 0.2s',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8"
+            strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
-      {/* Bridge gap between button and dropdown so hover doesn't flicker */}
-      {open && <div style={{ position: 'absolute', top: '100%', left: '-20px', right: '-20px', height: 18, background: 'transparent', zIndex: 299 }} />}
+      {open && <div style={{ position:'absolute', top:'100%', left:'-20px', right:'-20px',
+        height:18, background:'transparent', zIndex:299 }} />}
 
-      <div style={{ position: 'absolute', top: 'calc(100% + 16px)', left: '50%', minWidth: 256, background: 'var(--white)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--blue-pale)', boxShadow: '0 20px 56px rgba(26,58,74,0.13)', padding: '0.45rem', zIndex: 300, opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none', transform: open ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-8px)', transition: 'opacity 0.16s ease, transform 0.16s ease' }}>
-        {/* Caret */}
-        <div style={{ position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)', width: 14, height: 8, overflow: 'hidden' }}>
-          <div style={{ width: 10, height: 10, background: 'var(--white)', border: '1px solid var(--blue-pale)', transform: 'rotate(45deg)', margin: '3px auto 0' }} />
+      <div style={{ position:'absolute', top:'calc(100% + 16px)', left:'50%', minWidth:256,
+        background:'var(--white)', borderRadius:'var(--radius-lg)',
+        border:'1px solid var(--blue-pale)', boxShadow:'0 20px 56px rgba(26,58,74,0.13)',
+        padding:'0.45rem', zIndex:300,
+        opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none',
+        transform: open ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-8px)',
+        transition:'opacity 0.16s ease, transform 0.16s ease' }}>
+        <div style={{ position:'absolute', top:-7, left:'50%', transform:'translateX(-50%)',
+          width:14, height:8, overflow:'hidden' }}>
+          <div style={{ width:10, height:10, background:'var(--white)',
+            border:'1px solid var(--blue-pale)', transform:'rotate(45deg)', margin:'3px auto 0' }} />
         </div>
-
         {group.children.map(item => {
           const active = currentPath === item.path
           const iLabel = lang === 'NP' ? (item.labelNP || item.label) : item.label
           const iDesc  = lang === 'NP' ? (item.descNP  || item.desc)  : item.desc
           return (
-            <button
-              key={item.path + item.label}
+            <button key={item.path + item.label}
               onClick={() => { onNavigate(item.path); setOpen(false) }}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', width: '100%', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-md)', background: active ? 'var(--sky-light)' : 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.14s' }}
+              style={{ display:'flex', alignItems:'center', gap:'0.7rem', width:'100%',
+                padding:'0.6rem 0.8rem', borderRadius:'var(--radius-md)',
+                background: active ? 'var(--sky-light)' : 'transparent',
+                border:'none', cursor:'pointer', textAlign:'left', transition:'background 0.14s' }}
               onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--off-white)' }}
-              onMouseLeave={e => { if (!active) e.currentTarget.style.background = active ? 'var(--sky-light)' : 'transparent' }}
-            >
-              <span style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, background: active ? 'var(--sky)' : 'var(--blue-mist)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.88rem' }}>{item.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.83rem', fontWeight: 700, color: active ? 'var(--sky)' : 'var(--text-dark)', lineHeight: 1.2 }}>{iLabel}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.71rem', color: 'var(--text-light)', marginTop: 1 }}>{iDesc}</div>
+              onMouseLeave={e => { if (!active) e.currentTarget.style.background = active ? 'var(--sky-light)' : 'transparent' }}>
+              <span style={{ width:32, height:32, borderRadius:8, flexShrink:0,
+                background: active ? 'var(--sky)' : 'var(--blue-mist)',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontSize:'0.88rem' }}>{item.icon}</span>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:'var(--font-body)', fontSize:'0.83rem', fontWeight:700,
+                  color: active ? 'var(--sky)' : 'var(--text-dark)', lineHeight:1.2 }}>{iLabel}</div>
+                <div style={{ fontFamily:'var(--font-body)', fontSize:'0.71rem',
+                  color:'var(--text-light)', marginTop:1 }}>{iDesc}</div>
               </div>
-              {active && <span style={{ color: 'var(--sky)', fontSize: '0.65rem' }}>●</span>}
+              {active && <span style={{ color:'var(--sky)', fontSize:'0.65rem' }}>●</span>}
             </button>
           )
         })}
@@ -235,7 +324,6 @@ function DropdownItem({ group, currentPath, onNavigate, lang }) {
   )
 }
 
-/* ── Mobile group ── */
 function MobileGroup({ group, currentPath, onNavigate, lang }) {
   const [open, setOpen] = useState(false)
   const isActive = group.children.some(c => c.path === currentPath)
@@ -243,29 +331,41 @@ function MobileGroup({ group, currentPath, onNavigate, lang }) {
 
   return (
     <li>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.8rem 0', background: 'none', border: 'none', borderBottom: open ? 'none' : '1px solid var(--earth-cream)', fontFamily: 'var(--font-body)', fontSize: '0.98rem', fontWeight: isActive ? 700 : 600, color: isActive ? 'var(--sky)' : 'var(--text-mid)', cursor: 'pointer', textAlign: 'left' }}
-      >
+      <button onClick={() => setOpen(o => !o)}
+        style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+          width:'100%', padding:'0.8rem 0', background:'none', border:'none',
+          borderBottom: open ? 'none' : '1px solid var(--earth-cream)',
+          fontFamily:'var(--font-body)', fontSize:'0.98rem',
+          fontWeight: isActive ? 700 : 600,
+          color: isActive ? 'var(--sky)' : 'var(--text-mid)',
+          cursor:'pointer', textAlign:'left' }}>
         {label}
-        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.4, flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width="14" height="14" viewBox="0 0 12 12" fill="none"
+          style={{ opacity:0.4, flexShrink:0, transition:'transform 0.2s',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8"
+            strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
       {open && (
-        <ul style={{ listStyle: 'none', paddingLeft: '0.5rem', paddingBottom: '0.4rem', borderBottom: '1px solid var(--earth-cream)' }}>
+        <ul style={{ listStyle:'none', paddingLeft:'0.5rem',
+          paddingBottom:'0.4rem', borderBottom:'1px solid var(--earth-cream)' }}>
           {group.children.map(item => {
             const iLabel = lang === 'NP' ? (item.labelNP || item.label) : item.label
             return (
               <li key={item.path + item.label}>
-                <a
-                  href={item.path}
-                  onClick={e => { e.preventDefault(); onNavigate(item.path) }}
+                <a href={item.path} onClick={e => { e.preventDefault(); onNavigate(item.path) }}
                   className={currentPath === item.path ? 'nav-active' : ''}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', padding: '0.55rem 0', borderBottom: '1px solid rgba(0,0,0,0.04)', textDecoration: 'none' }}
-                >
-                  <span style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0, background: currentPath === item.path ? 'var(--sky)' : 'var(--blue-mist)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem' }}>{item.icon}</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', fontWeight: currentPath === item.path ? 700 : 500, color: currentPath === item.path ? 'var(--sky)' : 'var(--text-mid)' }}>{iLabel}</span>
+                  style={{ display:'flex', alignItems:'center', gap:'0.65rem',
+                    padding:'0.55rem 0', borderBottom:'1px solid rgba(0,0,0,0.04)',
+                    textDecoration:'none' }}>
+                  <span style={{ width:28, height:28, borderRadius:6, flexShrink:0,
+                    background: currentPath===item.path ? 'var(--sky)' : 'var(--blue-mist)',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    fontSize:'0.78rem' }}>{item.icon}</span>
+                  <span style={{ fontFamily:'var(--font-body)', fontSize:'0.88rem',
+                    fontWeight: currentPath===item.path ? 700 : 500,
+                    color: currentPath===item.path ? 'var(--sky)' : 'var(--text-mid)' }}>{iLabel}</span>
                 </a>
               </li>
             )
@@ -276,9 +376,6 @@ function MobileGroup({ group, currentPath, onNavigate, lang }) {
   )
 }
 
-/* ══════════════════════════════════════
-   MAIN NAVBAR
-══════════════════════════════════════ */
 export default function Navbar() {
   const { navigate, currentPath } = useRouter()
   const { user, logout }          = useAuth()
@@ -292,47 +389,44 @@ export default function Navbar() {
 
   if (AUTH_PAGES.includes(currentPath)) return null
 
-  function go(path) { navigate(path); setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-
+  function go(path) { navigate(path); setMenuOpen(false); window.scrollTo({ top:0, behavior:'smooth' }) }
   async function handleMobileLogout() { setMenuOpen(false); await logout(); navigate('/signin') }
 
   return (
     <>
       <nav className="navbar">
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-          <div className="navbar-logo" onClick={() => go('/')} style={{ cursor: 'pointer' }}>
-            <div className="logo-mark" style={{ overflow: 'hidden', background: 'transparent', border: 'none' }}>
-              <img src="/header.png" alt="Puja Samargi" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+        <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}>
+          <div className="navbar-logo" onClick={() => go('/')} style={{ cursor:'pointer' }}>
+            <div className="logo-mark" style={{ overflow:'hidden', background:'transparent', border:'none' }}>
+              <img src="/header.png" alt="Puja Samargi"
+                style={{ width:'100%', height:'100%', objectFit:'contain', display:'block' }} />
             </div>
             <div>
               <div className="logo-text">Puja Samargi</div>
-              <div className="logo-sub">{lang === 'NP' ? 'मानसिक स्वास्थ्य केन्द्र' : 'Mental Wellness Center'}</div>
+              <div className="logo-sub">{lang==='NP' ? 'मानसिक स्वास्थ्य केन्द्र' : 'Mental Wellness Center'}</div>
             </div>
           </div>
         </div>
 
-        {/* Centre nav */}
-        <div className="navbar-links" style={{ gap: '1.75rem' }}>
+        <div className="navbar-links" style={{ gap:'1.75rem' }}>
           {NAV.map(group => (
-            <DropdownItem key={group.label} group={group} currentPath={currentPath} onNavigate={go} lang={lang} />
+            <DropdownItem key={group.label} group={group}
+              currentPath={currentPath} onNavigate={go} lang={lang} />
           ))}
         </div>
 
-        {/* Right controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-          {/* Language toggle */}
-          <button
-            onClick={toggle}
-            style={{ padding: '0.28rem 0.65rem', border: '1.5px solid var(--green-pale)', borderRadius: 100, background: 'transparent', fontFamily: 'var(--font-body)', fontSize: '0.68rem', fontWeight: 700, color: 'var(--green-deep)', cursor: 'pointer', letterSpacing: '0.04em', transition: 'background 0.18s', whiteSpace: 'nowrap' }}
+        <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}>
+          <button onClick={toggle}
+            style={{ padding:'0.28rem 0.65rem', border:'1.5px solid var(--green-pale)',
+              borderRadius:100, background:'transparent', fontFamily:'var(--font-body)',
+              fontSize:'0.68rem', fontWeight:700, color:'var(--green-deep)',
+              cursor:'pointer', letterSpacing:'0.04em', transition:'background 0.18s',
+              whiteSpace:'nowrap' }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--green-mist)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            title={lang === 'EN' ? 'Switch to Nepali' : 'English मा फर्कनुहोस्'}
-          >
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             🌐 {lang}
           </button>
 
-          {/* CTA */}
           <div className="navbar-cta">
             {!user && (
               <button className="btn btn-outline" onClick={() => go('/signin')}>{t('signIn')}</button>
@@ -340,6 +434,7 @@ export default function Navbar() {
             <button className="btn btn-primary" onClick={() => go('/book')}>{t('bookSession')}</button>
           </div>
 
+          {/* Avatar with notification badge */}
           <AvatarDropdown onNavigate={go} />
 
           <button className="hamburger" aria-label="Toggle menu" onClick={() => setMenuOpen(o => !o)}>
@@ -350,64 +445,75 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile overlay — clicking it closes the menu */}
       {menuOpen && (
-        <div
-          className="mobile-overlay"
-          onClick={() => setMenuOpen(false)}
-          style={{ opacity: 1, pointerEvents: 'all' }}
-        />
+        <div className="mobile-overlay" onClick={() => setMenuOpen(false)}
+          style={{ opacity:1, pointerEvents:'all' }} />
       )}
 
       <div className={`mobile-menu ${menuOpen ? 'mobile-menu-open' : ''}`}>
-        {/* User bar */}
         {user && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 0 1rem', borderBottom: '1px solid var(--earth-cream)', marginBottom: '0.5rem' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'0.75rem',
+            padding:'0.75rem 0 1rem', borderBottom:'1px solid var(--earth-cream)',
+            marginBottom:'0.5rem' }}>
             <UserAvatar user={user} size={40} />
             <div>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-dark)' }}>{user.fullName || t('myAccount')}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: 'var(--text-light)' }}>{user.email}</div>
+              <div style={{ fontFamily:'var(--font-body)', fontWeight:700,
+                fontSize:'0.92rem', color:'var(--text-dark)' }}>{user.fullName || t('myAccount')}</div>
+              <div style={{ fontFamily:'var(--font-body)', fontSize:'0.75rem',
+                color:'var(--text-light)' }}>{user.email}</div>
             </div>
           </div>
         )}
 
-        <ul className="mobile-links" style={{ marginBottom: '0.75rem', paddingBottom: 0, borderBottom: 'none' }}>
+        <ul className="mobile-links" style={{ marginBottom:'0.75rem', paddingBottom:0, borderBottom:'none' }}>
           {NAV.map(group => (
-            <MobileGroup key={group.label} group={group} currentPath={currentPath} onNavigate={go} lang={lang} />
+            <MobileGroup key={group.label} group={group}
+              currentPath={currentPath} onNavigate={go} lang={lang} />
           ))}
         </ul>
 
-        <div style={{ padding: '0.75rem 0', borderTop: '1px solid var(--earth-cream)', marginBottom: '0.75rem' }}>
+        <div style={{ padding:'0.75rem 0', borderTop:'1px solid var(--earth-cream)', marginBottom:'0.75rem' }}>
           {user ? (
             <>
-              <button onClick={() => go('/account')} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', width: '100%', padding: '0.6rem 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>👤</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-mid)' }}>{t('myAccount')}</span>
+              <button onClick={() => go('/account')} style={{ display:'flex', alignItems:'center',
+                gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
+                <span style={{ fontSize:'1rem' }}>👤</span>
+                <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-mid)' }}>{t('myAccount')}</span>
               </button>
-              <button onClick={() => go('/portal')} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', width: '100%', padding: '0.6rem 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>🔐</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-mid)' }}>{t('myPortal')}</span>
+              <button onClick={() => go('/portal')} style={{ display:'flex', alignItems:'center',
+                gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
+                <span style={{ fontSize:'1rem' }}>🔐</span>
+                <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-mid)' }}>{t('myPortal')}</span>
               </button>
-              <button onClick={handleMobileLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', width: '100%', padding: '0.6rem 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>🚪</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', fontWeight: 600, color: '#e53e3e' }}>{t('logOut')}</span>
+              <button onClick={handleMobileLogout} style={{ display:'flex', alignItems:'center',
+                gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
+                <span style={{ fontSize:'1rem' }}>🚪</span>
+                <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'#e53e3e' }}>{t('logOut')}</span>
               </button>
             </>
           ) : (
-            <button onClick={() => go('/signin')} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', width: '100%', padding: '0.6rem 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-              <span style={{ fontSize: '1rem' }}>🔑</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-mid)' }}>{t('signIn')}</span>
+            <button onClick={() => go('/signin')} style={{ display:'flex', alignItems:'center',
+              gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
+              <span style={{ fontSize:'1rem' }}>🔑</span>
+              <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-mid)' }}>{t('signIn')}</span>
             </button>
           )}
-          <button onClick={toggle} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', width: '100%', padding: '0.6rem 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <span style={{ fontSize: '1rem' }}>🌐</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--green-deep)' }}>{lang === 'EN' ? 'नेपालीमा हेर्नुहोस्' : 'View in English'}</span>
+          <button onClick={toggle} style={{ display:'flex', alignItems:'center',
+            gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
+            <span style={{ fontSize:'1rem' }}>🌐</span>
+            <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--green-deep)' }}>
+              {lang==='EN' ? 'नेपालीमा हेर्नुहोस्' : 'View in English'}
+            </span>
           </button>
         </div>
 
         <div className="mobile-cta">
-          <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => go('/book')}>{t('bookSession')} →</button>
-          {!user && <button className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }} onClick={() => go('/signin')}>{t('signIn')}</button>}
+          <button className="btn btn-primary" style={{ width:'100%', justifyContent:'center' }}
+            onClick={() => go('/book')}>{t('bookSession')} →</button>
+          {!user && (
+            <button className="btn btn-outline" style={{ width:'100%', justifyContent:'center' }}
+              onClick={() => go('/signin')}>{t('signIn')}</button>
+          )}
         </div>
       </div>
     </>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
 
 const C = {
@@ -20,6 +20,22 @@ const C = {
 const heroGrad    = `linear-gradient(135deg, ${C.skyDeep} 0%, ${C.skyMid} 40%, ${C.skyBright} 80%, #22d3ee 100%)`
 const sectionGrad = `linear-gradient(135deg, ${C.skyFainter} 0%, ${C.mint} 60%, ${C.skyFaint} 100%)`
 const btnGrad     = `linear-gradient(135deg, ${C.skyDeep} 0%, ${C.skyBright} 100%)`
+
+/* ── Responsive columns hook ── */
+function useGridColumns() {
+  const getColumns = (w) => {
+    if (w < 480) return 1   // mobile  → 1 card per row
+    if (w < 900) return 2   // tablet  → 2 cards per row
+    return 3                // desktop → 3 cards per row
+  }
+  const [cols, setCols] = useState(() => getColumns(typeof window !== 'undefined' ? window.innerWidth : 1024))
+  useEffect(() => {
+    const handler = () => setCols(getColumns(window.innerWidth))
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return cols
+}
 
 const IMPACT = [
   { icon: '🏘️', val: '38',    label: 'Communities Reached' },
@@ -256,24 +272,41 @@ export default function SocialWorkPage() {
   const { navigate } = useRouter()
   const [selected, setSelected] = useState(null)
 
+  // Responsive grid: 1 col on mobile, 2 on tablet, 3 on desktop
+  const gridCols = useGridColumns()
+  const gridTemplateColumns =
+    gridCols === 1 ? '1fr' :
+    gridCols === 2 ? 'repeat(2, 1fr)' :
+    'repeat(auto-fill, minmax(320px, 1fr))'
+
+  // Track width for hero padding etc.
+  const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
+  useEffect(() => {
+    const handler = () => setWinWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  const heroPadding  = winWidth < 480 ? '3rem 1.25rem 2.5rem' : winWidth < 768 ? '4rem 2rem 3rem' : '5rem 4rem 4rem'
+  const innerPadding = winWidth < 480 ? '2rem 1.25rem 4rem' : winWidth < 768 ? '2.5rem 2rem 4rem' : '3rem 4rem 5rem'
+
   return (
     <div className="page-wrapper" style={{ background: C.skyGhost }}>
 
       {/* ── Hero ── */}
-      <div style={{ background: heroGrad, padding: '5rem 4rem 4rem', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: heroGrad, padding: heroPadding, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -60, right: -60, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 680, position: 'relative' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 100, padding: '0.3rem 1rem', marginBottom: '1rem' }}>
             <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase' }}>🤝 Community Social Work</span>
           </div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3rem)', color: 'white', marginBottom: '1rem', lineHeight: 1.2 }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 4vw, 3rem)', color: 'white', marginBottom: '1rem', lineHeight: 1.2 }}>
             Mental Health for<br />Every Nepali
           </h1>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'rgba(255,255,255,0.82)', lineHeight: 1.75, maxWidth: 520, marginBottom: '2.5rem' }}>
             Beyond the clinic — reaching underserved communities, rural villages, schools, and shelters. Our social work programmes bring mental health support to those who need it most.
           </p>
           {/* Impact stats */}
-          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: winWidth < 480 ? '1.25rem' : '2rem', flexWrap: 'wrap' }}>
             {IMPACT.map((s, i) => (
               <div key={i} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '1.3rem', marginBottom: '0.1rem' }}>{s.icon}</div>
@@ -285,7 +318,7 @@ export default function SocialWorkPage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '3rem 4rem 5rem' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: innerPadding }}>
 
         {/* Section header */}
         <div style={{ background: sectionGrad, borderRadius: 16, padding: '1.4rem 2rem', marginBottom: '2.5rem', border: `1px solid ${C.borderFaint}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
@@ -299,8 +332,8 @@ export default function SocialWorkPage() {
           </button>
         </div>
 
-        {/* Grid — paddingTop for floating labels */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem', paddingTop: '0.5rem' }}>
+        {/* ↓ Responsive grid — 1 col mobile, 2 col tablet, 3 col desktop */}
+        <div style={{ display: 'grid', gridTemplateColumns, gap: '2rem', paddingTop: '0.5rem' }}>
           {PROGRAMS.map(p => (
             <ProgramCard key={p.id} prog={p} onReadMore={setSelected} />
           ))}
@@ -323,7 +356,7 @@ export default function SocialWorkPage() {
 
         {/* Volunteer CTA */}
         <div style={{
-          marginTop: '2rem', padding: '3rem', background: heroGrad, borderRadius: 20,
+          marginTop: '2rem', padding: winWidth < 480 ? '2rem 1.5rem' : '3rem', background: heroGrad, borderRadius: 20,
           display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap',
           boxShadow: '0 16px 48px rgba(0,191,255,0.2)', position: 'relative', overflow: 'hidden',
         }}>
@@ -343,7 +376,7 @@ export default function SocialWorkPage() {
       {/* Detail modal */}
       {selected && (
         <div onClick={() => setSelected(null)} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(26,58,74,0.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: C.white, borderRadius: 24, padding: '2.5rem', maxWidth: 520, width: '100%', boxShadow: '0 32px 80px rgba(0,0,0,0.2)', border: `1.5px solid ${C.skyBright}`, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: C.white, borderRadius: 24, padding: winWidth < 480 ? '1.5rem' : '2.5rem', maxWidth: 520, width: '100%', boxShadow: '0 32px 80px rgba(0,0,0,0.2)', border: `1.5px solid ${C.skyBright}`, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ height: 6, background: btnGrad, borderRadius: 3, marginBottom: '1.5rem' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
               <span style={{ fontSize: '2.5rem' }}>{selected.emoji}</span>

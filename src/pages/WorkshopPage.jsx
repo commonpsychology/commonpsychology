@@ -233,99 +233,122 @@ export default function WorkshopsPage() {
         </div>
       </div>
 
-      <div style={{ maxWidth:920, margin:'0 auto', padding:'2.5rem 2rem 5rem', display:'grid', gridTemplateColumns:'1fr 300px', gap:'1.75rem', alignItems:'start' }}>
-        <div style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
+      <div style={{ maxWidth:920, margin:'0 auto', padding:'2.5rem 2rem 5rem' }}>
+        {/* Responsive payment layout: side-by-side on desktop, stacked on mobile */}
+        <style>{`
+          .payment-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1.75rem;
+            align-items: start;
+          }
+          .payment-sidebar {
+            position: sticky;
+            top: 5.5rem;
+          }
+          @media (max-width: 700px) {
+            .payment-layout {
+              grid-template-columns: 1fr;
+            }
+            .payment-sidebar {
+              position: static;
+            }
+          }
+        `}</style>
+        <div className="payment-layout">
+          <div style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
 
-          {/* Method selector */}
-          <div>
-            <div style={{ fontFamily:'var(--font-body)', fontSize:'0.66rem', fontWeight:800, color:C.textLight, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.75rem' }}>Choose Payment Method</div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'0.65rem' }}>
-              {METHODS.map(m=>(
-                <button key={m.id} onClick={()=>setMethod(m.id)} style={{ padding:'0.85rem 0.5rem', borderRadius:14, border:`1.5px solid ${method===m.id?m.color:C.borderFaint}`, background:method===m.id?m.faint:C.white, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.35rem', boxShadow:method===m.id?`0 4px 14px ${m.color}33`:'none', transform:method===m.id?'translateY(-2px)':'none', transition:'all 0.2s ease', fontFamily:'inherit' }}>
-                  <span style={{ fontSize:'1.4rem' }}>{m.emoji}</span>
-                  <span style={{ fontFamily:'var(--font-body)', fontSize:'0.68rem', fontWeight:method===m.id?800:600, color:method===m.id?m.color:C.textMid, textAlign:'center', lineHeight:1.2 }}>{m.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Payment instructions */}
-          <div style={{ background:C.white, borderRadius:20, border:`1px solid ${C.borderFaint}`, overflow:'hidden', boxShadow:`0 4px 24px rgba(0,191,255,0.07)` }}>
-            <div style={{ padding:'0.9rem 1.5rem', background:sectionGrad, borderBottom:`1px solid ${C.borderFaint}`, display:'flex', alignItems:'center', gap:'0.5rem' }}>
-              <span>{sel.emoji}</span>
-              <span style={{ fontFamily:'var(--font-display)', fontSize:'0.92rem', color:C.textDark }}>Pay via {sel.label}</span>
-            </div>
-            <div style={{ padding:'1.75rem 2rem', textAlign:'center' }}>
-              {method==='qr' && (
-                <>
-                  <div style={{ width:'min(180px,80%)', aspectRatio:'1', margin:'0 auto 1.1rem', borderRadius:16, border:`2px solid ${C.borderFaint}`, background:C.white, padding:8, overflow:'hidden', boxShadow:`0 4px 20px rgba(0,191,255,0.1)` }}>
-                    <img src={QR_IMAGE} alt="QR" style={{ width:'100%', height:'100%', objectFit:'contain' }}
-                      onError={e=>{ e.target.parentElement.innerHTML=`<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#7a9aaa;text-align:center;gap:8px"><span style="font-size:2rem">📷</span><span>Add QR to /public/images/payment-qr.png</span></div>` }} />
-                  </div>
-                  <p style={{ fontFamily:'var(--font-body)', fontSize:'0.85rem', color:C.textMid, lineHeight:1.78, maxWidth:360, margin:'0 auto' }}>
-                    Open any bank app → Scan QR → Amount <strong style={{ color:C.skyDeep }}>{workshop?.price}</strong> → Remarks: <strong style={{ color:C.skyDeep }}>{ref}</strong>
-                  </p>
-                </>
-              )}
-              {(method==='esewa'||method==='khalti') && (
-                <>
-                  <div style={{ fontSize:'3rem', marginBottom:'0.65rem' }}>{sel.emoji}</div>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'0.65rem', marginBottom:'0.9rem', flexWrap:'wrap' }}>
-                    <div style={{ fontFamily:'var(--font-display)', fontSize:'1.3rem', color:C.textDark, fontWeight:700, padding:'0.5rem 1.2rem', background:sectionGrad, borderRadius:12, border:`1px solid ${C.borderFaint}` }}>{method==='esewa'?ESEWA_ID:KHALTI_ID}</div>
-                    <CopyBtn text={method==='esewa'?ESEWA_ID:KHALTI_ID} id={method} copied={copied} onCopy={copy} />
-                  </div>
-                  <p style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:C.textMid, lineHeight:1.78, maxWidth:360, margin:'0 auto 0.9rem' }}>
-                    Amount: <strong style={{ color:C.skyDeep }}>{workshop?.price}</strong> · Remarks: <strong style={{ color:C.skyDeep }}>{ref}</strong>
-                  </p>
-                  <a href={method==='esewa'?'https://esewa.com.np':'https://khalti.com'} target="_blank" rel="noopener noreferrer"
-                    style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'0.48rem 1.2rem', borderRadius:100, border:`1.5px solid ${sel.color}`, color:sel.color, background:sel.faint, fontFamily:'var(--font-body)', fontSize:'0.82rem', fontWeight:700, textDecoration:'none' }}>
-                    {sel.emoji} Open {sel.label} App →
-                  </a>
-                </>
-              )}
-              {method==='cod' && (
-                <>
-                  <div style={{ fontSize:'3rem', marginBottom:'0.65rem' }}>💵</div>
-                  <h3 style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:C.textDark, marginBottom:'0.65rem' }}>Pay on Arrival</h3>
-                  <p style={{ fontFamily:'var(--font-body)', fontSize:'0.88rem', color:C.textMid, lineHeight:1.8, maxWidth:340, margin:'0 auto' }}>
-                    Your spot is reserved now. Please bring exactly <strong style={{ color:C.skyDeep }}>{workshop?.price}</strong> on the day. Our team will call {form.phone} to confirm.
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: sticky confirm */}
-        <div style={{ position:'sticky', top:'5.5rem' }}>
-          <div style={{ background:C.white, borderRadius:20, border:`1px solid ${C.borderFaint}`, overflow:'hidden', boxShadow:`0 6px 32px rgba(0,191,255,0.1)` }}>
-            <div style={{ background:heroGrad, padding:'1.5rem', textAlign:'center', position:'relative', overflow:'hidden' }}>
-              <div style={{ position:'absolute', top:-25, right:-25, width:110, height:110, borderRadius:'50%', background:'rgba(255,255,255,0.07)', pointerEvents:'none' }} />
-              <div style={{ fontFamily:'var(--font-body)', fontSize:'0.62rem', fontWeight:700, color:'rgba(255,255,255,0.7)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.3rem' }}>Workshop Fee</div>
-              <div style={{ fontFamily:'var(--font-display)', fontSize:'2.2rem', color:'white', fontWeight:800, lineHeight:1 }}>{workshop?.price}</div>
-              <div style={{ fontFamily:'var(--font-body)', fontSize:'0.7rem', color:'rgba(255,255,255,0.65)', marginTop:'0.3rem' }}>{workshop?.date}</div>
-            </div>
-            <div style={{ padding:'1.1rem' }}>
-              <div style={{ background:sectionGrad, borderRadius:10, padding:'0.65rem 0.85rem', marginBottom:'0.9rem', border:`1px solid ${C.borderFaint}`, display:'flex', justifyContent:'space-between', alignItems:'center', gap:'0.5rem', flexWrap:'wrap' }}>
-                <div>
-                  <div style={{ fontFamily:'var(--font-body)', fontSize:'0.56rem', fontWeight:800, color:C.textLight, textTransform:'uppercase', letterSpacing:'0.09em', marginBottom:'0.1rem' }}>Reference</div>
-                  <div style={{ fontFamily:'var(--font-display)', fontSize:'0.78rem', color:C.skyDeep, fontWeight:700 }}>{ref}</div>
-                </div>
-                <CopyBtn text={ref} id="ref" copied={copied} onCopy={copy} />
+            {/* Method selector */}
+            <div>
+              <div style={{ fontFamily:'var(--font-body)', fontSize:'0.66rem', fontWeight:800, color:C.textLight, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.75rem' }}>Choose Payment Method</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'0.65rem' }}>
+                {METHODS.map(m=>(
+                  <button key={m.id} onClick={()=>setMethod(m.id)} style={{ padding:'0.85rem 0.5rem', borderRadius:14, border:`1.5px solid ${method===m.id?m.color:C.borderFaint}`, background:method===m.id?m.faint:C.white, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.35rem', boxShadow:method===m.id?`0 4px 14px ${m.color}33`:'none', transform:method===m.id?'translateY(-2px)':'none', transition:'all 0.2s ease', fontFamily:'inherit' }}>
+                    <span style={{ fontSize:'1.4rem' }}>{m.emoji}</span>
+                    <span style={{ fontFamily:'var(--font-body)', fontSize:'0.68rem', fontWeight:method===m.id?800:600, color:method===m.id?m.color:C.textMid, textAlign:'center', lineHeight:1.2 }}>{m.label}</span>
+                  </button>
+                ))}
               </div>
-              {[['Method',sel.label],['Name',form.name||'—'],['Phone',form.phone||'—']].map(([k,v])=>(
-                <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'0.38rem 0', borderBottom:`1px solid ${C.borderFaint}`, fontFamily:'var(--font-body)', fontSize:'0.76rem' }}>
-                  <span style={{ color:C.textLight, fontWeight:700 }}>{k}</span>
-                  <span style={{ color:C.textDark, fontWeight:600 }}>{v}</span>
+            </div>
+
+            {/* Payment instructions */}
+            <div style={{ background:C.white, borderRadius:20, border:`1px solid ${C.borderFaint}`, overflow:'hidden', boxShadow:`0 4px 24px rgba(0,191,255,0.07)` }}>
+              <div style={{ padding:'0.9rem 1.5rem', background:sectionGrad, borderBottom:`1px solid ${C.borderFaint}`, display:'flex', alignItems:'center', gap:'0.5rem' }}>
+                <span>{sel.emoji}</span>
+                <span style={{ fontFamily:'var(--font-display)', fontSize:'0.92rem', color:C.textDark }}>Pay via {sel.label}</span>
+              </div>
+              <div style={{ padding:'1.75rem 2rem', textAlign:'center' }}>
+                {method==='qr' && (
+                  <>
+                    <div style={{ width:'min(180px,80%)', aspectRatio:'1', margin:'0 auto 1.1rem', borderRadius:16, border:`2px solid ${C.borderFaint}`, background:C.white, padding:8, overflow:'hidden', boxShadow:`0 4px 20px rgba(0,191,255,0.1)` }}>
+                      <img src={QR_IMAGE} alt="QR" style={{ width:'100%', height:'100%', objectFit:'contain' }}
+                        onError={e=>{ e.target.parentElement.innerHTML=`<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#7a9aaa;text-align:center;gap:8px"><span style="font-size:2rem">📷</span><span>Add QR to /public/images/payment-qr.png</span></div>` }} />
+                    </div>
+                    <p style={{ fontFamily:'var(--font-body)', fontSize:'0.85rem', color:C.textMid, lineHeight:1.78, maxWidth:360, margin:'0 auto' }}>
+                      Open any bank app → Scan QR → Amount <strong style={{ color:C.skyDeep }}>{workshop?.price}</strong> → Remarks: <strong style={{ color:C.skyDeep }}>{ref}</strong>
+                    </p>
+                  </>
+                )}
+                {(method==='esewa'||method==='khalti') && (
+                  <>
+                    <div style={{ fontSize:'3rem', marginBottom:'0.65rem' }}>{sel.emoji}</div>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'0.65rem', marginBottom:'0.9rem', flexWrap:'wrap' }}>
+                      <div style={{ fontFamily:'var(--font-display)', fontSize:'1.3rem', color:C.textDark, fontWeight:700, padding:'0.5rem 1.2rem', background:sectionGrad, borderRadius:12, border:`1px solid ${C.borderFaint}` }}>{method==='esewa'?ESEWA_ID:KHALTI_ID}</div>
+                      <CopyBtn text={method==='esewa'?ESEWA_ID:KHALTI_ID} id={method} copied={copied} onCopy={copy} />
+                    </div>
+                    <p style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', color:C.textMid, lineHeight:1.78, maxWidth:360, margin:'0 auto 0.9rem' }}>
+                      Amount: <strong style={{ color:C.skyDeep }}>{workshop?.price}</strong> · Remarks: <strong style={{ color:C.skyDeep }}>{ref}</strong>
+                    </p>
+                    <a href={method==='esewa'?'https://esewa.com.np':'https://khalti.com'} target="_blank" rel="noopener noreferrer"
+                      style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'0.48rem 1.2rem', borderRadius:100, border:`1.5px solid ${sel.color}`, color:sel.color, background:sel.faint, fontFamily:'var(--font-body)', fontSize:'0.82rem', fontWeight:700, textDecoration:'none' }}>
+                      {sel.emoji} Open {sel.label} App →
+                    </a>
+                  </>
+                )}
+                {method==='cod' && (
+                  <>
+                    <div style={{ fontSize:'3rem', marginBottom:'0.65rem' }}>💵</div>
+                    <h3 style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:C.textDark, marginBottom:'0.65rem' }}>Pay on Arrival</h3>
+                    <p style={{ fontFamily:'var(--font-body)', fontSize:'0.88rem', color:C.textMid, lineHeight:1.8, maxWidth:340, margin:'0 auto' }}>
+                      Your spot is reserved now. Please bring exactly <strong style={{ color:C.skyDeep }}>{workshop?.price}</strong> on the day. Our team will call {form.phone} to confirm.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: sticky confirm */}
+          <div className="payment-sidebar">
+            <div style={{ background:C.white, borderRadius:20, border:`1px solid ${C.borderFaint}`, overflow:'hidden', boxShadow:`0 6px 32px rgba(0,191,255,0.1)` }}>
+              <div style={{ background:heroGrad, padding:'1.5rem', textAlign:'center', position:'relative', overflow:'hidden' }}>
+                <div style={{ position:'absolute', top:-25, right:-25, width:110, height:110, borderRadius:'50%', background:'rgba(255,255,255,0.07)', pointerEvents:'none' }} />
+                <div style={{ fontFamily:'var(--font-body)', fontSize:'0.62rem', fontWeight:700, color:'rgba(255,255,255,0.7)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.3rem' }}>Workshop Fee</div>
+                <div style={{ fontFamily:'var(--font-display)', fontSize:'2.2rem', color:'white', fontWeight:800, lineHeight:1 }}>{workshop?.price}</div>
+                <div style={{ fontFamily:'var(--font-body)', fontSize:'0.7rem', color:'rgba(255,255,255,0.65)', marginTop:'0.3rem' }}>{workshop?.date}</div>
+              </div>
+              <div style={{ padding:'1.1rem' }}>
+                <div style={{ background:sectionGrad, borderRadius:10, padding:'0.65rem 0.85rem', marginBottom:'0.9rem', border:`1px solid ${C.borderFaint}`, display:'flex', justifyContent:'space-between', alignItems:'center', gap:'0.5rem', flexWrap:'wrap' }}>
+                  <div>
+                    <div style={{ fontFamily:'var(--font-body)', fontSize:'0.56rem', fontWeight:800, color:C.textLight, textTransform:'uppercase', letterSpacing:'0.09em', marginBottom:'0.1rem' }}>Reference</div>
+                    <div style={{ fontFamily:'var(--font-display)', fontSize:'0.78rem', color:C.skyDeep, fontWeight:700 }}>{ref}</div>
+                  </div>
+                  <CopyBtn text={ref} id="ref" copied={copied} onCopy={copy} />
                 </div>
-              ))}
-              <button onClick={handleConfirm} disabled={saving}
-                style={{ width:'100%', marginTop:'1rem', padding:'0.88rem 1rem', borderRadius:12, border:'none', background:saving?C.borderFaint:btnGrad, color:saving?C.textLight:'white', fontFamily:'var(--font-body)', fontWeight:700, fontSize:'0.9rem', cursor:saving?'not-allowed':'pointer', boxShadow:saving?'none':'0 6px 22px rgba(0,191,255,0.35)', transition:'all 0.2s' }}>
-                {saving?'⏳ Confirming…':method==='cod'?'✓ Reserve — Pay on Arrival':`✓ I've Paid — Confirm Registration`}
-              </button>
-              <p style={{ fontFamily:'var(--font-body)', fontSize:'0.64rem', color:C.textLight, textAlign:'center', marginTop:'0.75rem', lineHeight:1.55 }}>
-                🔒 Secure · Confirmation sent to email
-              </p>
+                {[['Method',sel.label],['Name',form.name||'—'],['Phone',form.phone||'—']].map(([k,v])=>(
+                  <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'0.38rem 0', borderBottom:`1px solid ${C.borderFaint}`, fontFamily:'var(--font-body)', fontSize:'0.76rem' }}>
+                    <span style={{ color:C.textLight, fontWeight:700 }}>{k}</span>
+                    <span style={{ color:C.textDark, fontWeight:600 }}>{v}</span>
+                  </div>
+                ))}
+                <button onClick={handleConfirm} disabled={saving}
+                  style={{ width:'100%', marginTop:'1rem', padding:'0.88rem 1rem', borderRadius:12, border:'none', background:saving?C.borderFaint:btnGrad, color:saving?C.textLight:'white', fontFamily:'var(--font-body)', fontWeight:700, fontSize:'0.9rem', cursor:saving?'not-allowed':'pointer', boxShadow:saving?'none':'0 6px 22px rgba(0,191,255,0.35)', transition:'all 0.2s' }}>
+                  {saving?'⏳ Confirming…':method==='cod'?'✓ Reserve — Pay on Arrival':`✓ I've Paid — Confirm Registration`}
+                </button>
+                <p style={{ fontFamily:'var(--font-body)', fontSize:'0.64rem', color:C.textLight, textAlign:'center', marginTop:'0.75rem', lineHeight:1.55 }}>
+                  🔒 Secure · Confirmation sent to email
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -336,6 +359,25 @@ export default function WorkshopsPage() {
   /* ── WORKSHOP LIST ── */
   return (
     <div className="page-wrapper">
+      {/* Responsive grid styles injected once */}
+      <style>{`
+        .workshops-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+          .workshops-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (max-width: 600px) {
+          .workshops-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
       <div className="page-hero" style={{ background:'var(--sky-light)' }}>
         <span className="section-tag">Workshops & Events</span>
         <h1 className="section-title">Join a Live <em>Workshop</em></h1>
@@ -348,7 +390,7 @@ export default function WorkshopsPage() {
       </div>
 
       <div className="section" style={{ background:'var(--white)' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'1.5rem' }}>
+        <div className="workshops-grid">
           {WORKSHOPS.map((ws) => {
             const isReg   = registered.includes(ws.id)
             const pct     = Math.round((ws.booked/ws.seats)*100)
