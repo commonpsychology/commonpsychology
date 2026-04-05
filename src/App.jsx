@@ -1,9 +1,10 @@
 import { RouterProvider, useRouter } from './context/RouterContext'
 import { AuthProvider } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
+import { PaymentProvider } from './components/PaymentModal'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
-
+import MyOrdersPage from './pages/MyOrdersPage'
 import HomePage            from './pages/HomePage'
 import ServicesPage        from './pages/ServicesPage'
 import TherapistsPage      from './pages/TherapistsPage'
@@ -12,12 +13,16 @@ import BookingPage         from './pages/BookingPage'
 import AssessmentsPage     from './pages/AssessmentsPage'
 import AssessmentTakePage  from './pages/AssessmentTakePage'
 import ResourcesPage       from './pages/ResourcesPage'
+import VerifyAccountPage   from './pages/VerifyAccountPage'
 import OurNews             from './pages/OurNews'
+import DisasterManagement  from './pages/DisasterManagement'
 import NewsDetailPage      from './pages/NewsDetailPage'
-import PsychologicalArticlePage from './pages/PsychologicalArticlePage'  // ← new file (created below)
+import PsychologicalArticlePage from './pages/PsychologicalArticlePage'
 import CoursesPage         from './pages/CoursesPage'
-import BlogPage            from './pages/BlogPage'
-import ResearchPage        from './pages/ResearchPage'
+import BlogPage            from './pages/BlogPage'            // ← list page
+import BlogDetailPage      from './pages/BlogDetailPage'      // ← detail page
+import ResearchPage        from './pages/ResearchPage'        // ← list page
+import ResearchDetailPage  from './pages/ResearchDetailPage'  // ← detail page
 import ContactPage         from './pages/ContactPage'
 import PaymentEthicsPage   from './pages/PaymentEthicsPage'
 import SignInPage          from './pages/SignInPage'
@@ -37,6 +42,7 @@ import MyAccountPage       from './pages/Myaccountpage'
 import DisordersPage       from './pages/DisordersPage'
 import PsychologicalViewPage from './pages/PsychologicalViewPage'
 import WorkshopsPage       from './pages/WorkshopPage'
+import ReviewsPage         from './pages/ReviewsPage'
 import SocialWorkPage      from './pages/SocialworkPage'
 import GalleryPage         from './pages/GalleryPage'
 import VolunteerPage       from './pages/VolunteerPage'
@@ -49,7 +55,6 @@ const ROUTES = {
   '/':                   HomePage,
   '/services':           ServicesPage,
   '/therapists':         TherapistsPage,
-  '/therapist-detail':   TherapistDetailPage,
   '/book':               BookingPage,
   '/payment':            PaymentPage,
   '/payment-info':       PaymentEthicsPage,
@@ -57,18 +62,21 @@ const ROUTES = {
   '/assessment-take':    AssessmentTakePage,
   '/resources':          ResourcesPage,
   '/courses':            CoursesPage,
-  '/register-staffs':     RegisterStaffPage,
-  '/blog':               BlogPage,
-  '/research':           ResearchPage,
+  '/register-staffs':    RegisterStaffPage,
+  '/blog':               BlogPage,       // ← now the list page
+  '/research':           ResearchPage,   // ← now the list page
   '/contact':            ContactPage,
   '/about':              ContactPage,
   '/signin':             SignInPage,
+  '/my-orders':          MyOrdersPage,
   '/our-news':           OurNews,
   '/register':           RegisterPage,
+  '/disaster-management': DisasterManagement,
   '/store':              StorePage,
   '/portal':             ClientPortalPage,
   '/community':          CommunityPage,
   '/ai-tools':           AIToolsPage,
+  '/verify':             VerifyAccountPage,
   '/account':            MyAccountPage,
   '/disorders':          DisordersPage,
   '/psychological-view': PsychologicalViewPage,
@@ -78,6 +86,7 @@ const ROUTES = {
   '/update-password':    UpdatePasswordPage,
   '/pay':                PaymentInfoPage,
   '/upgrade':            UpgradePage,
+  '/reviews':            ReviewsPage,
   '/gallery':            GalleryPage,
   '/volunteer':          VolunteerPage,
   '/staff':              StaffLoginPage,
@@ -87,16 +96,14 @@ const ROUTES = {
   '/ashram':             OurPlacePage,
 }
 
-const NO_SHELL_PAGES  = new Set(['/signin','/register','/payment','/staff','/staff/admin','/staff/therapist'])
-const NO_FOOTER_PAGES = new Set(['/portal','/account'])
+const NO_SHELL_PAGES  = new Set(['/signin','/register','/payment','/staff','/staff/admin','/staff/therapist','/verify'])
+const NO_FOOTER_PAGES = new Set(['/portal','/account','/verify'])
 
-// ── Dynamic prefix routes ──────────────────────────────────────
-// Checked BEFORE the static ROUTES map.
-// Any path that starts with `prefix` and has a slug after it
-// will render the matching Component wrapped in Navbar + Footer.
 const DYNAMIC_ROUTES = [
   { prefix: '/news/',               Component: NewsDetailPage           },
   { prefix: '/psychological-view/', Component: PsychologicalArticlePage },
+  { prefix: '/blog/',               Component: BlogDetailPage           },
+  { prefix: '/research/',           Component: ResearchDetailPage       },
 ]
 
 function resolveDynamicRoute(path) {
@@ -111,7 +118,6 @@ function resolveDynamicRoute(path) {
 function AppRoutes() {
   const { currentPath } = useRouter()
 
-  // 1. Check dynamic slug routes first
   const DynamicPage = resolveDynamicRoute(currentPath)
   if (DynamicPage) {
     return (
@@ -123,7 +129,6 @@ function AppRoutes() {
     )
   }
 
-  // 2. Static routes
   const Page       = ROUTES[currentPath] || HomePage
   const hideShell  = NO_SHELL_PAGES.has(currentPath)
   const hideFooter = NO_FOOTER_PAGES.has(currentPath)
@@ -143,7 +148,9 @@ export default function App() {
     <RouterProvider>
       <AuthProvider>
         <LanguageProvider>
-          <div className="app"><AppRoutes /></div>
+          <PaymentProvider>
+            <div className="app"><AppRoutes /></div>
+          </PaymentProvider>
         </LanguageProvider>
       </AuthProvider>
     </RouterProvider>

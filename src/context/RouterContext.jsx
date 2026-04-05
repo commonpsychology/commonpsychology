@@ -14,6 +14,7 @@ const DYNAMIC_ROUTES = [
   { pattern: '/psychological-view/:slug',    param: 'slug'         },
   { pattern: '/therapist/:id',               param: 'id'           },
   { pattern: '/blog/:slug',                  param: 'slug'         },
+    { pattern: '/research/:id',                  param: 'id'           }, // ← ADD THIS
   { pattern: '/product/:slug',               param: 'slug'         },
   { pattern: '/course/:slug',                param: 'slug'         },
 ]

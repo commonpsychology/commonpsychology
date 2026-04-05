@@ -4,7 +4,6 @@ import { useRouter } from './RouterContext'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-// ── localStorage helpers ──────────────────────────────────────
 const ls = {
   get:    k      => { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } },
   set:    (k, v) => localStorage.setItem(k, JSON.stringify(v)),
@@ -20,7 +19,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const refreshTimer          = useRef(null)
 
-  // ── Core refresh ─────────────────────────────────────────────
   const doRefresh = useCallback(async () => {
     const refreshToken = ls.raw('refreshToken')
     if (!refreshToken) return false
@@ -40,7 +38,6 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  // ── Schedule silent refresh every 13 min ─────────────────────
   const scheduleRefresh = useCallback(() => {
     clearTimeout(refreshTimer.current)
     refreshTimer.current = setTimeout(async () => {
@@ -58,19 +55,13 @@ export function AuthProvider({ children }) {
     clearTimeout(refreshTimer.current)
   }, [])
 
-  // ── FIX: Multi-tab sync via storage events ───────────────────
-  // When any tab writes or clears the accessToken, all other tabs
-  // react instantly — logging in syncs the session, logging out
-  // clears every tab simultaneously.
   useEffect(() => {
     const handleStorage = (e) => {
       if (e.key !== 'accessToken') return
       if (e.newValue) {
-        // Another tab logged in — pull the user they stored
         const storedUser = ls.get('user')
         if (storedUser) setUser(storedUser)
       } else {
-        // Another tab logged out — clear this tab too
         setUser(null)
         clearTimeout(refreshTimer.current)
       }
@@ -78,9 +69,7 @@ export function AuthProvider({ children }) {
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
   }, [])
-  // ─────────────────────────────────────────────────────────────
 
-  // ── On mount: verify stored token ────────────────────────────
   useEffect(() => {
     async function init() {
       const token  = ls.raw('accessToken')
@@ -123,7 +112,6 @@ export function AuthProvider({ children }) {
           clearUser()
         }
       } catch {
-        // Network error — trust the stored user optimistically
         setUser(stored)
       } finally {
         setLoading(false)
@@ -149,9 +137,25 @@ export function AuthProvider({ children }) {
     ls.set('user', data.user)
     setUser(data.user)
     scheduleRefresh()
-    // Return the full data object so callers can read data.user.role
     return data
   }, [scheduleRefresh])
+
+  // ── Register — FIX: accepts phone and forwards it to backend ─
+  const register = useCallback(async (name, email, password, metadata = {}) => {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        name,
+        email,
+        password,
+        phone: metadata.phone || null,   // ← phone now sent to backend
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message || 'Registration failed')
+    return data
+  }, [])
 
   // ── Logout ───────────────────────────────────────────────────
   const logout = useCallback(async () => {
@@ -185,7 +189,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser, register }}>
       {children}
     </AuthContext.Provider>
   )
@@ -193,18 +197,13 @@ export function AuthProvider({ children }) {
 
 export const useAuth = () => useContext(AuthContext)
 
-// ── FIX: useAuthGuard ─────────────────────────────────────────
-// Drop this at the top of any login/sign-in page component.
-// If the user is already logged in (e.g. they pressed the browser
-// back button), they are immediately redirected to their dashboard.
-// This replaces all the pushState / popstate hacks.
 export function useAuthGuard() {
   const { user, loading } = useAuth()
   const { navigate }      = useRouter()
 
   useEffect(() => {
-    if (loading) return   // still checking session — wait
-    if (!user)   return   // not logged in — stay on the page
+    if (loading) return
+    if (!user)   return
     const role = user.role
     if (role === 'admin' || role === 'staff') navigate('/staff/admin')
     else if (role === 'therapist')            navigate('/staff/therapist')

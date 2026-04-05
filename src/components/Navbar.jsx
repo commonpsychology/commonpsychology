@@ -38,6 +38,8 @@ const NAV = [
     { label: 'Workshops',       labelNP: 'कार्यशालाहरू',      path: '/workshops',    icon: '🎓', desc: 'Live & recorded sessions',    descNP: 'लाइभ र रेकर्ड गरिएका सत्रहरू' },
     { label: 'Social Work',     labelNP: 'सामाजिक कार्य',     path: '/social-work',  icon: '🤝', desc: 'Community outreach programs', descNP: 'सामुदायिक कार्यक्रमहरू' },
     { label: 'Gallery',         labelNP: 'ग्यालेरी',          path: '/gallery',      icon: '🖼️', desc: 'Photos & event memories',     descNP: 'फोटो र कार्यक्रम स्मृतिहरू' },
+        { label: 'Disaster Mangement',         labelNP: 'विपद व्यवस्थापन',          path: '/disaster-management',      icon: '🆘', desc: 'Our works and Commitment',     descNP: 'हाम्रो  काम र प्रतिवद्धता ' },
+
   ]},
   { label: 'About', labelNP: 'बारेमा', path: '/about', children: [
     { label: 'Contact',          labelNP: 'सम्पर्क',           path: '/contact',      icon: '📞', desc: 'Get in touch',               descNP: 'सम्पर्कमा आउनुहोस्' },
@@ -387,6 +389,17 @@ export default function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [menuOpen])
 
+  // Reset mobile menu when viewport grows past mobile breakpoint
+useEffect(() => {
+  function handleResize() {
+    if (window.innerWidth > 768) {   // match your CSS breakpoint
+      setMenuOpen(false)
+    }
+  }
+  window.addEventListener('resize', handleResize)
+  return () => window.removeEventListener('resize', handleResize)
+}, [])
+
   if (AUTH_PAGES.includes(currentPath)) return null
 
   function go(path) { navigate(path); setMenuOpen(false); window.scrollTo({ top:0, behavior:'smooth' }) }
@@ -414,6 +427,11 @@ export default function Navbar() {
               currentPath={currentPath} onNavigate={go} lang={lang} />
           ))}
         </div>
+
+        {/* ── spacer between Ashram and right controls ── */}
+        <div style={{ width:'3rem', flexShrink:0 }} />
+
+        <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}/>
 
         <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}>
           <button onClick={toggle}

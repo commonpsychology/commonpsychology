@@ -9,9 +9,13 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    // Redirect all 404s back to index.html so the React app can handle routing
-    historyApiFallback: true,
-  },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000', // ← change to your backend port
+        changeOrigin: true,
+      }
+    }
+  }
 })
 
 /*

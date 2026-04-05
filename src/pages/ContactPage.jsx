@@ -69,9 +69,9 @@ export default function ContactPage() {
           <div>
             <h3 style={{ fontFamily:'var(--font-display)', color:'var(--green-deep)', marginBottom:'1.5rem' }}>Our Offices</h3>
             {[
-              { icon:'📍', title:'Kathmandu', detail:'Lazimpat, Kathmandu 44600, Nepal' },
+              { icon:'📍', title:'Kathmandu', detail:'Thimi, Bhaktapur, Nepal' },
               { icon:'📞', title:'Phone', detail:'+977 01-4412345' },
-              { icon:'📧', title:'Email', detail:'hello@pujasamargi.com.np' },
+              { icon:'📧', title:'Email', detail:'noreplypsychology@gmail.com' },
               { icon:'🕐', title:'Hours', detail:'Sun–Fri: 9:00 AM – 6:00 PM' },
             ].map((item, i) => (
               <div key={i} style={{ display:'flex', gap:'1rem', marginBottom:'1.25rem' }}>

@@ -59,34 +59,36 @@ export default function Services() {
       <div className="section-header">
         <div>
           <span className="section-tag">What We Offer</span>
-          <h2 className="section-title">Comprehensive Care for Your <em>Whole Self</em></h2>
+          <h2 className="section-title">
+            Comprehensive Care for Your <em>Whole Self</em>
+          </h2>
           <p className="section-desc">
             From therapy sessions to self-help tools, we support every step of your mental wellness journey.
           </p>
         </div>
-        <button className="btn btn-outline" onClick={() => navigate('/services')}>
+
+        <button
+          className="btn btn-outline"
+          onClick={() => navigate('/services')}
+        >
           View All Services
         </button>
       </div>
 
-      {/* 
-        Uses services-grid-full which is defined in your CSS.
-        Grid is: 2 columns on large screens, 1 column on mobile.
-        We override the 3-col default with an inline style here.
-      */}
-      <div
-        className="services-grid-full"
-        style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}
-      >
+      <div className="services-grid-full">
         {services.map((s, i) => (
           <div
             className="service-card-full"
             key={i}
             onClick={() => navigate(s.route)}
           >
-            <div className={`service-icon ${s.iconClass}`}>{s.icon}</div>
+            <div className={`service-icon ${s.iconClass}`}>
+              {s.icon}
+            </div>
+
             <h3 className="service-card-title">{s.title}</h3>
             <p className="service-card-desc">{s.desc}</p>
+
             <ul className="service-card-features">
               {s.features.map((f, fi) => (
                 <li key={fi}>
@@ -95,9 +97,13 @@ export default function Services() {
                 </li>
               ))}
             </ul>
+
             <button
               className="btn btn-sky-outline service-card-btn"
-              onClick={e => { e.stopPropagation(); navigate(s.route) }}
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate(s.route)
+              }}
             >
               {s.link} →
             </button>

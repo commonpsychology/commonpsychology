@@ -6,41 +6,51 @@ export default function DonateButton() {
   return (
     <>
       {/* Floating Donate Button */}
-      <button
-        onClick={() => setOpen(true)}
-        title="Donate to support us"
-        style={{
-          position: 'fixed',
-          bottom: '28px',
-          left: '28px',
-          zIndex: 1000,
-          width: '60px',
-          height: '60px',
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, #f97316, #ef4444)',
-          border: 'none',
-          cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(249,115,22,0.45)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.transform = 'scale(1.12)'
-          e.currentTarget.style.boxShadow = '0 6px 28px rgba(249,115,22,0.6)'
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.boxShadow = '0 4px 20px rgba(249,115,22,0.45)'
-        }}
-      >
-        {/* Heart + hand donate icon */}
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 21C12 21 3 14.5 3 8.5C3 6.01 5.01 4 7.5 4C9.24 4 10.91 5.01 11.72 6.5H12.28C13.09 5.01 14.76 4 16.5 4C18.99 4 21 6.01 21 8.5C21 14.5 12 21 12 21Z" fill="white" opacity="0.9"/>
-          <path d="M8 17H6C5.45 17 5 17.45 5 18V20C5 20.55 5.45 21 6 21H8" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.7"/>
-        </svg>
-      </button>
+     <button
+  onClick={() => setOpen(true)}
+  title="Donate to support us"
+  style={{
+    position: 'fixed',
+    bottom: '28px',
+    left: '28px',
+    zIndex: 1000,
+    width: '60px',
+    height: '60px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #f97316, #ef4444)',
+    border: 'none',
+    cursor: 'pointer',
+    boxShadow: '0 4px 20px rgba(249,115,22,0.45)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '26px',
+    transition: 'all 0.2s ease',
+  }}
+  onMouseEnter={e => {
+    e.currentTarget.style.transform = 'scale(1.15)'
+  }}
+  onMouseLeave={e => {
+    e.currentTarget.style.transform = 'scale(1)'
+  }}
+>
+  {/* White Beating Heart */}
+  <span style={{
+    color: '#fff',
+    display: 'inline-block',
+    animation: 'heartbeat 1.2s infinite',
+  }}>🤍</span>
+
+  <style>{`
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.15); }
+      40% { transform: scale(1); }
+      60% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+  `}</style>
+</button>
 
       {/* Tooltip label */}
       <div

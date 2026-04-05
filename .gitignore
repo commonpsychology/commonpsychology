@@ -6,12 +6,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+node_modules
 .env
 .env.local
-.env.development
 .env.production
-node_modules
 dist
+build
 dist-ssr
 *.local
 

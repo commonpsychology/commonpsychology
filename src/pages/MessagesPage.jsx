@@ -603,19 +603,19 @@ function injectCSS(id, css) {
 /* ── Data ── */
 const MESSAGES = [
   {
-    name:  'Dr. Sunita Karmacharya',
+    name:  'Sanjeev Neupane',
     role:  'Executive Director',
     photo: '/images/staff/director.jpg',
-    emoji: '👩‍💼',
+    emoji: '🧑‍💼',
     color: 'linear-gradient(135deg,#007BA8,#00BFFF)',
     faint: 'rgba(0,191,255,0.15)',
     message: `When I founded Puja Samargi, I carried a single conviction: that mental health is not a luxury, but a birthright. In Nepal, too many families suffer in silence — not because they lack strength, but because no one told them that asking for help is the bravest thing a person can do.
 
-Our center exists to change that. Every session we hold, every family we walk alongside, is a quiet act of revolution. We are building a Nepal where the mind is treated with the same urgency as the body — with compassion, skill, and unwavering dignity.`,
-    sign: 'Dr. Sunita Karmacharya, Executive Director',
+Our center exists to change that. Every session we hold, every family we walk alongside, is a quiet act of revolution. We are building a Nepal where the mind is treated with the same urgency as the body — with compassion, skill, and unwavering dignity.Saying all this, One value we keep close to our heart is, 'Its Your Choice'. If you feel we can help and can connect with you then only seek our help and follow.`,
+    sign: 'Sanjeev Neupane, Executive Director',
   },
   {
-    name:  'Dr. Anita Shrestha',
+    name:  'Pramila Pradhan',
     role:  'Lead Clinical Psychologist',
     photo: '/images/staff/therapist.jpg',
     emoji: '👩‍⚕️',
@@ -624,10 +624,10 @@ Our center exists to change that. Every session we hold, every family we walk al
     message: `In fifteen years of practice, the question I am asked most is: "Will I ever feel better?" And every time, my answer is the same — yes. Not because healing is easy, but because the human mind is staggeringly resilient when it is held in the right environment.
 
 Therapy is not about fixing what is broken. It is about revealing what was never truly lost. I have the privilege every day of sitting with people at their most honest, and watching them discover that the version of themselves they were searching for was already inside them, waiting.`,
-    sign: 'Dr. Anita Shrestha, Lead Clinical Psychologist',
+    sign: 'Pramila Pradhan, Lead Clinical Psychologist',
   },
   {
-    name:  'Rajesh Gautam',
+    name:  'Dipak Pokhrel',
     role:  'Operations & Outreach Manager',
     photo: '/images/staff/manager.jpg',
     emoji: '🧑‍💼',
@@ -636,7 +636,7 @@ Therapy is not about fixing what is broken. It is about revealing what was never
     message: `Behind every therapy room is a system of people who believe that access to mental healthcare should never depend on your postcode or your bank balance. My team works every day to make Puja Samargi reachable — to the parent in Butwal, the student in Pokhara, the young professional in Kathmandu who finally decided today was the day.
 
 We are building partnerships with schools, clinics, and community organisations across Nepal. Because mental wellness does not happen in isolation — it happens in communities that care.`,
-    sign: 'Rajesh Gautam, Operations & Outreach Manager',
+    sign: 'Dipak Pokhrel, Operations & Outreach Manager',
   },
 ]
 

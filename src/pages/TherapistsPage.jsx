@@ -1,111 +1,133 @@
-// src/pages/TherapistsPage.jsx
-import { useState, useEffect } from 'react'
+// src/pages/TherapistsPage.jsx — with real image support
 import { useRouter } from '../context/RouterContext'
-import { therapists as therapistsApi } from '../services/api'
+import { therapistsData } from '../data/therapists'
+import { useImages, SmartImage } from '../hooks/useImages'
 
-const SPECIALIZATIONS = ['All','Anxiety','Depression','Trauma','Relationships','Child Psychology','Mindfulness','Addiction']
+// ── Keep SVG avatars as final fallback only ───────────────────
+function SvgFallback({ name }) {
+  const initials = name.split(' ').map(w => w[0]).join('').replace(/[^A-Z]/gi, '').slice(0, 2).toUpperCase()
+  const colors = [
+    ['#c8e6c9', '#1b5e20'], ['#bbdefb', '#0d47a1'], ['#fff9c4', '#e65100'],
+    ['#c8e6c9', '#2e7d32'], ['#ffe0b2', '#e65100'], ['#b3e5fc', '#01579b'],
+  ]
+  const idx = name.charCodeAt(0) % colors.length
+  const [bg, fg] = colors[idx]
+  return (
+    <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <circle cx="80" cy="80" r="80" fill={bg} />
+      <text x="80" y="95" textAnchor="middle" fontSize="52" fontWeight="700" fontFamily="sans-serif" fill={fg}>
+        {initials}
+      </text>
+    </svg>
+  )
+}
+
+const extended = [
+  ...therapistsData,
+  {
+    id: 4, name: 'Dr. Suresh Adhikari', role: 'Psychiatrist', imgClass: 't1',
+    tags: ['Medication', 'Bipolar', 'Schizophrenia'], tagClass: 'blue-tag',
+    rating: '4.7', reviews: 52, fee: 'NPR 3,000', available: true, exp: '12 yrs',
+    bio: 'Dr. Suresh is a board-certified psychiatrist offering medication management alongside psychotherapy.'
+  },
+  {
+    id: 5, name: 'Ms. Deepa Rai', role: 'Art Therapist', imgClass: 't2',
+    tags: ['Art Therapy', 'Trauma', 'Youth'], tagClass: '',
+    rating: '4.9', reviews: 41, fee: 'NPR 1,600', available: true, exp: '4 yrs',
+    bio: 'Deepa uses creative arts as a therapeutic medium, particularly effective for trauma.'
+  },
+  {
+    id: 6, name: 'Mr. Bikash Thapa', role: 'Addiction Counselor', imgClass: 't3',
+    tags: ['Addiction', 'Recovery', 'CBT'], tagClass: 'blue-tag',
+    rating: '4.8', reviews: 63, fee: 'NPR 1,700', available: false, exp: '7 yrs',
+    bio: 'Bikash specializes in substance use disorders and behavioral addictions.'
+  },
+]
+
+const unique = extended.filter((t, i, arr) => arr.findIndex(x => x.id === t.id) === i)
+
+// ── Single therapist card with real photo ────────────────────
+function TherapistCard({ t, getTherapistImage, onBook, onView }) {
+  const imageUrl = getTherapistImage(t.name)
+
+  return (
+    <div
+      className="therapist-card"
+      onClick={onView}
+      style={{ cursor: 'pointer' }}
+    >
+      {/* Image container */}
+      <div
+        className={`therapist-img ${t.imgClass}`}
+        style={{ padding: 0, overflow: 'hidden', position: 'relative', height: 220 }}
+      >
+        <SmartImage
+          src={imageUrl}
+          alt={t.name}
+          gradient="linear-gradient(135deg,#007BA8 0%,#00BFFF 100%)"
+          style={{ width: '100%', height: '100%' }}
+          imgStyle={{ objectFit: 'cover', objectPosition: 'center top' }}
+          emoji={null}
+        />
+
+        {/* Fallback SVG shown if SmartImage fails (it handles this internally) */}
+        {/* Available badge */}
+        {t.available
+          ? <span className="therapist-avail-badge">● Available</span>
+          : <span className="therapist-avail-badge" style={{ background: 'var(--earth-warm)' }}>Unavailable</span>
+        }
+      </div>
+
+      <div className="therapist-body">
+        <div className="therapist-name">{t.name}</div>
+        <div className="therapist-role">{t.role} · {t.exp}</div>
+        <div className="therapist-tags">
+          {t.tags.map((tag, j) => (
+            <span className={`tag ${t.tagClass}`} key={j}>{tag}</span>
+          ))}
+        </div>
+        <div className="therapist-footer">
+          <div className="therapist-rating">⭐ {t.rating}</div>
+          <div className="therapist-fee">{t.fee} <small>/ session</small></div>
+        </div>
+        <button
+          className="btn btn-primary"
+          style={{ width: '100%', marginTop: '1rem', justifyContent: 'center' }}
+          onClick={e => { e.stopPropagation(); onBook() }}
+        >
+          Book Session
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default function TherapistsPage() {
-  const { navigate }        = useRouter()
-  const [list, setList]     = useState([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('All')
-  const [page, setPage]     = useState(1)
-  const [total, setTotal]   = useState(0)
-  const LIMIT = 9
-
-  useEffect(() => {
-    setLoading(true)
-    therapistsApi.list({ page, limit: LIMIT, ...(filter !== 'All' ? { specialization: filter } : {}) })
-      .then(d => { setList(d.therapists || []); setTotal(d.pagination?.total || 0) })
-      .catch(() => setList([]))
-      .finally(() => setLoading(false))
-  }, [filter, page])
+  const { navigate } = useRouter()
+  const { getTherapistImage, loading: imgLoading } = useImages()
 
   return (
     <div className="page-wrapper">
-      <div className="page-hero" style={{ background: 'var(--green-deep)' }}>
-        <span className="section-tag" style={{ color: 'var(--green-pale)' }}>Our Team</span>
-        <h1 className="section-title" style={{ color: 'white' }}>Find Your <em>Therapist</em></h1>
-        <p className="section-desc" style={{ color: 'rgba(255,255,255,0.75)', maxWidth: 560 }}>
-          All our therapists are licensed, experienced, and committed to culturally sensitive care.
+      <div className="page-hero" style={{ background: 'var(--earth-cream)' }}>
+        <span className="section-tag">Our Team</span>
+        <h1 className="section-title">Meet All Our <em>Therapists</em></h1>
+        <p className="section-desc">
+          Every practitioner is licensed, verified, and committed to culturally sensitive mental health care.
         </p>
       </div>
 
-      <div style={{ background: 'var(--white)', padding: '1.5rem 2rem', borderBottom: '1px solid var(--earth-cream)', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        {SPECIALIZATIONS.map(s => (
-          <button key={s} onClick={() => { setFilter(s); setPage(1) }}
-            style={{ padding: '0.45rem 1.1rem', borderRadius: '100px', border: `1.5px solid ${filter===s ? 'var(--green-deep)' : 'var(--earth-cream)'}`, background: filter===s ? 'var(--green-deep)' : 'var(--white)', color: filter===s ? 'white' : 'var(--text-mid)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
-            {s}
-          </button>
-        ))}
-      </div>
-
-      <div className="section" style={{ background: 'var(--off-white)' }}>
-        {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: '1.5rem' }}>
-            {Array.from({length:6}).map((_,i) => <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', minHeight:220, opacity:0.4 }}/>)}
-          </div>
-        ) : list.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'4rem 2rem', color:'var(--text-light)' }}>
-            <div style={{ fontSize:'3rem', marginBottom:'1rem' }}>🔍</div>
-            <p>No therapists found for this filter.</p>
-          </div>
-        ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:'1.5rem' }}>
-            {list.map(t => {
-              const pr = t.profiles || {}
-              return (
-                <div key={t.id} style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--earth-cream)', cursor:'pointer', transition:'box-shadow 0.2s' }}
-                  onMouseEnter={e=>e.currentTarget.style.boxShadow='var(--shadow-strong)'}
-                  onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}
-                  onClick={()=>navigate('/therapist-detail',{therapistId:t.id})}>
-
-                  <div style={{ display:'flex', alignItems:'center', gap:'1rem', marginBottom:'1rem' }}>
-                    <div style={{ width:64, height:64, borderRadius:'50%', background:'var(--green-mist)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', flexShrink:0, overflow:'hidden' }}>
-                      {pr.avatar_url ? <img src={pr.avatar_url} alt={pr.full_name} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : '👩‍⚕️'}
-                    </div>
-                    <div>
-                      <div style={{ fontFamily:'var(--font-display)', fontSize:'1.05rem', color:'var(--green-deep)', fontWeight:600 }}>{pr.full_name||'Therapist'}</div>
-                      <div style={{ fontSize:'0.78rem', color:'var(--text-light)', marginTop:2 }}>{t.license_type||'Licensed Therapist'}</div>
-                      <span style={{ display:'inline-block', padding:'0.15rem 0.6rem', borderRadius:'100px', fontSize:'0.68rem', fontWeight:700, background: t.is_available?'#e8f8f0':'#f8f0e8', color: t.is_available?'#1a7a4a':'#8a5a1a', marginTop:4 }}>
-                        {t.is_available ? '● Available' : '○ Busy'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:'0.4rem', marginBottom:'0.75rem' }}>
-                    {(t.specializations||[]).slice(0,3).map((s,i)=>(
-                      <span key={i} style={{ padding:'0.2rem 0.6rem', borderRadius:'100px', background:'var(--green-mist)', color:'var(--green-deep)', fontSize:'0.72rem', fontWeight:600 }}>{s}</span>
-                    ))}
-                  </div>
-
-                  {pr.bio && <p style={{ fontSize:'0.82rem', color:'var(--text-light)', lineHeight:1.6, marginBottom:'0.75rem' }}>{pr.bio.slice(0,100)}…</p>}
-
-                  <div style={{ display:'flex', justifyContent:'space-between', paddingTop:'0.75rem', borderTop:'1px solid var(--earth-cream)', marginBottom:'1rem' }}>
-                    <span style={{ fontSize:'0.82rem', color:'var(--text-mid)' }}>⭐ {t.rating||'—'} · {t.experience_years||'—'} yrs</span>
-                    <span style={{ fontSize:'0.85rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {t.consultation_fee?.toLocaleString()||'—'}</span>
-                  </div>
-
-                  <div style={{ display:'flex', gap:'0.75rem' }}>
-                    <button className="btn btn-primary" style={{ flex:1, justifyContent:'center', fontSize:'0.82rem', padding:'0.55rem 1rem' }}
-                      onClick={e=>{e.stopPropagation();navigate('/book',{therapist:t})}}>Book Session</button>
-                    <button className="btn btn-outline" style={{ fontSize:'0.82rem', padding:'0.55rem 1rem' }}
-                      onClick={e=>{e.stopPropagation();navigate('/therapist-detail',{therapistId:t.id})}}>Profile</button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {Math.ceil(total/LIMIT)>1 && (
-          <div style={{ display:'flex', justifyContent:'center', gap:'0.5rem', marginTop:'2.5rem', alignItems:'center' }}>
-            <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} className="btn btn-outline" style={{opacity:page===1?0.4:1}}>← Prev</button>
-            <span style={{ fontSize:'0.85rem', color:'var(--text-light)', padding:'0 1rem' }}>Page {page} of {Math.ceil(total/LIMIT)}</span>
-            <button onClick={()=>setPage(p=>p+1)} disabled={page>=Math.ceil(total/LIMIT)} className="btn btn-outline" style={{opacity:page>=Math.ceil(total/LIMIT)?0.4:1}}>Next →</button>
-          </div>
-        )}
+      <div className="section therapists" style={{ paddingTop: '3rem' }}>
+        <div className="therapists-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+          {unique.map((t) => (
+            <TherapistCard
+              key={t.id}
+              t={t}
+              getTherapistImage={getTherapistImage}
+              
+              onBook={() => navigate('/book', { therapist: t })}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )

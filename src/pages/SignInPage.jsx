@@ -124,7 +124,7 @@ export default function SignInPage() {
       const role = data.user?.role
       if (role === 'admin' || role === 'staff') navigate('/staff/admin')
       else if (role === 'therapist')            navigate('/staff/therapist')
-      else                                      navigate('/portal')
+      else                                      navigate('/')
     } catch (err) {
       setError(err.message || 'Invalid email or password.')
     } finally {
