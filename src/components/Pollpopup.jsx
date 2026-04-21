@@ -1,7 +1,7 @@
 // src/components/PollPopup.jsx
 import { useState, useEffect } from 'react'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 const POLL = {
   title: 'Quick Mental Wellness Check-in',

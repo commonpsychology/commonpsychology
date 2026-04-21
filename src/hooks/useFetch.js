@@ -1,7 +1,7 @@
 // src/hooks/useFetch.js
 import { useState, useEffect, useCallback } from 'react'
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 export function useFetch(endpoint, params = {}, deps = []) {
   const [data, setData]       = useState(null)

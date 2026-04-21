@@ -7,7 +7,7 @@ import { useAuth }    from '../context/AuthContext'
 import { usePayment } from '../components/PaymentModal'
 import { community as communityApi } from '../services/api'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 const token    = () => localStorage.getItem('accessToken')
 const apiFetch = async (path, opts = {}) => {
   const res = await fetch(`${API_BASE}${path}`, {

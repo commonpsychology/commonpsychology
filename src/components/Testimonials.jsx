@@ -1,7 +1,7 @@
 // src/components/Testimonials.jsx
 import { useState, useEffect, useCallback } from 'react'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 const FALLBACK = [
   { text:"I was skeptical at first, but Common Psychology changed my life. My therapist helped me understand my anxiety in a way no one had before.", name:'Sita M.', detail:'Anxiety Management · 3 months', stars:5 },

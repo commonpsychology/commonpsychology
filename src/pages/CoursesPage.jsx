@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter }  from '../context/RouterContext'
 import { usePayment } from '../components/PaymentModal'
 
-const API_BASE     = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE     = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 const PIN_KEY      = 'ps_course_pin_unlocked'   // sessionStorage key
 const PIN_EXPIRY   = 24 * 60 * 60 * 1000        // 24 h in ms
 const POLL_INTERVAL = 8000

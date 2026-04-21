@@ -108,7 +108,7 @@ export default function ResourcesPage() {
   setDownloading(prev => [...prev, r.id])
   try {
     const a = document.createElement('a')
-    a.href = `http://localhost:5000/api/resources/${r.id}/download`
+    a.href = `${import.meta.env.VITE_API_URL}/api/resources/${r.id}/download`
     // Use correct extension based on type
     const ext = r.type === 'Audio' ? '.mp3' 
               : r.type === 'Video' ? '.mp4' 

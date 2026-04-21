@@ -352,7 +352,7 @@ export default function BalanceWithin() {
       <DreamSection
         user={user}
         onRequestLogin={() => setAuthOpen(true)}
-apiBase={import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || "http://localhost:5000"}
+apiBase={import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || "${import.meta.env.VITE_API_URL}"}
         authToken={authToken}
       />
     </div>

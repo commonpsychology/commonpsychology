@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "../context/RouterContext"
 
 // ✅ FIXED: API_BASE always ends with /api — matches detail pages exactly
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5000/api")
+const API_BASE = (import.meta.env.VITE_API_URL || "${import.meta.env.VITE_API_URL}/api")
   .replace(/\/+$/, "")   // strip trailing slash
   .replace(/\/api$/, "") // strip /api if already present
   + "/api"               // re-append exactly once

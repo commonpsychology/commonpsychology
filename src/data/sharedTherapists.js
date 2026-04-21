@@ -152,7 +152,7 @@ export function mergeWithApiData(apiTherapists = []) {
 }
 
 function resolveApiAvatar(pr, t) {
-  const API_BASE = (typeof import.meta !== 'undefined' ? import.meta.env?.VITE_API_URL : '') || 'http://localhost:5000/api'
+  const API_BASE = (typeof import.meta !== 'undefined' ? import.meta.env?.VITE_API_URL : '') || '${import.meta.env.VITE_API_URL}/api'
   let raw = t.avatar_url || pr.avatar_url || null
   if (!raw) return null
   if (typeof raw === 'string' && raw.trim().startsWith('[')) {

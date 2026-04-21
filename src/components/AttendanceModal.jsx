@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 // ── Colour tokens matching the rest of the dark popup family ──
 const C = {

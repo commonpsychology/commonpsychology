@@ -6,7 +6,7 @@ import { usePayment }   from '../components/PaymentModal'
 import { useTherapists } from '../context/TherapistsContext'
 import { appointments } from '../services/api'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 const C = {
   skyDeep:'#007BA8', skyBright:'#00BFFF', skyFaint:'#E0F7FF', skyFainter:'#F0FBFF',

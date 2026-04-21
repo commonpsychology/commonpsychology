@@ -2,7 +2,8 @@
 // Central API client — never call fetch() directly in components.
 import { playlists as playlistsApi } from '../services/playlistsApi'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api'
+
 
 // ── Token helpers ─────────────────────────────────────────────
 export const getAccessToken  = () => localStorage.getItem('accessToken')

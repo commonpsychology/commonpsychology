@@ -427,7 +427,7 @@ function PaymentModal({ config, onClose, onResult }) {
   const [cardName, setCardName] = useState('')
 
   const token = () => localStorage.getItem('accessToken')
-  const API   = import.meta.env?.VITE_API_URL || 'http://localhost:5000/api'
+  const API   = import.meta.env?.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
   // ── FIX: ensure amount is always a valid positive number ──────────────────
   const baseAmount = Math.round(Math.max(0, Number(config.amount) || 0))

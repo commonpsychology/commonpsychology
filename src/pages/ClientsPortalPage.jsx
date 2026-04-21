@@ -7,7 +7,7 @@ import { appointments, wellness, notifications } from '../services/api'
 const TABS  = ['Overview','Appointments','Mood Diary','Journal','Notifications','Messages']
 const MOODS = ['😞','😔','😐','🙂','😊','😄','🤩']
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 /* ─────────────────────────────────────────────────────────────
    CSS  (mobile responsive additions included)

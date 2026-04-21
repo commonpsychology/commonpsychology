@@ -7,11 +7,11 @@ import { useRouter } from '../context/RouterContext'
 
 // ✅ FIXED: API_BASE always ends with /api — consistent with all other pages
 // Works whether VITE_API_URL is:
-//   http://localhost:5000        → becomes http://localhost:5000/api
-//   http://localhost:5000/       → becomes http://localhost:5000/api
-//   http://localhost:5000/api    → stays   http://localhost:5000/api
-//   http://localhost:5000/api/   → becomes http://localhost:5000/api
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api')
+//   ${import.meta.env.VITE_API_URL}        → becomes ${import.meta.env.VITE_API_URL}/api
+//   ${import.meta.env.VITE_API_URL}/       → becomes ${import.meta.env.VITE_API_URL}/api
+//   ${import.meta.env.VITE_API_URL}/api    → stays   ${import.meta.env.VITE_API_URL}/api
+//   ${import.meta.env.VITE_API_URL}/api/   → becomes ${import.meta.env.VITE_API_URL}/api
+const API_BASE = (import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api')
   .replace(/\/+$/, '')   // strip trailing slash(es)
   .replace(/\/api$/, '') // strip /api if present
   + '/api'               // re-append exactly once

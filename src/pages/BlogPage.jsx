@@ -20,7 +20,7 @@ const C = {
 const heroGrad = `linear-gradient(135deg, ${C.skyDeep} 0%, ${C.skyMid} 40%, ${C.skyBright} 80%, #22d3ee 100%)`
 const btnGrad  = `linear-gradient(135deg, ${C.skyDeep} 0%, ${C.skyBright} 100%)`
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 const CATEGORIES = ['All', 'Anxiety', 'Depression', 'Self-Care', 'Mindfulness', 'Relationships', 'Trauma', 'Parenting', 'Sleep']
 

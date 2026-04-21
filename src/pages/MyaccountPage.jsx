@@ -6,7 +6,7 @@ import { useRouter }  from '../context/RouterContext'
 import { useAuth }    from '../context/AuthContext'
 import { profile as profileApi } from '../services/api'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 const SKY_D  = '#007BA8'
 const WHITE  = '#fff'

@@ -108,7 +108,7 @@ export default function StaffLoginPage() {
   setSubmitting(true)
   try {
     // Step 1: verify credentials only — do NOT create session yet
-    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/check-credentials`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'}/auth/check-credentials`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email: email.trim().toLowerCase(), password }),

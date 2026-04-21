@@ -8,7 +8,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter }  from '../context/RouterContext'
 import { usePayment } from '../components/PaymentModal'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 const SKY   ='#0ea5e9', SKY_L='#e0f2fe', SKY_D='#0369a1'
 const MINT  ='#10b981', MINT_L='#d1fae5'

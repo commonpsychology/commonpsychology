@@ -241,7 +241,7 @@ table.tbl tr:hover td { background: #fafbfd; }
 `
 
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 const getToken = () => localStorage.getItem('accessToken')
 const apiFetch = async (path, opts = {}) => {
   const res = await fetch(`${API_BASE}${path}`, {
