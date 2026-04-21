@@ -410,7 +410,7 @@ export default function PaymentEthicsPage() {
               <p style={{ fontFamily:'var(--font-body)', fontSize:'0.88rem', color:C.textMid,
                 margin:0, maxWidth:600 }}>
                 We hold ourselves to the highest professional and ethical standards. Below are the core
-                principles that guide every interaction at Common Psychology.
+                principles that guide every interaction at xyxy Psychology.
               </p>
             </div>
 
@@ -495,7 +495,7 @@ export default function PaymentEthicsPage() {
 
             <p style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:C.textLight,
               lineHeight:1.6, marginTop:'2rem' }}>
-              Common Psychology Mental Wellness Center is registered under the Companies Act 2006 of Nepal.
+              xyxy Psychology Mental Wellness Center is registered under the Companies Act 2006 of Nepal.
               All therapists are licensed and regulated by the Nepal Health Professional Council.
               For regulatory queries, contact <strong>noreplypsychology@gmail.com.np</strong>.
             </p>
