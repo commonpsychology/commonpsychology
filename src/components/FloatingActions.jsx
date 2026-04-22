@@ -470,12 +470,12 @@ function IconHeart() {
 // 👉 Replace OFFICE.gmapsUrl with your direct Google Maps link
 // ─────────────────────────────────────────────
 const OFFICE = {
-  label:    'Puja Samargi Ashram',
-  address:  'Kathmandu, Nepal',
+  label:    'Common Psychology',
+  address:  'Bhaktapur, Nepal',
   hours:    'Sun – Fri  |  9:00 AM – 6:00 PM NPT',
   embedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.4773846854585!2d85.31525731503832!3d27.71727798279466!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjfCsDQzJzAyLjIiTiA4NcKwMTknMDMuMiJF!5e0!3m2!1sen!2snp!4v1700000000000',
   // ☝️ REPLACE with your real embed URL from Google Maps → Share → Embed a map
-  gmapsUrl: 'https://maps.google.com/?q=Puja+Samargi+Ashram+Kathmandu',
+  gmapsUrl: 'https://maps.google.com/?q=Common+Psychology+Thimi+Bhaktapur+Nepal',
   // ☝️ REPLACE with your real Google Maps direct link
 }
 
