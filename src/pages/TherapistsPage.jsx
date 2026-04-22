@@ -136,8 +136,9 @@ export default function TherapistsPage() {
           </div>
         )}
 
-        <div className="therapists-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-          {loading
+<div className="therapists-grid" style={{ 
+  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' 
+}}>          {loading
             ? [1,2,3,4,5,6].map(i => <SkeletonCard key={i} />)
             : therapists.map(t => (
                 <TherapistCard
