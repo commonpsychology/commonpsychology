@@ -3,6 +3,7 @@
 // ✅ Find Office    → Location popup — identical to old MapPopup from Hero
 // ✅ Psychology Eye → navigate('/psychological-view') directly
 // ✅ Track Orders   → navigate('/my-orders') directly
+// ✅ Meet           → Meet popup with video & audio call links
 
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
@@ -64,6 +65,14 @@ const CSS = `
   60%  { transform: translateY(3px);   opacity: 1; }
   80%  { transform: translateY(-4px); }
   100% { transform: translateY(0); }
+}
+@keyframes meet-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+  50%     { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+}
+@keyframes meet-audio-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+  50%     { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
 }
 
 /* ══════════════════════════════════════
@@ -369,6 +378,126 @@ const CSS = `
 /* ── Heartbeat on donate icon ── */
 .hb-icon { animation: heartbeat 1.5s ease-in-out infinite; display: inline-block; }
 
+/* ══════════════════════════════════════
+   MEET POPUP BODY
+══════════════════════════════════════ */
+.pop-meet-body {
+  padding: 20px 20px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.meet-call-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+.meet-call-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.meet-call-card:hover { transform: translateY(-2px); }
+.meet-call-card:hover::before { opacity: 1; }
+.meet-call-card:active { transform: translateY(0) scale(0.98); }
+
+.meet-card-video {
+  background: rgba(34,197,94,0.1);
+  border: 1.5px solid rgba(34,197,94,0.3);
+  animation: meet-pulse 2.4s ease-in-out infinite;
+}
+.meet-card-video::before {
+  background: rgba(34,197,94,0.07);
+}
+.meet-card-video:hover {
+  border-color: rgba(34,197,94,0.6);
+  box-shadow: 0 8px 32px rgba(34,197,94,0.2);
+}
+
+.meet-card-audio {
+  background: rgba(99,102,241,0.1);
+  border: 1.5px solid rgba(99,102,241,0.3);
+  animation: meet-audio-pulse 2.4s ease-in-out 0.6s infinite;
+}
+.meet-card-audio::before {
+  background: rgba(99,102,241,0.07);
+}
+.meet-card-audio:hover {
+  border-color: rgba(99,102,241,0.6);
+  box-shadow: 0 8px 32px rgba(99,102,241,0.2);
+}
+
+.meet-icon-wrap {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.meet-icon-video { background: rgba(34,197,94,0.18); }
+.meet-icon-audio { background: rgba(99,102,241,0.18); }
+
+.meet-card-text { flex: 1; }
+.meet-card-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 3px;
+  letter-spacing: 0.01em;
+}
+.meet-card-desc {
+  font-size: 0.7rem;
+  color: rgba(180,210,255,0.6);
+  margin: 0;
+  line-height: 1.5;
+}
+.meet-card-arrow {
+  font-size: 1.1rem;
+  opacity: 0.5;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.meet-call-card:hover .meet-card-arrow {
+  opacity: 1;
+  transform: translateX(3px);
+}
+
+.meet-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.meet-divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+}
+.meet-divider-text {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+}
+
+.meet-note {
+  margin: 0;
+  padding: 10px 20px 14px;
+  font-size: 0.68rem;
+  color: rgba(160,210,255,0.5);
+  text-align: center;
+  line-height: 1.6;
+}
+
 @media (max-width: 500px) {
   .fa-root     { bottom: 18px; right: 16px; }
   .fa-label    { font-size: 11px; padding: 5px 11px; }
@@ -377,6 +506,8 @@ const CSS = `
   .fa-ring     { width: 50px; height: 50px; }
   .pop-card    { border-radius: 16px; }
   .pop-map-iframe { height: 240px; }
+  .meet-call-card { padding: 14px 16px; }
+  .meet-icon-wrap { width: 44px; height: 44px; font-size: 20px; }
 }
 `
 
@@ -431,7 +562,7 @@ function HandIcon() {
 }
 
 // ─────────────────────────────────────────────
-// SVG icons (inline, no external deps)
+// SVG icons
 // ─────────────────────────────────────────────
 function IconExternal() {
   return (
@@ -459,40 +590,35 @@ function IconHeart() {
     </svg>
   )
 }
+function IconShield() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  )
+}
 
 // ─────────────────────────────────────────────
 // LOCATION POPUP
-// Identical to old MapPopup from Hero —
-// dark card, centered, header + iframe + footer
-//
-// 👉 Replace OFFICE.embedUrl with your Google Maps embed src:
-//    maps.google.com → Share → Embed a map → copy src="..."
-// 👉 Replace OFFICE.gmapsUrl with your direct Google Maps link
 // ─────────────────────────────────────────────
 const OFFICE = {
   label:    'Common Psychology',
   address:  'Bhaktapur, Nepal',
   hours:    'Sun – Fri  |  9:00 AM – 6:00 PM NPT',
   embedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.4773846854585!2d85.31525731503832!3d27.71727798279466!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjfCsDQzJzAyLjIiTiA4NcKwMTknMDMuMiJF!5e0!3m2!1sen!2snp!4v1700000000000',
-  // ☝️ REPLACE with your real embed URL from Google Maps → Share → Embed a map
   gmapsUrl: 'https://maps.google.com/?q=Common+Psychology+Thimi+Bhaktapur+Nepal',
-  // ☝️ REPLACE with your real Google Maps direct link
 }
 
 function LocationPopup({ onClose }) {
   usePopupBehavior(onClose)
-
   return (
     <div
       className="pop-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Office location"
+      role="dialog" aria-modal="true" aria-label="Office location"
     >
       <div className="pop-card">
-
-        {/* Header */}
         <div className="pop-header">
           <div className="pop-header-dot" style={{ color: '#00BFFF', background: '#00BFFF' }} />
           <div className="pop-header-text">
@@ -502,34 +628,19 @@ function LocationPopup({ onClose }) {
           </div>
           <button className="pop-close" onClick={onClose} aria-label="Close">✕</button>
         </div>
-
-        {/* Google Maps iframe — dynamic, scrollable, interactive */}
         <iframe
           className="pop-map-iframe"
           src={OFFICE.embedUrl}
-          allowFullScreen
-          loading="lazy"
+          allowFullScreen loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
           title="Office location map"
         />
-
-        {/* Footer */}
         <div className="pop-footer">
-          <div className="pop-footer-info">
-            <IconClock />
-            {OFFICE.hours}
-          </div>
-          <a
-            className="pop-action-btn"
-            href={OFFICE.gmapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <IconExternal />
-            Open in Google Maps
+          <div className="pop-footer-info"><IconClock />{OFFICE.hours}</div>
+          <a className="pop-action-btn" href={OFFICE.gmapsUrl} target="_blank" rel="noopener noreferrer">
+            <IconExternal />Open in Google Maps
           </a>
         </div>
-
       </div>
     </div>
   )
@@ -537,9 +648,6 @@ function LocationPopup({ onClose }) {
 
 // ─────────────────────────────────────────────
 // DONATE POPUP
-// Same dark card shell as LocationPopup —
-// header with glowing dot + red ✕,
-// QR code section, benefits, footer with UPI hint
 // ─────────────────────────────────────────────
 const DONATE_BENEFITS = [
   { icon: '🧠', text: 'Provide free mental health resources to those in need' },
@@ -550,18 +658,13 @@ const DONATE_BENEFITS = [
 
 function DonatePopup({ onClose }) {
   usePopupBehavior(onClose)
-
   return (
     <div
       className="pop-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Donate to Puja Samargi"
+      role="dialog" aria-modal="true" aria-label="Donate to Puja Samargi"
     >
       <div className="pop-card">
-
-        {/* Header — orange/red dot to match donate theme */}
         <div className="pop-header">
           <div className="pop-header-dot" style={{ color: '#f97316', background: '#f97316', boxShadow: '0 0 8px rgba(249,115,22,0.8)' }} />
           <div className="pop-header-text">
@@ -571,18 +674,13 @@ function DonatePopup({ onClose }) {
           </div>
           <button className="pop-close" onClick={onClose} aria-label="Close">✕</button>
         </div>
-
         <div className="pop-donate-body">
-
-          {/* QR section */}
           <div className="pop-qr-section">
             <div className="pop-qr-frame">
               <img src="/payment-qr.png" alt="Payment QR Code" />
             </div>
             <p className="pop-qr-hint">Scan with any UPI / payment app</p>
           </div>
-
-          {/* Benefits */}
           <div className="pop-benefits">
             <p className="pop-benefits-label">Your donation helps us:</p>
             {DONATE_BENEFITS.map(({ icon, text }) => (
@@ -592,23 +690,109 @@ function DonatePopup({ onClose }) {
               </div>
             ))}
           </div>
-
-          {/* Thank you strip */}
           <p className="pop-thank">❤️ &nbsp; Thank you for your generosity</p>
+        </div>
+        <div className="pop-footer">
+          <div className="pop-footer-info"><IconHeart />Secure UPI &nbsp;|&nbsp; No account needed</div>
+          <button className="pop-action-btn" onClick={onClose}>Done</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// MEET POPUP
+//
+// 👉 Replace MEET.videoUrl with your Google Meet / Zoom / Teams video link
+// 👉 Replace MEET.audioUrl with your phone/audio-only meeting link or tel: number
+//    e.g. tel:+977XXXXXXXXXX  or a Zoom phone join link
+// ─────────────────────────────────────────────
+const MEET = {
+  videoUrl: 'https://meet.google.com/your-room-code',
+  // ☝️ REPLACE with your actual video meeting link
+  audioUrl: 'tel:+977XXXXXXXXXX',
+  // ☝️ REPLACE with your phone number (tel:+977...) or audio-only meeting URL
+}
+
+function MeetPopup({ onClose }) {
+  usePopupBehavior(onClose)
+  return (
+    <div
+      className="pop-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      role="dialog" aria-modal="true" aria-label="Join a meeting"
+    >
+      <div className="pop-card">
+
+        {/* Header */}
+        <div className="pop-header">
+          <div className="pop-header-dot" style={{ color: '#22c55e', background: '#22c55e', boxShadow: '0 0 8px rgba(34,197,94,0.8)' }} />
+          <div className="pop-header-text">
+            <p className="pop-eyebrow" style={{ color: 'rgba(34,197,94,0.75)' }}>Connect With Us</p>
+            <h2 className="pop-title">Join a Session 🎙️</h2>
+            <p className="pop-subtitle">Choose how you'd like to connect</p>
+          </div>
+          <button className="pop-close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
+        {/* Body */}
+        <div className="pop-meet-body">
+
+          {/* Video call card */}
+          <a
+            className="meet-call-card meet-card-video"
+            href={MEET.videoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+          >
+            <div className="meet-icon-wrap meet-icon-video">📹</div>
+            <div className="meet-card-text">
+              <p className="meet-card-label">Video Call</p>
+              <p className="meet-card-desc">Join with camera &amp; microphone via Google Meet</p>
+            </div>
+            <span className="meet-card-arrow">→</span>
+          </a>
+
+          {/* Divider */}
+          <div className="meet-divider">
+            <div className="meet-divider-line" />
+            <span className="meet-divider-text">or</span>
+            <div className="meet-divider-line" />
+          </div>
+
+          {/* Audio call card */}
+          <a
+            className="meet-call-card meet-card-audio"
+            href={MEET.audioUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+          >
+            <div className="meet-icon-wrap meet-icon-audio">🎧</div>
+            <div className="meet-card-text">
+              <p className="meet-card-label">Audio Only</p>
+              <p className="meet-card-desc">Join by phone or audio-only link — no camera needed</p>
+            </div>
+            <span className="meet-card-arrow">→</span>
+          </a>
 
         </div>
+
+        {/* Subtle note */}
+        <p className="meet-note">
+          🔒 &nbsp;Sessions are private and end-to-end encrypted
+        </p>
 
         {/* Footer */}
         <div className="pop-footer">
           <div className="pop-footer-info">
-            <IconHeart />
-            Secure UPI &nbsp;|&nbsp; No account needed
+            <IconShield />
+            Secure &nbsp;|&nbsp; Confidential
           </div>
-          <button
-            className="pop-action-btn"
-            onClick={onClose}
-          >
-            Done
+          <button className="pop-action-btn" onClick={onClose}>
+            Cancel
           </button>
         </div>
 
@@ -621,13 +805,21 @@ function DonatePopup({ onClose }) {
 // ACTIONS CONFIG
 // ─────────────────────────────────────────────
 const ACTIONS = [
-   {
+  {
     id:    'attendance',
     label: 'Event Attendance',
     emoji: '📋',
     bg:    'linear-gradient(135deg,#007BA8,#00BFFF)',
     shadow:'rgba(0,123,168,.4)',
     popup: 'attendance',
+  },
+  {
+    id:     'meet',
+    label:  'Meet Online',
+    emoji:  '🤝',
+    bg:     'linear-gradient(135deg,#16a34a,#22c55e)',
+    shadow: 'rgba(34,197,94,.38)',
+    popup:  'meet',
   },
   {
     id:     'support',
@@ -672,7 +864,7 @@ export default function FloatingActions() {
   const { navigate } = useRouter()
   const [open, setOpen]         = useState(false)
   const [hintDone, setHintDone] = useState(false)
-  const [popup, setPopup]       = useState(null) // 'donate' | 'location' | null
+  const [popup, setPopup]       = useState(null)
 
   useEffect(() => {
     const t = setTimeout(() => setHintDone(true), 5000)
@@ -692,10 +884,11 @@ export default function FloatingActions() {
 
   return (
     <>
-      {/* Popups — fixed, full-screen, centered, dark blurred overlay */}
-      {popup === 'donate'   && <DonatePopup   onClose={() => setPopup(null)} />}
-      {popup === 'location' && <LocationPopup onClose={() => setPopup(null)} />}
-      {popup === 'attendance' && <AttendanceModal onClose={() => setPopup(null)} />}
+      {/* Popups */}
+      {popup === 'donate'     && <DonatePopup     onClose={() => setPopup(null)} />}
+      {popup === 'location'   && <LocationPopup   onClose={() => setPopup(null)} />}
+      {popup === 'meet'       && <MeetPopup        onClose={() => setPopup(null)} />}
+      {popup === 'attendance' && <AttendanceModal  onClose={() => setPopup(null)} />}
 
       {/* FAB */}
       <div className="fa-root">

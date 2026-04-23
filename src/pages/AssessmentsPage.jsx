@@ -545,8 +545,8 @@ function QuestionnaireView({ assessmentId, title, onComplete, onBack }) {
         <div
           key={qIdx}
           style={{
-            background: current === qIdx ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)',
-            border: `1px solid ${current === qIdx ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.07)'}`,
+            background: current === qIdx ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.92))',
+            border: `1px solid ${current === qIdx ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.92)'}`,
             borderRadius: 12,
             padding: '1.1rem 1.25rem',
             marginBottom: '0.75rem',
@@ -561,7 +561,7 @@ function QuestionnaireView({ assessmentId, title, onComplete, onBack }) {
             lineHeight: 1.55,
             fontWeight: answers[qIdx] !== undefined ? 500 : 400,
           }}>
-            <span style={{ color: 'rgba(255,255,255,0.3)', marginRight: '0.5rem', fontSize: '0.75rem' }}>
+            <span style={{ color: 'rgba(210, 236, 252, 0.3)', marginRight: '0.5rem', fontSize: '0.75rem' }}>
               {qIdx + 1}.
             </span>
             {q}
@@ -576,9 +576,9 @@ function QuestionnaireView({ assessmentId, title, onComplete, onBack }) {
                   key={oIdx}
                   onClick={(e) => { e.stopPropagation(); handleAnswer(qIdx, val) }}
                   style={{
-                    background: selected ? 'var(--green-pale)' : 'rgba(255,255,255,0.07)',
+                    background: selected ? 'var(--green-pale)' : 'rgba(219, 231, 242, 0.07)',
                     color: selected ? 'var(--green-deep)' : 'rgba(255,255,255,0.75)',
-                    border: `1px solid ${selected ? 'var(--green-pale)' : 'rgba(255,255,255,0.12)'}`,
+                    border: `1px solid ${selected ? 'var(--green-pale)' : 'rgba(220, 242, 247, 0.12)'}`,
                     borderRadius: 100,
                     padding: '0.3rem 0.75rem',
                     fontSize: '0.75rem',
@@ -588,7 +588,7 @@ function QuestionnaireView({ assessmentId, title, onComplete, onBack }) {
                     whiteSpace: 'nowrap',
                   }}
                   onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'rgba(255,255,255,0.12)' }}
-                  onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
+                  onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'rgba(219, 231, 242, 0.07)' }}
                 >
                   {opt}
                 </button>
