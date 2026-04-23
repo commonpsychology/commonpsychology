@@ -162,8 +162,8 @@ const HEART_CSS = `
   }
 
   /* Plain words — soft white */
-  .hero-heading .h1-plain {
-    color: #c8e0f0;
+ .hero-heading .h1-plain {
+    color: #ffffff;
     font-weight: 400;
     font-style: normal;
   }
