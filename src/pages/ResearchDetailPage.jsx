@@ -160,11 +160,38 @@ export default function ResearchDetailPage() {
     if (paper) setDlCount(paper.downloads ?? 0)
   }, [paper])
 
-  function handleDownload() {
-    if (!paper?.pdf_url) return
-    setDlCount(c => (c ?? 0) + 1)
+  const [dlState, setDlState] = useState('idle') // 'idle' | 'loading' | 'done' | 'error'
+
+  async function handleDownload() {
+    if (!paper?.pdf_url || dlState === 'loading') return
+    setDlState('loading')
+    // Tell backend (fire-and-forget)
     fetch(`${API_BASE}/research/${id}/download`, { method: 'POST' }).catch(() => {})
-    window.open(paper.pdf_url, '_blank')
+    try {
+      // Fetch the PDF as a blob to force a real download (bypasses CSP frame-src)
+      const res = await fetch(paper.pdf_url)
+      if (!res.ok) throw new Error('fetch failed')
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      // Derive a filename from the URL or fall back to paper title
+      const urlParts = paper.pdf_url.split('/')
+      a.download = urlParts[urlParts.length - 1] || `${paper.title ?? 'paper'}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      setDlCount(c => (c ?? 0) + 1)
+      setDlState('done')
+      setTimeout(() => setDlState('idle'), 2500)
+    } catch {
+      // If blob fetch fails (e.g. CORS), fall back to opening in new tab
+      window.open(paper.pdf_url, '_blank')
+      setDlCount(c => (c ?? 0) + 1)
+      setDlState('done')
+      setTimeout(() => setDlState('idle'), 2500)
+    }
   }
 
   if (loading) return (
@@ -231,44 +258,54 @@ export default function ResearchDetailPage() {
           </div>
 
           {paper.pdf_url ? (
-            !pdfError ? (
-              <div style={{ borderRadius: 16, overflow: 'hidden', border: `1px solid ${C.borderFaint}`, boxShadow: '0 8px 32px rgba(0,191,255,0.1)', background: C.white }}>
-                {/* Toolbar */}
-                <div
-                  className="rdp-pdf-toolbar"
-                  style={{ background: `linear-gradient(135deg,${C.skyFainter},${C.mint})`, padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${C.borderFaint}`, gap: '0.5rem' }}>
-                  <span className="rdp-pdf-toolbar-title" style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700, color: C.textMid, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
-                    📄 {paper.title?.slice(0, 40)}…
-                  </span>
-                  <div className="rdp-pdf-toolbar-actions" style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                    <a href={paper.pdf_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                      <button style={{ padding: '0.3rem 0.85rem', borderRadius: 8, background: btnGrad, color: 'white', border: 'none', fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                        Open ↗
-                      </button>
-                    </a>
-                    <button
-                      onClick={handleDownload}
-                      style={{ padding: '0.3rem 0.85rem', borderRadius: 8, background: 'transparent', color: C.skyMid, border: `1.5px solid ${C.skyBright}`, fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                      ⬇ Download
+            /* PDF card — iframe is blocked by CSP frame-src, so we show action buttons */
+            <div style={{ borderRadius: 16, overflow: 'hidden', border: `1px solid ${C.borderFaint}`, boxShadow: '0 8px 32px rgba(0,191,255,0.1)', background: C.white }}>
+              {/* Toolbar */}
+              <div
+                className="rdp-pdf-toolbar"
+                style={{ background: `linear-gradient(135deg,${C.skyFainter},${C.mint})`, padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${C.borderFaint}`, gap: '0.5rem' }}>
+                <span className="rdp-pdf-toolbar-title" style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700, color: C.textMid, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                  📄 {paper.title?.slice(0, 50)}{paper.title?.length > 50 ? '…' : ''}
+                </span>
+                <div className="rdp-pdf-toolbar-actions" style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                  <a href={paper.pdf_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                    <button style={{ padding: '0.3rem 0.85rem', borderRadius: 8, background: btnGrad, color: 'white', border: 'none', fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                      Open ↗
                     </button>
-                  </div>
+                  </a>
+                  <button
+                    onClick={handleDownload}
+                    disabled={dlState === 'loading'}
+                    style={{ padding: '0.3rem 0.85rem', borderRadius: 8, background: dlState === 'done' ? '#e8f3ee' : 'transparent', color: dlState === 'done' ? '#2d7a4a' : C.skyMid, border: `1.5px solid ${dlState === 'done' ? '#2d7a4a' : C.skyBright}`, fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 700, cursor: dlState === 'loading' ? 'wait' : 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>
+                    {dlState === 'loading' ? '⏳ Downloading…' : dlState === 'done' ? '✓ Downloaded' : '⬇ Download'}
+                  </button>
                 </div>
-                <iframe
-                  className="rdp-pdf-iframe"
-                  src={`${paper.pdf_url}#toolbar=1&navpanes=0&scrollbar=1`}
-                  title={paper.title}
-                  onError={() => setPdfError(true)}
-                />
               </div>
-            ) : (
-              <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, padding: '3rem 2rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📄</div>
-                <p style={{ fontFamily: 'var(--font-body)', color: C.textLight, marginBottom: '1.5rem' }}>PDF preview unavailable in this browser.</p>
-                <button onClick={handleDownload} style={{ padding: '0.7rem 2rem', borderRadius: 10, background: btnGrad, color: 'white', border: 'none', fontFamily: 'var(--font-body)', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
-                  Open PDF in New Tab ↗
-                </button>
+
+              {/* Preview body */}
+              <div style={{ padding: '3rem 2rem', textAlign: 'center', background: `linear-gradient(180deg, ${C.skyFainter} 0%, ${C.white} 100%)` }}>
+                <div style={{ fontSize: '4rem', marginBottom: '1rem', lineHeight: 1 }}>📄</div>
+                <p style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, color: C.textDark, marginBottom: '0.4rem' }}>
+                  In-page preview unavailable
+                </p>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: C.textLight, maxWidth: 360, margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
+                  This site's security policy prevents embedding external PDFs. Use the buttons below to read or save the full paper.
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <a href={paper.pdf_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                    <button style={{ padding: '0.65rem 1.5rem', borderRadius: 10, background: btnGrad, color: 'white', border: 'none', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,191,255,0.25)' }}>
+                      Open in New Tab ↗
+                    </button>
+                  </a>
+                  <button
+                    onClick={handleDownload}
+                    disabled={dlState === 'loading'}
+                    style={{ padding: '0.65rem 1.5rem', borderRadius: 10, background: dlState === 'done' ? '#e8f3ee' : 'transparent', color: dlState === 'done' ? '#2d7a4a' : C.skyMid, border: `1.5px solid ${dlState === 'done' ? '#2d7a4a' : C.skyBright}`, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.88rem', cursor: dlState === 'loading' ? 'wait' : 'pointer', transition: 'all 0.2s' }}>
+                    {dlState === 'loading' ? '⏳ Downloading…' : dlState === 'done' ? '✓ Saved to device' : '⬇ Download PDF'}
+                  </button>
+                </div>
               </div>
-            )
+            </div>
           ) : (
             <div style={{ background: C.white, borderRadius: 16, border: `1px dashed ${C.borderFaint}`, padding: '3rem 2rem', textAlign: 'center' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
