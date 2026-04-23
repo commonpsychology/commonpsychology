@@ -470,7 +470,7 @@ function MeetPopup({ onClose }) {
               Your session link is private and tied to your account.<br />
               Please log in to access it.
             </p>
-            <button className="meet-login-btn" onClick={() => { onClose(); navigate('/login') }}>
+            <button className="meet-login-btn" onClick={() => { onClose(); navigate('/signin') }}>
               Log In to Continue →
             </button>
           </div>
