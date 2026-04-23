@@ -16,16 +16,34 @@ export default function DisasterManagementPage() {
   return (
     <div style={{ background: BG }} className="page-wrapper">
       {/* HERO */}
-      <section
+   <section
   style={{
     height: "70vh",
-    backgroundImage: "url('/images/crisis.jpg')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
     position: "relative",
   }}
 >
+  {/* Responsive background image */}
+  <picture
+    style={{
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+    }}
+  >
+    <source media="(min-width: 768px)" srcSet="/images/crisis.png" />
+    <img
+      src="/images/crisis.jpg"
+      alt=""
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        objectPosition: "center",
+        display: "block",
+      }}
+    />
+  </picture>
   <div
     style={{
       position: "absolute",
