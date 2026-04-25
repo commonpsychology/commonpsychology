@@ -229,7 +229,7 @@ async function handleOTPSuccess() {
                   Staff Sign In
                 </h2>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: C.textLight }}>
-                  Use your Puja Samargi staff credentials. A verification code is sent to your email on every login.
+                  Use your Common Psychology staff credentials. A verification code is sent to your email on every login.
                 </p>
               </div>
 
@@ -241,7 +241,7 @@ async function handleOTPSuccess() {
               )}
 
               <form onSubmit={handleSubmit}>
-                <FloatingInput label="Staff Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@pujasamargi.com.np" required />
+                <FloatingInput label="Staff Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your_email@gmail.com.np" required />
                 <FloatingInput label="Password" type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Your password" required
                   rightSlot={
                     <button type="button" onClick={() => setShowPw(v => !v)} style={{ background: 'none', border: 'none', color: C.textLight, cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'var(--font-body)', fontWeight: 600 }}>
