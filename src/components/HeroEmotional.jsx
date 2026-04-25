@@ -161,14 +161,12 @@ const HEART_CSS = `
     animation: h1-fade-up 0.7s 0.15s cubic-bezier(0.22,1,0.36,1) both;
   }
 
-  /* Plain words — soft white */
- .hero-heading .h1-plain {
+  .hero-heading .h1-plain {
     color: #ffffff;
     font-weight: 400;
     font-style: normal;
   }
 
-  /* "Help" — italic, cyan gradient */
   .hero-heading .h1-accent-help {
     font-style: italic;
     font-weight: 600;
@@ -181,7 +179,6 @@ const HEART_CSS = `
     display: inline-block;
   }
 
-  /* "Choice" — italic, slightly warmer cyan, with a fine underline */
   .hero-heading .h1-accent-choice {
     font-style: italic;
     font-weight: 600;
@@ -195,7 +192,6 @@ const HEART_CSS = `
     position: relative;
   }
 
-  /* Thin decorative underline only under "Choice" */
   .hero-heading .h1-accent-choice::after {
     content: '';
     position: absolute;
@@ -207,7 +203,6 @@ const HEART_CSS = `
     background: linear-gradient(90deg, rgba(0,191,255,0.0) 0%, rgba(0,191,255,0.55) 35%, rgba(120,225,255,0.7) 60%, rgba(0,191,255,0.0) 100%);
   }
 
-  /* Nepali: same styles but no underline since script is different */
   .hero-heading.lang-np {
     font-family: var(--font-display), 'Noto Sans Devanagari', serif !important;
     font-size: clamp(1.8rem, 4vw, 2.6rem) !important;
@@ -218,7 +213,7 @@ const HEART_CSS = `
   }
 
   /* ══════════════════════════════════════
-     REST OF ORIGINAL STYLES (unchanged)
+     HEART VISUAL STYLES
   ══════════════════════════════════════ */
   .hb-visual-root {
     position: relative; width: 100%; height: 100%;
@@ -249,25 +244,62 @@ const HEART_CSS = `
     pointer-events: none; z-index: 4;
     animation: hb-drop ease-in-out infinite;
   }
+
+  /* ══════════════════════════════════════════════════════════
+     CARD WRAPPER — anchored hit-area (never moves)
+     This is the KEY fix: the wrapper stays in place so the
+     cursor never accidentally leaves it when the inner card
+     floats/lifts, eliminating the flicker loop.
+  ══════════════════════════════════════════════════════════ */
+  .hb-card-wrapper-parent {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translateY(-50%);
+    z-index: 35;
+    /* entrance animation only — NO float here */
+    animation: hb-card-in-l 0.7s 0.5s ease both;
+  }
+
+  .hb-card-wrapper-teen {
+    position: absolute;
+    top: 50%;
+    right: 0%;
+    transform: translateY(-50%);
+    z-index: 35;
+    /* entrance animation only — NO float here */
+    animation: hb-card-in-r 0.7s 0.8s ease both;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     INNER CARD — floats and lifts on hover
+     Hover is tracked on the WRAPPER above, so moving this
+     element away from the cursor won't trigger mouseleave.
+  ══════════════════════════════════════════════════════════ */
   .hb-persona-card {
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border-radius: 18px; padding: 16px 20px; cursor: pointer;
-    z-index: 35; width: 175px;
+    width: 175px;
     transition: background 0.28s ease, border-color 0.28s ease,
                 box-shadow 0.28s ease,
                 transform 0.32s cubic-bezier(0.34,1.56,0.64,1);
   }
-  .hb-persona-card:hover { transform: translateY(calc(-50% - 6px)) scale(1.04) !important; }
-  .hb-persona-card-parent {
-    position: absolute; top: 50%; left: 0%;
-    transform: translateY(-50%);
-    animation: hb-card-in-l 0.7s 0.5s ease both, hb-float 4.2s 0.5s ease-in-out infinite;
+
+  /* Float lives on the inner card — not the wrapper */
+  .hb-persona-card-inner-parent {
+    animation: hb-float 4.2s 0.5s ease-in-out infinite;
   }
-  .hb-persona-card-teen {
-    position: absolute; top: 50%; right: 0%;
-    transform: translateY(-50%);
-    animation: hb-card-in-r 0.7s 0.8s ease both, hb-float-r 3.7s 1s ease-in-out infinite;
+  .hb-persona-card-inner-teen {
+    animation: hb-float-r 3.7s 1s ease-in-out infinite;
   }
+
+  /* Hover only scales — no translateY, so the card never
+     escapes the wrapper's bounding box */
+  .hb-card-wrapper-parent:hover .hb-persona-card,
+  .hb-card-wrapper-teen:hover .hb-persona-card {
+    transform: scale(1.04);
+  }
+
   .hb-stat-pill {
     position: absolute;
     background: rgba(255,255,255,0.14); backdrop-filter: blur(10px);
@@ -454,7 +486,7 @@ function MapPopup({ onClose, c }) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   HEART VISUAL  (unchanged)
+   HEART VISUAL
 ══════════════════════════════════════════════════════════════ */
 function HeartVisual({ onParentClick, onTeenClick, onAssessClick, c }) {
   const [hovered, setHovered] = useState(null)
@@ -549,83 +581,112 @@ function HeartVisual({ onParentClick, onTeenClick, onAssessClick, c }) {
         </span>
       </div>
 
-      {/* ── Parent card ── */}
-      <div className="hb-persona-card hb-persona-card-parent"
-        style={hovered === 'parent' ? parentHovered : parentBase}
+      {/*
+        ══════════════════════════════════════════════════════════
+        PARENT CARD — HOVER FLICKER FIX
+        ══════════════════════════════════════════════════════════
+        Structure:
+          [.hb-card-wrapper-parent]   ← anchored, handles hover events
+            [.hb-persona-card
+             .hb-persona-card-inner-parent]  ← floats + scales on hover
+
+        The wrapper's top/left/transform stay fixed, so the cursor
+        never accidentally leaves while the inner card animates.
+        Hover is detected on the WRAPPER via onMouseEnter/Leave,
+        so lifting the inner card cannot trigger a mouseleave.
+      */}
+      <div
+        className="hb-card-wrapper-parent"
         onMouseEnter={() => setHovered('parent')}
         onMouseLeave={() => setHovered(null)}
-        onClick={onParentClick}>
-        <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
-          <div style={{ width:44, height:44, borderRadius:'50%', flexShrink:0,
-            background:'rgba(184,213,200,0.25)', border:'1.5px solid rgba(184,213,200,0.45)',
-            display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px',
-            transition:'transform 0.3s ease',
-            transform: hovered==='parent' ? 'scale(1.15) rotate(-6deg)' : 'scale(1)' }}>🌿</div>
-          <div>
-            <div style={{ fontFamily:'var(--font-display)', fontSize:'1.05rem', color:'#d4f0e0', lineHeight:1.15, fontWeight:400 }}>
-              {c.parent_title}
-            </div>
-            <div style={{ fontFamily:'var(--font-body)', fontSize:'0.58rem', fontWeight:800,
-              letterSpacing:'0.12em', textTransform:'uppercase', color:'rgba(184,213,200,0.6)', marginTop:'2px' }}>
-              {c.parent_sub}
+        onClick={onParentClick}
+      >
+        <div
+          className="hb-persona-card hb-persona-card-inner-parent"
+          style={hovered === 'parent' ? parentHovered : parentBase}
+        >
+          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
+            <div style={{ width:44, height:44, borderRadius:'50%', flexShrink:0,
+              background:'rgba(184,213,200,0.25)', border:'1.5px solid rgba(184,213,200,0.45)',
+              display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px',
+              transition:'transform 0.3s ease',
+              transform: hovered==='parent' ? 'scale(1.15) rotate(-6deg)' : 'scale(1)' }}>🌿</div>
+            <div>
+              <div style={{ fontFamily:'var(--font-display)', fontSize:'1.05rem', color:'#d4f0e0', lineHeight:1.15, fontWeight:400 }}>
+                {c.parent_title}
+              </div>
+              <div style={{ fontFamily:'var(--font-body)', fontSize:'0.58rem', fontWeight:800,
+                letterSpacing:'0.12em', textTransform:'uppercase', color:'rgba(184,213,200,0.6)', marginTop:'2px' }}>
+                {c.parent_sub}
+              </div>
             </div>
           </div>
-        </div>
-        <p style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', color:'rgba(212,240,224,0.82)',
-          lineHeight:1.6, margin:'0 0 12px', fontWeight:400 }}>
-          {c.parent_body}
-        </p>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-          borderTop:'1px solid rgba(184,213,200,0.22)', paddingTop:'10px' }}>
-          <span style={{ fontFamily:'var(--font-body)', fontSize:'0.62rem', fontWeight:800,
-            letterSpacing:'0.09em', textTransform:'uppercase',
-            color: hovered==='parent' ? '#b8d5c8' : 'rgba(184,213,200,0.5)', transition:'color 0.2s' }}>
-            {c.parent_cta}
-          </span>
-          <div style={{ width:22, height:22, borderRadius:'50%',
-            background: hovered==='parent' ? 'rgba(184,213,200,0.35)' : 'rgba(184,213,200,0.15)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:'0.7rem', color:'#b8d5c8', transition:'background 0.2s' }}>→</div>
+          <p style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', color:'rgba(212,240,224,0.82)',
+            lineHeight:1.6, margin:'0 0 12px', fontWeight:400 }}>
+            {c.parent_body}
+          </p>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+            borderTop:'1px solid rgba(184,213,200,0.22)', paddingTop:'10px' }}>
+            <span style={{ fontFamily:'var(--font-body)', fontSize:'0.62rem', fontWeight:800,
+              letterSpacing:'0.09em', textTransform:'uppercase',
+              color: hovered==='parent' ? '#b8d5c8' : 'rgba(184,213,200,0.5)', transition:'color 0.2s' }}>
+              {c.parent_cta}
+            </span>
+            <div style={{ width:22, height:22, borderRadius:'50%',
+              background: hovered==='parent' ? 'rgba(184,213,200,0.35)' : 'rgba(184,213,200,0.15)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontSize:'0.7rem', color:'#b8d5c8', transition:'background 0.2s' }}>→</div>
+          </div>
         </div>
       </div>
 
-      {/* ── Teen card ── */}
-      <div className="hb-persona-card hb-persona-card-teen"
-        style={hovered === 'teen' ? teenHovered : teenBase}
+      {/*
+        ══════════════════════════════════════════════════════════
+        TEEN CARD — same fix applied
+        ══════════════════════════════════════════════════════════
+      */}
+      <div
+        className="hb-card-wrapper-teen"
         onMouseEnter={() => setHovered('teen')}
         onMouseLeave={() => setHovered(null)}
-        onClick={onTeenClick}>
-        <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
-          <div style={{ width:44, height:44, borderRadius:'50%', flexShrink:0,
-            background:'rgba(216,180,254,0.2)', border:'1.5px solid rgba(216,180,254,0.4)',
-            display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px',
-            transition:'transform 0.3s ease',
-            transform: hovered==='teen' ? 'scale(1.15) rotate(6deg)' : 'scale(1)' }}>✨</div>
-          <div>
-            <div style={{ fontFamily:'var(--font-display)', fontSize:'1.05rem', color:'#ede9fe', lineHeight:1.15, fontWeight:400 }}>
-              {c.teen_title}
-            </div>
-            <div style={{ fontFamily:'var(--font-body)', fontSize:'0.58rem', fontWeight:800,
-              letterSpacing:'0.12em', textTransform:'uppercase', color:'rgba(216,180,254,0.6)', marginTop:'2px' }}>
-              {c.teen_sub}
+        onClick={onTeenClick}
+      >
+        <div
+          className="hb-persona-card hb-persona-card-inner-teen"
+          style={hovered === 'teen' ? teenHovered : teenBase}
+        >
+          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
+            <div style={{ width:44, height:44, borderRadius:'50%', flexShrink:0,
+              background:'rgba(216,180,254,0.2)', border:'1.5px solid rgba(216,180,254,0.4)',
+              display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px',
+              transition:'transform 0.3s ease',
+              transform: hovered==='teen' ? 'scale(1.15) rotate(6deg)' : 'scale(1)' }}>✨</div>
+            <div>
+              <div style={{ fontFamily:'var(--font-display)', fontSize:'1.05rem', color:'#ede9fe', lineHeight:1.15, fontWeight:400 }}>
+                {c.teen_title}
+              </div>
+              <div style={{ fontFamily:'var(--font-body)', fontSize:'0.58rem', fontWeight:800,
+                letterSpacing:'0.12em', textTransform:'uppercase', color:'rgba(216,180,254,0.6)', marginTop:'2px' }}>
+                {c.teen_sub}
+              </div>
             </div>
           </div>
-        </div>
-        <p style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', color:'rgba(237,233,254,0.82)',
-          lineHeight:1.6, margin:'0 0 12px', fontWeight:400 }}>
-          {c.teen_body}
-        </p>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-          borderTop:'1px solid rgba(216,180,254,0.22)', paddingTop:'10px' }}>
-          <span style={{ fontFamily:'var(--font-body)', fontSize:'0.62rem', fontWeight:800,
-            letterSpacing:'0.09em', textTransform:'uppercase',
-            color: hovered==='teen' ? '#ddd6fe' : 'rgba(221,214,254,0.5)', transition:'color 0.2s' }}>
-            {c.teen_cta}
-          </span>
-          <div style={{ width:22, height:22, borderRadius:'50%',
-            background: hovered==='teen' ? 'rgba(216,180,254,0.3)' : 'rgba(216,180,254,0.12)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:'0.7rem', color:'#ddd6fe', transition:'background 0.2s' }}>→</div>
+          <p style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', color:'rgba(237,233,254,0.82)',
+            lineHeight:1.6, margin:'0 0 12px', fontWeight:400 }}>
+            {c.teen_body}
+          </p>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+            borderTop:'1px solid rgba(216,180,254,0.22)', paddingTop:'10px' }}>
+            <span style={{ fontFamily:'var(--font-body)', fontSize:'0.62rem', fontWeight:800,
+              letterSpacing:'0.09em', textTransform:'uppercase',
+              color: hovered==='teen' ? '#ddd6fe' : 'rgba(221,214,254,0.5)', transition:'color 0.2s' }}>
+              {c.teen_cta}
+            </span>
+            <div style={{ width:22, height:22, borderRadius:'50%',
+              background: hovered==='teen' ? 'rgba(216,180,254,0.3)' : 'rgba(216,180,254,0.12)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontSize:'0.7rem', color:'#ddd6fe', transition:'background 0.2s' }}>→</div>
+          </div>
         </div>
       </div>
 
@@ -662,14 +723,13 @@ export default function Hero() {
     return () => { clearTimeout(t); clearTimeout(t2) }
   }, [])
 
-  // Dynamic stat values from admin
-  const dynClients    = `${siteStats.clients}+`
-  const dynTherapists = siteStats.therapists
-  const dynRating     = `${siteStats.rating}★`
+  const dynClients      = `${siteStats.clients}+`
+  const dynTherapists   = siteStats.therapists
+  const dynRating       = `${siteStats.rating}★`
   const dynPillFamilies = lang === 'NP'
     ? `❤️  ${siteStats.families}+ परिवार निको भए`
     : `❤️  ${siteStats.families}+ families healed`
-  const dynPillRating = `${siteStats.pillRating} ★ rated`
+  const dynPillRating   = `${siteStats.pillRating} ★ rated`
 
   return (
     <section className="hero">
@@ -680,12 +740,6 @@ export default function Hero() {
           <span>🌿</span> {c.badge}
         </div>
 
-        {/*
-          ── REDESIGNED H1 ──
-          Plain words use a soft white.
-          Key words ("Help", "Choice") use Playfair italic + cyan shimmer gradient.
-          "Choice" also gets a fine glowing underline via ::after.
-        */}
         <h1 className={`hero-heading${lang === 'NP' ? ' lang-np' : ''}`}>
           <span className="h1-plain">{c.h1_our}</span>
           <span className="h1-accent-help">{c.h1_help}</span>
@@ -704,7 +758,6 @@ export default function Hero() {
           </button>
         </div>
 
-        {/* Dynamic stats */}
         <div className="hero-stats">
           <div>
             <div className="hero-stat-num">{dynClients}</div>
