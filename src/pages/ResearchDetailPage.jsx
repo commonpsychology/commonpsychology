@@ -20,6 +20,7 @@ const C = {
 const heroGrad = `linear-gradient(135deg, #0f2c3f 0%, ${C.skyDeep} 40%, ${C.skyMid} 80%, ${C.skyBright} 100%)`
 const btnGrad  = `linear-gradient(135deg, ${C.skyDeep} 0%, ${C.skyBright} 100%)`
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const BACKEND_ROOT = API_BASE.replace(/\/api\/?$/, '')
 
 const RESPONSIVE_CSS = `
   @keyframes spin { to { transform: rotate(360deg) } }
@@ -76,14 +77,14 @@ export default function ResearchDetailPage() {
   useEffect(() => { if (paper) setDlCount(paper.downloads ?? 0) }, [paper])
 
   // The proxy URL — browser talks to YOUR backend, no CORS or CSP issues
-  const proxyPdfUrl = `${API_BASE}/api/research/${id}/pdf`
+const proxyPdfUrl = `${BACKEND_ROOT}/api/research/${id}/pdf`
 
   async function handleDownload() {
     if (!paper?.pdf_url || dlState === 'loading') return
     setDlState('loading')
 
     // Fire-and-forget download counter
-    fetch(`${API_BASE}/api/research/${id}/download`, { method: 'POST' }).catch(() => {})
+fetch(`${BACKEND_ROOT}/api/research/${id}/download`, { method: 'POST' }).catch(() => {})
 
     try {
       // Fetch via proxy — same origin so no CORS block
