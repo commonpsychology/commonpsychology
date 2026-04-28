@@ -375,10 +375,10 @@ function MobileGroup({ group, currentPath, onNavigate, lang }) {
     <li>
       <button onClick={() => setOpen(o => !o)}
         style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-          width:'100%', padding:'0.8rem 0', background:'none', border:'none',
+          width:'100%', padding:'1.05rem 0', background:'none', border:'none',
           borderBottom: open ? 'none' : '1px solid var(--earth-cream)',
-          fontFamily:'var(--font-body)', fontSize:'0.98rem',
-          fontWeight: isActive ? 700 : 600,
+          fontFamily:'var(--font-body)', fontSize:'1.1rem',
+          fontWeight: isActive ? 800 : 700,
           color: isActive ? 'var(--sky)' : 'var(--text-mid)',
           cursor:'pointer', textAlign:'left' }}>
         {label}
