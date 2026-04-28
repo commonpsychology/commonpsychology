@@ -65,12 +65,13 @@ function UserAvatar({ user, size = 38 }) {
   )
 }
 
-function AvatarDropdown({ onNavigate }) {
-  const { user, logout } = useAuth()
-  const { lang, t }      = useLang()
-  const [open,        setOpen]        = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)
-  const ref = useRef(null)
+/* ─────────────────────────────────────────────────────────────
+   NOTIFICATION BELL  — shows ! badge when unread > 0,
+   click → portal Notifications tab
+───────────────────────────────────────────────────────────── */
+function NotificationBell({ onNavigate }) {
+  const { user }          = useAuth()
+  const [unread, setUnread] = useState(0)
 
   const fetchUnread = useCallback(async () => {
     if (!user) return
@@ -82,16 +83,82 @@ function AvatarDropdown({ onNavigate }) {
       })
       if (res.ok) {
         const data = await res.json()
-        setUnreadCount(data.unreadCount || 0)
+        setUnread(data.unreadCount || 0)
       }
     } catch {}
   }, [user])
 
   useEffect(() => {
     fetchUnread()
-    const interval = setInterval(fetchUnread, 2 * 60 * 1000)
-    return () => clearInterval(interval)
+    const id = setInterval(fetchUnread, 2 * 60 * 1000)
+    return () => clearInterval(id)
   }, [fetchUnread])
+
+  if (!user) return null
+
+  function handleClick() {
+    sessionStorage.setItem('portalTab', 'Notifications')
+    onNavigate('/portal')
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      aria-label="Notifications"
+      style={{
+        position: 'relative',
+        width: 38, height: 38,
+        borderRadius: '50%',
+        border: '1.5px solid var(--blue-pale)',
+        background: unread > 0 ? 'var(--sky-light)' : 'transparent',
+        cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, padding: 0,
+        transition: 'border-color 0.2s, background 0.2s',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = 'var(--sky)'
+        e.currentTarget.style.background  = 'var(--sky-light)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = 'var(--blue-pale)'
+        e.currentTarget.style.background  = unread > 0 ? 'var(--sky-light)' : 'transparent'
+      }}
+    >
+      {/* Bell SVG */}
+      <svg
+        viewBox="0 0 24 24" width="18" height="18"
+        fill="none" stroke={unread > 0 ? 'var(--sky)' : 'var(--text-mid)'}
+        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      >
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+
+      {/* ! badge */}
+      {unread > 0 && (
+        <span style={{
+          position: 'absolute', top: -3, right: -3,
+          minWidth: 16, height: 16,
+          borderRadius: '50%',
+          background: '#e53e3e',
+          border: '2px solid white',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '0.6rem', fontWeight: 900, color: 'white',
+          lineHeight: 1, pointerEvents: 'none',
+        }}>
+          !
+        </span>
+      )}
+    </button>
+  )
+}
+
+function AvatarDropdown({ onNavigate }) {
+  const { user, logout } = useAuth()
+  const { lang, t }      = useLang()
+  const [open, setOpen]  = useState(false)
+  const ref = useRef(null)
 
   useEffect(() => {
     function close(e) {
@@ -101,10 +168,7 @@ function AvatarDropdown({ onNavigate }) {
     return () => document.removeEventListener('mouseup', close)
   }, [])
 
-  function handleOpen() {
-    setOpen(o => !o)
-    if (unreadCount > 0) setUnreadCount(0)
-  }
+  function handleOpen() { setOpen(o => !o) }
 
   async function handleLogout() { setOpen(false); await logout(); onNavigate('/signin') }
 
@@ -122,28 +186,16 @@ function AvatarDropdown({ onNavigate }) {
 
   return (
     <div ref={ref} style={{ position:'relative' }}>
-      <div style={{ position:'relative', display:'inline-flex' }}>
-        <button onClick={handleOpen} aria-label="Account menu"
-          style={{ width:38, height:38, borderRadius:'50%',
-            border:`2px solid ${open ? 'var(--sky)' : 'var(--blue-pale)'}`,
-            cursor:'pointer', padding:0, flexShrink:0,
-            display:'flex', alignItems:'center', justifyContent:'center',
-            overflow:'hidden',
-            boxShadow: open ? '0 0 0 3px rgba(41,128,185,0.2)' : 'none',
-            transition:'border-color 0.2s, box-shadow 0.2s', background:'transparent' }}>
-          <UserAvatar user={user} size={36} />
-        </button>
-        {unreadCount > 0 && (
-          <div style={{ position:'absolute', top:-3, right:-3,
-            width:18, height:18, borderRadius:'50%',
-            background:'#e53e3e', border:'2px solid white',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:'0.65rem', fontWeight:900, color:'white',
-            lineHeight:1, pointerEvents:'none', zIndex:10 }}>
-            {unreadCount > 9 ? '9+' : '!'}
-          </div>
-        )}
-      </div>
+      <button onClick={handleOpen} aria-label="Account menu"
+        style={{ width:38, height:38, borderRadius:'50%',
+          border:`2px solid ${open ? 'var(--sky)' : 'var(--blue-pale)'}`,
+          cursor:'pointer', padding:0, flexShrink:0,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          overflow:'hidden',
+          boxShadow: open ? '0 0 0 3px rgba(41,128,185,0.2)' : 'none',
+          transition:'border-color 0.2s, box-shadow 0.2s', background:'transparent' }}>
+        <UserAvatar user={user} size={36} />
+      </button>
 
       <div style={{ position:'absolute', top:'calc(100% + 12px)', right:0, width:224,
         background:'var(--white)', borderRadius:14, border:'1px solid var(--blue-pale)',
@@ -431,6 +483,9 @@ export default function Navbar() {
             )}
             <button className="btn btn-primary" onClick={() => go('/book')}>{t('bookSession')}</button>
           </div>
+
+          {/* ── Notification Bell ── */}
+          <NotificationBell onNavigate={go} />
 
           <AvatarDropdown onNavigate={go} />
 
