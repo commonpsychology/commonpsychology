@@ -2720,8 +2720,8 @@ await REFRESH_MAP[modal.type]?.()
                       <td style={{fontSize:'.72rem',color:'var(--text-muted)'}}>{fmt(r.created_at)}</td>
                       <td>
                         <div style={{display:'flex',gap:'.3rem'}}>
-                          {r.status!=='confirmed' && <button className="btn btn-success btn-sm" disabled={busy[`wr_${r.id}`]} onClick={async()=>{setB(`wr_${r.id}`,true);try{await apiFetch(`/workshops/admin/reg/${r.id}`,{method:'PATCH',body:JSON.stringify({status:'confirmed'})});fetchWsRegs()}catch(e){alert(e.message)}finally{setB(`wr_${r.id}`,false)}}}>✓ Confirm</button>}
-                          {r.status!=='cancelled' && <button className="btn btn-danger btn-sm" disabled={busy[`wr_${r.id}`]} onClick={async()=>{setB(`wr_${r.id}`,true);try{await apiFetch(`/workshops/admin/reg/${r.id}`,{method:'PATCH',body:JSON.stringify({status:'cancelled'})});fetchWsRegs()}catch(e){alert(e.message)}finally{setB(`wr_${r.id}`,false)}}}>✗ Cancel</button>}
+                          {r.status!=='confirmed' && <button className="btn btn-success btn-sm" disabled={busy[`wr_${r.id}`]} onClick={async()=>{setB(`wr_${r.id}`,true);try{await apiFetch(`/workshops/admin/registrations/${r.id}`,{method:'PATCH',body:JSON.stringify({status:'confirmed'})});fetchWsRegs()}catch(e){alert(e.message)}finally{setB(`wr_${r.id}`,false)}}}>✓ Confirm</button>}
+                          {r.status!=='cancelled' && <button className="btn btn-danger btn-sm" disabled={busy[`wr_${r.id}`]} onClick={async()=>{setB(`wr_${r.id}`,true);try{await apiFetch(`/workshops/admin/registrations/${r.id}`,{method:'PATCH',body:JSON.stringify({status:'cancelled'})});fetchWsRegs()}catch(e){alert(e.message)}finally{setB(`wr_${r.id}`,false)}}}>✗ Cancel</button>}
                         </div>
                       </td>
                     </tr>
