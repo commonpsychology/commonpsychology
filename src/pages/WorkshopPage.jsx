@@ -633,7 +633,7 @@ function FInput({ label, required, type = 'text', placeholder, value, onChange }
 }
 
 // ── Workshop Card ─────────────────────────────────────────────────────────
-function WorkshopCard({ ws, isReg, full, free, left, p, urgent, cardBg, onRegister, onNavigate }) {
+function WorkshopCard({ ws, isReg, full, free, left, p, urgent, cardBg, onRegister, onNavigate, onScrollToEnrollments }) {
   const [imgErr, setImgErr] = useState(false)
 
   return (
@@ -779,20 +779,25 @@ function WorkshopCard({ ws, isReg, full, free, left, p, urgent, cardBg, onRegist
 
         {/* CTA */}
         {isReg ? (
+          // ── ALREADY REGISTERED: show status button + hint ────────────────
           <div>
             <button
               className="btn btn-outline"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => onNavigate('/portal')}
+              style={{
+                width: '100%', justifyContent: 'center',
+                borderColor: C.skyMid, color: C.skyDeep,
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}
+              onClick={onScrollToEnrollments}
             >
-              ✓ Registered — View Details
+              ✓ Already Registered — View Status
             </button>
             <p style={{
               fontFamily: 'var(--font-body)', fontSize: '0.67rem',
               color: C.textLight, textAlign: 'center',
               marginTop: '0.5rem', lineHeight: 1.5,
             }}>
-              Already enrolled · Scroll down below to see your status of workshops &amp; trainings
+              You're enrolled · See your payment &amp; confirmation status below ↓
             </p>
           </div>
         ) : full ? (
@@ -831,20 +836,24 @@ export default function WorkshopsPage() {
   const userEmail      = user?.email || ''
   const enrollmentsRef = useRef(null)
 
-  const [workshops,  setWorkshops]  = useState([])
-  const [loading,    setLoading]    = useState(true)
-  const [error,      setError]      = useState(null)
-  const [screen,     setScreen]     = useState('list')
-  const [workshop,   setWorkshop]   = useState(null)
-  const [registered, setRegistered] = useState([])
-  const [regId,      setRegId]      = useState(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitErr,  setSubmitErr]  = useState(null)
+  const [workshops,             setWorkshops]             = useState([])
+  const [loading,               setLoading]               = useState(true)
+  const [error,                 setError]                 = useState(null)
+  const [screen,                setScreen]                = useState('list')
+  const [workshop,              setWorkshop]              = useState(null)
+  // session-level registrations (IDs of workshops registered in this browser session)
+  const [registered,            setRegistered]            = useState([])
+  // email-based: Set of workshop_ids the user is actually registered for (from DB)
+  const [registeredWorkshopIds, setRegisteredWorkshopIds] = useState(new Set())
+  const [regId,                 setRegId]                 = useState(null)
+  const [submitting,            setSubmitting]            = useState(false)
+  const [submitErr,             setSubmitErr]             = useState(null)
   const [form, setForm] = useState({ name: '', email: '', phone: '', notes: '' })
 
   const upForm = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const formOK = form.name.trim() && form.email.includes('@') && form.phone.trim()
 
+  // ── Fetch workshops list ─────────────────────────────────────────────────
   const fetchWorkshops = useCallback(async () => {
     setLoading(true); setError(null)
     try {
@@ -861,11 +870,43 @@ export default function WorkshopsPage() {
 
   useEffect(() => { fetchWorkshops() }, [fetchWorkshops])
 
+  // ── Fetch user's existing registrations by email (on mount & after reg) ──
+  const fetchUserRegistrations = useCallback(async (email) => {
+    const trimmed = (email || '').trim().toLowerCase()
+    if (!trimmed || !trimmed.includes('@')) return
+    try {
+      const res = await fetch(
+        API_BASE + '/workshops/my-registrations?email=' + encodeURIComponent(trimmed)
+      )
+      const j = await res.json()
+      if (!j.success) return
+      // Only count non-cancelled registrations as "registered"
+      const activeIds = new Set(
+        (j.registrations || [])
+          .filter(r => r.status !== 'cancelled')
+          .map(r => r.workshop_id)
+      )
+      setRegisteredWorkshopIds(activeIds)
+    } catch (_) {
+      // Silently fail — this is a convenience check, not critical
+    }
+  }, [])
+
+  // Fetch on mount if user email is known
+  useEffect(() => {
+    if (userEmail) fetchUserRegistrations(userEmail)
+  }, [userEmail, fetchUserRegistrations])
+
   function isFull(ws)    { return parseInt(ws.booked || 0) >= ws.seats }
   function isFree(ws)    { return !ws.price || Number(ws.price) === 0 }
   function seatsLeft(ws) { return ws.seats - parseInt(ws.booked || 0) }
   function pct(ws)       {
     return Math.min(100, Math.round((parseInt(ws.booked || 0) / ws.seats) * 100))
+  }
+
+  // ── isAlreadyRegistered: checks session state OR DB-fetched email registrations ──
+  function isAlreadyRegistered(wsId) {
+    return registered.includes(wsId) || registeredWorkshopIds.has(wsId)
   }
 
   function scrollToEnrollments() {
@@ -876,8 +917,8 @@ export default function WorkshopsPage() {
   }
 
   function openRegister(ws) {
-    // Guard: prevent opening register form if already registered
-    if (registered.includes(ws.id) || ws.user_registered) {
+    // Guard: if already registered (by session or email lookup), scroll to status instead
+    if (isAlreadyRegistered(ws.id)) {
       scrollToEnrollments()
       return
     }
@@ -908,14 +949,20 @@ export default function WorkshopsPage() {
     const j = await r.json()
     if (r.status === 409) {
       const existingReg = j.registration
-      // Already fully paid — just mark done and return
-      if (existingReg?.payment_status === 'paid' || existingReg?.payment_status === 'confirmed' || existingReg?.status === 'confirmed') {
+      // Already fully paid — mark done and return
+      if (
+        existingReg?.payment_status === 'paid' ||
+        existingReg?.payment_status === 'confirmed' ||
+        existingReg?.status === 'confirmed'
+      ) {
         setRegistered(prev => [...prev, workshop.id])
+        // Also update our email-based set so card reflects registration immediately
+        setRegisteredWorkshopIds(prev => new Set([...prev, workshop.id]))
         await fetchWorkshops()
         setScreen('done')
         return null
       }
-      // Existing pending/free registration — reuse its ID to continue
+      // Existing pending/free registration — reuse its ID to continue payment
       const existingId = existingReg?.id
       if (!existingId) throw new Error('You are already registered for this workshop. Check your enrollment status below.')
       setRegId(existingId)
@@ -932,6 +979,7 @@ export default function WorkshopsPage() {
       const rid = await ensureRegistration()
       if (rid === null) return
       setRegistered(prev => [...prev, workshop.id])
+      setRegisteredWorkshopIds(prev => new Set([...prev, workshop.id]))
       await fetchWorkshops()
       setScreen('done')
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -956,17 +1004,17 @@ export default function WorkshopsPage() {
         couponEnabled:   true,
         allowedGateways: ['esewa', 'khalti', 'fonepay', 'stripe'],
         metadata: {
-          item_type:      'workshop',
-          workshop_id:    workshop.id,
+          item_type:       'workshop',
+          workshop_id:     workshop.id,
           registration_id: registrationId,
-          workshop_title: workshop.title,
-          workshop_date:  workshop.date,
-          workshop_time:  workshop.time,
-          facilitator:    workshop.facilitator,
-          mode:           workshop.mode,
-          attendee_name:  form.name,
-          attendee_email: form.email,
-          attendee_phone: form.phone,
+          workshop_title:  workshop.title,
+          workshop_date:   workshop.date,
+          workshop_time:   workshop.time,
+          facilitator:     workshop.facilitator,
+          mode:            workshop.mode,
+          attendee_name:   form.name,
+          attendee_email:  form.email,
+          attendee_phone:  form.phone,
         },
       })
       if (!result || !result.success) { setSubmitting(false); return }
@@ -983,6 +1031,7 @@ export default function WorkshopsPage() {
         console.warn('Workshop reg patch failed:', patchErr)
       }
       setRegistered(prev => [...prev, workshop.id])
+      setRegisteredWorkshopIds(prev => new Set([...prev, workshop.id]))
       await fetchWorkshops()
       setScreen('done')
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -1521,8 +1570,8 @@ export default function WorkshopsPage() {
         {!loading && !error && workshops.length > 0 && (
           <div className="workshops-grid">
             {workshops.map(ws => {
-              // isReg: true if registered this session OR backend flagged it
-              const isReg  = registered.includes(ws.id) || !!ws.user_registered
+              // isReg: true if registered this session OR found in DB by email
+              const isReg  = isAlreadyRegistered(ws.id)
               const full   = isFull(ws)
               const free   = isFree(ws)
               const left   = seatsLeft(ws)
@@ -1542,6 +1591,7 @@ export default function WorkshopsPage() {
                   cardBg={cardBg}
                   onRegister={() => openRegister(ws)}
                   onNavigate={navigate}
+                  onScrollToEnrollments={scrollToEnrollments}
                 />
               )
             })}
