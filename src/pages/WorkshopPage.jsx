@@ -389,7 +389,6 @@ function FInput({ label, required, type = 'text', placeholder, value, onChange }
 }
 
 // ── Workshop Card Component ────────────────────────────────────────────────
-// image_url comes from your Supabase Storage bucket public URL stored in the workshops table
 function WorkshopCard({ ws, isReg, full, free, left, p, urgent, cardBg, onRegister, onNavigate }) {
   const [imgErr, setImgErr] = useState(false)
   console.log('ws.image_url:', ws.image_url)
@@ -407,7 +406,7 @@ function WorkshopCard({ ws, isReg, full, free, left, p, urgent, cardBg, onRegist
       onMouseEnter={e => !full && (e.currentTarget.style.transform = 'translateY(-4px)')}
       onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
     >
-      {/* ── Image / Emoji Header — mirrors TherapistCard pattern ── */}
+      {/* ── Image / Emoji Header ── */}
       <div style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
         {ws.image_url && !imgErr
           ? (
@@ -422,7 +421,6 @@ function WorkshopCard({ ws, isReg, full, free, left, p, urgent, cardBg, onRegist
               }}
             />
           ) : (
-            /* Fallback: gradient tile with large emoji, same as therapist initials fallback */
             <div style={{
               width: '100%', height: '100%',
               background: isReg
@@ -436,7 +434,7 @@ function WorkshopCard({ ws, isReg, full, free, left, p, urgent, cardBg, onRegist
           )
         }
 
-        {/* Status badges — top-right, same position as therapist availability badge */}
+        {/* Status badges */}
         {isReg && (
           <div style={{
             position: 'absolute', top: 10, right: 10,
@@ -458,7 +456,6 @@ function WorkshopCard({ ws, isReg, full, free, left, p, urgent, cardBg, onRegist
           </div>
         )}
 
-        {/* Emoji pill overlay shown only when an actual image is displayed */}
         {ws.image_url && !imgErr && (
           <div style={{
             position: 'absolute', bottom: 10, left: 12,
@@ -508,9 +505,22 @@ function WorkshopCard({ ws, isReg, full, free, left, p, urgent, cardBg, onRegist
 
         {/* CTA button */}
         {isReg ? (
-          <button className="btn btn-outline" style={{ width:'100%', justifyContent:'center' }} onClick={() => onNavigate('/portal')}>
-            ✓ Registered — View Details
-          </button>
+          <div>
+            <button className="btn btn-outline" style={{ width:'100%', justifyContent:'center' }} onClick={() => onNavigate('/portal')}>
+              ✓ Registered — View Details
+            </button>
+            {/* ── MODIFICATION 2: Already enrolled hint ── */}
+            <p style={{
+              fontFamily:'var(--font-body)',
+              fontSize:'0.67rem',
+              color:C.textLight,
+              textAlign:'center',
+              marginTop:'0.5rem',
+              lineHeight:1.5,
+            }}>
+              Already enrolled · Scroll down below to see your status of workshops &amp; trainings
+            </p>
+          </div>
         ) : full ? (
           <button disabled style={{ width:'100%', padding:'0.6rem', borderRadius:12, border:'1.5px solid var(--earth-cream)', background:'var(--earth-cream)', color:'var(--text-light)', fontFamily:'var(--font-body)', fontWeight:600, fontSize:'0.82rem', cursor:'not-allowed' }}>
             Workshop Full
@@ -645,11 +655,40 @@ export default function WorkshopsPage() {
             <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.9rem', color:C.textDark, marginBottom:'0.75rem' }}>
               {isFree(workshop) ? "You're Registered!" : 'Thank You!'}
             </h2>
-            <p style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', color:C.textMid, lineHeight:1.78, marginBottom:'1.5rem' }}>
+            <p style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', color:C.textMid, lineHeight:1.78, marginBottom:'1rem' }}>
               {isFree(workshop)
                 ? 'Your spot is confirmed for "' + workshop?.title + '". Details will be emailed to ' + form.email + '.'
                 : 'Your registration and payment have been submitted. Confirmation will be sent to ' + form.email + ' once verified.'}
             </p>
+
+            {/* ── MODIFICATION 1: Admin verification notice ── */}
+            <div style={{
+              background: 'linear-gradient(135deg,#fffbea,#fff9e0)',
+              border: '1px solid #fde68a',
+              borderRadius: 12,
+              padding: '0.85rem 1.1rem',
+              marginBottom: '1.5rem',
+              textAlign: 'left',
+              display: 'flex',
+              gap: '0.65rem',
+              alignItems: 'flex-start',
+            }}>
+              <span style={{ fontSize:'1.1rem', flexShrink:0, marginTop:1 }}>📲</span>
+              <p style={{
+                fontFamily:'var(--font-body)',
+                fontSize:'0.78rem',
+                color:'#78350f',
+                lineHeight:1.65,
+                margin:0,
+              }}>
+                <strong style={{ display:'block', marginBottom:'0.2rem', color:'#92400e' }}>
+                  Note: Enrollment Verification
+                </strong>
+                After successful enrollment verification by our admin, you will be sent a message from the{' '}
+                <strong>Common Psychology verified account</strong> with the confirmed date, time, location, and all further details of your workshop or training.
+              </p>
+            </div>
+
             <div style={{ background:C.white, border:'1px solid ' + C.borderFaint, borderRadius:12, padding:'0.9rem', marginBottom:'1.75rem', textAlign:'left' }}>
               {[['Workshop', workshop?.title], ['Date', workshop?.date], ['Time', workshop?.time], ['Mode', workshop?.mode], ['Facilitator', workshop?.facilitator], ['Seats Left', seatsLeft(workshop) + ' of ' + workshop?.seats]].map(([k, v]) => (
                 <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'0.35rem 0', borderBottom:'1px solid ' + C.borderFaint, fontFamily:'var(--font-body)', fontSize:'0.78rem' }}>
