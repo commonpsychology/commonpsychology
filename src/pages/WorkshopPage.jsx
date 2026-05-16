@@ -1421,16 +1421,59 @@ export default function WorkshopsPage() {
         <p className="section-desc">
           Interactive sessions led by our therapists — online and in-person across Nepal.
         </p>
-        {registered.length > 0 && (
-          <div style={{
-            marginTop: '1.25rem', display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: btnGrad, borderRadius: 100, padding: '6px 18px',
-            fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700,
-            color: 'white', boxShadow: '0 4px 16px rgba(0,191,255,0.3)',
-          }}>
-            ✓ {registered.length} workshop{registered.length > 1 ? 's' : ''} registered this session
-          </div>
-        )}
+
+        {/* ── Hero action row ── */}
+        <div style={{
+          marginTop: '1.5rem',
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'center', gap: '0.85rem', flexWrap: 'wrap',
+        }}>
+          {/* See My Enrollment Status button — always visible */}
+          <button
+            onClick={() =>
+              document.getElementById('my-enrollments-section')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '0.65rem 1.4rem', borderRadius: 100,
+              border: '2px solid ' + C.skyMid,
+              background: 'rgba(0,159,212,0.08)',
+              color: C.skyDeep,
+              fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem',
+              cursor: 'pointer', whiteSpace: 'nowrap',
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 12px rgba(0,159,212,0.12)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = btnGrad
+              e.currentTarget.style.color = '#fff'
+              e.currentTarget.style.borderColor = 'transparent'
+              e.currentTarget.style.boxShadow = '0 4px 18px rgba(0,191,255,0.35)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(0,159,212,0.08)'
+              e.currentTarget.style.color = C.skyDeep
+              e.currentTarget.style.borderColor = C.skyMid
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,159,212,0.12)'
+            }}
+          >
+            🎟️ See My Enrollment Status
+            <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>↓</span>
+          </button>
+
+          {/* Session registered badge */}
+          {registered.length > 0 && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: btnGrad, borderRadius: 100, padding: '0.65rem 1.25rem',
+              fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700,
+              color: 'white', boxShadow: '0 4px 16px rgba(0,191,255,0.3)',
+            }}>
+              ✓ {registered.length} workshop{registered.length > 1 ? 's' : ''} registered this session
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="section" style={{ background: 'var(--white)' }}>
