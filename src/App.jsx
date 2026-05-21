@@ -53,6 +53,8 @@ import PaymentPage         from './pages/Paymentpage'
 import StaffLoginPage      from './pages/StaffloginPage'
 import AdminDashboard      from './pages/AdmindashboardPage'
 import TherapistDashboard  from './pages/TherapistdashboardPage'
+import EsewaSuccessPage from './pages/EsewaSuccessPage'
+import EsewaFailurePage from './pages/EsewaFailurePage'
 
 const ROUTES = {
   '/':                   HomePage,
@@ -74,6 +76,8 @@ const ROUTES = {
   '/neuro-science':       NeurosciencePage,
   '/my-orders':          MyOrdersPage,
   '/our-news':           OurNews,
+  '/esewa/success':      EsewaSuccessPage,
+  '/esewa/failure':      EsewaFailurePage,
   '/courses-videos':     OnlineCourses,
   '/register':           RegisterPage,
   '/disaster-management': DisasterManagement,
