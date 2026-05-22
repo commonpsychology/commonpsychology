@@ -451,7 +451,7 @@ function PaymentModal({ config, onClose, onResult }) {
     setCouponError('')
     setCouponLocked(false)
     try {
-      const res  = await fetch(`${API}/api/payments/coupons/validate`, {
+      const res  = await fetch(`${API}/payments/coupons/validate`, {
         method: 'POST',
         headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token()}` },
         body: JSON.stringify({ code: coupon, amount: baseAmount }),
@@ -505,7 +505,7 @@ function PaymentModal({ config, onClose, onResult }) {
 
       try {
         // 1. Call our backend to create pending payment + get signed form data
-        const res  = await fetch(`${API}/api/esewa/initiate`, {
+        const res  = await fetch(`${API}/esewa/initiate`, {
           method:  'POST',
           headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token()}` },
           body: JSON.stringify({
@@ -576,7 +576,7 @@ function PaymentModal({ config, onClose, onResult }) {
     }
 
     try {
-      const res  = await fetch(`${API}/api/payments`, {
+      const res  = await fetch(`${API}/payments`, {
         method:  'POST',
         headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token()}` },
         body:    JSON.stringify(payload),
