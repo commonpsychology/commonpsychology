@@ -1,12 +1,13 @@
-// PaymentModal.jsx — v2.7
-// ✅ Fixed: metadata spread no longer overwrites amount/method
-// ✅ Fixed: amount always sent as integer (Math.round)
-// ✅ Fixed: method always sent as backend-expected string
-// ✅ Auth guard in PaymentProvider + PaymentModal
-// ✅ createPortal COD popup
-// ✅ /payment-qr.png → eSewa & Khalti
-// ✅ /bank-qr.png    → Bank Transfer & FonePay
-// ✅ QR 260px with image-rendering:pixelated
+// ============================================================
+//  PaymentModal.jsx  —  v3.0  (Automatic eSewa Integration)
+//  REPLACES your existing PaymentModal.jsx entirely.
+//
+//  Changes from v2.7:
+//   ✅ eSewa now auto-redirects to eSewa payment page (no more QR)
+//   ✅ Khalti still shows QR (manual) — can upgrade similarly
+//   ✅ submitPayment() handles eSewa redirect flow
+//   ✅ All other payment methods (COD, card, bank) unchanged
+// ============================================================
 
 import { useState, useEffect, useCallback, createContext, useContext, useRef } from 'react'
 import { createPortal } from 'react-dom'
@@ -30,115 +31,113 @@ const injectCSS = () => {
   --psm-radius:14px; --psm-radius-sm:8px;
   --psm-shadow:0 24px 80px rgba(0,0,0,.18),0 4px 16px rgba(0,0,0,.08);
 }
-.psm-overlay { position:fixed; inset:0; background:rgba(10,25,40,.6); backdrop-filter:blur(6px); z-index:9999; display:flex; align-items:center; justify-content:center; padding:1rem; animation:psmFadeIn .2s ease }
-@keyframes psmFadeIn  { from { opacity:0 }              to { opacity:1 } }
-@keyframes psmSlideUp { from { transform:translateY(16px); opacity:0 } to { transform:translateY(0); opacity:1 } }
-@keyframes psmSpin    { to { transform:rotate(360deg) } }
-.psm-modal { background:var(--psm-white); border-radius:20px; width:100%; max-width:520px; max-height:92vh; overflow-y:auto; box-shadow:var(--psm-shadow); animation:psmSlideUp .24s cubic-bezier(.22,1,.36,1); font-family:var(--psm-body) }
-.psm-modal::-webkit-scrollbar { width:4px } .psm-modal::-webkit-scrollbar-thumb { background:#ddd; border-radius:4px }
-.psm-header { padding:1.5rem 1.5rem 1rem; border-bottom:1px solid var(--psm-border) }
-.psm-header-top { display:flex; justify-content:space-between; align-items:flex-start }
-.psm-brand { display:flex; align-items:center; gap:.6rem }
-.psm-brand-icon { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--psm-teal) 0%,#00BFFF 100%); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0 }
-.psm-brand-text { font-family:var(--psm-display); font-size:1rem; color:var(--psm-slate); line-height:1.1 }
-.psm-brand-sub  { font-size:.68rem; color:var(--psm-slate-lt) }
-.psm-close { width:30px; height:30px; border-radius:50%; border:1.5px solid var(--psm-border); background:transparent; cursor:pointer; font-size:.9rem; color:var(--psm-slate-lt); display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0 }
-.psm-close:hover { background:var(--psm-bg); color:var(--psm-slate) }
-.psm-summary { background:var(--psm-bg); border-radius:var(--psm-radius-sm); padding:1rem; margin-top:1rem }
-.psm-summary-label { font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--psm-slate-lt); margin-bottom:.6rem }
-.psm-summary-row { display:flex; justify-content:space-between; align-items:center; padding:.3rem 0; font-size:.82rem; color:var(--psm-slate-md) }
-.psm-summary-row.total { border-top:1px solid var(--psm-border); margin-top:.4rem; padding-top:.55rem; font-weight:700; color:var(--psm-slate); font-size:.92rem }
-.psm-coupon-row { display:flex; gap:.5rem; margin-top:.75rem }
-.psm-coupon-inp { flex:1; padding:.45rem .75rem; border:1.5px solid var(--psm-border); border-radius:8px; font-size:.8rem; font-family:var(--psm-body); color:var(--psm-slate); outline:none; transition:border .15s }
-.psm-coupon-inp:focus { border-color:var(--psm-teal) }
-.psm-coupon-btn { padding:.45rem .85rem; border-radius:8px; font-family:var(--psm-body); font-size:.78rem; font-weight:600; border:1.5px solid var(--psm-teal); color:var(--psm-teal); background:transparent; cursor:pointer; transition:all .15s; white-space:nowrap }
-.psm-coupon-btn:hover { background:var(--psm-teal-lt) }
-.psm-coupon-success { font-size:.73rem; color:var(--psm-green); font-weight:600; margin-top:.35rem }
-.psm-coupon-error   { font-size:.73rem; color:var(--psm-red); margin-top:.35rem }
-.psm-body { padding:1.25rem 1.5rem }
-.psm-section-label { font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--psm-slate-lt); margin-bottom:.85rem }
-.psm-gateway-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:1.25rem }
-.psm-gw { border:2px solid var(--psm-border); border-radius:var(--psm-radius-sm); padding:.75rem; cursor:pointer; background:var(--psm-white); display:flex; align-items:center; gap:.6rem; transition:all .15s; position:relative }
-.psm-gw:hover { border-color:var(--psm-teal); background:var(--psm-teal-lt) }
-.psm-gw.active { border-color:var(--psm-teal); background:var(--psm-teal-lt); box-shadow:0 0 0 3px rgba(0,123,168,.12) }
-.psm-gw.active .psm-gw-check { opacity:1; background:var(--psm-teal) }
-.psm-gw-icon { font-size:1.3rem; flex-shrink:0 }
-.psm-gw-info { flex:1; min-width:0 }
-.psm-gw-name { font-size:.8rem; font-weight:600; color:var(--psm-slate) }
-.psm-gw-sub  { font-size:.68rem; color:var(--psm-slate-lt); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-.psm-gw-check { width:16px; height:16px; border-radius:50%; border:1.5px solid var(--psm-border); display:flex; align-items:center; justify-content:center; flex-shrink:0; opacity:0; transition:all .15s }
-.psm-gw-check::after { content:'✓'; color:white; font-size:.6rem; font-weight:800 }
-.psm-gw-badge { position:absolute; top:-.4rem; right:.5rem; font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; background:var(--psm-green); color:white; padding:.1rem .4rem; border-radius:100px }
-.psm-panel { background:var(--psm-bg); border-radius:var(--psm-radius-sm); border:1px solid var(--psm-border); padding:1.1rem; margin-bottom:1rem; animation:psmFadeIn .18s ease }
-.psm-panel-title { font-size:.75rem; font-weight:700; color:var(--psm-slate-md); margin-bottom:.9rem; display:flex; align-items:center; gap:.4rem }
-.psm-amount-banner { background:linear-gradient(135deg,var(--psm-teal) 0%,#00BFFF 100%); border-radius:10px; padding:.75rem 1rem; display:flex; justify-content:space-between; align-items:center; margin-bottom:.85rem }
-.psm-amount-label  { font-size:.68rem; color:rgba(255,255,255,.8); font-weight:600; text-transform:uppercase; letter-spacing:.06em }
-.psm-amount-value  { font-family:var(--psm-display); font-size:1.2rem; color:#fff; font-weight:500 }
-.psm-amount-meta   { font-size:.7rem; color:rgba(255,255,255,.72); text-align:right; line-height:1.5 }
-.psm-qr-img-wrap { display:flex; justify-content:center; margin-bottom:.75rem }
-.psm-qr-img {
-  width:260px; height:260px; image-rendering:pixelated; object-fit:contain;
-  border-radius:12px; border:2px solid var(--psm-border); background:#fff; padding:8px; display:block
-}
-.psm-qr-hint { text-align:center; font-size:.75rem; color:var(--psm-slate-lt); margin-bottom:.85rem; line-height:1.6 }
-.psm-detail-table { background:white; border:1px solid var(--psm-border); border-radius:10px; overflow:hidden; margin-bottom:.85rem }
-.psm-detail-row { display:flex; justify-content:space-between; align-items:center; padding:.55rem .9rem; border-bottom:1px solid var(--psm-border); font-size:.82rem }
-.psm-detail-row:last-child { border-bottom:none }
-.psm-detail-key { color:var(--psm-slate-lt); font-weight:600; flex-shrink:0; margin-right:.5rem }
-.psm-detail-val { color:var(--psm-slate); font-weight:700; font-family:monospace; font-size:.78rem; display:flex; align-items:center; gap:.4rem; text-align:right; word-break:break-all }
-.psm-copy-btn { font-size:.65rem; color:var(--psm-teal); cursor:pointer; border:1px solid var(--psm-teal); background:var(--psm-teal-lt); border-radius:4px; padding:.1rem .4rem; font-family:var(--psm-body); font-weight:600; flex-shrink:0; transition:all .12s }
-.psm-copy-btn:hover { background:var(--psm-teal); color:white }
-.psm-info-note { background:var(--psm-amber-lt); border:1px solid #f5d87a; border-radius:8px; padding:.6rem .85rem; font-size:.78rem; color:var(--psm-amber); line-height:1.5; margin-bottom:.85rem }
-.psm-field { display:flex; flex-direction:column; gap:.3rem; margin-bottom:.75rem }
-.psm-field label { font-size:.67rem; font-weight:700; color:#4a6a7a; text-transform:uppercase; letter-spacing:.08em }
-.psm-field input { padding:.52rem .82rem; border:1.5px solid var(--psm-border); border-radius:8px; font-size:.84rem; color:var(--psm-slate); outline:none; font-family:var(--psm-body); transition:border .15s; width:100%; box-sizing:border-box }
-.psm-field input:focus { border-color:var(--psm-teal) }
-.psm-card-row { display:flex; gap:.6rem } .psm-card-row .psm-field { flex:1 }
-.psm-notice { background:var(--psm-amber-lt); border:1px solid #f5d87a; border-radius:var(--psm-radius-sm); padding:.65rem .85rem; font-size:.78rem; color:var(--psm-amber); margin-bottom:1rem; display:flex; gap:.45rem; align-items:flex-start; line-height:1.5 }
-.psm-footer { padding:1rem 1.5rem 1.5rem; border-top:1px solid var(--psm-border) }
-.psm-pay-btn { width:100%; padding:.9rem; border-radius:var(--psm-radius-sm); font-family:var(--psm-display); font-size:1rem; font-weight:500; cursor:pointer; border:none; background:linear-gradient(135deg,var(--psm-teal) 0%,#00BFFF 100%); color:white; box-shadow:0 4px 16px rgba(0,123,168,.3); transition:all .18s; display:flex; align-items:center; justify-content:center; gap:.5rem }
-.psm-pay-btn:hover:not(:disabled) { opacity:.9; transform:translateY(-1px) }
-.psm-pay-btn:disabled { opacity:.5; cursor:not-allowed; transform:none }
-.psm-secure { display:flex; align-items:center; justify-content:center; gap:.4rem; font-size:.68rem; color:var(--psm-slate-lt); margin-top:.65rem }
-.psm-result { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2.5rem 1.5rem; text-align:center; gap:.75rem }
-.psm-result-icon { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem }
-.psm-result-icon.success { background:var(--psm-green-lt) } .psm-result-icon.error { background:var(--psm-red-lt) }
-.psm-result-title { font-family:var(--psm-display); font-size:1.2rem; color:var(--psm-slate) }
-.psm-result-sub   { font-size:.83rem; color:var(--psm-slate-lt); max-width:280px; line-height:1.6 }
-.psm-result-ref   { font-family:monospace; font-size:.78rem; background:var(--psm-bg); border:1px solid var(--psm-border); border-radius:6px; padding:.35rem .7rem; color:var(--psm-teal-dk) }
-.psm-result-btn   { padding:.6rem 1.5rem; border-radius:8px; font-family:var(--psm-body); font-size:.85rem; font-weight:600; cursor:pointer; border:1.5px solid var(--psm-teal); color:var(--psm-teal); background:var(--psm-teal-lt); transition:all .15s }
-.psm-result-btn:hover { background:var(--psm-teal); color:white }
-.psm-spinner { width:20px; height:20px; border:2.5px solid rgba(255,255,255,.35); border-top-color:white; border-radius:50%; animation:psmSpin .7s linear infinite; flex-shrink:0 }
-.psm-progress { height:3px; background:var(--psm-border); border-radius:100px; overflow:hidden; margin-bottom:1rem }
-.psm-progress-bar { height:100%; background:linear-gradient(90deg,var(--psm-teal),#00BFFF); border-radius:100px; transition:width .4s ease }
-.psm-auth-wall { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2.5rem 2rem; text-align:center; gap:1rem }
-.psm-auth-wall-icon { width:64px; height:64px; border-radius:50%; background:var(--psm-bg); display:flex; align-items:center; justify-content:center; font-size:1.8rem; border:2px solid var(--psm-border) }
-.psm-auth-wall-title { font-family:var(--psm-display); font-size:1.2rem; color:var(--psm-slate) }
-.psm-auth-wall-sub { font-size:.83rem; color:var(--psm-slate-lt); max-width:260px; line-height:1.65 }
-.psm-auth-signin-btn { padding:.75rem 1.75rem; border-radius:10px; border:none; background:linear-gradient(135deg,var(--psm-teal) 0%,#00BFFF 100%); color:white; font-family:var(--psm-display); font-size:.95rem; font-weight:500; cursor:pointer; box-shadow:0 4px 14px rgba(0,123,168,.28); transition:all .18s }
-.psm-auth-signin-btn:hover { opacity:.9; transform:translateY(-1px) }
-.psm-auth-register-link { font-size:.78rem; color:var(--psm-slate-lt) }
-.psm-auth-register-link a { color:var(--psm-teal); font-weight:600; text-decoration:none; cursor:pointer }
-.psm-cod-overlay { position:fixed; inset:0; background:rgba(8,20,35,.8); backdrop-filter:blur(8px); z-index:10002; display:flex; align-items:center; justify-content:center; padding:1rem; animation:psmFadeIn .18s ease }
-.psm-cod-modal { background:white; border-radius:20px; width:100%; max-width:420px; box-shadow:0 32px 100px rgba(0,0,0,.25); animation:psmSlideUp .24s cubic-bezier(.22,1,.36,1); overflow:hidden; font-family:var(--psm-body) }
-.psm-cod-hero { background:linear-gradient(135deg,#007BA8 0%,#00BFFF 100%); padding:1.75rem 1.5rem 1.5rem; text-align:center }
-.psm-cod-body { padding:1.5rem }
-.psm-cod-notice { background:#fff8e6; border:1px solid #f5d87a; border-radius:10px; padding:.9rem 1rem; font-size:.83rem; color:#92600a; line-height:1.65; margin-bottom:1rem }
-.psm-cod-row { display:flex; justify-content:space-between; font-size:.83rem; padding:.32rem 0; border-bottom:1px solid #e2e8f0; color:#4a6a7a }
-.psm-cod-row:last-child { border-bottom:none }
-.psm-cod-row strong { color:#1a3a4a }
-.psm-cod-actions { display:flex; gap:.65rem; padding:0 1.5rem 1.5rem }
-.psm-cod-confirm { flex:1; padding:.85rem; border-radius:11px; border:none; background:linear-gradient(135deg,#007BA8 0%,#00BFFF 100%); color:white; font-family:var(--psm-display); font-size:.98rem; font-weight:500; cursor:pointer; transition:opacity .15s }
-.psm-cod-confirm:disabled { opacity:.6; cursor:not-allowed }
-.psm-cod-cancel { padding:.85rem 1.25rem; border-radius:11px; border:1.5px solid #e2e8f0; background:none; color:#7a9aaa; font-family:var(--psm-body); font-size:.85rem; cursor:pointer; transition:all .15s }
-.psm-cod-cancel:hover { border-color:#007BA8; color:#007BA8 }
-@media(max-width:540px) {
-  .psm-modal { border-radius:16px 16px 0 0; max-height:95vh }
-  .psm-overlay { align-items:flex-end }
-  .psm-gateway-grid { grid-template-columns:1fr }
-  .psm-cod-modal { border-radius:16px 16px 0 0 }
-  .psm-cod-overlay { align-items:flex-end }
-  .psm-qr-img { width:240px; height:240px }
+.psm-overlay{position:fixed;inset:0;background:rgba(10,25,40,.6);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;animation:psmFadeIn .2s ease}
+@keyframes psmFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes psmSlideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes psmSpin{to{transform:rotate(360deg)}}
+.psm-modal{background:var(--psm-white);border-radius:20px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:var(--psm-shadow);animation:psmSlideUp .24s cubic-bezier(.22,1,.36,1);font-family:var(--psm-body)}
+.psm-modal::-webkit-scrollbar{width:4px}.psm-modal::-webkit-scrollbar-thumb{background:#ddd;border-radius:4px}
+.psm-header{padding:1.5rem 1.5rem 1rem;border-bottom:1px solid var(--psm-border)}
+.psm-header-top{display:flex;justify-content:space-between;align-items:flex-start}
+.psm-brand{display:flex;align-items:center;gap:.6rem}
+.psm-brand-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--psm-teal) 0%,#00BFFF 100%);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.psm-brand-text{font-family:var(--psm-display);font-size:1rem;color:var(--psm-slate);line-height:1.1}
+.psm-brand-sub{font-size:.68rem;color:var(--psm-slate-lt)}
+.psm-close{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--psm-border);background:transparent;cursor:pointer;font-size:.9rem;color:var(--psm-slate-lt);display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.psm-close:hover{background:var(--psm-bg);color:var(--psm-slate)}
+.psm-summary{background:var(--psm-bg);border-radius:var(--psm-radius-sm);padding:1rem;margin-top:1rem}
+.psm-summary-label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--psm-slate-lt);margin-bottom:.6rem}
+.psm-summary-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;font-size:.82rem;color:var(--psm-slate-md)}
+.psm-summary-row.total{border-top:1px solid var(--psm-border);margin-top:.4rem;padding-top:.55rem;font-weight:700;color:var(--psm-slate);font-size:.92rem}
+.psm-coupon-row{display:flex;gap:.5rem;margin-top:.75rem}
+.psm-coupon-inp{flex:1;padding:.45rem .75rem;border:1.5px solid var(--psm-border);border-radius:8px;font-size:.8rem;font-family:var(--psm-body);color:var(--psm-slate);outline:none;transition:border .15s}
+.psm-coupon-inp:focus{border-color:var(--psm-teal)}
+.psm-coupon-btn{padding:.45rem .85rem;border-radius:8px;font-family:var(--psm-body);font-size:.78rem;font-weight:600;border:1.5px solid var(--psm-teal);color:var(--psm-teal);background:transparent;cursor:pointer;transition:all .15s;white-space:nowrap}
+.psm-coupon-btn:hover{background:var(--psm-teal-lt)}
+.psm-coupon-success{font-size:.73rem;color:var(--psm-green);font-weight:600;margin-top:.35rem}
+.psm-coupon-error{font-size:.73rem;color:var(--psm-red);margin-top:.35rem}
+.psm-body{padding:1.25rem 1.5rem}
+.psm-section-label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--psm-slate-lt);margin-bottom:.85rem}
+.psm-gateway-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.25rem}
+.psm-gw{border:2px solid var(--psm-border);border-radius:var(--psm-radius-sm);padding:.75rem;cursor:pointer;background:var(--psm-white);display:flex;align-items:center;gap:.6rem;transition:all .15s;position:relative}
+.psm-gw:hover{border-color:var(--psm-teal);background:var(--psm-teal-lt)}
+.psm-gw.active{border-color:var(--psm-teal);background:var(--psm-teal-lt);box-shadow:0 0 0 3px rgba(0,123,168,.12)}
+.psm-gw.active .psm-gw-check{opacity:1;background:var(--psm-teal)}
+.psm-gw-icon{font-size:1.3rem;flex-shrink:0}
+.psm-gw-info{flex:1;min-width:0}
+.psm-gw-name{font-size:.8rem;font-weight:600;color:var(--psm-slate)}
+.psm-gw-sub{font-size:.68rem;color:var(--psm-slate-lt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.psm-gw-check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--psm-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0;transition:all .15s}
+.psm-gw-check::after{content:'✓';color:white;font-size:.6rem;font-weight:800}
+.psm-gw-badge{position:absolute;top:-.4rem;right:.5rem;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:var(--psm-green);color:white;padding:.1rem .4rem;border-radius:100px}
+.psm-panel{background:var(--psm-bg);border-radius:var(--psm-radius-sm);border:1px solid var(--psm-border);padding:1.1rem;margin-bottom:1rem;animation:psmFadeIn .18s ease}
+.psm-panel-title{font-size:.75rem;font-weight:700;color:var(--psm-slate-md);margin-bottom:.9rem;display:flex;align-items:center;gap:.4rem}
+.psm-amount-banner{background:linear-gradient(135deg,var(--psm-teal) 0%,#00BFFF 100%);border-radius:10px;padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem}
+.psm-amount-label{font-size:.68rem;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.psm-amount-value{font-family:var(--psm-display);font-size:1.2rem;color:#fff;font-weight:500}
+.psm-amount-meta{font-size:.7rem;color:rgba(255,255,255,.72);text-align:right;line-height:1.5}
+.psm-qr-img-wrap{display:flex;justify-content:center;margin-bottom:.75rem}
+.psm-qr-img{width:260px;height:260px;image-rendering:pixelated;object-fit:contain;border-radius:12px;border:2px solid var(--psm-border);background:#fff;padding:8px;display:block}
+.psm-qr-hint{text-align:center;font-size:.75rem;color:var(--psm-slate-lt);margin-bottom:.85rem;line-height:1.6}
+.psm-detail-table{background:white;border:1px solid var(--psm-border);border-radius:10px;overflow:hidden;margin-bottom:.85rem}
+.psm-detail-row{display:flex;justify-content:space-between;align-items:center;padding:.55rem .9rem;border-bottom:1px solid var(--psm-border);font-size:.82rem}
+.psm-detail-row:last-child{border-bottom:none}
+.psm-detail-key{color:var(--psm-slate-lt);font-weight:600;flex-shrink:0;margin-right:.5rem}
+.psm-detail-val{color:var(--psm-slate);font-weight:700;font-family:monospace;font-size:.78rem;display:flex;align-items:center;gap:.4rem;text-align:right;word-break:break-all}
+.psm-copy-btn{font-size:.65rem;color:var(--psm-teal);cursor:pointer;border:1px solid var(--psm-teal);background:var(--psm-teal-lt);border-radius:4px;padding:.1rem .4rem;font-family:var(--psm-body);font-weight:600;flex-shrink:0;transition:all .12s}
+.psm-copy-btn:hover{background:var(--psm-teal);color:white}
+.psm-info-note{background:var(--psm-amber-lt);border:1px solid #f5d87a;border-radius:8px;padding:.6rem .85rem;font-size:.78rem;color:var(--psm-amber);line-height:1.5;margin-bottom:.85rem}
+.psm-field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.75rem}
+.psm-field label{font-size:.67rem;font-weight:700;color:#4a6a7a;text-transform:uppercase;letter-spacing:.08em}
+.psm-field input{padding:.52rem .82rem;border:1.5px solid var(--psm-border);border-radius:8px;font-size:.84rem;color:var(--psm-slate);outline:none;font-family:var(--psm-body);transition:border .15s;width:100%;box-sizing:border-box}
+.psm-field input:focus{border-color:var(--psm-teal)}
+.psm-card-row{display:flex;gap:.6rem}.psm-card-row .psm-field{flex:1}
+.psm-notice{background:var(--psm-amber-lt);border:1px solid #f5d87a;border-radius:var(--psm-radius-sm);padding:.65rem .85rem;font-size:.78rem;color:var(--psm-amber);margin-bottom:1rem;display:flex;gap:.45rem;align-items:flex-start;line-height:1.5}
+.psm-footer{padding:1rem 1.5rem 1.5rem;border-top:1px solid var(--psm-border)}
+.psm-pay-btn{width:100%;padding:.9rem;border-radius:var(--psm-radius-sm);font-family:var(--psm-display);font-size:1rem;font-weight:500;cursor:pointer;border:none;background:linear-gradient(135deg,var(--psm-teal) 0%,#00BFFF 100%);color:white;box-shadow:0 4px 16px rgba(0,123,168,.3);transition:all .18s;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.psm-pay-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px)}
+.psm-pay-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.psm-secure{display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:.68rem;color:var(--psm-slate-lt);margin-top:.65rem}
+.psm-result{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;gap:.75rem}
+.psm-result-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+.psm-result-icon.success{background:var(--psm-green-lt)}.psm-result-icon.error{background:var(--psm-red-lt)}
+.psm-result-title{font-family:var(--psm-display);font-size:1.2rem;color:var(--psm-slate)}
+.psm-result-sub{font-size:.83rem;color:var(--psm-slate-lt);max-width:280px;line-height:1.6}
+.psm-result-ref{font-family:monospace;font-size:.78rem;background:var(--psm-bg);border:1px solid var(--psm-border);border-radius:6px;padding:.35rem .7rem;color:var(--psm-teal-dk)}
+.psm-result-btn{padding:.6rem 1.5rem;border-radius:8px;font-family:var(--psm-body);font-size:.85rem;font-weight:600;cursor:pointer;border:1.5px solid var(--psm-teal);color:var(--psm-teal);background:var(--psm-teal-lt);transition:all .15s}
+.psm-result-btn:hover{background:var(--psm-teal);color:white}
+.psm-spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.35);border-top-color:white;border-radius:50%;animation:psmSpin .7s linear infinite;flex-shrink:0}
+.psm-progress{height:3px;background:var(--psm-border);border-radius:100px;overflow:hidden;margin-bottom:1rem}
+.psm-progress-bar{height:100%;background:linear-gradient(90deg,var(--psm-teal),#00BFFF);border-radius:100px;transition:width .4s ease}
+.psm-auth-wall{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 2rem;text-align:center;gap:1rem}
+.psm-auth-wall-icon{width:64px;height:64px;border-radius:50%;background:var(--psm-bg);display:flex;align-items:center;justify-content:center;font-size:1.8rem;border:2px solid var(--psm-border)}
+.psm-auth-wall-title{font-family:var(--psm-display);font-size:1.2rem;color:var(--psm-slate)}
+.psm-auth-wall-sub{font-size:.83rem;color:var(--psm-slate-lt);max-width:260px;line-height:1.65}
+.psm-auth-signin-btn{padding:.75rem 1.75rem;border-radius:10px;border:none;background:linear-gradient(135deg,var(--psm-teal) 0%,#00BFFF 100%);color:white;font-family:var(--psm-display);font-size:.95rem;font-weight:500;cursor:pointer;box-shadow:0 4px 14px rgba(0,123,168,.28);transition:all .18s}
+.psm-auth-signin-btn:hover{opacity:.9;transform:translateY(-1px)}
+.psm-auth-register-link{font-size:.78rem;color:var(--psm-slate-lt)}
+.psm-auth-register-link a{color:var(--psm-teal);font-weight:600;text-decoration:none;cursor:pointer}
+.psm-esewa-redirect{display:flex;flex-direction:column;align-items:center;gap:.75rem;padding:1rem 0}
+.psm-cod-overlay{position:fixed;inset:0;background:rgba(8,20,35,.8);backdrop-filter:blur(8px);z-index:10002;display:flex;align-items:center;justify-content:center;padding:1rem;animation:psmFadeIn .18s ease}
+.psm-cod-modal{background:white;border-radius:20px;width:100%;max-width:420px;box-shadow:0 32px 100px rgba(0,0,0,.25);animation:psmSlideUp .24s cubic-bezier(.22,1,.36,1);overflow:hidden;font-family:var(--psm-body)}
+.psm-cod-hero{background:linear-gradient(135deg,#007BA8 0%,#00BFFF 100%);padding:1.75rem 1.5rem 1.5rem;text-align:center}
+.psm-cod-body{padding:1.5rem}
+.psm-cod-notice{background:#fff8e6;border:1px solid #f5d87a;border-radius:10px;padding:.9rem 1rem;font-size:.83rem;color:#92600a;line-height:1.65;margin-bottom:1rem}
+.psm-cod-row{display:flex;justify-content:space-between;font-size:.83rem;padding:.32rem 0;border-bottom:1px solid #e2e8f0;color:#4a6a7a}
+.psm-cod-row:last-child{border-bottom:none}
+.psm-cod-row strong{color:#1a3a4a}
+.psm-cod-actions{display:flex;gap:.65rem;padding:0 1.5rem 1.5rem}
+.psm-cod-confirm{flex:1;padding:.85rem;border-radius:11px;border:none;background:linear-gradient(135deg,#007BA8 0%,#00BFFF 100%);color:white;font-family:var(--psm-display);font-size:.98rem;font-weight:500;cursor:pointer;transition:opacity .15s}
+.psm-cod-confirm:disabled{opacity:.6;cursor:not-allowed}
+.psm-cod-cancel{padding:.85rem 1.25rem;border-radius:11px;border:1.5px solid #e2e8f0;background:none;color:#7a9aaa;font-family:var(--psm-body);font-size:.85rem;cursor:pointer;transition:all .15s}
+.psm-cod-cancel:hover{border-color:#007BA8;color:#007BA8}
+@media(max-width:540px){
+  .psm-modal{border-radius:16px 16px 0 0;max-height:95vh}
+  .psm-overlay{align-items:flex-end}
+  .psm-gateway-grid{grid-template-columns:1fr}
+  .psm-cod-modal{border-radius:16px 16px 0 0}
+  .psm-cod-overlay{align-items:flex-end}
+  .psm-qr-img{width:240px;height:240px}
 }
 `
   document.head.appendChild(s)
@@ -146,16 +145,15 @@ const injectCSS = () => {
 
 /* ── Gateways ── */
 const GATEWAYS = [
-  { id:'esewa',         name:'eSewa',        sub:'Scan QR · NPR',    icon:'🟢', badge:'Popular' },
-  { id:'khalti',        name:'Khalti',        sub:'Scan QR · NPR',    icon:'🟣' },
-  { id:'fonepay',       name:'FonePay',       sub:'Scan QR · NPR',    icon:'📲' },
-  { id:'stripe',        name:'Card',          sub:'Visa / Mastercard', icon:'💳' },
-  { id:'bank_transfer', name:'Bank Transfer', sub:'Scan QR · NPR',    icon:'🏦' },
-  { id:'cash',          name:'Cash / COD',    sub:'Pay on delivery',   icon:'💵' },
+  { id:'esewa',         name:'eSewa',        sub:'Auto-redirect · NPR',  icon:'🟢', badge:'Popular' },
+  { id:'khalti',        name:'Khalti',        sub:'Scan QR · NPR',        icon:'🟣' },
+  { id:'fonepay',       name:'FonePay',       sub:'Scan QR · NPR',        icon:'📲' },
+  { id:'stripe',        name:'Card',          sub:'Visa / Mastercard',    icon:'💳' },
+  { id:'bank_transfer', name:'Bank Transfer', sub:'Scan QR · NPR',        icon:'🏦' },
+  { id:'cash',          name:'Cash / COD',    sub:'Pay on delivery',       icon:'💵' },
 ]
 
 const BANK = { name:'Nabil Bank', acct:'Common Psychology Pvt. Ltd.', number:'0600012345678901', swift:'NARBNPKA', branch:'Thamel, Kathmandu' }
-const ESEWA_ID   = import.meta.env?.VITE_ESEWA_MERCHANT_ID || 'EPAYTEST'
 const FONEPAY_ID = 'PSEPAY001'
 
 /* ── Gateway Panels ── */
@@ -188,25 +186,35 @@ function GatewayPanel({ gateway, finalAmount, config, cardName, setCardName, car
     </div>
   )
 
+  // ── eSewa: Show info panel + auto-redirect notice ──────────
+  if (gateway.id === 'esewa') return (
+    <div className="psm-panel">
+      <div className="psm-panel-title">🟢 eSewa — Automatic Payment</div>
+      <AmountBanner />
+      <div className="psm-esewa-redirect">
+        <div style={{ fontSize:'2.5rem' }}>🟢</div>
+        <div style={{ textAlign:'center' }}>
+          <div style={{ fontWeight:700, fontSize:'.88rem', color:'var(--psm-slate)', marginBottom:'.35rem' }}>
+            You will be redirected to eSewa
+          </div>
+          <div style={{ fontSize:'.75rem', color:'var(--psm-slate-lt)', lineHeight:1.6 }}>
+            Click <strong>Pay with eSewa</strong> below.<br />
+            Log in with your eSewa credentials,<br />
+            enter your PIN, and your payment<br />
+            will be confirmed <strong>automatically</strong>.
+          </div>
+        </div>
+        <div style={{ background:'#e8f8f0', border:'1px solid #a0d8bb', borderRadius:8, padding:'.55rem .85rem', fontSize:'.72rem', color:'var(--psm-green)', fontWeight:600 }}>
+          ✅ No manual confirmation needed
+        </div>
+      </div>
+    </div>
+  )
+
   const QRHint = ({ text }) => (
     <div className="psm-qr-hint">
       📱 {text}<br />
       Then tap <strong>Confirm Payment</strong> below.
-    </div>
-  )
-
-  if (gateway.id === 'esewa') return (
-    <div className="psm-panel">
-      <div className="psm-panel-title">🟢 eSewa Payment</div>
-      <AmountBanner />
-      <div className="psm-qr-img-wrap">
-        <img src="/payment-qr.png" alt="eSewa QR" className="psm-qr-img" />
-      </div>
-      <QRHint text={`Open eSewa → Scan QR → Pay NPR ${finalAmount.toLocaleString()}`} />
-      <DetailTable rows={[
-        ['Merchant ID',   ESEWA_ID,       ESEWA_ID],
-        ['Merchant Name', 'Common Psychology', null],
-      ]} />
     </div>
   )
 
@@ -218,9 +226,7 @@ function GatewayPanel({ gateway, finalAmount, config, cardName, setCardName, car
         <img src="/payment-qr.png" alt="Khalti QR" className="psm-qr-img" />
       </div>
       <QRHint text={`Open Khalti → Scan → Pay NPR ${finalAmount.toLocaleString()}`} />
-      <DetailTable rows={[
-        ['Merchant Name', 'Common Psychology', null],
-      ]} />
+      <DetailTable rows={[['Merchant Name', 'Common Psychology', null]]} />
     </div>
   )
 
@@ -233,11 +239,11 @@ function GatewayPanel({ gateway, finalAmount, config, cardName, setCardName, car
       </div>
       <QRHint text={`Open your bank / FonePay app → Scan QR → Pay NPR ${finalAmount.toLocaleString()}`} />
       <DetailTable rows={[
-        ['Merchant Name', 'Common Psychology',                        null],
-        ['FonePay ID',    FONEPAY_ID,                            FONEPAY_ID],
-        ['Amount',        `NPR ${finalAmount.toLocaleString()}`,  String(finalAmount)],
-        ['Remarks',       remarks,                                null],
-        ['Order Ref',     orderId,                                orderId],
+        ['Merchant Name', 'Common Psychology',              null],
+        ['FonePay ID',    FONEPAY_ID,                      FONEPAY_ID],
+        ['Amount',        `NPR ${finalAmount.toLocaleString()}`, String(finalAmount)],
+        ['Remarks',       remarks,                         null],
+        ['Order Ref',     orderId,                         orderId],
       ]} />
     </div>
   )
@@ -411,8 +417,7 @@ function PaymentModal({ config, onClose, onResult }) {
 
   const [gateway,       setGateway]       = useState(null)
   const [step,          setStep]          = useState('select')
-    const [couponLocked,  setCouponLocked]  = useState(false)  
-
+  const [couponLocked,  setCouponLocked]  = useState(false)
   const [coupon,        setCoupon]        = useState('')
   const [couponApplied, setCouponApplied] = useState(null)
   const [couponError,   setCouponError]   = useState('')
@@ -421,15 +426,14 @@ function PaymentModal({ config, onClose, onResult }) {
   const [copied,        setCopied]        = useState(false)
   const [progress,      setProgress]      = useState(0)
   const [showCOD,       setShowCOD]       = useState(false)
-  const [cardNum,  setCardNum]  = useState('')
-  const [cardExp,  setCardExp]  = useState('')
-  const [cardCvc,  setCardCvc]  = useState('')
-  const [cardName, setCardName] = useState('')
+  const [cardNum,       setCardNum]       = useState('')
+  const [cardExp,       setCardExp]       = useState('')
+  const [cardCvc,       setCardCvc]       = useState('')
+  const [cardName,      setCardName]      = useState('')
 
   const token = () => localStorage.getItem('accessToken')
-  const API   = import.meta.env?.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+  const API   = import.meta.env?.VITE_API_URL || ''
 
-  // ── FIX: ensure amount is always a valid positive number ──────────────────
   const baseAmount = Math.round(Math.max(0, Number(config.amount) || 0))
 
   const allowedGateways = config.allowedGateways
@@ -444,22 +448,22 @@ function PaymentModal({ config, onClose, onResult }) {
   const discount = baseAmount - finalAmount
 
   async function applyCoupon() {
-  setCouponError('')
-  setCouponLocked(false)
-  try {
-    const res  = await fetch(`${API}/payments/coupons/validate`, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token()}` },
-      body: JSON.stringify({ code: coupon, amount: baseAmount }),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      if (data.alreadyClaimed) setCouponLocked(true)
-      throw new Error(data.message || 'Invalid coupon')
-    }
-    setCouponApplied(data.coupon)
-  } catch(e) { setCouponError(e.message) }
-}
+    setCouponError('')
+    setCouponLocked(false)
+    try {
+      const res  = await fetch(`${API}/api/payments/coupons/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token()}` },
+        body: JSON.stringify({ code: coupon, amount: baseAmount }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (data.alreadyClaimed) setCouponLocked(true)
+        throw new Error(data.message || 'Invalid coupon')
+      }
+      setCouponApplied(data.coupon)
+    } catch(e) { setCouponError(e.message) }
+  }
 
   function copyText(txt) {
     navigator.clipboard.writeText(txt).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800) })
@@ -477,11 +481,13 @@ function PaymentModal({ config, onClose, onResult }) {
     submitPayment()
   }
 
+  // ════════════════════════════════════════════════════════
+  //  SUBMIT PAYMENT — ESEWA USES REDIRECT FLOW
+  // ════════════════════════════════════════════════════════
   async function submitPayment() {
     setShowCOD(false)
     if (!gateway) return
 
-    // ── FIX: validate amount and method before sending ────────────────────
     const safeAmount = Math.round(Number(finalAmount))
     const safeMethod = gateway.id
 
@@ -491,27 +497,73 @@ function PaymentModal({ config, onClose, onResult }) {
       onResult({ success:false, error:'Invalid amount' })
       return
     }
-    if (!safeMethod) {
-      setErrMsg('No payment method selected.')
-      setStep('error')
-      onResult({ success:false, error:'No method' })
+
+    // ── eSewa: Special redirect flow ─────────────────────
+    if (safeMethod === 'esewa') {
+      setStep('processing')
+      setProgress(20)
+
+      try {
+        // 1. Call our backend to create pending payment + get signed form data
+        const res  = await fetch(`${API}/api/esewa/initiate`, {
+          method:  'POST',
+          headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token()}` },
+          body: JSON.stringify({
+            amount:      safeAmount,
+            tax_amount:  0,
+            category:    config.type    || 'generic',
+            metadata:    config.metadata || {},
+            coupon_code: couponApplied?.code || undefined,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.message || 'Failed to initiate eSewa payment')
+
+        setProgress(60)
+
+        const { redirect_url, form_fields } = data
+
+        // 2. Dynamically build and POST a hidden form to eSewa
+        //    (Required — eSewa only accepts a form POST, not a fetch)
+        const form = document.createElement('form')
+        form.method = 'POST'
+        form.action = redirect_url
+
+        Object.entries(form_fields).forEach(([key, value]) => {
+          const input  = document.createElement('input')
+          input.type  = 'hidden'
+          input.name  = key
+          input.value = value
+          form.appendChild(input)
+        })
+
+        document.body.appendChild(form)
+        setProgress(100)
+
+        // Small delay so user sees the progress bar hit 100%
+        setTimeout(() => form.submit(), 350)
+
+      } catch (err) {
+        console.error('[PaymentModal] eSewa initiate error:', err)
+        setErrMsg(err.message)
+        setStep('error')
+        onResult({ success:false, error:err.message })
+      }
       return
     }
 
+    // ── All other methods: existing flow ─────────────────
     setStep('processing')
 
-    // ── FIX: metadata spread BEFORE required fields so it can never
-    //         overwrite amount or method ──────────────────────────────────
     const payload = {
-  ...(config.metadata || {}),
-  amount:    safeAmount,
-  method:    safeMethod,
-  currency:  config.currency || 'NPR',
-  category:  config.type     || 'generic',
-  ...(couponApplied?.code ? { coupon_code: couponApplied.code } : {}),
-}
+      ...(config.metadata || {}),
+      amount:    safeAmount,
+      method:    safeMethod,
+      currency:  config.currency || 'NPR',
+      category:  config.type     || 'generic',
+      ...(couponApplied?.code ? { coupon_code: couponApplied.code } : {}),
+    }
 
-    // Gateway-specific additions
     if (safeMethod === 'cash') {
       payload.gateway_response = { method:'cod' }
       payload.status = 'pending_cod'
@@ -519,31 +571,25 @@ function PaymentModal({ config, onClose, onResult }) {
     if (safeMethod === 'stripe') {
       payload.gateway_response = { last4:cardNum.slice(-4), brand:'visa' }
     }
-    if (['esewa','khalti','fonepay'].includes(safeMethod)) {
+    if (['khalti','fonepay'].includes(safeMethod)) {
       payload.return_url = `${window.location.origin}/payment/callback`
     }
 
-    // Debug log — remove after confirming payments work:
-    console.log('[PaymentModal] POST /payments payload:', JSON.stringify(payload, null, 2))
-
     try {
-      const res  = await fetch(`${API}/payments`, {
+      const res  = await fetch(`${API}/api/payments`, {
         method:  'POST',
         headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token()}` },
         body:    JSON.stringify(payload),
       })
       const data = await res.json()
-
       if (!res.ok) throw new Error(data.message || data.error || `Payment failed (${res.status})`)
 
-      // Redirect flow (eSewa/Khalti/FonePay hosted)
-      if (['esewa','khalti','fonepay'].includes(safeMethod) && data.redirect_url) {
+      if (['khalti','fonepay'].includes(safeMethod) && data.redirect_url) {
         setProgress(100)
         setTimeout(() => { window.location.href = data.redirect_url }, 400)
         return
       }
 
-      // Success
       setProgress(100)
       setTimeout(() => {
         const txn = data.payment?.transaction_id || data.transaction_id || data.id || ''
@@ -552,7 +598,7 @@ function PaymentModal({ config, onClose, onResult }) {
         onResult({
           success:       true,
           paymentId:     data.payment?.id     || data.id,
-          transactionId: data.payment?.transaction_id || data.transaction_id,
+          transactionId: txn,
           method:        safeMethod,
           amount:        safeAmount,
           status:        data.payment?.status || data.status || 'completed',
@@ -579,6 +625,7 @@ function PaymentModal({ config, onClose, onResult }) {
   const payBtnLabel = (() => {
     if (!gateway)                return 'Select a payment method'
     if (gateway.id === 'cash')   return `💵 Review COD Order — NPR ${finalAmount.toLocaleString()}`
+    if (gateway.id === 'esewa')  return `🟢 Pay with eSewa — NPR ${finalAmount.toLocaleString()}`
     if (gateway.id === 'stripe') return `Pay NPR ${finalAmount.toLocaleString()}`
     return `✓ Confirm Payment — NPR ${finalAmount.toLocaleString()}`
   })()
@@ -603,8 +650,14 @@ function PaymentModal({ config, onClose, onResult }) {
                 <div className="psm-result-icon success" style={{ background:'var(--psm-teal-lt)' }}>
                   <div className="psm-spinner" style={{ borderTopColor:'var(--psm-teal)', borderColor:'rgba(0,123,168,.2)' }} />
                 </div>
-                <div className="psm-result-title">Processing…</div>
-                <div className="psm-result-sub">Don't close this window.</div>
+                <div className="psm-result-title">
+                  {gateway?.id === 'esewa' ? 'Redirecting to eSewa…' : 'Processing…'}
+                </div>
+                <div className="psm-result-sub">
+                  {gateway?.id === 'esewa'
+                    ? 'Please wait. You will be taken to eSewa to complete payment.'
+                    : 'Don\'t close this window.'}
+                </div>
               </div>
             </>
           )}
@@ -665,42 +718,21 @@ function PaymentModal({ config, onClose, onResult }) {
                   {couponApplied && <div className="psm-summary-row" style={{ color:'var(--psm-green)' }}><span>🎫 Coupon ({couponApplied.code})</span><span>– NPR {discount.toLocaleString()}</span></div>}
                   <div className="psm-summary-row total"><span>Total</span><span>NPR {finalAmount.toLocaleString()}</span></div>
                   {config.couponEnabled !== false && !couponApplied && (
-  <>
-    {couponLocked ? (
-      <div style={{
-        marginTop: '.75rem',
-        padding: '.6rem .85rem',
-        background: '#fff8e6',
-        border: '1px solid #f5d87a',
-        borderRadius: 8,
-        fontSize: '.78rem',
-        color: '#92600a',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '.5rem',
-      }}>
-        🔒 This coupon has already been claimed by another customer.
-        <button
-          style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontSize:'.7rem', color:'var(--psm-slate-lt)' }}
-          onClick={() => { setCouponLocked(false); setCoupon(''); setCouponError('') }}>
-          Try another
-        </button>
-      </div>
-    ) : (
-      <div className="psm-coupon-row">
-        <input
-          className="psm-coupon-inp"
-          value={coupon}
-          onChange={e => setCoupon(e.target.value.toUpperCase())}
-          placeholder="Coupon code"
-          onKeyDown={e => e.key === 'Enter' && applyCoupon()}
-        />
-        <button className="psm-coupon-btn" onClick={applyCoupon}>Apply</button>
-      </div>
-    )}
-    {!couponLocked && couponError && <div className="psm-coupon-error">{couponError}</div>}
-  </>
-)}
+                    <>
+                      {couponLocked ? (
+                        <div style={{ marginTop:'.75rem', padding:'.6rem .85rem', background:'#fff8e6', border:'1px solid #f5d87a', borderRadius:8, fontSize:'.78rem', color:'#92600a', display:'flex', alignItems:'center', gap:'.5rem' }}>
+                          🔒 This coupon has already been claimed.
+                          <button style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontSize:'.7rem', color:'var(--psm-slate-lt)' }} onClick={() => { setCouponLocked(false); setCoupon(''); setCouponError('') }}>Try another</button>
+                        </div>
+                      ) : (
+                        <div className="psm-coupon-row">
+                          <input className="psm-coupon-inp" value={coupon} onChange={e => setCoupon(e.target.value.toUpperCase())} placeholder="Coupon code" onKeyDown={e => e.key === 'Enter' && applyCoupon()} />
+                          <button className="psm-coupon-btn" onClick={applyCoupon}>Apply</button>
+                        </div>
+                      )}
+                      {!couponLocked && couponError && <div className="psm-coupon-error">{couponError}</div>}
+                    </>
+                  )}
                 </div>
               </div>
 
