@@ -64,8 +64,8 @@ export default function EsewaSuccessPage() {
 
     // Call our backend to verify
     const token = localStorage.getItem('accessToken')
-
-    fetch(`/api/esewa/verify?data=${encodeURIComponent(rawData)}`, {
+const API = import.meta.env.VITE_API_URL || ''
+fetch(`${API}/esewa/verify?data=${encodeURIComponent(rawData)}`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,

@@ -21,8 +21,8 @@ export default function EsewaFailurePage() {
     const rawData = params.get('data')
     const token   = localStorage.getItem('accessToken')
 
-    // Fire-and-forget — we don't need to await this
-    fetch(`/api/esewa/failure${rawData ? `?data=${encodeURIComponent(rawData)}` : ''}`, {
+    const API = import.meta.env.VITE_API_URL || ''
+fetch(`${API}/esewa/failure${rawData ? `?data=${encodeURIComponent(rawData)}` : ''}`, {
       headers: { Authorization: `Bearer ${token}` },
     }).catch(() => {/* ignore */})
   }, [])
