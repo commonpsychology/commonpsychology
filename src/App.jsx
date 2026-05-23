@@ -55,6 +55,8 @@ import AdminDashboard      from './pages/AdmindashboardPage'
 import TherapistDashboard  from './pages/TherapistdashboardPage'
 import EsewaSuccessPage from './pages/EsewaSuccessPage'
 import EsewaFailurePage from './pages/EsewaFailurePage'
+import DeliveryDashboardPage from './pages/DeliveryDashboardPage'
+import DeliveryLoginPage from './pages/DeliveryLoginPage'
 
 const ROUTES = {
   '/':                   HomePage,
@@ -95,6 +97,8 @@ const ROUTES = {
   '/update-password':    UpdatePasswordPage,
   '/pay':                PaymentInfoPage,
   '/upgrade':            UpgradePage,
+  '/delivery/login':     DeliveryLoginPage,
+  '/delivery-dashboard': DeliveryDashboardPage,
   '/reviews':            ReviewsPage,
   '/gallery':            GalleryPage,
   '/volunteer':          VolunteerPage,
