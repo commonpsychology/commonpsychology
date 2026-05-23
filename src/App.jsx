@@ -109,7 +109,7 @@ const ROUTES = {
   '/ashram':             OurPlacePage,
 }
 
-const NO_SHELL_PAGES  = new Set(['/signin','/register','/payment','/staff','/staff/admin','/staff/therapist','/verify'])
+const NO_SHELL_PAGES  = new Set(['/signin','/register','/payment','/staff','/staff/admin','/staff/therapist','/verify','/delivery/login','/delivery-dashboard'])
 const NO_FOOTER_PAGES = new Set(['/portal','/account','/verify'])
 
 const DYNAMIC_ROUTES = [
