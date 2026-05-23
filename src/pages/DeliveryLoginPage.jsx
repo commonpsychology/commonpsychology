@@ -121,7 +121,7 @@ export default function DeliveryLoginPage() {
     setSubmitting(true)
     try {
       // Step 1 — verify credentials only, no session yet
-      const res = await fetch(`${API}/api/delivery/check-credentials`, {
+      const res = await fetch(`${API}/delivery/check-credentials`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
