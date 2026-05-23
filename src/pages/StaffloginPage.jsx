@@ -81,7 +81,6 @@ export default function StaffLoginPage() {
 
   const { user, loading: authLoading } = useAuth()
   const { navigate }                   = useRouter()
-  const { login }                      = useAuth()
 
   // Redirect already-logged-in staff
   useEffect(() => {
@@ -140,14 +139,34 @@ export default function StaffLoginPage() {
 }
 async function handleOTPSuccess() {
   try {
-    // NOW do the real login and create session
-    await login(otpPayload.email, password)  // password still in state
-  } catch { /* session creation */ }
+    const API = import.meta.env.VITE_API_URL || ''
 
-  setShowOTP(false)
-  const role = otpPayload?.role
-  if (role === 'admin' || role === 'staff') navigate('/staff/admin')
-  else if (role === 'therapist')            navigate('/staff/therapist')
+    const res  = await fetch(`${API}/auth/login`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        email:    otpPayload.email,
+        password: password,
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message || 'Login failed')
+
+    localStorage.setItem('accessToken',  data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
+
+    setShowOTP(false)
+    const role = otpPayload?.role
+    if (role === 'admin' || role === 'staff') navigate('/staff/admin')
+    else if (role === 'therapist')            navigate('/staff/therapist')
+
+  } catch (err) {
+    console.error('[StaffLogin] Final login error:', err)
+    setShowOTP(false)
+    const role = otpPayload?.role
+    if (role === 'admin' || role === 'staff') navigate('/staff/admin')
+    else if (role === 'therapist')            navigate('/staff/therapist')
+  }
 }
   // User dismissed the OTP modal
   function handleOTPCancel() {
