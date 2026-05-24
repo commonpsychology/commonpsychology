@@ -1,285 +1,491 @@
-// ═══════════════════════════════════════════════════════════════
-// src/pages/DeliveryLoginPage.jsx
-// Route: /delivery  (add to your RouterContext / routes)
-// Mirrors StaffLoginPage exactly — same sky-blue design, same OTP flow
-// ═══════════════════════════════════════════════════════════════
+// routes/delivery.js — FIXED check-credentials + send-otp + verify-otp
+// ─────────────────────────────────────────────────────────────
+// ROOT CAUSE of "Profile not found":
+//
+//   The profiles row EXISTS (id=0133d057, role=rider, password_hash='oauth').
+//   The delivery_riders row EXISTS (user_id=0133d057).
+//
+//   But check-credentials was doing:
+//     supabase.auth.signInWithPassword(...)
+//   which creates a Supabase Auth SESSION — this requires the anon key +
+//   RLS to be configured. On many setups this returns a valid user but
+//   then the subsequent profiles query with the SERVICE ROLE KEY is
+//   fine, but the user_id extracted from authData.user.id may differ
+//   from what the profiles table has (e.g. if the supabase client
+//   used is the anon-key client, not service-role).
+//
+//   The REAL issue: supabase.auth.signInWithPassword() on the
+//   SERVICE ROLE client does NOT work for credential verification —
+//   it only works on the ANON/public client. Using service role key
+//   for signInWithPassword always fails silently or returns wrong data.
+//
+// FIX:
+//   Use a SEPARATE supabase client with the ANON KEY for auth sign-in,
+//   keep the service role client for DB queries.
+//   This matches how your profiles rows are set up (password_hash='oauth'
+//   means the password lives in Supabase Auth, not bcrypt).
+// ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react'
-import { useRouter } from '../context/RouterContext'
-import DeliveryOTPModal from '../components/DeliveryOTPModal'
+const express    = require('express')
+const jwt        = require('jsonwebtoken')
+const nodemailer = require('nodemailer')
+const { createClient } = require('@supabase/supabase-js')
 
-const API = import.meta.env.VITE_API_URL || ''
+const router = express.Router()
 
-const C = {
-  skyBright: '#00BFFF', skyMid: '#009FD4', skyDeep: '#007BA8',
-  skyFaint: '#E0F7FF', skyFainter: '#F0FBFF', skyGhost: '#F8FEFF',
-  white: '#ffffff', mint: '#e8f3ee',
-  textDark: '#1a3a4a', textMid: '#2e6080', textLight: '#7a9aaa',
-  border: '#b0d4e8', borderFaint: '#daeef8',
-  orange: '#f97316', orangeLt: '#fff7ed',
+// ── Two Supabase clients ──────────────────────────────────────
+// Service role: for DB reads/writes (bypasses RLS)
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
+// Anon/public: for auth.signInWithPassword (must use anon key)
+const supabaseAuth = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY   // ← add SUPABASE_ANON_KEY to your .env
+)
+
+// ── Email transport ───────────────────────────────────────────
+const mailer = nodemailer.createTransport({
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT) || 587,
+  secure: process.env.SMTP_SECURE === 'true',
+  auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+})
+
+// ── JWT helper ────────────────────────────────────────────────
+function signToken(userId) {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '12h' })
 }
 
-// Delivery accent — slightly warmer orange-teal to distinguish from staff portal
-const heroGrad = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyMid} 40%,#0ea5e9 75%,#22d3ee 100%)`
-const btnGrad  = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyMid} 100%)`
-const accentBg = `linear-gradient(135deg,#0f766e 0%,${C.skyMid} 60%,${C.skyBright} 100%)`
+// ── Auth guard for authenticated rider routes ─────────────────
+async function getRider(req) {
+  const header = req.headers['authorization'] || ''
+  const token  = header.startsWith('Bearer ') ? header.slice(7) : null
+  if (!token) throw { status: 401, message: 'Not authenticated.' }
 
-const CSS = `
-  .dlv-root { min-height:100vh; background:${C.skyGhost}; display:flex; flex-direction:column; }
-  .dlv-strip { height:4px; background:${heroGrad}; }
-  .dlv-grid { flex:1; display:grid; grid-template-columns:1fr 1fr; min-height:calc(100vh - 4px); }
-  .dlv-left { background:${heroGrad}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:clamp(2rem,5vw,3rem) clamp(1.5rem,4vw,2.5rem); position:relative; overflow:hidden; }
-  .dlv-right { display:flex; align-items:center; justify-content:center; padding:clamp(1.5rem,4vw,3rem) clamp(1rem,4vw,2rem); background:${C.white}; overflow-y:auto; }
-  .dlv-form-wrap { width:100%; max-width:440px; }
-  .dlv-input { width:100%; padding:0.85rem 1rem; border:1.5px solid ${C.borderFaint}; border-radius:12px; font-family:var(--font-body,sans-serif); font-size:0.92rem; color:${C.textDark}; background:${C.white}; outline:none; box-sizing:border-box; transition:all 0.2s; }
-  .dlv-input:focus { border-color:${C.skyBright}; background:${C.skyGhost}; box-shadow:0 0 0 3.5px rgba(0,191,255,0.12); }
-  .dlv-submit { width:100%; padding:1rem; border-radius:14px; border:none; background:${btnGrad}; color:white; font-family:var(--font-body,sans-serif); font-weight:800; font-size:1rem; cursor:pointer; box-shadow:0 6px 22px rgba(0,191,255,0.32); transition:all 0.2s; letter-spacing:0.02em; }
-  .dlv-submit:hover:not(:disabled) { opacity:0.88; transform:translateY(-1px); }
-  .dlv-submit:disabled { background:${C.borderFaint}; color:${C.textLight}; box-shadow:none; cursor:not-allowed; }
-  .dlv-alt-btn { width:100%; padding:0.85rem; border-radius:14px; border:1.5px solid ${C.borderFaint}; background:${C.skyFainter}; color:${C.skyDeep}; font-family:var(--font-body,sans-serif); font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s; }
-  .dlv-alt-btn:hover { background:${C.skyFaint}; border-color:${C.skyBright}; }
-  .dlv-pill { display:flex; align-items:center; gap:0.75rem; background:rgba(255,255,255,0.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:0.65rem 1rem; margin-bottom:0.6rem; }
-  @media (max-width:900px) { .dlv-grid { grid-template-columns:380px 1fr; } }
-  @media (max-width:680px) {
-    .dlv-grid { grid-template-columns:1fr; }
-    .dlv-left  { display:none; }
-    .dlv-right { padding:2rem 1.25rem; align-items:flex-start; }
-    .dlv-form-wrap { max-width:100%; }
-  }
-`
+  let decoded
+  try { decoded = jwt.verify(token, process.env.JWT_SECRET) }
+  catch { throw { status: 401, message: 'Invalid or expired session.' } }
 
-function injectCSS() {
-  if (document.getElementById('dlv-login-css')) return
-  const s = document.createElement('style')
-  s.id = 'dlv-login-css'; s.textContent = CSS
-  document.head.appendChild(s)
+  const userId = decoded.userId || decoded.id || decoded.sub
+
+  const { data: rider, error } = await supabase
+    .from('delivery_riders')
+    .select(`
+      id, user_id, area, vehicle_type, vehicle_number,
+      is_active, is_available, total_delivered, total_failed,
+      profiles!inner ( id, full_name, email, phone, is_active )
+    `)
+    .eq('user_id', userId)
+    .single()
+
+  if (error || !rider)           throw { status: 403, message: 'Rider not found.' }
+  if (!rider.is_active)          throw { status: 403, message: 'Account is inactive.' }
+  if (!rider.profiles.is_active) throw { status: 403, message: 'Account is inactive.' }
+  return rider
 }
 
-function FloatingInput({ label, type = 'text', value, onChange, placeholder, required, rightSlot }) {
-  const [focused, setFocused] = useState(false)
-  const active = focused || value
-  return (
-    <div style={{ position: 'relative', marginBottom: '1.4rem' }}>
-      <label style={{
-        position: 'absolute', left: '1rem',
-        top: active ? '-0.55rem' : '0.85rem',
-        fontSize: active ? '0.68rem' : '0.9rem',
-        fontWeight: active ? 800 : 400,
-        color: active ? C.skyMid : C.textLight,
-        background: active ? C.white : 'transparent',
-        padding: active ? '0 0.35rem' : '0',
-        pointerEvents: 'none', transition: 'all 0.18s ease',
-        letterSpacing: active ? '0.08em' : '0',
-        textTransform: active ? 'uppercase' : 'none',
-        fontFamily: 'var(--font-body,sans-serif)', zIndex: 1,
-      }}>
-        {label}{required && <span style={{ color: C.skyBright, marginLeft: 2 }}>*</span>}
-      </label>
-      <input
-        className="dlv-input" type={type} value={value}
-        onChange={onChange}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        placeholder={focused ? placeholder : ''}
-        style={rightSlot ? { paddingRight: '4rem' } : {}}
-      />
-      {rightSlot && (
-        <div style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)' }}>
-          {rightSlot}
-        </div>
-      )}
-    </div>
-  )
-}
+// ─────────────────────────────────────────────────────────────
+// POST /api/delivery/check-credentials
+// ─────────────────────────────────────────────────────────────
+// Works for BOTH registration paths:
+//   • admin.createUser() → password_hash = 'oauth' in profiles
+//     → use supabaseAuth.signInWithPassword (anon key client)
+//   • register-staff.js  → password_hash = bcrypt hash
+//     → also works via signInWithPassword if user was created in auth.users
+//       OR falls back to bcrypt compare against profiles.password_hash
+//
+// Sequence:
+//   1. Try Supabase Auth sign-in (covers both cases above)
+//   2. Look up profiles row by the auth user ID
+//   3. Look up delivery_riders row
+//   4. Return { user: { id, full_name, email, phone, rider_id, area } }
+// ─────────────────────────────────────────────────────────────
+router.post('/check-credentials', async (req, res) => {
+  try {
+    const { email, password } = req.body
+    if (!email || !password)
+      return res.status(400).json({ message: 'Email and password are required.' })
 
-export default function DeliveryLoginPage() {
-  useEffect(() => { injectCSS() }, [])
+    const normalizedEmail = email.trim().toLowerCase()
 
-  const { navigate } = useRouter()
-
-  // Check already logged-in rider
-  useEffect(() => {
-    const token = localStorage.getItem('deliveryToken')
-    if (token) navigate('/delivery/dashboard')
-  }, [])
-
-  const [email,    setEmail]    = useState('')
-  const [password, setPassword] = useState('')
-  const [showPw,   setShowPw]   = useState(false)
-  const [error,    setError]    = useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  // OTP state — same pattern as StaffLoginPage
-  const [showOTP,    setShowOTP]    = useState(false)
-  const [otpPayload, setOtpPayload] = useState(null) // { user_id, email, name }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    if (!email || !password) { setError('Please enter your email and password.'); return }
-
-    setSubmitting(true)
-    try {
-      // Step 1 — verify credentials only, no session yet
-      const res = await fetch(`${API}/delivery/check-credentials`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+    // ── Step 1: Authenticate via Supabase Auth (ANON key client) ──
+    // This is the correct client for signInWithPassword.
+    // Using the service role key for sign-in does NOT work.
+    const { data: authData, error: authError } =
+      await supabaseAuth.auth.signInWithPassword({
+        email:    normalizedEmail,
+        password,
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || 'Invalid email or password.')
 
-      const { id: user_id, full_name, email: rEmail } = data.user
-
-      // Step 2 — show OTP modal (same pattern as StaffLoginPage)
-      setOtpPayload({ user_id, email: rEmail, name: full_name })
-      setShowOTP(true)
-    } catch (err) {
-      setError(err.message || 'Invalid email or password.')
-    } finally {
-      setSubmitting(false)
+    if (authError || !authData?.user) {
+      // Auth failed — wrong password or user doesn't exist in auth.users
+      console.error('[delivery/check-credentials] auth error:', authError?.message)
+      return res.status(401).json({ message: 'Invalid email or password.' })
     }
+
+    const userId = authData.user.id
+
+    // Sign out immediately — we only needed credential verification.
+    // The OTP gate is the actual auth. We don't want a lingering session.
+    supabaseAuth.auth.signOut().catch(() => {})
+
+    // ── Step 2: Fetch profiles row ─────────────────────────────
+    // Use SERVICE ROLE client so RLS never blocks this.
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, phone, role, is_active')
+      .eq('id', userId)
+      .single()
+
+    if (profileError || !profile) {
+      console.error('[delivery/check-credentials] profile lookup failed:', profileError?.message, 'userId:', userId)
+      return res.status(404).json({ message: 'Profile not found. Contact admin.' })
+    }
+
+    if (!profile.is_active)
+      return res.status(403).json({ message: 'Account is inactive. Contact admin.' })
+
+    if (profile.role !== 'rider')
+      return res.status(403).json({ message: 'This portal is for delivery riders only.' })
+
+    // ── Step 3: Fetch delivery_riders row ──────────────────────
+    const { data: riderRow, error: riderError } = await supabase
+      .from('delivery_riders')
+      .select('id, is_active, is_available, area, vehicle_type, vehicle_number')
+      .eq('user_id', userId)
+      .single()
+
+    if (riderError || !riderRow) {
+      console.error('[delivery/check-credentials] rider row not found:', riderError?.message)
+      return res.status(403).json({ message: 'Rider profile not set up. Contact admin.' })
+    }
+
+    if (!riderRow.is_active)
+      return res.status(403).json({ message: 'Rider account is inactive. Contact admin.' })
+
+    // ── Step 4: Return info for OTP modal ──────────────────────
+    return res.status(200).json({
+      user: {
+        id:           profile.id,        // used as user_id in send-otp / verify-otp
+        full_name:    profile.full_name,
+        email:        profile.email,
+        phone:        profile.phone,
+        rider_id:     riderRow.id,
+        area:         riderRow.area,
+        vehicle_type: riderRow.vehicle_type,
+      },
+    })
+
+  } catch (err) {
+    console.error('[delivery/check-credentials] unexpected:', err)
+    return res.status(500).json({ message: 'Internal server error.' })
   }
+})
 
-  function handleOTPSuccess(token, rider) {
-    // Store delivery-specific token (separate from staff accessToken)
-    localStorage.setItem('deliveryToken', token)
-    localStorage.setItem('deliveryRider', JSON.stringify(rider))
-    setShowOTP(false)
-    navigate('/delivery/dashboard')
+// ─────────────────────────────────────────────────────────────
+// POST /api/delivery/send-otp
+// Body: { user_id }
+// ─────────────────────────────────────────────────────────────
+router.post('/send-otp', async (req, res) => {
+  try {
+    const { user_id } = req.body
+    if (!user_id) return res.status(400).json({ message: 'user_id is required.' })
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, role, is_active')
+      .eq('id', user_id)
+      .single()
+
+    if (error || !profile)  return res.status(404).json({ message: 'User not found.' })
+    if (!profile.is_active) return res.status(403).json({ message: 'Account is inactive.' })
+    if (profile.role !== 'rider')
+      return res.status(403).json({ message: 'Not a rider account.' })
+
+    // Generate 6-digit OTP
+    const code    = String(Math.floor(100000 + Math.random() * 900000))
+    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+
+    // Clear old codes then insert new one
+    await supabase.from('otp_codes').delete().eq('user_id', user_id)
+    const { error: insertErr } = await supabase.from('otp_codes').insert({
+      user_id,
+      code,
+      expires_at: expires,
+      used:       false,
+    })
+
+    if (insertErr) {
+      console.error('[delivery/send-otp] insert error:', insertErr)
+      return res.status(500).json({ message: 'Failed to generate OTP.' })
+    }
+
+    // Send email
+    await mailer.sendMail({
+      from:    `"Common Psychology" <${process.env.SMTP_USER}>`,
+      to:      profile.email,
+      subject: 'Your Delivery Portal Login Code',
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem">
+          <h2 style="color:#007BA8;margin-bottom:.5rem">🚴 Delivery Portal Login</h2>
+          <p>Hi <strong>${profile.full_name}</strong>,</p>
+          <p>Your one-time login code is:</p>
+          <div style="font-size:2.5rem;font-weight:800;letter-spacing:.25em;color:#1a3a4a;
+                      background:#E0F7FF;border-radius:12px;padding:1rem 1.5rem;
+                      text-align:center;margin:1.25rem 0">${code}</div>
+          <p style="color:#7a9aaa;font-size:.85rem">
+            Expires in <strong>10 minutes</strong>.<br>
+            If you didn't request this, contact your supervisor.
+          </p>
+        </div>`,
+    })
+
+    return res.status(200).json({ message: `Code sent to ${profile.email}` })
+
+  } catch (err) {
+    console.error('[delivery/send-otp]', err)
+    return res.status(500).json({ message: 'Failed to send OTP. Try again.' })
   }
+})
 
-  function handleOTPCancel() {
-    setShowOTP(false)
-    setOtpPayload(null)
+// ─────────────────────────────────────────────────────────────
+// POST /api/delivery/verify-otp
+// Body: { user_id, otp }
+// Returns { token, rider } on success
+// ─────────────────────────────────────────────────────────────
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { user_id, otp } = req.body
+    if (!user_id || !otp)
+      return res.status(400).json({ message: 'user_id and otp are required.' })
+
+    // Fetch latest unused code for this user
+    const { data: record, error } = await supabase
+      .from('otp_codes')
+      .select('id, code, expires_at, used')
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (error || !record)
+      return res.status(400).json({ message: 'No code found. Request a new one.' })
+    if (record.used)
+      return res.status(400).json({ message: 'Code already used. Request a new one.' })
+    if (new Date(record.expires_at) < new Date())
+      return res.status(400).json({ message: 'Code expired. Request a new one.' })
+    if (record.code !== String(otp).trim())
+      return res.status(400).json({ message: 'Incorrect code. Please try again.' })
+
+    // Mark code as used
+    await supabase.from('otp_codes').update({ used: true }).eq('id', record.id)
+
+    // Fetch rider + profile for the response
+    const { data: rider, error: rErr } = await supabase
+      .from('delivery_riders')
+      .select(`
+        id, area, vehicle_type, vehicle_number, is_available,
+        total_delivered, total_failed,
+        profiles!inner ( id, full_name, email, phone )
+      `)
+      .eq('user_id', user_id)
+      .single()
+
+    if (rErr || !rider)
+      return res.status(500).json({ message: 'Rider profile not found.' })
+
+    const token = signToken(user_id)
+
+    // Shape matches what DeliveryLoginPage stores in localStorage as 'deliveryRider'
+    // DeliveryDashboardPage reads: rider.name, rider.email, rider.phone, rider.area
+    return res.status(200).json({
+      token,
+      rider: {
+        id:              rider.id,
+        name:            rider.profiles.full_name,
+        email:           rider.profiles.email,
+        phone:           rider.profiles.phone,
+        area:            rider.area,
+        vehicle_type:    rider.vehicle_type,
+        vehicle_number:  rider.vehicle_number,
+        is_available:    rider.is_available,
+        total_delivered: rider.total_delivered,
+        total_failed:    rider.total_failed,
+      },
+    })
+
+  } catch (err) {
+    console.error('[delivery/verify-otp]', err)
+    return res.status(500).json({ message: 'Internal server error.' })
   }
+})
 
-  return (
-    <>
-      {showOTP && otpPayload && (
-        <DeliveryOTPModal
-          email={otpPayload.email}
-          name={otpPayload.name}
-          user_id={otpPayload.user_id}
-          onSuccess={handleOTPSuccess}
-          onCancel={handleOTPCancel}
-        />
-      )}
+// ─────────────────────────────────────────────────────────────
+// GET /api/delivery/my-orders
+// ─────────────────────────────────────────────────────────────
+router.get('/my-orders', async (req, res) => {
+  try {
+    const rider  = await getRider(req)
+    const page   = Math.max(1, parseInt(req.query.page)  || 1)
+    const limit  = Math.min(50, parseInt(req.query.limit) || 15)
+    const offset = (page - 1) * limit
+    const dsFilter = req.query.delivery_status || null
 
-      <div className="dlv-root">
-        <div className="dlv-strip" />
-        <div className="dlv-grid">
+    const VALID_DS = ['unassigned','assigned','picked_up','in_transit','delivered','failed','returned']
+    if (dsFilter && !VALID_DS.includes(dsFilter))
+      return res.status(400).json({ message: 'Invalid delivery_status filter.' })
 
-          {/* ── Left hero panel ── */}
-          <div className="dlv-left">
-            <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', bottom: -60, left: -60, width: 240, height: 240, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+    let q = supabase
+      .from('orders')
+      .select(`
+        id, order_number, status, total_amount, payment_status,
+        delivery_status, delivery_address, delivery_note,
+        picked_up_at, delivered_at, failed_at, created_at, updated_at,
+        profiles!client_id ( full_name )
+      `, { count: 'exact' })
+      .eq('delivery_rider_id', rider.id)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
-            <div style={{ position: 'relative', textAlign: 'center', maxWidth: 400, width: '100%' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.85rem', marginBottom: '2rem' }}>
-                <img src="/header.png" alt="Common Psychology" style={{ height: 48, objectFit: 'contain' }}
-                  onError={e => e.target.style.display = 'none'} />
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontFamily: 'var(--font-display,sans-serif)', fontSize: '1.35rem', color: 'white', fontWeight: 700 }}>Common Psychology</div>
-                  <div style={{ fontFamily: 'var(--font-body,sans-serif)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Delivery Portal</div>
-                </div>
-              </div>
+    if (dsFilter) q = q.eq('delivery_status', dsFilter)
 
-              {/* Big bike icon */}
-              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🚴</div>
+    const { data: rows, error: qErr, count } = await q
+    if (qErr) {
+      console.error('[delivery/my-orders]', qErr)
+      return res.status(500).json({ message: 'Failed to fetch orders.' })
+    }
 
-              <h1 style={{ fontFamily: 'var(--font-display,sans-serif)', fontSize: 'clamp(1.5rem,3vw,2.1rem)', color: 'white', marginBottom: '1rem', lineHeight: 1.25 }}>
-                Welcome,<br />Delivery Rider
-              </h1>
-              <p style={{ fontFamily: 'var(--font-body,sans-serif)', fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.75, marginBottom: '2rem' }}>
-                View your assigned orders, update delivery status, and manage your route.
-              </p>
+    const items = (rows || []).map(o => ({
+      ...o,
+      client_name: o.profiles?.full_name || null,
+      profiles:    undefined,
+    }))
 
-              {[
-                { icon: '📦', text: 'See all orders assigned to you' },
-                { icon: '🚀', text: 'Update status as you deliver' },
-                { icon: '📍', text: 'View client address & details' },
-                { icon: '🔐', text: 'Email 2FA on every login' },
-              ].map((f, i) => (
-                <div key={i} className="dlv-pill">
-                  <span style={{ fontSize: '1rem', flexShrink: 0 }}>{f.icon}</span>
-                  <span style={{ fontFamily: 'var(--font-body,sans-serif)', fontSize: '0.82rem', color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>{f.text}</span>
-                </div>
-              ))}
+    // Summary counts (separate query — no pagination)
+    const { data: all } = await supabase
+      .from('orders')
+      .select('delivery_status')
+      .eq('delivery_rider_id', rider.id)
 
-              <button onClick={() => navigate('/')}
-                style={{ marginTop: '2rem', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.8)', borderRadius: 100, padding: '0.4rem 1.2rem', fontFamily: 'var(--font-body,sans-serif)', fontSize: '0.78rem', cursor: 'pointer' }}>
-                ← Back to Main Site
-              </button>
-            </div>
-          </div>
+    const summary = { total: 0, assigned: 0, picked_up: 0, in_transit: 0, delivered: 0, failed: 0, returned: 0 }
+    ;(all || []).forEach(r => {
+      summary.total++
+      if (summary[r.delivery_status] !== undefined) summary[r.delivery_status]++
+    })
 
-          {/* ── Right form panel ── */}
-          <div className="dlv-right">
-            <div className="dlv-form-wrap">
-              <div style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: `linear-gradient(135deg,${C.skyFaint},${C.mint})`, border: `1px solid ${C.borderFaint}`, borderRadius: 100, padding: '0.28rem 0.85rem', marginBottom: '0.85rem' }}>
-                  <span style={{ fontFamily: 'var(--font-body,sans-serif)', fontSize: '0.65rem', fontWeight: 800, color: C.skyDeep, textTransform: 'uppercase', letterSpacing: '0.1em' }}>🚴 Delivery Riders Only</span>
-                </div>
-                <h2 style={{ fontFamily: 'var(--font-display,sans-serif)', fontSize: 'clamp(1.5rem,3vw,1.9rem)', color: C.textDark, marginBottom: '0.4rem' }}>
-                  Rider Sign In
-                </h2>
-                <p style={{ fontFamily: 'var(--font-body,sans-serif)', fontSize: '0.85rem', color: C.textLight }}>
-                  Use the email and password your admin set for you. A verification code will be sent to your email on every login.
-                </p>
-              </div>
+    return res.status(200).json({
+      items,
+      pagination: { page, limit, total: count || 0, totalPages: Math.ceil((count || 0) / limit) },
+      summary,
+    })
 
-              {error && (
-                <div style={{ background: '#fff0f0', border: '1.5px solid #f5a0a0', borderRadius: 10, padding: '0.85rem 1rem', marginBottom: '1.25rem', display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
-                  <span style={{ flexShrink: 0 }}>⚠️</span>
-                  <span style={{ fontFamily: 'var(--font-body,sans-serif)', fontSize: '0.84rem', color: '#c0392b', lineHeight: 1.5 }}>{error}</span>
-                </div>
-              )}
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ message: err.message })
+    console.error('[delivery/my-orders GET]', err)
+    return res.status(500).json({ message: 'Internal server error.' })
+  }
+})
 
-              <form onSubmit={handleSubmit}>
-                <FloatingInput
-                  label="Rider Email" type="email" value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="your.email@commonpsychology.com" required
-                />
-                <FloatingInput
-                  label="Password" type={showPw ? 'text' : 'password'} value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Your password" required
-                  rightSlot={
-                    <button type="button" onClick={() => setShowPw(v => !v)}
-                      style={{ background: 'none', border: 'none', color: C.textLight, cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'var(--font-body,sans-serif)', fontWeight: 600 }}>
-                      {showPw ? 'Hide' : 'Show'}
-                    </button>
-                  }
-                />
+// ─────────────────────────────────────────────────────────────
+// PUT /api/delivery/my-orders/:id
+// ─────────────────────────────────────────────────────────────
+router.put('/my-orders/:id', async (req, res) => {
+  try {
+    const rider = await getRider(req)
+    const { delivery_status, delivery_note, note } = req.body
+    const resolvedNote   = delivery_note || note || null
+    const RIDER_STATUSES = ['picked_up','in_transit','delivered','failed','returned']
 
-                <button type="submit" className="dlv-submit" disabled={submitting}>
-                  {submitting ? '⏳ Checking credentials…' : '🚴 Sign In to Delivery Portal'}
-                </button>
-              </form>
+    if (!delivery_status || !RIDER_STATUSES.includes(delivery_status))
+      return res.status(400).json({ message: `delivery_status must be one of: ${RIDER_STATUSES.join(', ')}` })
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.5rem 0' }}>
-                <div style={{ flex: 1, height: 1, background: C.borderFaint }} />
-                <span style={{ fontFamily: 'var(--font-body,sans-serif)', fontSize: '0.72rem', color: C.textLight }}>not a rider?</span>
-                <div style={{ flex: 1, height: 1, background: C.borderFaint }} />
-              </div>
+    const { data: order, error: fetchErr } = await supabase
+      .from('orders')
+      .select('id, delivery_status, delivery_rider_id, order_number')
+      .eq('id', req.params.id)
+      .single()
 
-              <button className="dlv-alt-btn" onClick={() => navigate('/staff')}>
-                Staff / Admin Portal →
-              </button>
+    if (fetchErr || !order)
+      return res.status(404).json({ message: 'Order not found.' })
+    if (order.delivery_rider_id !== rider.id)
+      return res.status(403).json({ message: 'This order is not assigned to you.' })
+    if (['delivered','returned'].includes(order.delivery_status))
+      return res.status(409).json({ message: `Order is already ${order.delivery_status}.` })
 
-              <div style={{ marginTop: '1.5rem', padding: '0.85rem 1rem', background: `linear-gradient(135deg,${C.skyFainter},${C.mint})`, borderRadius: 10, border: `1px solid ${C.borderFaint}` }}>
-                <div style={{ fontFamily: 'var(--font-body,sans-serif)', fontSize: '0.7rem', color: C.textMid, lineHeight: 1.6, display: 'flex', gap: '0.5rem' }}>
-                  <span style={{ flexShrink: 0 }}>🔒</span>
-                  <span>This portal is for <strong>delivery riders only</strong>. All logins are verified by email OTP. Don't have an account? Contact your admin to be registered.</span>
-                </div>
-              </div>
-            </div>
-          </div>
+    const now   = new Date().toISOString()
+    const patch = { delivery_status, delivery_note: resolvedNote, updated_at: now }
+    if (delivery_status === 'picked_up' && !order.picked_up_at) patch.picked_up_at = now
+    if (delivery_status === 'delivered') patch.delivered_at = now
+    if (delivery_status === 'failed')    patch.failed_at    = now
 
-        </div>
-      </div>
-    </>
-  )
-}
+    const { data: updated, error: upErr } = await supabase
+      .from('orders').update(patch).eq('id', req.params.id)
+      .select('id, order_number, delivery_status, delivery_note, delivered_at, updated_at')
+      .single()
+
+    if (upErr) {
+      console.error('[delivery/my-orders PUT]', upErr)
+      return res.status(500).json({ message: 'Failed to update order.' })
+    }
+
+    // Audit trail (non-blocking)
+    supabase.from('delivery_status_history').insert({
+      order_id:   req.params.id,
+      rider_id:   rider.id,
+      old_status: order.delivery_status,
+      new_status: delivery_status,
+      note:       resolvedNote,
+      changed_by: rider.user_id,
+    }).then(({ error }) => {
+      if (error) console.warn('[delivery] history log failed:', error.message)
+    })
+
+    // Bump counters (non-blocking)
+    if (delivery_status === 'delivered')
+      supabase.from('delivery_riders')
+        .update({ total_delivered: rider.total_delivered + 1 })
+        .eq('id', rider.id).then(() => {})
+    if (delivery_status === 'failed')
+      supabase.from('delivery_riders')
+        .update({ total_failed: rider.total_failed + 1 })
+        .eq('id', rider.id).then(() => {})
+
+    return res.status(200).json({
+      message: `Delivery status updated to ${delivery_status}.`,
+      order:   updated,
+    })
+
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ message: err.message })
+    console.error('[delivery/my-orders PUT]', err)
+    return res.status(500).json({ message: 'Internal server error.' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/delivery/me
+// ─────────────────────────────────────────────────────────────
+router.get('/me', async (req, res) => {
+  try {
+    const rider = await getRider(req)
+    return res.status(200).json({
+      id:              rider.id,
+      name:            rider.profiles.full_name,
+      email:           rider.profiles.email,
+      phone:           rider.profiles.phone,
+      area:            rider.area,
+      vehicle_type:    rider.vehicle_type,
+      vehicle_number:  rider.vehicle_number,
+      is_available:    rider.is_available,
+      total_delivered: rider.total_delivered,
+      total_failed:    rider.total_failed,
+    })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ message: err.message })
+    return res.status(500).json({ message: 'Internal server error.' })
+  }
+})
+
+module.exports = router
