@@ -16,6 +16,9 @@ import { useAuth } from '../context/AuthContext'
 import { admin } from '../services/api'
 
 async function registerStaffApi(payload) {
+  if (payload.role === 'rider') {
+    return admin.registerRider(payload)
+  }
   return admin.registerStaff(payload)
 }
 

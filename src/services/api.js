@@ -302,6 +302,12 @@ export const admin = {
   notify: (body) => post('/admin/notifications', body),
 
     registerStaff: (body) => post('/admin/register-staff', body),
+
+registerRider: (payload) =>
+  apiFetch('/admin/delivery-riders', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }),
 }
 
 // =============================================================================
