@@ -241,6 +241,18 @@ export default function RegisterStaffPage() {
     if (user.role !== 'admin') { navigate('/portal'); return }
   }, [user, authLoading])
 
+   if (authLoading) return (
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:C.skyGhost }}>
+      <div style={{ textAlign:'center', color:C.textLight }}>
+        <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>🔐</div>
+        <p style={{ fontFamily:'var(--font-body)' }}>Verifying session…</p>
+      </div>
+    </div>
+  )
+
+  // ── ADD THIS: if not admin, render nothing (redirect fires via useEffect) ──
+  if (!user || user.role !== 'admin') return null
+
   // Reset role-specific fields when role changes so stale values don't get sent
   function changeRole(r) {
     setRole(r)
