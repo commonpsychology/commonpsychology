@@ -275,6 +275,16 @@ const GRADIENT_PRESETS = [
   { label: 'Rose',       val: 'linear-gradient(135deg, #881337 0%, #e11d48 60%, #fda4af 100%)' },
 ]
 
+const DS_BADGE = {
+  unassigned: { label:'Unassigned', bg:'#f1f5f9', c:'#475569', dot:'#94a3b8' },
+  assigned:   { label:'Assigned',   bg:'#eff6ff', c:'#1e40af', dot:'#3b82f6' },
+  picked_up:  { label:'Picked Up',  bg:'#f5f3ff', c:'#5b21b6', dot:'#8b5cf6' },
+  in_transit: { label:'In Transit', bg:'#ecfeff', c:'#0e7490', dot:'#14b8a6' },
+  delivered:  { label:'Delivered',  bg:'#ecfdf5', c:'#065f46', dot:'#10b981' },
+  failed:     { label:'Failed',     bg:'#fef2f2', c:'#991b1b', dot:'#ef4444' },
+  returned:   { label:'Returned',   bg:'#faf5ff', c:'#6b21a8', dot:'#a855f7' },
+}
+
 const EMPTY_FORM = {
   title: '', region: '', type: '', status: 'Active', since: '', beneficiaries: '',
   emoji: '🤝', img_gradient: GRADIENT_PRESETS[0].val,
@@ -1629,9 +1639,18 @@ export default function AdminDashboardPage() {
   const [appts, setAppts]     = useState([]); const [aTotal, setATotal]   = useState(0); const [aPage, setAPage]   = useState(1)
   const [aStatus, setAStatus] = useState('')
 
-  // Orders
-  const [orders, setOrders]   = useState([]); const [oTotal, setOTotal]   = useState(0); const [oPage, setOPage]   = useState(1)
-  const [oStatus, setOStatus] = useState('')
+
+    // ── Orders ──────────────────────────────────────────────────
+    const [orders, setOrders]           = useState([])
+    const [oTotal, setOTotal]           = useState(0)
+    const [oPage,  setOPage]            = useState(1)
+    const [oStatus, setOStatus]         = useState('')
+    const [oDeliveryStatus, setODeliveryStatus] = useState('')  // ← NEW
+  
+    // ── Riders pool (for dropdown) ────────────────────────────── ← NEW
+    const [riders,     setRiders]     = useState([])
+    const [riderBusy,  setRiderBusy]  = useState({})
+    const [riderToast, setRiderToast] = useState(null)
 
   // Notifications
   const [notifClients, setNotifClients] = useState([])
@@ -1718,7 +1737,7 @@ export default function AdminDashboardPage() {
     const MAP = {
       users:               fetchUsers,
       appointments:        fetchAppts,
-      orders:              fetchOrders,
+  orders: () => { fetchOrders(); fetchRiders() },  // ← call both
       notifications:       fetchNotifClients,
       posts:               () => sec('/admin/posts',            setPosts,      setPostsTotal,  postsPage),
       news:                () => sec('/admin/news',             setNews,       setNewsTotal,   newsPage),
@@ -1745,9 +1764,10 @@ export default function AdminDashboardPage() {
       community_admin:     fetchCommGroups,
     }
     if (MAP[tab]) MAP[tab]()
-  }, [tab, uPage, aPage, oPage, postsPage, newsPage, resPage, galSubPage, volPage,
-      rscPage, pvPage, paPage, pcPage, prodPage, coursePage, assPage, comPage,
-      faqPage, couPage, rbPage, ctcPage, subPage, thrPage])
+}, [tab, uPage, aPage, oPage, oStatus, oDeliveryStatus,   // ← added oStatus, oDeliveryStatus
+    postsPage, newsPage, resPage, galSubPage, volPage,
+    rscPage, pvPage, paPage, pcPage, prodPage, coursePage, assPage, comPage,
+    faqPage, couPage, rbPage, ctcPage, subPage, thrPage])
 
   // Fetchers
   const loadDashboard = async () => {
@@ -1762,6 +1782,78 @@ export default function AdminDashboardPage() {
     } catch {}
     finally { setB('dash', false) }
   }
+
+const fetchRiders = async () => {
+    try {
+      const d = await apiFetch('/admin/delivery-riders?is_active=true&limit=200')
+      setRiders(
+        (d.riders || d.items || d.data || []).map(r => ({
+          id:           r.id,
+          name:         r.full_name || r.profiles?.full_name || r.name || '—',
+          area:         r.area || '',
+          vehicle_type: r.vehicle_type || '',
+        }))
+      )
+    } catch (e) { console.warn('fetchRiders:', e.message) }
+  }
+
+  // ── fetchOrders — updated to pass delivery_status filter + normalise join ← CHANGED
+  const fetchOrders = async () => {
+    setB('orders', true)
+    try {
+      const d = await adminApi.orders({
+        page:            oPage,
+        limit:           LIMIT,
+        status:          oStatus           || undefined,
+        delivery_status: oDeliveryStatus   || undefined,  // ← NEW param
+      })
+      // Normalise: flatten rider join so the table can read rider name directly
+      const list = (d.orders || []).map(o => ({
+        ...o,
+        delivery_rider_name: o.delivery_riders?.profiles?.full_name
+                          || o.delivery_rider_name
+                          || null,
+        rider_area:          o.delivery_riders?.area || null,
+      }))
+      setOrders(list)
+      setOTotal(d.pagination?.total || 0)
+    } catch {}
+    finally { setB('orders', false) }
+  }
+
+  // ── assignRider ───────────────────────────────────────────── ← NEW
+  const assignRider = async (orderId, riderId) => {
+    setRiderBusy(b => ({ ...b, [orderId]: true }))
+    try {
+      await apiFetch(`/admin/orders/${orderId}/assign-rider`, {
+        method: 'PUT',
+        body:   JSON.stringify({ rider_id: riderId || null }),
+      })
+      // Optimistic local update — no full refetch needed
+      setOrders(prev => prev.map(o => {
+        if (o.id !== orderId) return o
+        const rider = riders.find(r => r.id === riderId)
+        return {
+          ...o,
+          delivery_rider_id:   riderId || null,
+          delivery_rider_name: rider?.name || null,
+          rider_area:          rider?.area || null,
+          delivery_status:
+            riderId && (!o.delivery_status || o.delivery_status === 'unassigned')
+              ? 'assigned'
+              : (!riderId ? 'unassigned' : o.delivery_status),
+        }
+      }))
+      setRiderToast({ msg: riderId ? '🚴 Rider assigned' : 'Rider removed', ok: true })
+      setTimeout(() => setRiderToast(null), 2800)
+    } catch (e) {
+      setRiderToast({ msg: e.message, ok: false })
+      setTimeout(() => setRiderToast(null), 3500)
+    } finally {
+      setRiderBusy(b => ({ ...b, [orderId]: false }))
+    }
+  }
+
 
   const fetchUsers = async () => {
     setB('users', true)
@@ -1781,14 +1873,7 @@ export default function AdminDashboardPage() {
     finally { setB('appts', false) }
   }
 
-  const fetchOrders = async () => {
-    setB('orders', true)
-    try {
-      const d = await adminApi.orders({ page:oPage, limit:LIMIT, status:oStatus||undefined })
-      setOrders(d.orders || []); setOTotal(d.pagination?.total || 0)
-    } catch {}
-    finally { setB('orders', false) }
-  }
+ 
 
   const fetchNotifClients = async () => {
     try { const d = await adminApi.users({ limit:200, role:'client' }); setNotifClients(d.users || []) } catch {}
@@ -2364,28 +2449,188 @@ await REFRESH_MAP[modal.type]?.()
           {/* ═══ ORDERS ═══ */}
           {tab === 'orders' && (
             <div>
-              <SectionHeader title="Orders" count={oTotal}>
-                <select className="inp" value={oStatus} onChange={e=>{setOStatus(e.target.value);setOPage(1)}}>
-                  <option value="">All statuses</option>
-                  {['pending','confirmed','processing','shipped','delivered','cancelled','refunded'].map(s=><option key={s} value={s}>{s}</option>)}
-                </select>
-                <button className="btn btn-ghost" onClick={fetchOrders}>↺</button>
-              </SectionHeader>
-              <Table loading={busy.orders} cols={['Order #','Client','Amount','Status','Date','Update']}
-                rows={orders.map(o=>(
-                  <tr key={o.id}>
-                    <td><span className="mono" style={{fontWeight:700,fontSize:'.78rem',color:'var(--blue-dk)'}}>{o.order_number||'—'}</span></td>
-                    <td style={{fontSize:'.79rem'}}>{o.client_name||o.clients?.full_name||'—'}</td>
-                    <td><strong>NPR {Number(o.total_amount||0).toLocaleString()}</strong></td>
-                    <td><Badge s={o.status} /></td>
-                    <td style={{fontSize:'.72rem',color:'var(--text-muted)'}}>{fmt(o.created_at)}</td>
-                    <td><select className="inp" value={o.status} onChange={e=>doOrderStatus(o.id,e.target.value)} style={{padding:'.18rem .42rem',fontSize:'.72rem'}}>{['pending','confirmed','processing','shipped','delivered','cancelled','refunded'].map(s=><option key={s} value={s}>{s}</option>)}</select></td>
-                  </tr>
-                ))}
-              />
-              <Pager page={oPage} set={setOPage} total={oTotal} />
+
+              {/* Rider assignment toast ────────────────────────── ← NEW */}
+          {riderToast && (
+            <div style={{
+              position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 9999,
+              background: riderToast.ok ? 'var(--green)' : 'var(--red)',
+              color: 'white', padding: '.65rem 1.1rem', borderRadius: 'var(--radius)',
+              fontWeight: 600, fontSize: '.82rem', boxShadow: 'var(--shadow-md)',
+            }}>{riderToast.msg}</div>
+          )}
+
+          <SectionHeader title="Orders" count={oTotal}>
+            {/* Delivery status filter ── ← NEW */}
+            <select className="inp" style={{ minWidth: 130 }}
+              value={oDeliveryStatus}
+              onChange={e => { setODeliveryStatus(e.target.value); setOPage(1) }}>
+              <option value="">All delivery</option>
+              {Object.entries(DS_BADGE).map(([k, v]) =>
+                <option key={k} value={k}>{v.label}</option>
+              )}
+            </select>
+            {/* Existing order status filter */}
+            <select className="inp" value={oStatus}
+              onChange={e => { setOStatus(e.target.value); setOPage(1) }}>
+              <option value="">All statuses</option>
+              {['pending','confirmed','processing','shipped','delivered','cancelled','refunded'].map(s =>
+                <option key={s} value={s}>{s}</option>
+              )}
+            </select>
+            <button className="btn btn-ghost"
+              onClick={() => { fetchOrders(); fetchRiders() }}>↺</button>
+          </SectionHeader>
+
+          {/* Unassigned orders alert ──────────────────────── ← NEW */}
+          {orders.some(o => !o.delivery_rider_id && !['cancelled','refunded'].includes(o.status)) && (
+            <div className="alert alert-warn" style={{ marginBottom: '.85rem' }}>
+              ⚠️ <strong>
+                {orders.filter(o => !o.delivery_rider_id && !['cancelled','refunded'].includes(o.status)).length} order(s)
+              </strong> have no delivery rider assigned yet.
             </div>
           )}
+
+          <div className="tbl-wrap">
+            <div className="tbl-scroll">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    {/* ← CHANGED: added 'Delivery Status' + 'Delivery Rider' cols */}
+                    {['Order #','Client','Amount','Order Status','Delivery Status','Delivery Rider','Date','Update'].map(h =>
+                      <th key={h}>{h}</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {busy.orders
+                    ? <tr><td className="tbl-loading" colSpan={8}><span className="spinner" /> Loading…</td></tr>
+                    : orders.length === 0
+                      ? <tr><td colSpan={8}>
+                          <div className="empty-state">
+                            <div className="empty-icon">📦</div>
+                            <div className="empty-text">No orders found</div>
+                          </div>
+                        </td></tr>
+                      : orders.map(o => {
+                          const dsKey  = o.delivery_status || 'unassigned'
+                          const ds     = DS_BADGE[dsKey] || DS_BADGE.unassigned
+                          const rName  = o.delivery_rider_name || null
+                          const rArea  = o.rider_area || ''
+                          const locked = ['delivered','returned','cancelled','refunded'].includes(dsKey)
+
+                          return (
+                            <tr key={o.id}>
+
+                              {/* Order # */}
+                              <td>
+                                <span className="mono" style={{ fontWeight: 700, fontSize: '.78rem', color: 'var(--blue-dk)' }}>
+                                  {o.order_number || '—'}
+                                </span>
+                              </td>
+
+                              {/* Client */}
+                              <td style={{ fontSize: '.79rem' }}>
+                                {o.client_name || o.clients?.full_name || '—'}
+                              </td>
+
+                              {/* Amount */}
+                              <td>
+                                <strong>NPR {Number(o.total_amount || 0).toLocaleString()}</strong>
+                              </td>
+
+                              {/* Order status badge */}
+                              <td><Badge s={o.status} /></td>
+
+                              {/* Delivery status badge ─────────────────── ← NEW */}
+                              <td>
+                                <span style={{
+                                  display: 'inline-flex', alignItems: 'center', gap: '.28rem',
+                                  padding: '.18rem .52rem', borderRadius: 100,
+                                  fontSize: '.62rem', fontWeight: 700,
+                                  textTransform: 'uppercase', letterSpacing: '.05em',
+                                  background: ds.bg, color: ds.c,
+                                }}>
+                                  <span style={{
+                                    width: 5, height: 5, borderRadius: '50%',
+                                    background: ds.dot, display: 'inline-block', flexShrink: 0,
+                                  }} />
+                                  {ds.label}
+                                </span>
+                              </td>
+
+                              {/* Delivery Rider dropdown ───────────────── ← NEW */}
+                              <td style={{ minWidth: 185 }}>
+                                {riderBusy[o.id]
+                                  ? (
+                                    <span style={{ fontSize: '.72rem', color: 'var(--text-muted)' }}>
+                                      <span className="spinner" /> Saving…
+                                    </span>
+                                  ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '.2rem' }}>
+                                      <select
+                                        className="inp"
+                                        value={o.delivery_rider_id || ''}
+                                        disabled={locked}
+                                        style={{
+                                          padding: '.22rem .55rem', fontSize: '.72rem',
+                                          minWidth: 170,
+                                          borderColor: o.delivery_rider_id ? 'var(--green)' : 'var(--border)',
+                                          background: o.delivery_rider_id ? 'var(--green-lt)' : 'var(--surface)',
+                                        }}
+                                        onChange={e => assignRider(o.id, e.target.value)}
+                                      >
+                                        <option value="">— Unassigned —</option>
+                                        {riders.map(r => (
+                                          <option key={r.id} value={r.id}>
+                                            🚴 {r.name}{r.area ? ` · ${r.area}` : ''}{r.vehicle_type ? ` (${r.vehicle_type})` : ''}
+                                          </option>
+                                        ))}
+                                      </select>
+                                      {/* Current rider sub-label */}
+                                      {rName && (
+                                        <div style={{ fontSize: '.62rem', color: 'var(--green-dk)', fontWeight: 600 }}>
+                                          ✓ {rName}{rArea ? ` · ${rArea}` : ''}
+                                        </div>
+                                      )}
+                                      {locked && (
+                                        <div style={{ fontSize: '.6rem', color: 'var(--text-muted)' }}>
+                                          locked · {ds.label}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                }
+                              </td>
+
+                              {/* Date */}
+                              <td style={{ fontSize: '.72rem', color: 'var(--text-muted)' }}>
+                                {fmt(o.created_at)}
+                              </td>
+
+                              {/* Order status updater */}
+                              <td>
+                                <select className="inp" value={o.status}
+                                  onChange={e => doOrderStatus(o.id, e.target.value)}
+                                  style={{ padding: '.18rem .42rem', fontSize: '.72rem' }}>
+                                  {['pending','confirmed','processing','shipped','delivered','cancelled','refunded'].map(s =>
+                                    <option key={s} value={s}>{s}</option>
+                                  )}
+                                </select>
+                              </td>
+
+                            </tr>
+                          )
+                        })
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <Pager page={oPage} set={setOPage} total={oTotal} />
+        </div>
+      )}
+              
 
           {/* ═══ PAYMENTS ═══ */}
           {tab === 'payments' && <PaymentsSection />}
