@@ -56,7 +56,7 @@ import TherapistDashboard  from './pages/TherapistdashboardPage'
 import EsewaSuccessPage from './pages/EsewaSuccessPage'
 import EsewaFailurePage from './pages/EsewaFailurePage'
 import DeliveryDashboardPage from './pages/DeliveryDashboardPage'
-import DeliveryLoginPage from './pages/DeliveryLoginPage'  // expects default export
+import DeliveryLoginPage from './pages/DeliveryLoginPage'  
 
 const ROUTES = {
   '/':                   HomePage,
@@ -98,7 +98,7 @@ const ROUTES = {
   '/pay':                PaymentInfoPage,
   '/upgrade':            UpgradePage,
   '/delivery/login':     DeliveryLoginPage,
-  '/delivery-dashboard': DeliveryDashboardPage,
+  '/delivery/dashboard': DeliveryDashboardPage,
   '/reviews':            ReviewsPage,
   '/gallery':            GalleryPage,
   '/volunteer':          VolunteerPage,
