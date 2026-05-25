@@ -132,7 +132,7 @@ function DeliveryOTPModal({ email, name, user_id, onSuccess, onCancel }) {
   async function sendOTP() {
     setSending(true); setError(''); setInfo('')
     try {
-      const res = await fetch(`${API}/api/delivery/send-otp`, {
+      const res = await fetch(`${API}/delivery/send-otp`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ user_id }),
@@ -178,7 +178,7 @@ function DeliveryOTPModal({ email, name, user_id, onSuccess, onCancel }) {
     if (code.length < 6) { setError('Please enter all 6 digits.'); return }
     setVerifying(true); setError('')
     try {
-      const res = await fetch(`${API}/api/delivery/verify-otp`, {
+      const res = await fetch(`${API}/delivery/verify-otp`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ user_id, otp: code }),
@@ -378,7 +378,7 @@ export default function DeliveryLoginPage() {
     setSubmitting(true)
     try {
       // Step 1: verify credentials only — does NOT create session
-      const res = await fetch(`${API}/api/delivery/check-credentials`, {
+      const res = await fetch(`${API}/delivery/check-credentials`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
