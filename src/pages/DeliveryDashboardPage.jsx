@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from '../context/RouterContext'
 
-const API = import.meta.env.VITE_API_URL || ''
+const API = (import.meta.env.VITE_API_URL || '').replace(/\/api$/, '')
 
 const getToken  = () => localStorage.getItem('deliveryToken')
 const getRider  = () => { try { return JSON.parse(localStorage.getItem('deliveryRider') || '{}') } catch { return {} } }
