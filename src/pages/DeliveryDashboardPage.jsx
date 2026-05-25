@@ -212,7 +212,7 @@ export default function DeliveryDashboardPage() {
   function handleLogout() {
     localStorage.removeItem('deliveryToken')
     localStorage.removeItem('deliveryRider')
-    navigate('/delivery')
+    navigate('/delivery/login')
   }
 
   function openUpdate(order) {
