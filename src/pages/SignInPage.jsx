@@ -323,7 +323,7 @@ export default function SignInPage() {
                 </button>
                 {/* ── Delivery rider portal ── */}
                 <button
-                  onClick={() => navigate('/delivery')}
+                  onClick={() => navigate('/delivery/login')}
                   style={{ background: '#E0F7FF', border: '1px solid #b0d4e8', borderRadius: 6, padding: '0.5rem', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'var(--font-body)', color: '#007BA8', fontWeight: 600 }}
                 >
                   🚴 Delivery Rider Portal
