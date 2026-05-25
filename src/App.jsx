@@ -110,7 +110,7 @@ const ROUTES = {
 }
 
 const NO_SHELL_PAGES  = new Set(['/signin','/register','/payment','/staff','/staff/admin','/staff/therapist','/verify','/delivery/login','/delivery/dashboard'])
-const NO_FOOTER_PAGES = new Set(['/portal','/account','/verify'])
+const NO_FOOTER_PAGES = new Set(['/portal','/account','/verify', '/delivery/login', '/delivery/dashboard'])
 
 const DYNAMIC_ROUTES = [
   { prefix: '/news/',               Component: NewsDetailPage           },
