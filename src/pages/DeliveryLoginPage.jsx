@@ -119,6 +119,9 @@ router.post('/check-credentials', async (req, res) => {
         password,
       })
 
+console.error('[auth debug] authError full:', JSON.stringify(authError))
+console.error('[auth debug] authData:', JSON.stringify(authData))
+
     if (authError || !authData?.user) {
       // Auth failed — wrong password or user doesn't exist in auth.users
       console.error('[delivery/check-credentials] auth error:', authError?.message)
