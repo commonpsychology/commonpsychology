@@ -89,10 +89,7 @@ const CSS = `
     background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 60%, #a5d6a7 100%);
     animation: siOverlayIn 0.22s ease both;
   }
-  @keyframes siOverlayIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
+  @keyframes siOverlayIn { from { opacity: 0; } to { opacity: 1; } }
   .signin-staff-overlay-icon {
     font-size: 2.5rem;
     animation: siPop 0.3s cubic-bezier(.22,1,.36,1) 0.1s both;
@@ -137,14 +134,21 @@ function injectCSS() {
   document.head.appendChild(s)
 }
 
-// ── Smooth staff redirect overlay ────────────────────────────────────────────
+// ── Smooth redirect overlay ───────────────────────────────────
 function StaffRedirectOverlay({ role }) {
-  const label = role === 'admin' ? 'Admin Dashboard' : 'Therapist Portal'
+  const label =
+    role === 'admin'     ? 'Admin Dashboard'   :
+    role === 'therapist' ? 'Therapist Portal'  :
+    role === 'rider'     ? 'Delivery Portal'   : 'Staff Portal'
+
+  const icon =
+    role === 'rider' ? '🚴' : '🔑'
+
   return (
     <div className="signin-staff-overlay">
-      <div className="signin-staff-overlay-icon">🔑</div>
+      <div className="signin-staff-overlay-icon">{icon}</div>
       <div className="signin-staff-overlay-title">Redirecting to {label}</div>
-      <div className="signin-staff-overlay-sub">Taking you to your staff portal…</div>
+      <div className="signin-staff-overlay-sub">Taking you to your portal…</div>
       <div className="signin-staff-overlay-spinner" />
     </div>
   )
@@ -154,14 +158,13 @@ export default function SignInPage() {
   useEffect(() => { injectCSS() }, [])
   useAuthGuard()
 
-  const { navigate }          = useRouter()
-  const { loginRaw,login, logout }  = useAuth()   // see note below
-  const [form, setForm]       = useState({ email: '', password: '' })
+  const { navigate }               = useRouter()
+  const { loginRaw, login, logout } = useAuth()
+  const [form, setForm]            = useState({ email: '', password: '' })
   const [showStaffMenu, setShowStaffMenu] = useState(false)
-  const [showPw, setShowPw]   = useState(false)
-  const [error, setError]     = useState('')
-  const [loading, setLoading] = useState(false)
-  // When non-null, shows the full-screen transition overlay before navigating
+  const [showPw, setShowPw]        = useState(false)
+  const [error, setError]          = useState('')
+  const [loading, setLoading]      = useState(false)
   const [staffRedirect, setStaffRedirect] = useState(null)
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -175,30 +178,18 @@ export default function SignInPage() {
     }
     setLoading(true)
     try {
-      /*
-       * KEY CHANGE: use loginRaw (or whatever your auth method is called)
-       * that returns the user data WITHOUT committing it to auth state yet.
-       * Check the role first — if it's staff, show the overlay and redirect
-       * WITHOUT ever writing to auth context, so there's no state flicker.
-       *
-       * If your AuthContext only exposes a single `login` that already sets
-       * state, the simplest fix is to add a `loginRaw` that just does the
-       * fetch and returns data without calling setUser/setToken.
-       * See the note at the bottom of this file.
-       */
       const data = await loginRaw(form.email, form.password)
       const role = data?.user?.role
 
       if (STAFF_ROLES.has(role)) {
-        // Show smooth overlay immediately — no auth state written, no jitter
         setStaffRedirect(role)
-        // Give the overlay ~900ms to render, then navigate
-        await logout().catch(() => {})   // ensure no session lingers
+        await logout().catch(() => {})
         setTimeout(() => navigate('/staff'), 900)
         return
       }
- await login(form.email, form.password)
-      // Regular user — commit auth state normally, then go home
+
+      // Regular client — commit auth and go home
+      await login(form.email, form.password)
       navigate('/')
     } catch (err) {
       setError(err.message || 'Invalid email or password.')
@@ -207,13 +198,12 @@ export default function SignInPage() {
     }
   }
 
-  // Render overlay on top of everything — no layout shift
   if (staffRedirect) return <StaffRedirectOverlay role={staffRedirect} />
 
   return (
     <div className="signin-root">
 
-      {/* ── Left decorative panel ── */}
+      {/* ── Left panel ── */}
       <div className="signin-left">
         <div style={{ textAlign: 'center', width: '100%', maxWidth: 300 }}>
           <div style={{ fontSize: '3.5rem', marginBottom: '1.25rem' }}>🌿</div>
@@ -308,6 +298,7 @@ export default function SignInPage() {
             </button>
           </div>
 
+          {/* ── Portal shortcuts ── */}
           <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
             <button
               onClick={() => setShowStaffMenu(v => !v)}
@@ -315,13 +306,14 @@ export default function SignInPage() {
             >
               🔑 Staff / Admin Login
             </button>
+
             {showStaffMenu && (
               <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <button
                   onClick={() => navigate('/staff')}
                   style={{ background: 'var(--earth-cream)', border: 'none', borderRadius: 6, padding: '0.5rem', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
                 >
-                  ⚙️ Admin Dashboard
+                  ⚙️ Admin / Staff Dashboard
                 </button>
                 <button
                   onClick={() => navigate('/staff')}
@@ -329,42 +321,19 @@ export default function SignInPage() {
                 >
                   🩺 Therapist Portal
                 </button>
+                {/* ── Delivery rider portal ── */}
+                <button
+                  onClick={() => navigate('/delivery')}
+                  style={{ background: '#E0F7FF', border: '1px solid #b0d4e8', borderRadius: 6, padding: '0.5rem', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'var(--font-body)', color: '#007BA8', fontWeight: 600 }}
+                >
+                  🚴 Delivery Rider Portal
+                </button>
               </div>
             )}
           </div>
+
         </div>
       </div>
     </div>
   )
 }
-
-/*
- * ── AuthContext change needed ────────────────────────────────────────────────
- *
- * Add a `loginRaw` method that fetches credentials and returns the data
- * WITHOUT writing to auth state. Example:
- *
- *   async function loginRaw(email, password) {
- *     const res  = await fetch(`${API}/auth/login`, {
- *       method: 'POST',
- *       headers: { 'Content-Type': 'application/json' },
- *       body: JSON.stringify({ email, password }),
- *     })
- *     const data = await res.json()
- *     if (!res.ok) throw new Error(data.message || 'Login failed')
- *     // ← do NOT call setUser / setToken here
- *     return data
- *   }
- *
- * Then your existing `login` becomes:
- *
- *   async function login(email, password) {
- *     const data = await loginRaw(email, password)
- *     setUser(data.user)
- *     setToken(data.token)   // or however you store it
- *     return data
- *   }
- *
- * Export both: value={{ ..., login, loginRaw, logout }}
- * ────────────────────────────────────────────────────────────────────────────
- */
