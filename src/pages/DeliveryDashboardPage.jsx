@@ -163,7 +163,7 @@ export default function DeliveryDashboardPage() {
 
   // Auth guard
   useEffect(() => {
-    if (!getToken()) navigate('/delivery')
+    if (!getToken()) navigate('/delivery/login')
   }, [])
 
   const [tab,       setTab]       = useState('orders')
