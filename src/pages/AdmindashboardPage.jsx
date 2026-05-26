@@ -1732,6 +1732,17 @@ export default function AdminDashboardPage() {
   }, [user, authLoading])
 
   // Load on tab/page change
+  // Auto-refresh orders every 30s when on orders tab
+  useEffect(() => {
+    if (tab !== 'orders') return
+    const interval = setInterval(() => {
+      fetchOrders()
+      fetchRiders()
+    }, 30_000)
+    return () => clearInterval(interval)
+  }, [tab, oPage, oStatus, oDeliveryStatus])
+
+  // Load on tab/page change
   useEffect(() => {
     if (authLoading || !user || !['admin','staff'].includes(user.role)) return
     const MAP = {
