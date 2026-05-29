@@ -499,58 +499,55 @@ function PaymentModal({ config, onClose, onResult }) {
     }
 
     // ── eSewa: Special redirect flow ─────────────────────
-    if (safeMethod === 'esewa') {
-      setStep('processing')
-      setProgress(20)
+if (safeMethod === 'esewa') {
+  setStep('processing')
+  setProgress(20)
 
-      try {
-        // 1. Call our backend to create pending payment + get signed form data
-        const res  = await fetch(`${API}/esewa/initiate`, {
-          method:  'POST',
-          headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token()}` },
-          body: JSON.stringify({
-            amount:      safeAmount,
-            tax_amount:  0,
-            category:    config.type    || 'generic',
-            metadata:    config.metadata || {},
-            coupon_code: couponApplied?.code || undefined,
-          }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message || 'Failed to initiate eSewa payment')
+  try {
+    const res  = await fetch(`${API}/esewa/initiate`, {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token()}` },
+      body: JSON.stringify({
+        amount:      safeAmount,
+        tax_amount:  0,
+        category:    config.type    || 'generic',
+        metadata:    config.metadata || {},
+        coupon_code: couponApplied?.code || undefined,
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message || 'Failed to initiate eSewa payment')
 
-        setProgress(60)
+    setProgress(70)
 
-        const { redirect_url, form_fields } = data
+    const { redirect_url, form_fields } = data
 
-        // 2. Dynamically build and POST a hidden form to eSewa
-        //    (Required — eSewa only accepts a form POST, not a fetch)
-        const form = document.createElement('form')
-        form.method = 'POST'
-        form.action = redirect_url
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = redirect_url
 
-        Object.entries(form_fields).forEach(([key, value]) => {
-          const input  = document.createElement('input')
-          input.type  = 'hidden'
-          input.name  = key
-          input.value = value
-          form.appendChild(input)
-        })
+    Object.entries(form_fields).forEach(([key, value]) => {
+      const input  = document.createElement('input')
+      input.type  = 'hidden'
+      input.name  = key
+      input.value = value
+      form.appendChild(input)
+    })
 
-        document.body.appendChild(form)
-        setProgress(100)
+    document.body.appendChild(form)
+    setProgress(100)
+    // Do NOT call onResult here — payment is not confirmed yet.
+    // Confirmation comes via eSewa's server callback to /api/esewa/callback/success
+    setTimeout(() => form.submit(), 350)
 
-        // Small delay so user sees the progress bar hit 100%
-        setTimeout(() => form.submit(), 350)
-
-      } catch (err) {
-        console.error('[PaymentModal] eSewa initiate error:', err)
-        setErrMsg(err.message)
-        setStep('error')
-        onResult({ success:false, error:err.message })
-      }
-      return
-    }
+  } catch (err) {
+    console.error('[PaymentModal] eSewa initiate error:', err)
+    setErrMsg(err.message)
+    setStep('error')
+    onResult({ success:false, error:err.message })
+  }
+  return
+}
 
     // ── All other methods: existing flow ─────────────────
     setStep('processing')

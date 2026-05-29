@@ -890,8 +890,9 @@ function resolvePaymentDetails(pay) {
   else if (pay.appointment_id) category = '📋 Appointment'
   else if (pay.order_id) category = '📦 Order'
   else if (pay.category) category = pay.category
-  const isPending = ['pending','pending_cod'].includes(pay.status)
-  return { clientName, category, isPending }
+const isPending = pay.status === 'pending_cod' ||
+  (pay.status === 'pending' && pay.method !== 'esewa')
+    return { clientName, category, isPending }
 }
 
 function PayBadge({ status }) {
@@ -1087,11 +1088,16 @@ function PaymentsSection() {
           ))}
         </div>
       )}
-      {pays.some(p => p.status === 'pending_cod') && (
-        <div className="alert alert-warn" style={{ marginBottom:'.85rem' }}>
-          ⚠️ <strong>{pays.filter(p => p.status === 'pending_cod').length} COD payment(s)</strong> awaiting manual confirmation.
-        </div>
-      )}
+     {pays.some(p => p.status === 'pending_cod') && (
+  <div className="alert alert-warn" style={{ marginBottom:'.85rem' }}>
+    ⚠️ <strong>{pays.filter(p => p.status === 'pending_cod').length} COD payment(s)</strong> awaiting manual confirmation.
+  </div>
+)}
+{pays.some(p => p.status === 'pending' && p.method === 'esewa') && (
+  <div className="alert alert-info" style={{ marginBottom:'.85rem' }}>
+    ⏳ <strong>{pays.filter(p => p.status === 'pending' && p.method === 'esewa').length} eSewa payment(s)</strong> pending — confirm automatically via eSewa callback. No action needed.
+  </div>
+)}
       <div className="filters">
         <select className="inp" value={status} onChange={e => { setStatus(e.target.value); setPage(1) }}>
           <option value="">All statuses</option>
