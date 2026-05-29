@@ -46,25 +46,81 @@ export default function StorePage() {
   }, [user])
 
   async function addToCart(productId) {
-    if (!user) { navigate('/signin'); return }
-    setAdding(productId)
-    try {
-      await storeApi.addToCart(productId, null, 1)
-      const d = await storeApi.getCart(); setCart(d.cart || [])
-      setCartMsg('Added to cart!'); setTimeout(() => setCartMsg(''), 2500)
-    } catch (err) {
-      setCartMsg(err.message || 'Could not add to cart.'); setTimeout(() => setCartMsg(''), 2500)
-    } finally { setAdding(null) }
-  }
+  if (!user) { navigate('/signin'); return }
+  setAdding(productId)
+  
+  // Find the product from the products list
+  const product = products.find(p => p.id === productId)
+  
+  // Optimistic add — update cart state immediately
+  setCart(prev => {
+    const existing = prev.find(i => (i.products?.id || i.product_id) === productId)
+    if (existing) {
+      return prev.map(i =>
+        (i.products?.id || i.product_id) === productId
+          ? { ...i, quantity: (i.quantity || 1) + 1 }
+          : i
+      )
+    }
+    return [...prev, {
+      product_id: productId,
+      quantity: 1,
+      products: product || { id: productId, name: '…', price: 0 },
+      product_variants: null,
+    }]
+  })
+  setCartMsg('Added to cart!')
+  setTimeout(() => setCartMsg(''), 2500)
 
-  async function removeFromCart(productId) {
-    try { await storeApi.removeFromCart(productId); const d = await storeApi.getCart(); setCart(d.cart || []) } catch {}
+  try {
+    await storeApi.addToCart(productId, null, 1)
+    // Sync real data from server (catches price/variant discrepancies)
+    const d = await storeApi.getCart()
+    setCart(d.cart || [])
+  } catch (err) {
+    // Rollback on failure
+    setCart(prev => {
+      const item = prev.find(i => (i.products?.id || i.product_id) === productId)
+      if (!item || item.quantity <= 1) return prev.filter(i => (i.products?.id || i.product_id) !== productId)
+      return prev.map(i =>
+        (i.products?.id || i.product_id) === productId
+          ? { ...i, quantity: (i.quantity || 1) - 1 }
+          : i
+      )
+    })
+    setCartMsg(err.message || 'Could not add to cart.')
+    setTimeout(() => setCartMsg(''), 2500)
+  } finally {
+    setAdding(null)
   }
+}
 
-  async function updateQty(productId, qty) {
-    if (qty < 1) { removeFromCart(productId); return }
-    try { await storeApi.updateCart(productId, qty); const d = await storeApi.getCart(); setCart(d.cart || []) } catch {}
+async function removeFromCart(productId) {
+  // Optimistic remove
+  setCart(prev => prev.filter(i => (i.products?.id || i.product_id) !== productId))
+  try {
+    await storeApi.removeFromCart(productId)
+  } catch {
+    // Rollback: re-fetch on failure
+    storeApi.getCart().then(d => setCart(d.cart || [])).catch(() => {})
   }
+}
+
+async function updateQty(productId, qty) {
+  if (qty < 1) { removeFromCart(productId); return }
+  // Optimistic quantity update
+  setCart(prev => prev.map(i =>
+    (i.products?.id || i.product_id) === productId
+      ? { ...i, quantity: qty }
+      : i
+  ))
+  try {
+    await storeApi.updateCart(productId, qty)
+  } catch {
+    // Rollback on failure
+    storeApi.getCart().then(d => setCart(d.cart || [])).catch(() => {})
+  }
+}
 
   // ── Main checkout: create order first, then open payment modal ────────────
   async function handleCheckout() {
