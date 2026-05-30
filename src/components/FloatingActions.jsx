@@ -3,7 +3,6 @@
 // ✅ Find Office    → Location popup — identical to old MapPopup from Hero
 // ✅ Psychology Eye → navigate('/psychological-view') directly
 // ✅ Track Orders   → navigate('/my-orders') directly
-// ✅ Meet           → Meet popup with video & audio call links
 
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
