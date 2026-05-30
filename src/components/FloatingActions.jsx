@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
 import AttendanceModal from './AttendanceModal'
+import GiveawayModal from './GiveawayModal'
 
 // ─────────────────────────────────────────────
 // All CSS injected once into <head>
