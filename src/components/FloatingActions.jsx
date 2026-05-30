@@ -814,6 +814,14 @@ const ACTIONS = [
     popup: 'attendance',
   },
   {
+  id:     'giveaway',
+  label:  'Enter Giveaway',
+  emoji:  '🎁',
+  bg:     'linear-gradient(135deg,#C8871A,#F5B942)',
+  shadow: 'rgba(245,185,66,.42)',
+  popup:  'giveaway',
+},
+  {
     id:     'meet',
     label:  'Meet Online',
     emoji:  '🤝',
@@ -858,7 +866,7 @@ const ACTIONS = [
 // ─────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────
-export default function FloatingActions() {
+export default function FloatingActions({ user }) {
   useEffect(() => { injectCSS() }, [])
 
   const { navigate } = useRouter()
@@ -889,6 +897,7 @@ export default function FloatingActions() {
       {popup === 'location'   && <LocationPopup   onClose={() => setPopup(null)} />}
       {popup === 'meet'       && <MeetPopup        onClose={() => setPopup(null)} />}
       {popup === 'attendance' && <AttendanceModal  onClose={() => setPopup(null)} />}
+        {popup === 'giveaway' && <GiveawayModal onClose={() => setPopup(null)} user={user} />}
 
       {/* FAB */}
       <div className="fa-root">
@@ -944,3 +953,4 @@ export default function FloatingActions() {
     </>
   )
 }
+
