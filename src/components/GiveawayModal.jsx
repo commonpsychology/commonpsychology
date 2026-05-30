@@ -1,8 +1,5 @@
 // src/components/GiveawayModal.jsx
-// Giveaway registration popup — matches the dark popup family in FloatingActions.
-// Auto-fills email from logged-in user. Generates a unique ticket number on register.
-// Writes to the `giveaway` Supabase table.
-//
+
 // Props:
 //   onClose  — fn()       called when modal should close
 //   user     — object     Supabase auth user ({ email, id, ... })
@@ -15,8 +12,8 @@ import { createClient } from '@supabase/supabase-js'
 
 // ── Supabase client ─────────────────────────────────────────
 // Replace with your actual Supabase project URL and anon key
-const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  || 'https://YOUR_PROJECT.supabase.co'
-const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_ANON_KEY'
+const SUPABASE_URL  ='https://agtzdsoadxzxmzwtifjw.supabase.co'
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFndHpkc29hZHh6eG16d3RpZmp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0Mzc4NDUsImV4cCI6MjA4OTAxMzg0NX0.hqTBnNzP6sdlbMNxk32P0iwvwVupunHHfhfleJv4FhM'
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON)
 
 // ── Colour tokens — same dark family ───────────────────────
