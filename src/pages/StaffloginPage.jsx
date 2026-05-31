@@ -109,7 +109,7 @@ export default function StaffLoginPage() {
   try {
     // Step 1: verify credentials only — do NOT create session yet
 const BASE = import.meta.env.VITE_API_URL || ''
-const res = await fetch(`${BASE}/api/auth/check-credentials`, {      method:  'POST',
+const res = await fetch(`${BASE}/auth/check-credentials`, {      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email: email.trim().toLowerCase(), password }),
     })
