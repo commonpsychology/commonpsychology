@@ -108,8 +108,8 @@ export default function StaffLoginPage() {
   setSubmitting(true)
   try {
     // Step 1: verify credentials only — do NOT create session yet
-    const res = await fetch(`${import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'}/auth/check-credentials`, {
-      method:  'POST',
+const BASE = import.meta.env.VITE_API_URL || ''
+const res = await fetch(`${BASE}/api/auth/check-credentials`, {      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email: email.trim().toLowerCase(), password }),
     })
@@ -125,11 +125,12 @@ export default function StaffLoginPage() {
 
     // Step 2: show OTP — do NOT call login() yet
     setOtpPayload({
-      user_id,
-      email:   email.trim().toLowerCase(),
-      name:    full_name || email,
-      role,
-    })
+  user_id,
+  email:    email.trim().toLowerCase(),
+  name:     full_name || email,
+  role,
+  password, // ← add this line
+})
     setShowOTP(true)
 
   } catch (err) {
@@ -141,8 +142,7 @@ export default function StaffLoginPage() {
 async function handleOTPSuccess() {
   try {
     // NOW do the real login and create session
-    await login(otpPayload.email, password)  // password still in state
-  } catch { /* session creation */ }
+await login(otpPayload.email, otpPayload.password)  } catch { /* session creation */ }
 
   setShowOTP(false)
   const role = otpPayload?.role
