@@ -121,7 +121,7 @@ export default function NamasteLoader({ duration = 2800, onDone }) {
         }}>
           {!imgError ? (
             <img
-              src="/loadingpage.png"
+              src="/header.png"
               alt="Logo"
               onError={() => setImgError(true)}
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
