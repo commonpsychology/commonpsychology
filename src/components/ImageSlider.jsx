@@ -28,7 +28,7 @@ export default function ImageSlider() {
   useEffect(() => {
     async function load() {
       try {
-        const res  = await fetch(`${API_BASE}/api/gallery?approved=true&limit=20`)
+        const res  = await fetch(`${API_BASE}/gallery?approved=true&limit=20`)
         const data = await res.json()
         if (data?.images?.length) { setImages(data.images); setLoading(false); return }
       } catch {}
