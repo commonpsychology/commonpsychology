@@ -18,6 +18,7 @@ import NoticePopup      from '../components/NoticePopup'
 import NamasteLoader    from '../components/NamasteLoader'
 import PollPopup        from '../components/Pollpopup'
 import DailyReturnHook  from '../components/DailyReturnHook'
+import ImageSlider from '../components/ImageSlider'
 import FloatingActions  from '../components/FloatingActions'
 
 export default function HomePage() {
@@ -65,6 +66,7 @@ export default function HomePage() {
       <Therapists />
       <Assessment />
       <VideoReviews />
+      <ImageSlider />
       <Resources />
       <NewsSection />
       <FAQ />
