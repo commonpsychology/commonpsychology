@@ -37,7 +37,6 @@ export default function ImageSlider() {
     }
     load()
   }, [])
-
   const goTo = useCallback((idx) => {
     if (!images.length) return
     setCurrent((idx + images.length) % images.length)
