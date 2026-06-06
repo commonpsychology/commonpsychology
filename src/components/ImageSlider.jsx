@@ -84,11 +84,21 @@ export default function ImageSlider() {
 
   // ── Sync thumbnail strip ────────────────────────────────────────────────────
   useEffect(() => {
-    if (!trackRef.current || !images.length) return
-    const btn = trackRef.current.children[current]
-    if (btn) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
-    setThumb(current)
-  }, [current, images.length])
+  if (!trackRef.current || !images.length) return
+  // manually scroll the thumbnail strip horizontally only — no page jump
+  const strip = trackRef.current
+  const btn   = strip.children[current]
+  if (btn) {
+    const btnLeft    = btn.offsetLeft
+    const btnWidth   = btn.offsetWidth
+    const stripWidth = strip.offsetWidth
+    strip.scrollTo({
+      left: btnLeft - (stripWidth / 2) + (btnWidth / 2),
+      behavior: 'smooth'
+    })
+  }
+  setThumb(current)
+}, [current, images.length])
 
   // ── Swipe ───────────────────────────────────────────────────────────────────
   function onTouchStart(e) { startX.current = e.touches[0].clientX }
