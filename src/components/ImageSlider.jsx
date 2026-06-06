@@ -161,7 +161,7 @@ if (imgs.length) {
           {images.map((im, i) => (
             <img
               key={im.id}
-              src={im.url}
+src={im.image_url || im.url}
               alt={im.title || `Slide ${i + 1}`}
               style={{
                 position: 'absolute', inset: 0,
@@ -307,7 +307,7 @@ if (imgs.length) {
               }}
             >
               <img
-                src={im.url}
+src={im.image_url || im.url}
                 alt={im.title || `Thumb ${i + 1}`}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
