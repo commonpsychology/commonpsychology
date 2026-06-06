@@ -30,7 +30,9 @@ export default function ImageSlider() {
       try {
         const res  = await fetch(`${API_BASE}/gallery?approved=true&limit=20`)
         const data = await res.json()
-        if (data?.images?.length) { setImages(data.images); setLoading(false); return }
+        const imgs = data?.images || data?.data || []
+if (imgs.length) {
+  setImages(imgs); setLoading(false); return }
       } catch {}
       setImages(FALLBACK_IMAGES)
       setLoading(false)
