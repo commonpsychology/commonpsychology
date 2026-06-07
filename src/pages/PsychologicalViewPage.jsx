@@ -498,8 +498,8 @@ function ConceptsGlossary({ concepts, loading }) {
       {/*    Adjust the final stop color to match whatever your footer uses.   */}
       <div
         style={{
-          marginTop: '3rem',         // breathing room below the grid
-          height: '120px',
+          marginTop: '5rem',         // breathing room below the grid
+          height: '180px',
           background: `linear-gradient(
             to bottom,
             var(--green-deep)   0%,
