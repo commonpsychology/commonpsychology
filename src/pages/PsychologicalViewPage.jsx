@@ -414,21 +414,46 @@ function AnalysesGrid({ analyses, loading, navigate }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// CONCEPTS GLOSSARY
+// CONCEPTS GLOSSARY  (with footer-blend gradient tail)
 // ══════════════════════════════════════════════════════════════
 function ConceptsGlossary({ concepts, loading }) {
   const items = loading ? Array.from({ length: 4 }).map((_, i) => ({ id: `s${i}` })) : concepts
 
   return (
-    <div className="section" style={{ background: 'var(--green-deep)', color: 'white' }}>
+    // ① Remove the hard bottom edge — use paddingBottom:0 on the section,
+    //    let the gradient tail div carry the visual into the footer.
+    <div
+      className="section"
+      style={{
+        background: 'var(--green-deep)',
+        color: 'white',
+        paddingBottom: 0,          // ← was implicit e.g. 3rem; now 0
+        position: 'relative',
+      }}
+    >
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <span className="section-tag" style={{ color: 'var(--green-pale)' }}>Psychology 101</span>
-        <h2 className="section-title" style={{ color: 'white' }}>Key Concepts to <em>Understand the World</em></h2>
+        <h2 className="section-title" style={{ color: 'white' }}>
+          Key Concepts to <em>Understand the World</em>
+        </h2>
       </div>
-      <div className="concepts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1.25rem' }}>
+
+      <div
+        className="concepts-grid"
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1.25rem' }}
+      >
         {items.map((c) => {
           if (loading) return (
-            <div key={c.id} style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 'var(--radius-md)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div
+              key={c.id}
+              style={{
+                background: 'rgba(255,255,255,0.07)',
+                borderRadius: 'var(--radius-md)',
+                padding: '1.5rem',
+                border: '1px solid rgba(255,255,255,0.12)',
+                display: 'flex', flexDirection: 'column', gap: 10,
+              }}
+            >
               <Sk w="55%" h={18} /><Sk h={12} /><Sk w="80%" h={12} />
             </div>
           )
@@ -436,16 +461,57 @@ function ConceptsGlossary({ concepts, loading }) {
           return (
             <div
               key={c.id}
-              style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 'var(--radius-md)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', transition: 'background 0.2s' }}
+              style={{
+                background: 'rgba(255,255,255,0.07)',
+                borderRadius: 'var(--radius-md)',
+                padding: '1.5rem',
+                border: '1px solid rgba(255,255,255,0.12)',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
             >
-              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: '#38BDF8', marginBottom: '0.5rem' }}>{c.term}</h4>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, margin: 0 }}>{c.definition}</p>
+              <h4 style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '1.05rem',
+                color: '#38BDF8',
+                marginBottom: '0.5rem',
+              }}>
+                {c.term}
+              </h4>
+              <p style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '0.88rem',
+                color: 'rgba(255,255,255,0.65)',
+                lineHeight: 1.7,
+                margin: 0,
+              }}>
+                {c.definition}
+              </p>
             </div>
           )
         })}
       </div>
+
+      {/* ② Gradient tail — fades green-deep → your footer's background color */}
+      {/*    Adjust the final stop color to match whatever your footer uses.   */}
+      <div
+        style={{
+          marginTop: '3rem',         // breathing room below the grid
+          height: '120px',
+          background: `linear-gradient(
+            to bottom,
+            var(--green-deep)   0%,
+            rgba(10, 28, 14, 0.85) 40%,
+            rgba(10, 28, 14, 0.4)  70%,
+            transparent        100%
+          )`,
+          // If your footer has a solid color like #0f1a12 or similar, replace
+          // "transparent" with that exact color for a perfect seam, e.g.:
+          // background: 'linear-gradient(to bottom, var(--green-deep), #111827)'
+        }}
+      />
     </div>
   )
 }
