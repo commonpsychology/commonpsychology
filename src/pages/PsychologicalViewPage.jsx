@@ -501,12 +501,12 @@ function ConceptsGlossary({ concepts, loading }) {
           marginTop: '5rem',         // breathing room below the grid
           height: '180px',
           background: `linear-gradient(
-            to bottom,
-            var(--green-deep)   0%,
-            rgba(10, 28, 14, 0.85) 40%,
-            rgba(10, 28, 14, 0.4)  70%,
-            transparent        100%
-          )`,
+  to bottom,
+  var(--green-deep)     0%,
+  rgba(180, 220, 180, 0.15) 50%,
+  rgba(220, 240, 220, 0.35) 80%,
+  rgba(240, 255, 240, 0.6)  100%
+)`,
           // If your footer has a solid color like #0f1a12 or similar, replace
           // "transparent" with that exact color for a perfect seam, e.g.:
           // background: 'linear-gradient(to bottom, var(--green-deep), #111827)'
