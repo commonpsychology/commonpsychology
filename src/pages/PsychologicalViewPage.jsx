@@ -429,6 +429,8 @@ function ConceptsGlossary({ concepts, loading }) {
         color: 'white',
         paddingBottom: 0,          // ← was implicit e.g. 3rem; now 0
         position: 'relative',
+          marginBottom: '4rem',
+
       }}
     >
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
