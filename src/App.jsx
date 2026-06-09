@@ -33,6 +33,7 @@ import OnlineCourses      from './pages/OnlineCourses'
 import MessagesPage        from './pages/MessagesPage'
 import PrivacyPage         from './pages/PrivacyPage'
 import OurPlacePage        from './pages/OurplacePage'
+import StaffportalPage      from './pages/StaffportalPage'
 import PaymentInfoPage     from './pages/PaymentInfoPage'
 import UpdatePasswordPage  from './pages/UpdataPasswordPage'
 import UpgradePage         from './pages/UpgradePage'
@@ -88,6 +89,7 @@ const ROUTES = {
   '/community':          CommunityPage,
   '/ai-tools':           AIToolsPage,
   '/verify':             VerifyAccountPage,
+  '/staff/portal':        StaffportalPage,
   '/account':            MyAccountPage,
   '/disorders':          DisordersPage,
   '/psychological-view': PsychologicalViewPage,
