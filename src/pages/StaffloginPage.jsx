@@ -86,8 +86,9 @@ export default function StaffLoginPage() {
   // Redirect already-logged-in staff
   useEffect(() => {
     if (authLoading || !user) return
-    if (['admin', 'staff'].includes(user.role)) navigate('/staff/admin')
-    else if (user.role === 'therapist')         navigate('/staff/therapist')
+    if (user.role === 'admin')     navigate('/staff/admin')
+else if (user.role === 'staff') navigate('/staff/portal')
+else if (user.role === 'therapist') navigate('/staff/therapist')
   }, [user, authLoading])
 
   const [email, setEmail]       = useState('')
@@ -146,8 +147,9 @@ await login(otpPayload.email, otpPayload.password)  } catch { /* session creatio
 
   setShowOTP(false)
   const role = otpPayload?.role
-  if (role === 'admin' || role === 'staff') navigate('/staff/admin')
-  else if (role === 'therapist')            navigate('/staff/therapist')
+ if (role === 'admin')          navigate('/staff/admin')
+else if (role === 'staff')     navigate('/staff/portal')
+else if (role === 'therapist') navigate('/staff/therapist')
 }
   // User dismissed the OTP modal
   function handleOTPCancel() {
