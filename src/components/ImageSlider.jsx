@@ -138,7 +138,7 @@ export default function ImageSlider() {
         </span>
         <h2 style={{ fontSize:'clamp(1.4rem, 3vw, 2rem)', fontWeight:800,
           color:'var(--text-dark)', lineHeight:1.2, margin:0 }}>
-          Social Responsibility and our Community Involvement
+          Social Responsibility and Our Community Involvement
         </h2>
         <p style={{ fontSize:'0.88rem', color:'var(--text-light)', marginTop:'0.4rem' }}>
           Workshops, therapy spaces, community events &amp; more
