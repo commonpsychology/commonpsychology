@@ -364,7 +364,7 @@ export default function StaffPortalPage() {
     setSubmitting(true)
     try {
       const token = localStorage.getItem('accessToken')
-      const res = await fetch(`${API_BASE}/api/patients`, {
+      const res = await fetch(`${API_BASE}/patients`, {
         method:  'POST',
         headers: {
           'Content-Type':  'application/json',
