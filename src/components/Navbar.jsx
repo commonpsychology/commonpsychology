@@ -242,8 +242,11 @@ function AvatarDropdown({ onNavigate }) {
         {[
           { icon:'👤', label:t('myAccount'), path:'/account',     bg:'var(--sky-light)' },
           { icon:'🔐', label:t('myPortal'),  path:'/portal',      bg:'var(--blue-mist)' },
-          ...(user.role === 'admin' || user.role === 'staff'
+          ...(user.role === 'admin'
             ? [{ icon:'⚙️', label: lang==='EN' ? 'Admin Dashboard' : 'एडमिन ड्यासबोर्ड', path:'/staff/admin', bg:'var(--green-mist)' }]
+            : []),
+          ...(user.role === 'staff'
+            ? [{ icon:'🏥', label: lang==='EN' ? 'Staff Portal' : 'स्टाफ पोर्टल', path:'/staff/portal', bg:'var(--green-mist)' }]
             : []),
           ...(user.role === 'therapist'
             ? [{ icon:'🩺', label: lang==='EN' ? 'Therapist Portal' : 'थेरापिस्ट पोर्टल', path:'/staff/therapist', bg:'var(--green-mist)' }]
