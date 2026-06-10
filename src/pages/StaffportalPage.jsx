@@ -323,7 +323,7 @@ export default function StaffPortalPage() {
         ...(dateFilter && { date: dateFilter }),
         ...(search     && { search }),
       })
-      const res = await fetch(`${API_BASE}/api/patients?${params}`, {
+      const res = await fetch(`${API_BASE}/patients?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       const data = await res.json()
