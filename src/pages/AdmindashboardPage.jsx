@@ -2742,8 +2742,9 @@ await REFRESH_MAP[modal.type]?.()
           {/* ═══ GALLERY ═══ */}
           {tab === 'gallery' && (
             <div>
-              <SectionHeader title="Gallery" count={galTotal} onNew={() => openCreate('gallery_item',{is_active:true,emoji:'📸'})} />
-              <Table loading={busy.gallery} cols={['Title','Category','Active','Actions']}
+<SectionHeader title="Gallery" count={galTotal} onNew={() => openCreate('gallery_item',{is_active:true,emoji:'📸'})}>
+  <button className="btn btn-ghost" onClick={() => sec('/admin/gallery', setGallery, setGalTotal, galPage)}>↺ Refresh</button>
+</SectionHeader>              <Table loading={busy.gallery} cols={['Title','Category','Active','Actions']}
                 rows={gallery.map(g=>(
                   <tr key={g.id}>
                     <td style={{fontWeight:600,fontSize:'.82rem'}}>{g.emoji} {g.title}</td>
@@ -2757,7 +2758,7 @@ await REFRESH_MAP[modal.type]?.()
                   </tr>
                 ))}
               />
-              <Pager page={galPage} set={setGalPage} total={galTotal} />
+              <Pager page={galPage} set={setGalPage} total={galTotal} /><Pager page={galPage} set={p => { setGalPage(p); sec('/admin/gallery', setGallery, setGalTotal, p) }} total={galTotal} />
             </div>
           )}
 
