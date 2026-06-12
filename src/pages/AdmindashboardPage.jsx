@@ -2758,7 +2758,7 @@ await REFRESH_MAP[modal.type]?.()
                   </tr>
                 ))}
               />
-              <Pager page={galPage} set={setGalPage} total={galTotal} /><Pager page={galPage} set={p => { setGalPage(p); sec('/admin/gallery', setGallery, setGalTotal, p) }} total={galTotal} />
+              <Pager page={galPage} set={setGalPage} total={galTotal} />
             </div>
           )}
 
