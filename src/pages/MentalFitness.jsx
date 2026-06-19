@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { useLang } from '../context/LanguageContext'
 
 /* ─────────────────────────────────────────────────────────────
-   MENTAL FITNESS SCORE — static landing page
+   MENTAL FITNESS SCORE — landing page + interactive check-in
    Visual language matched to Navbar.jsx:
      fonts   var(--font-display) / var(--font-body)
      colors  var(--sky) var(--sky-light) var(--green-deep)
@@ -14,6 +15,7 @@ import { useLang } from '../context/LanguageContext'
 
 const PILLARS = [
   {
+    key: 'emotional',
     icon: '🌊',
     label: 'Emotional Regulation',
     labelNP: 'भावनात्मक नियमन',
@@ -21,8 +23,16 @@ const PILLARS = [
     descNP: 'कठिन परिस्थितिमा तपाईं कत्तिको स्थिर रहनुहुन्छ र फेरि सन्तुलनमा फर्किनुहुन्छ।',
     tint: 'var(--sky-light)',
     fg: 'var(--sky)',
+    levels: [
+      { label: 'Overwhelmed most days', labelNP: 'धेरैजसो दिन अभिभूत' },
+      { label: 'Often shaken', labelNP: 'प्रायः विचलित' },
+      { label: 'Mixed, day to day', labelNP: 'दिनैपिच्छे फरक' },
+      { label: 'Mostly steady', labelNP: 'धेरैजसो स्थिर' },
+      { label: 'Grounded and steady', labelNP: 'स्थिर र सन्तुलित' },
+    ],
   },
   {
+    key: 'sleep',
     icon: '🌙',
     label: 'Sleep',
     labelNP: 'निद्रा',
@@ -30,8 +40,16 @@ const PILLARS = [
     descNP: 'तपाईंको निद्राको गुणस्तर र नियमितता — बाँकी सबैको जग।',
     tint: 'var(--blue-mist)',
     fg: '#1565c0',
+    levels: [
+      { label: 'Rarely rested', labelNP: 'विरलै आराम भएको' },
+      { label: 'Often disrupted', labelNP: 'प्रायः बाधित' },
+      { label: 'Hit or miss', labelNP: 'कहिलेकाहीं राम्रो' },
+      { label: 'Usually good', labelNP: 'प्रायः राम्रो' },
+      { label: 'Deep and consistent', labelNP: 'गहिरो र नियमित' },
+    ],
   },
   {
+    key: 'stress',
     icon: '🔥',
     label: 'Stress',
     labelNP: 'तनाव',
@@ -39,8 +57,16 @@ const PILLARS = [
     descNP: 'दैनिक रूपमा तपाईंले कति दबाब बोकिरहनुभएको छ र त्यसलाई कत्तिको राम्रोसँग छोड्न सक्नुहुन्छ।',
     tint: '#fde8e3',
     fg: '#c0533f',
+    levels: [
+      { label: 'Constantly under pressure', labelNP: 'सधैं दबाबमा' },
+      { label: 'Frequently stretched thin', labelNP: 'प्रायः थकित' },
+      { label: 'Manageable most days', labelNP: 'धेरैजसो थेग्नसक्ने' },
+      { label: 'Rarely overwhelmed', labelNP: 'विरलै अभिभूत' },
+      { label: 'Calm and in control', labelNP: 'शान्त र नियन्त्रणमा' },
+    ],
   },
   {
+    key: 'relationships',
     icon: '🤝',
     label: 'Relationships',
     labelNP: 'सम्बन्धहरू',
@@ -48,8 +74,16 @@ const PILLARS = [
     descNP: 'तपाईं र तपाईंको नजिकका मानिसहरू बीचको न्यानोपन र सहयोग।',
     tint: 'var(--green-mist)',
     fg: 'var(--green-deep)',
+    levels: [
+      { label: 'Isolated or strained', labelNP: 'एक्लो वा तनावपूर्ण' },
+      { label: 'Distant lately', labelNP: 'हालै टाढा' },
+      { label: 'Okay, could be closer', labelNP: 'ठीकै, अझ नजिक हुन सक्ने' },
+      { label: 'Mostly warm', labelNP: 'धेरैजसो न्यानो' },
+      { label: 'Close and supported', labelNP: 'नजिक र सहयोगी' },
+    ],
   },
   {
+    key: 'purpose',
     icon: '🧭',
     label: 'Purpose',
     labelNP: 'उद्देश्य',
@@ -57,8 +91,16 @@ const PILLARS = [
     descNP: 'दिशाको भावना — सामान्य दिनहरूमा पनि तपाईंको समय किन महत्त्वपूर्ण छ भनेर थाहा हुनु।',
     tint: '#f3e8fd',
     fg: '#7b3fc0',
+    levels: [
+      { label: 'Adrift most days', labelNP: 'धेरैजसो दिशाहीन' },
+      { label: 'Unsure lately', labelNP: 'हालै अनिश्चित' },
+      { label: 'Some sense of why', labelNP: 'केही हदसम्म कारण थाहा' },
+      { label: 'Mostly clear', labelNP: 'धेरैजसो स्पष्ट' },
+      { label: 'Clear and motivated', labelNP: 'स्पष्ट र उत्प्रेरित' },
+    ],
   },
   {
+    key: 'habits',
     icon: '🌱',
     label: 'Habits',
     labelNP: 'बानीहरू',
@@ -66,6 +108,13 @@ const PILLARS = [
     descNP: 'साना दैनिक दिनचर्याहरू जसले बिस्तारै तपाईंको काम र भावनालाई असर गर्छ।',
     tint: '#fff7d6',
     fg: '#a67c00',
+    levels: [
+      { label: 'Routines have slipped', labelNP: 'दिनचर्या बिग्रिएको' },
+      { label: 'Inconsistent', labelNP: 'अनियमित' },
+      { label: 'Some good habits', labelNP: 'केही राम्रा बानी' },
+      { label: 'Mostly consistent', labelNP: 'धेरैजसो नियमित' },
+      { label: 'Strong daily routines', labelNP: 'बलियो दैनिक दिनचर्या' },
+    ],
   },
 ]
 
@@ -93,105 +142,343 @@ const STEPS = [
   },
 ]
 
+// level index (0-4) -> percentage for that pillar
+function levelToPercent(levelIndex) {
+  return Math.round((levelIndex / (5 - 1)) * 100)
+}
+
+function scoreColor(pct) {
+  if (pct >= 70) return { fg: 'var(--green-deep)', bg: 'var(--green-mist)' }
+  if (pct >= 40) return { fg: '#a67c00', bg: '#fff7d6' }
+  return { fg: '#c0533f', bg: '#fde8e3' }
+}
+
 export default function MentalFitnessScore({ onNavigate }) {
   const { lang } = useLang ? useLang() : { lang: 'EN' }
+
+  // quiz state: null = not started, number = current pillar index, 'results' = done
+  const [stage, setStage] = useState(null) // null | 'quiz' | 'results'
+  const [stepIndex, setStepIndex] = useState(0)
+  const [answers, setAnswers] = useState({}) // { pillarKey: levelIndex }
 
   function go(path) {
     if (onNavigate) onNavigate(path)
   }
 
+  function startQuiz() {
+    setAnswers({})
+    setStepIndex(0)
+    setStage('quiz')
+  }
+
+  function selectLevel(pillarKey, levelIdx) {
+    const next = { ...answers, [pillarKey]: levelIdx }
+    setAnswers(next)
+    if (stepIndex < PILLARS.length - 1) {
+      setStepIndex(stepIndex + 1)
+    } else {
+      setStage('results')
+    }
+  }
+
+  function goBackStep() {
+    if (stepIndex > 0) setStepIndex(stepIndex - 1)
+  }
+
+  function retake() {
+    setAnswers({})
+    setStepIndex(0)
+    setStage('quiz')
+  }
+
+  const pillarScores = PILLARS.map(p => ({
+    ...p,
+    pct: answers[p.key] !== undefined ? levelToPercent(answers[p.key]) : null,
+  }))
+  const answeredScores = pillarScores.filter(p => p.pct !== null)
+  const overallPct = answeredScores.length
+    ? Math.round(answeredScores.reduce((sum, p) => sum + p.pct, 0) / answeredScores.length)
+    : 0
+
+  const overallColor = scoreColor(overallPct)
+  const overallLabel =
+    overallPct >= 70
+      ? { en: 'Steady & doing well', np: 'स्थिर र राम्रो अवस्थामा' }
+      : overallPct >= 40
+      ? { en: 'Mixed, worth attention', np: 'मिश्रित, ध्यान दिनुपर्ने' }
+      : { en: 'Under real strain', np: 'वास्तविक तनावमा' }
+
   return (
     <div style={{ background:'var(--off-white)' }}>
 
-      {/* ───────────── HERO ───────────── */}
+      {/* ───────────── HERO / QUIZ ───────────── */}
       <section style={{
-        padding:'4.5rem 1.5rem 4rem',
+        padding: stage === null ? '4.5rem 1.5rem 4rem' : '3.25rem 1.5rem 3.5rem',
         background:'linear-gradient(180deg, var(--sky-light) 0%, var(--off-white) 100%)',
         borderBottom:'1px solid var(--blue-pale)',
       }}>
         <div style={{ maxWidth:920, margin:'0 auto', textAlign:'center' }}>
 
-          <div style={{
-            display:'inline-flex', alignItems:'center', gap:'0.45rem',
-            padding:'0.35rem 0.9rem', borderRadius:100,
-            background:'var(--white)', border:'1.5px solid var(--blue-pale)',
-            fontFamily:'var(--font-body)', fontSize:'0.72rem', fontWeight:700,
-            color:'var(--green-deep)', letterSpacing:'0.04em',
-            marginBottom:'1.5rem',
-          }}>
-            🧠 {lang==='NP' ? 'नयाँ उपकरण' : 'New tool'}
-          </div>
+          {stage === null && (
+            <div style={{
+              display:'inline-flex', alignItems:'center', gap:'0.45rem',
+              padding:'0.35rem 0.9rem', borderRadius:100,
+              background:'var(--white)', border:'1.5px solid var(--blue-pale)',
+              fontFamily:'var(--font-body)', fontSize:'0.72rem', fontWeight:700,
+              color:'var(--green-deep)', letterSpacing:'0.04em',
+              marginBottom:'1.5rem',
+            }}>
+              🧠 {lang==='NP' ? 'नयाँ उपकरण' : 'New tool'}
+            </div>
+          )}
 
-          <h1 style={{
-            fontFamily:'var(--font-display)', fontWeight:800,
-            fontSize:'clamp(2.1rem, 5vw, 3.4rem)', lineHeight:1.08,
-            color:'var(--text-dark)', margin:'0 0 1.1rem',
-            letterSpacing:'-0.01em',
-          }}>
-            {lang==='NP' ? 'तपाईंको मानसिक फिटनेस स्कोर' : 'Your Mental Fitness Score'}
-          </h1>
-
-          <p style={{
-            fontFamily:'var(--font-body)', fontSize:'1.08rem',
-            color:'var(--text-mid)', maxWidth:600, margin:'0 auto 2.25rem',
-            lineHeight:1.6,
-          }}>
-            {lang==='NP'
-              ? 'यो कुनै चिकित्सा निदान होइन। यो तपाईंको दैनिक भावनात्मक स्वास्थ्यको सरल, सौम्य झलक हो — समयसँगै तपाईं कस्तो महसुस गर्दै हुनुहुन्छ भन्ने प्रवृत्ति।'
-              : 'Not a medical score. Just a simple, honest read on how you\u2019re really doing — your psychological wellness trend, over time.'}
-          </p>
-
-          <div style={{ display:'flex', gap:'0.85rem', justifyContent:'center', flexWrap:'wrap' }}>
-            <button className="btn btn-primary" onClick={() => go('/assessments')}>
-              {lang==='NP' ? 'आफ्नो स्कोर हेर्नुहोस्' : 'Check My Score'} →
-            </button>
-            <button className="btn btn-outline" onClick={() => go('/resources')}>
-              {lang==='NP' ? 'यो कसरी काम गर्छ' : 'How it works'}
-            </button>
-          </div>
-
-          {/* simple static score dial */}
-          <div style={{
-            marginTop:'3.25rem', display:'inline-flex', alignItems:'center', gap:'1.75rem',
-            background:'var(--white)', border:'1px solid var(--blue-pale)',
-            borderRadius:'var(--radius-lg)', padding:'1.4rem 2rem',
-            boxShadow:'0 20px 56px rgba(15,52,96,0.08)',
-            flexWrap:'wrap', justifyContent:'center',
-          }}>
-            <div style={{ position:'relative', width:108, height:108, flexShrink:0 }}>
-              <svg viewBox="0 0 100 100" width="108" height="108">
-                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--blue-pale)" strokeWidth="10" />
-                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--sky)" strokeWidth="10"
-                  strokeLinecap="round" strokeDasharray={`${2*Math.PI*42*0.74} ${2*Math.PI*42}`}
-                  transform="rotate(-90 50 50)" />
-              </svg>
-              <div style={{
-                position:'absolute', inset:0, display:'flex', flexDirection:'column',
-                alignItems:'center', justifyContent:'center',
+          {stage === null && (
+            <>
+              <h1 style={{
+                fontFamily:'var(--font-display)', fontWeight:800,
+                fontSize:'clamp(2.1rem, 5vw, 3.4rem)', lineHeight:1.08,
+                color:'var(--text-dark)', margin:'0 0 1.1rem',
+                letterSpacing:'-0.01em',
               }}>
-                <span style={{ fontFamily:'var(--font-display)', fontWeight:800,
-                  fontSize:'1.55rem', color:'var(--text-dark)', lineHeight:1 }}>74</span>
-                <span style={{ fontFamily:'var(--font-body)', fontSize:'0.6rem',
-                  color:'var(--text-light)', fontWeight:700, letterSpacing:'0.05em' }}>
-                  {lang==='NP' ? '१००/' : '/ 100'}
-                </span>
+                {lang==='NP' ? 'तपाईंको मानसिक फिटनेस स्कोर' : 'Your Mental Fitness Score'}
+              </h1>
+
+              <p style={{
+                fontFamily:'var(--font-body)', fontSize:'1.08rem',
+                color:'var(--text-mid)', maxWidth:600, margin:'0 auto 2.25rem',
+                lineHeight:1.6,
+              }}>
+                {lang==='NP'
+                  ? 'यो कुनै चिकित्सा निदान होइन। यो तपाईंको दैनिक भावनात्मक स्वास्थ्यको सरल, सौम्य झलक हो — समयसँगै तपाईं कस्तो महसुस गर्दै हुनुहुन्छ भन्ने प्रवृत्ति।'
+                  : 'Not a medical score. Just a simple, honest read on how you\u2019re really doing — your psychological wellness trend, over time.'}
+              </p>
+
+              <div style={{ display:'flex', gap:'0.85rem', justifyContent:'center', flexWrap:'wrap' }}>
+                <button className="btn btn-primary" onClick={startQuiz}>
+                  {lang==='NP' ? 'आफ्नो स्कोर हेर्नुहोस्' : 'Check My Score'} →
+                </button>
+                <button className="btn btn-outline" onClick={() => go('/resources')}>
+                  {lang==='NP' ? 'यो कसरी काम गर्छ' : 'How it works'}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ───────── QUIZ: one pillar at a time ───────── */}
+          {stage === 'quiz' && (() => {
+            const pillar = PILLARS[stepIndex]
+            return (
+              <div style={{ textAlign:'left', maxWidth:560, margin:'0 auto' }}>
+
+                {/* progress strip */}
+                <div style={{ display:'flex', gap:'0.4rem', marginBottom:'2rem' }}>
+                  {PILLARS.map((p, i) => (
+                    <div key={p.key} style={{
+                      flex:1, height:6, borderRadius:100,
+                      background: i < stepIndex ? 'var(--sky)'
+                        : i === stepIndex ? 'var(--sky)'
+                        : 'var(--blue-pale)',
+                      opacity: i === stepIndex ? 1 : i < stepIndex ? 0.55 : 1,
+                      transition:'background 0.2s ease',
+                    }} />
+                  ))}
+                </div>
+
+                <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', fontWeight:700,
+                  color:'var(--sky)', letterSpacing:'0.06em', textTransform:'uppercase',
+                  marginBottom:'1rem' }}>
+                  {lang==='NP'
+                    ? `प्रश्न ${stepIndex + 1} / ${PILLARS.length}`
+                    : `Question ${stepIndex + 1} of ${PILLARS.length}`}
+                </div>
+
+                <div style={{ display:'flex', alignItems:'center', gap:'0.9rem', marginBottom:'0.9rem' }}>
+                  <div style={{
+                    width:46, height:46, borderRadius:12, background:pillar.tint,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    fontSize:'1.3rem', flexShrink:0,
+                  }}>
+                    {pillar.icon}
+                  </div>
+                  <div style={{ fontFamily:'var(--font-display)', fontWeight:700,
+                    fontSize:'1.3rem', color:'var(--text-dark)' }}>
+                    {lang==='NP' ? pillar.labelNP : pillar.label}
+                  </div>
+                </div>
+
+                <p style={{ fontFamily:'var(--font-body)', fontSize:'0.96rem',
+                  color:'var(--text-mid)', lineHeight:1.6, margin:'0 0 1.75rem' }}>
+                  {lang==='NP' ? pillar.descNP : pillar.desc}
+                </p>
+
+                <div style={{ display:'flex', flexDirection:'column', gap:'0.6rem' }}>
+                  {pillar.levels.map((lvl, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => selectLevel(pillar.key, idx)}
+                      style={{
+                        display:'flex', alignItems:'center', gap:'0.85rem',
+                        textAlign:'left', width:'100%',
+                        padding:'0.9rem 1.1rem', borderRadius:'var(--radius-md)',
+                        border: answers[pillar.key] === idx
+                          ? `1.5px solid ${pillar.fg}` : '1.5px solid var(--blue-pale)',
+                        background: answers[pillar.key] === idx ? pillar.tint : 'var(--white)',
+                        fontFamily:'var(--font-body)', fontSize:'0.94rem', fontWeight:600,
+                        color:'var(--text-dark)', cursor:'pointer',
+                        transition:'border-color 0.15s ease, background 0.15s ease',
+                      }}
+                    >
+                      <span style={{
+                        width:24, height:24, borderRadius:'50%', flexShrink:0,
+                        border:`1.5px solid ${pillar.fg}`,
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        fontSize:'0.7rem', fontWeight:800, color:pillar.fg,
+                        fontFamily:'var(--font-display)',
+                      }}>
+                        {idx + 1}
+                      </span>
+                      {lang==='NP' ? lvl.labelNP : lvl.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ marginTop:'1.5rem' }}>
+                  {stepIndex > 0 ? (
+                    <button
+                      onClick={goBackStep}
+                      style={{
+                        background:'none', border:'none', cursor:'pointer',
+                        fontFamily:'var(--font-body)', fontSize:'0.86rem', fontWeight:600,
+                        color:'var(--text-light)', padding:'0.4rem 0',
+                      }}
+                    >
+                      ← {lang==='NP' ? 'अघिल्लो' : 'Back'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setStage(null)}
+                      style={{
+                        background:'none', border:'none', cursor:'pointer',
+                        fontFamily:'var(--font-body)', fontSize:'0.86rem', fontWeight:600,
+                        color:'var(--text-light)', padding:'0.4rem 0',
+                      }}
+                    >
+                      ← {lang==='NP' ? 'रद्द गर्नुहोस्' : 'Cancel'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* ───────── RESULTS ───────── */}
+          {stage === 'results' && (
+            <div>
+              <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', fontWeight:700,
+                color:'var(--sky)', letterSpacing:'0.06em', textTransform:'uppercase',
+                marginBottom:'1.1rem' }}>
+                {lang==='NP' ? 'तपाईंको नतिजा' : 'Your result'}
+              </div>
+
+              <div style={{
+                display:'inline-flex', alignItems:'center', gap:'1.75rem',
+                background:'var(--white)', border:'1px solid var(--blue-pale)',
+                borderRadius:'var(--radius-lg)', padding:'1.4rem 2rem',
+                boxShadow:'0 20px 56px rgba(15,52,96,0.08)',
+                flexWrap:'wrap', justifyContent:'center', marginBottom:'2rem',
+              }}>
+                <div style={{ position:'relative', width:108, height:108, flexShrink:0 }}>
+                  <svg viewBox="0 0 100 100" width="108" height="108">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="var(--blue-pale)" strokeWidth="10" />
+                    <circle cx="50" cy="50" r="42" fill="none" stroke={overallColor.fg} strokeWidth="10"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2*Math.PI*42*(overallPct/100)} ${2*Math.PI*42}`}
+                      transform="rotate(-90 50 50)"
+                      style={{ transition:'stroke-dasharray 0.4s ease' }} />
+                  </svg>
+                  <div style={{
+                    position:'absolute', inset:0, display:'flex', flexDirection:'column',
+                    alignItems:'center', justifyContent:'center',
+                  }}>
+                    <span style={{ fontFamily:'var(--font-display)', fontWeight:800,
+                      fontSize:'1.55rem', color:'var(--text-dark)', lineHeight:1 }}>{overallPct}</span>
+                    <span style={{ fontFamily:'var(--font-body)', fontSize:'0.6rem',
+                      color:'var(--text-light)', fontWeight:700, letterSpacing:'0.05em' }}>
+                      {lang==='NP' ? '१००/' : '/ 100'}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ textAlign:'left' }}>
+                  <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem',
+                    color:'var(--text-light)', fontWeight:600, marginBottom:'0.2rem' }}>
+                    {lang==='NP' ? 'आजको जाँच' : 'Today\u2019s check-in'}
+                  </div>
+                  <div style={{ fontFamily:'var(--font-display)', fontWeight:700,
+                    fontSize:'1.05rem', color:overallColor.fg }}>
+                    {lang==='NP' ? overallLabel.np : overallLabel.en}
+                  </div>
+                  <div style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem',
+                    color:'var(--text-mid)', marginTop:'0.15rem' }}>
+                    {lang==='NP' ? 'छ आधारहरूको औसतमा आधारित' : 'Based on all six pillars'}
+                  </div>
+                </div>
+              </div>
+
+              {/* per-pillar breakdown */}
+              <div style={{
+                display:'grid', gap:'0.7rem',
+                gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))',
+                textAlign:'left', marginBottom:'2rem',
+              }}>
+                {pillarScores.map(p => {
+                  const c = scoreColor(p.pct ?? 0)
+                  return (
+                    <div key={p.key} style={{
+                      background:'var(--white)', border:'1px solid var(--blue-pale)',
+                      borderRadius:'var(--radius-md)', padding:'0.9rem 1rem',
+                      display:'flex', alignItems:'center', gap:'0.75rem',
+                    }}>
+                      <div style={{
+                        width:36, height:36, borderRadius:10, background:p.tint,
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        fontSize:'1.05rem', flexShrink:0,
+                      }}>
+                        {p.icon}
+                      </div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontFamily:'var(--font-body)', fontSize:'0.84rem',
+                          fontWeight:700, color:'var(--text-dark)' }}>
+                          {lang==='NP' ? p.labelNP : p.label}
+                        </div>
+                        <div style={{
+                          height:5, borderRadius:100, background:'var(--blue-pale)',
+                          marginTop:'0.35rem', overflow:'hidden',
+                        }}>
+                          <div style={{
+                            height:'100%', width:`${p.pct}%`, background:c.fg,
+                            borderRadius:100, transition:'width 0.4s ease',
+                          }} />
+                        </div>
+                      </div>
+                      <div style={{ fontFamily:'var(--font-display)', fontWeight:800,
+                        fontSize:'0.92rem', color:c.fg, flexShrink:0 }}>
+                        {p.pct}%
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div style={{ display:'flex', gap:'0.85rem', justifyContent:'center', flexWrap:'wrap' }}>
+                <button className="btn btn-primary" onClick={() => go('/resources')}>
+                  {lang==='NP' ? 'सुझावहरू हेर्नुहोस्' : 'See suggestions'} →
+                </button>
+                <button className="btn btn-outline" onClick={retake}>
+                  {lang==='NP' ? 'फेरि जाँच गर्नुहोस्' : 'Retake check-in'}
+                </button>
               </div>
             </div>
-            <div style={{ textAlign:'left' }}>
-              <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem',
-                color:'var(--text-light)', fontWeight:600, marginBottom:'0.2rem' }}>
-                {lang==='NP' ? 'नमुना मात्र' : 'Sample only'}
-              </div>
-              <div style={{ fontFamily:'var(--font-display)', fontWeight:700,
-                fontSize:'1.05rem', color:'var(--green-deep)' }}>
-                {lang==='NP' ? 'स्थिर र सुधारिँदै' : 'Steady & improving'}
-              </div>
-              <div style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem',
-                color:'var(--text-mid)', marginTop:'0.15rem' }}>
-                {lang==='NP' ? 'गत ३० दिनको प्रवृत्तिमा आधारित' : 'Based on your last 30 days'}
-              </div>
-            </div>
-          </div>
+          )}
 
         </div>
       </section>
@@ -297,15 +584,17 @@ export default function MentalFitnessScore({ onNavigate }) {
       </section>
 
       {/* ───────────── FINAL CTA ───────────── */}
-      <section style={{ padding:'3rem 1.5rem 5rem', textAlign:'center' }}>
-        <h3 style={{ fontFamily:'var(--font-display)', fontWeight:800,
-          fontSize:'1.5rem', color:'var(--text-dark)', margin:'0 0 1rem' }}>
-          {lang==='NP' ? 'आज आफ्नो प्रवृत्ति जाँच गर्नुहोस्' : 'Check your trend today'}
-        </h3>
-        <button className="btn btn-primary" onClick={() => go('/assessments')}>
-          {lang==='NP' ? 'सुरु गर्नुहोस्' : 'Get Started'} →
-        </button>
-      </section>
+      {stage === null && (
+        <section style={{ padding:'3rem 1.5rem 5rem', textAlign:'center' }}>
+          <h3 style={{ fontFamily:'var(--font-display)', fontWeight:800,
+            fontSize:'1.5rem', color:'var(--text-dark)', margin:'0 0 1rem' }}>
+            {lang==='NP' ? 'आज आफ्नो प्रवृत्ति जाँच गर्नुहोस्' : 'Check your trend today'}
+          </h3>
+          <button className="btn btn-primary" onClick={startQuiz}>
+            {lang==='NP' ? 'सुरु गर्नुहोस्' : 'Get Started'} →
+          </button>
+        </section>
+      )}
 
     </div>
   )
