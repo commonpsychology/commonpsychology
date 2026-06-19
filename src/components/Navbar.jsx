@@ -18,6 +18,7 @@ const NAV = [
   { label: 'Tools', labelNP: 'उपकरणहरू', path: '/assessments', children: [
     { label: 'Assessments',     labelNP: 'मूल्यांकनहरू',      path: '/assessments',  icon: '📝', desc: 'PHQ-9, GAD-7, DASS-21',      descNP: 'PHQ-9, GAD-7, DASS-21' },
     { label: 'Free Resources',  labelNP: 'निःशुल्क स्रोतहरू',  path: '/resources',   icon: '📄', desc: 'Worksheets & guides',         descNP: 'वर्कशीट र गाइडहरू' },
+        { label: 'Mental Fitness',       labelNP: 'मानसिक फिटनेस',       path: '/mental-fitness',       icon: '🧠', desc: 'Improve your mental health',      descNP: 'तपाईंको मानसिक स्वास्थ्य बढाउनुहोस्' },
     { label: 'My Portal',       labelNP: 'मेरो पोर्टल',       path: '/portal',       icon: '🔐', desc: 'Your therapy dashboard',      descNP: 'तपाईंको थेरापी ड्यासबोर्ड' },
   ]},
   { label: 'Learn', labelNP: 'सिक्नुहोस्', path: '/blog', children: [

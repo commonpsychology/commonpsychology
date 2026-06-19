@@ -39,6 +39,7 @@ import UpdatePasswordPage  from './pages/UpdataPasswordPage'
 import UpgradePage         from './pages/UpgradePage'
 import ClientPortalPage    from './pages/ClientsPortalPage'
 import CommunityPage       from './pages/CommunityPage'
+import MentalFitness     from './pages/MentalFitness'
 import RegisterStaffPage   from './pages/RegisterStaffPage'
 import AIToolsPage         from './pages/AitoolsPage'
 import NeurosciencePage    from './pages/NeuroScience'
@@ -77,6 +78,7 @@ const ROUTES = {
   '/about':              ContactPage,
   '/signin':             SignInPage,
   '/neuro-science':       NeurosciencePage,
+  '/mental-fitness':     MentalFitness,
   '/my-orders':          MyOrdersPage,
   '/our-news':           OurNews,
 '/payment/esewa/success': EsewaSuccessPage,
