@@ -8,7 +8,7 @@ const MOODS = [
   [9,  11, "Mid-Morning",           "मध्य बिहान"],
   [11, 13, "Midday / Noon",         "मध्यान्ह"],
   [13, 15, "Early Afternoon",       "दिउँसो"],
-  [15, 17, "Late Afternoon",        "ढल्केको दिउँसो"],
+  [15, 17, "Late Afternoon",        "दिउँसो"],
   [17, 19, "Dusk / Twilight",       "साँझ / झिसमिसे"],
   [19, 21, "Prime Evening",         "साँझको बेला"],
   [21, 24, "Late Night",            "रातको शान्ति"],
