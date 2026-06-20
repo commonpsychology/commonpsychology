@@ -3,10 +3,10 @@ import { useLang } from '../context/LanguageContext'
 
 const MOODS = [
   [0,5,  "Good Morning",   "शुभ बिहान"],
-  [5,8,  "Good Morning",   "शुभ बिहान"],
-  [8,11, "Midday",         "मध्यान्ह"],
+  [5,10, "Good Morning",   "शुभ बिहान"],
+  [10,11, "Midday",         "मध्यान्ह"],
   [11,13,"Midday",         "मध्यान्ह"],
-  [13,16,"Dusk Descends",  "साँझ छाउँदै"],
+  [13,15,"Noon",  "दिउँसो"],
   [16,19,"Dusk Descends",  "साँझ छाउँदै"],
   [19,22,"Night's Calm",   "रातको शान्ति"],
   [22,24,"Night's Calm",   "रातको शान्ति"],
