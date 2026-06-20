@@ -1,10 +1,15 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useLang } from '../context/LanguageContext'
 
 const MOODS = [
-  [0,5,"Good Morning"],[5,8,"Good Morning"],
-  [8,11,"Midday"],[11,13,"Midday "],
-  [13,16,"Dusk Descends"],[16,19,"Dusk Descends"],
-  [19,22,"Nights Calm"],[22,24,"Nights Calm "]
+  [0,5,  "Good Morning",   "शुभ बिहान"],
+  [5,8,  "Good Morning",   "शुभ बिहान"],
+  [8,11, "Midday",         "मध्यान्ह"],
+  [11,13,"Midday",         "मध्यान्ह"],
+  [13,16,"Dusk Descends",  "साँझ छाउँदै"],
+  [16,19,"Dusk Descends",  "साँझ छाउँदै"],
+  [19,22,"Night's Calm",   "रातको शान्ति"],
+  [22,24,"Night's Calm",   "रातको शान्ति"],
 ]
 const COLORS = [
   [0,6,"#3C3489","#534AB7"],[6,9,"#854F0B","#BA7517"],
@@ -37,8 +42,15 @@ function inject(id, css) {
 function get(h, arr) { return arr.find(([s,e]) => h >= s && h < e) }
 
 export default function MindfulClock() {
+  const { lang } = useLang()
   const ref = useRef(null)
   const timer = useRef(null)
+
+  // Text now lives in React state — no more direct textContent mutation,
+  // so there's nothing for a re-render (e.g. on language toggle) to race against.
+  const [timeStr, setTimeStr] = useState('--:--')
+  const [mood, setMood]       = useState(lang === 'NP' ? 'श्वास फेर्नुहोस्' : 'breathe')
+  const [moodColor, setMoodColor] = useState('#7F77DD')
 
   useEffect(() => {
     inject('mc-css', CSS)
@@ -67,17 +79,21 @@ export default function MindfulClock() {
     function tick() {
       const now = new Date()
       const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds(), ms = now.getMilliseconds()
-      const mood = get(h, MOODS)
+      const moodRow = get(h, MOODS)
       const col  = get(h, COLORS)
       const light = col ? col[3] : '#7F77DD'
       const accent = col ? col[2] : '#3C3489'
       const fmt = v => String(v).padStart(2,'0')
 
-      const timeEl = document.getElementById('mc-time-el')
-      const moodEl = document.getElementById('mc-mood-el')
-      if (timeEl) timeEl.textContent = fmt(h) + ':' + fmt(m)
-      if (moodEl) { moodEl.textContent = mood?.[2] ?? 'breathe'; moodEl.style.color = light }
+      // React state updates — these batch and re-render normally,
+      // so the displayed text always matches the current `lang`.
+      setTimeStr(fmt(h) + ':' + fmt(m))
+      const label = moodRow ? (lang === 'NP' ? moodRow[3] : moodRow[2]) : (lang === 'NP' ? 'श्वास फेर्नुहोस्' : 'breathe')
+      setMood(label)
+      setMoodColor(light)
 
+      // SVG hands/arc still use direct DOM updates — fine, since these are
+      // numeric/geometric attributes with no language dependency.
       const secEl = svg.getElementById('mc-sec')
       const arcEl = svg.getElementById('mc-arc')
       const dot   = svg.querySelector('circle[r="5"]')
@@ -99,7 +115,10 @@ export default function MindfulClock() {
     tick()
     timer.current = setInterval(tick, 200)
     return () => clearInterval(timer.current)
-  }, [])
+    // Re-running this effect on `lang` change is intentional and cheap:
+    // it just re-binds `tick` so the very next 200ms frame uses the new
+    // language immediately, instead of waiting on stale closure state.
+  }, [lang])
 
   return (
     <div style={{ position:'absolute', top:'4.90rem', right:'1.5rem', zIndex:20, display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
@@ -145,8 +164,12 @@ export default function MindfulClock() {
         <circle cx="100" cy="30" r="1.5" fill="white" opacity="0.6"/>
       </svg>
       <div style={{ textAlign:'center' }}>
-        <div id="mc-time-el" style={{ fontFamily:'Georgia,serif', fontSize:'1.2rem', fontWeight:500, color:'#3C3489', letterSpacing:'0.06em' }}>--:--</div>
-        <div id="mc-mood-el" style={{ fontSize:'0.7rem', color:'#7F77DD', fontStyle:'italic', marginTop:3, letterSpacing:'0.03em' }}>breathe</div>
+        <div style={{ fontFamily:'Georgia,serif', fontSize:'1.2rem', fontWeight:500, color:'#3C3489', letterSpacing:'0.06em' }}>
+          {timeStr}
+        </div>
+        <div style={{ fontSize:'0.7rem', color:moodColor, fontStyle:'italic', marginTop:3, letterSpacing:'0.03em' }}>
+          {mood}
+        </div>
       </div>
     </div>
   )
