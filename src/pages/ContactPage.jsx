@@ -107,7 +107,7 @@ export default function ContactPage() {
     Get In Touch
   </span>
 
-  <h1 className="section-title" style={{ color: 'white' }}>
+  <h1 className="section-title" style={{ color: 'var(--green-deep)' }}>
     Contact Us
   </h1>
 
