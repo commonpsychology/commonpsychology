@@ -100,7 +100,7 @@ export default function ContactPage() {
       <div
   className="page-hero"
   style={{
-    background: 'linear-gradient(135deg, #87CEEB 0%, #ffffff 50%, #bfe9ff 100%)'
+    background: 'linear-gradient(135deg, #00BFFF;0%, #ffffff 50%, #bfe9ff 100%)'
   }}
 >
   <span className="section-tag" style={{ color: 'var(--green-light)' }}>
