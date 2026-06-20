@@ -112,8 +112,8 @@ export default function ContactPage() {
   </h1>
 
   <p
-    className="section-desc"
-    style={{ color: 'rgba(255,255,255,0.75)', maxWidth: 500 }}
+    className="section-desc" 
+    style={{ color: 'var(--green-deep) ', maxWidth: 500 }}
   >
     Have questions? We're here to help you take the first step toward better mental health.
   </p>
