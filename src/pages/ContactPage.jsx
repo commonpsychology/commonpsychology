@@ -97,8 +97,8 @@ export default function ContactPage() {
 
   return (
     <div className="page-wrapper">
-      <div className="page-hero" style={{ background:'var(--sky-con)' }}>
-        <span className="section-tag" style={{ color:'var(--green-pale)' }}>Get In Touch</span>
+      <div className="page-hero" style={{ background:'var(--sky-light)' }}>
+        <span className="section-tag" style={{ color:'var(--green-light)' }}>Get In Touch</span>
         <h1 className="section-title" style={{ color:'white' }}>Contact Us</h1>
         <p className="section-desc" style={{ color:'rgba(255,255,255,0.75)', maxWidth:500 }}>
           Have questions? We're here to help you take the first step toward better mental health.
