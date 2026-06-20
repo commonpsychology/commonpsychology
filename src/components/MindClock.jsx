@@ -2,14 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { useLang } from '../context/LanguageContext'
 
 const MOODS = [
-  [0,5,  "Good Morning",   "शुभ बिहान"],
-  [5,11, "Good Morning",   "शुभ बिहान"],
-  [11,13,"Midday",         "मध्यान्ह"],
-  [13,15,"Noon",  "दिउँसो"], 
-  [16,19,"Dusk Descends",  "साँझ छाउँदै"],
-  [19,22,"Night's Calm",   "रातको शान्ति"],
-  [22,24,"Night's Calm",   "रातको शान्ति"],
-]
+  [0,  5,  "Overnight / Wee Hours", "राती"],
+  [5,  7,  "Dawn",                  "भोर"],
+  [7,  9,  "Early Morning",         "बिहान"],
+  [9,  11, "Mid-Morning",           "मध्य बिहान"],
+  [11, 13, "Midday / Noon",         "मध्यान्ह"],
+  [13, 15, "Early Afternoon",       "दिउँसो"],
+  [15, 17, "Late Afternoon",        "ढल्केको दिउँसो"],
+  [17, 19, "Dusk / Twilight",       "साँझ / झिसमिसे"],
+  [19, 21, "Prime Evening",         "साँझको बेला"],
+  [21, 24, "Late Night",            "रातको शान्ति"],
+];
 const COLORS = [
   [0,6,"#3C3489","#534AB7"],[6,9,"#854F0B","#BA7517"],
   [9,12,"#085041","#1D9E75"],[12,15,"#185FA5","#378ADD"],
