@@ -100,7 +100,7 @@ export default function ContactPage() {
       <div
   className="page-hero"
   style={{
-    background: 'linear-gradient(135deg, #00BFFF;0%, #ffffff 50%, #bfe9ff 100%)'
+    background: 'linear-gradient(135deg, #00BFFF 0%, #ffffff 50%, #bfe9ff 100%)'
   }}
 >
   <span className="section-tag" style={{ color: 'var(--green-light)' }}>
@@ -112,7 +112,7 @@ export default function ContactPage() {
   </h1>
 
   <p
-    className="section-desc" 
+    className="section-desc"
     style={{ color: 'var(--green-deep) ', maxWidth: 500 }}
   >
     Have questions? We're here to help you take the first step toward better mental health.
