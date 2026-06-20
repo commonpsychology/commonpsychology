@@ -85,7 +85,7 @@ export default function ContactPage() {
       <div className="section" style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'70vh' }}>
         <div style={{ textAlign:'center', maxWidth:480 }}>
           <div style={{ fontSize:'3.5rem', marginBottom:'1rem' }}>✅</div>
-          <h2 style={{ fontFamily:'var(--font-display)', fontSize:'2rem', color:'var(--sky)', marginBottom:'0.75rem' }}>Message Sent!</h2>
+          <h2 style={{ fontFamily:'var(--font-display)', fontSize:'2rem', color:'var(--sky-con)', marginBottom:'0.75rem' }}>Message Sent!</h2>
           <p style={{ color:'var(--text-light)', lineHeight:1.7 }}>
             Thank you for reaching out. Our team will get back to you within 24 hours.
           </p>
@@ -97,7 +97,7 @@ export default function ContactPage() {
 
   return (
     <div className="page-wrapper">
-      <div className="page-hero" style={{ background:'var(--sky)' }}>
+      <div className="page-hero" style={{ background:'var(--sky-con)' }}>
         <span className="section-tag" style={{ color:'var(--green-pale)' }}>Get In Touch</span>
         <h1 className="section-title" style={{ color:'white' }}>Contact Us</h1>
         <p className="section-desc" style={{ color:'rgba(255,255,255,0.75)', maxWidth:500 }}>
@@ -111,7 +111,7 @@ export default function ContactPage() {
 
           {/* ── Info sidebar ── */}
           <div>
-            <h3 style={{ fontFamily:'var(--font-display)', color:'var(--sky)', marginBottom:'1.5rem' }}>Our Offices</h3>
+            <h3 style={{ fontFamily:'var(--font-display)', color:'var(--sky-con)', marginBottom:'1.5rem' }}>Our Offices</h3>
             {[
               { icon:'📍', title:'Kathmandu', detail:'Thimi, Bhaktapur, Nepal' },
               { icon:'📞', title:'Phone', detail:'+977 01-4412345' },
@@ -128,7 +128,7 @@ export default function ContactPage() {
             ))}
 
             <div style={{ marginTop:'2rem', padding:'1.25rem', background:'var(--green-mist)', borderRadius:'var(--radius-md)', border:'1px solid var(--green-pale)' }}>
-              <div style={{ fontFamily:'var(--font-display)', color:'var(--sky)', marginBottom:'0.5rem' }}>Crisis Support</div>
+              <div style={{ fontFamily:'var(--font-display)', color:'var(--sky-con)', marginBottom:'0.5rem' }}>Crisis Support</div>
               <p style={{ fontSize:'0.82rem', color:'var(--text-light)', lineHeight:1.6 }}>
                 If you're in crisis, please call <strong>TPO Nepal: 1660-01-11002</strong> — available 24/7.
               </p>
@@ -137,7 +137,7 @@ export default function ContactPage() {
 
           {/* ── Form ── */}
           <div style={{ background:'var(--white)', borderRadius:'var(--radius-xl)', padding:'2.5rem', boxShadow:'var(--shadow-soft)' }}>
-            <h3 style={{ fontFamily:'var(--font-display)', color:'var(--sky)', marginBottom:'1.5rem' }}>Send Us a Message</h3>
+            <h3 style={{ fontFamily:'var(--font-display)', color:'var(--sky-con)', marginBottom:'1.5rem' }}>Send Us a Message</h3>
 
             {error && (
               <div style={{ background:'#fff0f0', border:'1.5px solid #f5a0a0', borderRadius:8, padding:'0.75rem 1rem', marginBottom:'1.25rem', color:'#c0392b', fontSize:'0.875rem' }}>{error}</div>
@@ -192,7 +192,7 @@ export default function ContactPage() {
               </div>
 
               <button type="submit" disabled={loading}
-                style={{ padding:'0.9rem', background:loading?'#aaa':'var(--sky)', color:'white', border:'none', borderRadius:'var(--radius-md)', fontSize:'1rem', fontWeight:700, cursor:loading?'not-allowed':'pointer', transition:'background 0.2s' }}>
+                style={{ padding:'0.9rem', background:loading?'#aaa':'var(--sky-con)', color:'white', border:'none', borderRadius:'var(--radius-md)', fontSize:'1rem', fontWeight:700, cursor:loading?'not-allowed':'pointer', transition:'background 0.2s' }}>
                 {loading ? 'Sending…' : 'Send Message →'}
               </button>
             </form>
