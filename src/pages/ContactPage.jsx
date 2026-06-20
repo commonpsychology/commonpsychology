@@ -97,13 +97,27 @@ export default function ContactPage() {
 
   return (
     <div className="page-wrapper">
-      <div className="page-hero" style={{ background:'var(--sky-light)' }}>
-        <span className="section-tag" style={{ color:'var(--green-light)' }}>Get In Touch</span>
-        <h1 className="section-title" style={{ color:'white' }}>Contact Us</h1>
-        <p className="section-desc" style={{ color:'rgba(255,255,255,0.75)', maxWidth:500 }}>
-          Have questions? We're here to help you take the first step toward better mental health.
-        </p>
-      </div>
+      <div
+  className="page-hero"
+  style={{
+    background: 'linear-gradient(135deg, #87CEEB 0%, #ffffff 50%, #bfe9ff 100%)'
+  }}
+>
+  <span className="section-tag" style={{ color: 'var(--green-light)' }}>
+    Get In Touch
+  </span>
+
+  <h1 className="section-title" style={{ color: 'white' }}>
+    Contact Us
+  </h1>
+
+  <p
+    className="section-desc"
+    style={{ color: 'rgba(255,255,255,0.75)', maxWidth: 500 }}
+  >
+    Have questions? We're here to help you take the first step toward better mental health.
+  </p>
+</div>
 
       <div className="section" style={{ background:'var(--off-white)' }}>
         {/* Responsive two-column layout via CSS class */}
