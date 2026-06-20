@@ -1,5 +1,6 @@
 // src/pages/HomePage.jsx
 import { useEffect, useState } from 'react'
+import { useAuth }       from '../context/AuthContext'
 import HeroEmotional    from '../components/HeroEmotional'
 import TrustBar         from '../components/Trustbar'
 import Services         from '../components/Services'
@@ -21,20 +22,39 @@ import DailyReturnHook  from '../components/DailyReturnHook'
 import ImageSlider from '../components/ImageSlider'
 import FloatingActions  from '../components/FloatingActions'
 
+const API = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+
 export default function HomePage() {
+  const { user, loading: authLoading } = useAuth()
   const [showPoll, setShowPoll] = useState(false)
   const [loading, setLoading]   = useState(true)
 
+  // ── Poll trigger: logged-in users who haven't answered yet ──
   useEffect(() => {
-    const seen = sessionStorage.getItem('poll_seen')
-    if (!seen) {
-      const t = setTimeout(() => {
-        setShowPoll(true)
-        sessionStorage.setItem('poll_seen', '1')
-      }, 3000)
-      return () => clearTimeout(t)
+    if (authLoading) return        // wait for auth to resolve first
+    if (!user) return               // logged-out users never see the poll
+
+    let cancelled = false
+
+    async function checkPollStatus() {
+      try {
+        const token = localStorage.getItem('accessToken')
+        const res = await fetch(`${API}/polls/has-answered`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelled && !data.answered) {
+          setShowPoll(true)
+        }
+      } catch {
+        // Network/API error: fail silently, don't show poll on uncertainty
+      }
     }
-  }, [])
+
+    checkPollStatus()
+    return () => { cancelled = true }
+  }, [user, authLoading])
 
   return (
     <>
@@ -54,7 +74,7 @@ export default function HomePage() {
       {/* Single FAB — replaces FloatingOrders + FloatingEye + DonateButton */}
       <FloatingActions />
 
-      {/* Poll — rendered independently, does NOT affect DailyReturnHook */}
+      {/* Poll — shown only to logged-in users who haven't answered yet */}
       {showPoll && <PollPopup onClose={() => setShowPoll(false)} />}
 
       {/* Page sections */}

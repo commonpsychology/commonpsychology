@@ -1,11 +1,12 @@
 // src/components/PollPopup.jsx
 import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 
 const API = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 const POLL = {
   title: 'Quick Mental Wellness Check-in',
-  subtitle: 'Anonymous · Takes 60 seconds · No login needed',
+  subtitle: 'Takes 60 seconds',
   questions: [
     { id:'q1', text:'How often do you feel mentally overwhelmed in a typical week?', options:['Rarely or never','Once or twice','3–4 times','Almost every day'] },
     { id:'q2', text:'Have you ever sought professional mental health support?',        options:['Yes, currently','Yes, in the past','No, but I want to','No, I prefer self-help'] },
@@ -15,22 +16,23 @@ const POLL = {
   ],
 }
 
-// Baseline counts so results look realistic even without a DB
+// Baseline counts so results look realistic before live data loads
 const BASE_COUNTS = {
   q1:[120,340,210,180], q2:[95,270,185,140],
   q3:[310,220,190,130], q4:[260,185,140,95], q5:[420,180,90,60],
 }
 
 export default function PollPopup({ onClose }) {
-  const [answers, setAnswers]   = useState({})
-  const [submitted, setSubmitted] = useState(false)
-  const [visible, setVisible]   = useState(false)
+  const { user } = useAuth()
+  const [answers, setAnswers]       = useState({})
+  const [submitted, setSubmitted]   = useState(false)
+  const [visible, setVisible]       = useState(false)
   const [liveCounts, setLiveCounts] = useState(BASE_COUNTS)
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError]           = useState(null)
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 50)
-    // Fetch current poll results
     fetch(`${API}/polls/results`).then(r => r.json()).then(d => {
       if (d.counts) setLiveCounts(d.counts)
     }).catch(() => {})
@@ -42,17 +44,29 @@ export default function PollPopup({ onClose }) {
   const progress = Math.round((answered / total) * 100)
 
   async function handleSubmit() {
-    if (answered < total) return
+    if (answered < total || !user) return
     setSubmitting(true)
+    setError(null)
     try {
-      await fetch(`${API}/polls/submit`, {
+      const token = localStorage.getItem('accessToken')
+      const res = await fetch(`${API}/polls/submit`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ answers }),
       })
-    } catch {}
-    setSubmitting(false)
-    setSubmitted(true)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Submit failed')
+      }
+      setSubmitted(true)
+    } catch (err) {
+      setError('Could not submit your answers. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   function dismiss() {
@@ -122,6 +136,9 @@ export default function PollPopup({ onClose }) {
                   </div>
                 </div>
               ))}
+              {error && (
+                <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:'#b00020' }}>{error}</div>
+              )}
             </div>
           ) : (
             <div>
