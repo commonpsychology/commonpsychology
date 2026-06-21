@@ -224,8 +224,6 @@ export const notifications = {
   delete:      (id)        => del(`/notifications/${id}`),
 }
 
-// REPLACE the `community` export in src/services/api.js with this:
-
 export const community = {
   // Groups
   groups:          ()         => get('/community/groups'),
@@ -314,18 +312,25 @@ export const polls = {
   submit: (answers) => post('/polls/submit', { answers }).catch(() => null),
 }
 
+// =============================================================================
+// PASSWORD
+// =============================================================================
+// NOTE: `update` is now public — no JWT required. The backend looks the user
+// up by email and checks `current` against their stored hash itself. The
+// `request()` helper still attaches an Authorization header if the user
+// happens to be logged in, but the backend route does not require it.
 export const passwordApi = {
-  update: (current, next) =>
-    apiFetch('/password/update', { method: 'PATCH', body: { current, next } }),
+  update: (email, current, next) =>
+    patch('/password/update', { email, current, next }),
 
   requestOtp: (email) =>
-    apiFetch('/password/forgot/request-otp', { method: 'POST', body: { email } }),
+    post('/password/forgot/request-otp', { email }),
 
   verifyOtp: (email, otp) =>
-    apiFetch('/password/forgot/verify-otp', { method: 'POST', body: { email, otp } }),
+    post('/password/forgot/verify-otp', { email, otp }),
 
   resetWithToken: (email, resetToken, next) =>
-    apiFetch('/password/forgot/reset', { method: 'POST', body: { email, resetToken, next } }),
+    post('/password/forgot/reset', { email, resetToken, next }),
 }
 
 // =============================================================================
@@ -349,4 +354,4 @@ courses: () => get('/courses'),
   bookPlace:       (body)      => post('/content/place-bookings', body),
 }
 
-export default { auth, profile, therapists, appointments, store, payments, wellness, notifications, admin, polls, content }
+export default { auth, profile, therapists, appointments, store, payments, wellness, notifications, admin, polls, content, passwordApi }

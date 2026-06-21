@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
+import { passwordApi } from '../services/api'
+import { useRouter } from '../context/RouterContext'
 
 /* ----------------------------------------------------------------
    Design tokens — "Tidal" system
@@ -8,20 +10,20 @@ import { useState, useEffect, useRef } from 'react'
    nod to ink on water), a clean grotesk for body/UI.
 ------------------------------------------------------------------ */
 const C = {
-  abyss:    '#04263F',   // deepest water, headline color on light bg
+  abyss:    '#04263F',
   deep:     '#0A4D78',
   mid:      '#0E78AC',
   bright:   '#15A6D6',
   foam:     '#7FDDEE',
-  sand:     '#FBF7EE',   // warm ivory surface (the "shore")
+  sand:     '#FBF7EE',
   sandDeep: '#F1EADA',
   sandLine: '#E4DBC4',
   ink:      '#0F2A38',
   inkSoft:  '#4A6B78',
   inkFaint: '#8FA9B2',
   white:    '#FFFFFF',
-  coral:    '#E0654A',   // sole warm accent for error/alert states
-  kelp:     '#1F9D6F',   // success
+  coral:    '#E0654A',
+  kelp:     '#1F9D6F',
 }
 
 const waterGrad   = `linear-gradient(160deg, ${C.abyss} 0%, ${C.deep} 38%, ${C.mid} 68%, ${C.bright} 100%)`
@@ -56,10 +58,7 @@ const FontImports = () => (
   `}</style>
 )
 
-/* ---------------- Tide gauge — the signature element ----------------
-   A vertical water vessel that fills with an actual animated water
-   surface as password strength increases. Replaces the generic
-   four-segment bar with something literal to the "Tidal" concept. */
+/* ---------------- Tide gauge — strength meter ---------------- */
 
 function strengthOf(pw) {
   let s = 0
@@ -71,8 +70,8 @@ function strengthOf(pw) {
   return Math.min(s, 4)
 }
 
-const TIDE_LABELS  = ['Shallow', 'Shallow', 'Rising', 'Deep', 'High Tide']
-const TIDE_COLORS  = [C.inkFaint, C.coral, '#D9A441', C.mid, C.kelp]
+const TIDE_LABELS = ['Shallow', 'Shallow', 'Rising', 'Deep', 'High Tide']
+const TIDE_COLORS = [C.inkFaint, C.coral, '#D9A441', C.mid, C.kelp]
 
 function TideGauge({ password }) {
   const score = strengthOf(password)
@@ -115,9 +114,41 @@ function TideGauge({ password }) {
   )
 }
 
-/* ---------------------- Password input ---------------------- */
+/* ---------------------- Inputs ---------------------- */
 
-function PasswordField({ label, value, onChange, placeholder, hint }) {
+function TextField({ label, value, onChange, placeholder, type = 'text', autoComplete }) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <div style={{ marginBottom: '1.3rem' }}>
+      <label style={{
+        display: 'block', fontFamily: bodyFont, fontSize: '0.74rem', fontWeight: 700,
+        color: C.ink, marginBottom: '0.5rem', letterSpacing: '0.01em',
+      }}>
+        {label}
+      </label>
+      <input
+        className="twp-field"
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          width: '100%', padding: '0.9rem 1.05rem',
+          border: `1.5px solid ${focused ? C.mid : C.sandLine}`,
+          borderRadius: 10, fontFamily: bodyFont, fontSize: '0.95rem',
+          color: C.ink, background: focused ? C.white : C.sand,
+          boxShadow: focused ? `0 0 0 4px ${C.mid}1a` : 'none',
+          transition: 'all 0.18s ease', boxSizing: 'border-box',
+        }}
+      />
+    </div>
+  )
+}
+
+function PasswordField({ label, value, onChange, placeholder, hint, autoComplete }) {
   const [show, setShow] = useState(false)
   const [focused, setFocused] = useState(false)
   return (
@@ -137,6 +168,7 @@ function PasswordField({ label, value, onChange, placeholder, hint }) {
           value={value}
           onChange={onChange}
           placeholder={placeholder}
+          autoComplete={autoComplete}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           style={{
@@ -145,7 +177,7 @@ function PasswordField({ label, value, onChange, placeholder, hint }) {
             borderRadius: 10, fontFamily: bodyFont, fontSize: '0.95rem',
             color: C.ink, background: focused ? C.white : C.sand,
             boxShadow: focused ? `0 0 0 4px ${C.mid}1a` : 'none',
-            transition: 'all 0.18s ease',
+            transition: 'all 0.18s ease', boxSizing: 'border-box',
           }}
         />
         <button
@@ -173,7 +205,7 @@ function PasswordField({ label, value, onChange, placeholder, hint }) {
 
 function SuccessView({ onDone }) {
   return (
-    <div style={{ minHeight: '100vh', background: C.sand, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+    <div className="page-wrapper" style={{ minHeight: '100vh', background: C.sand, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
       <FontImports />
       <div className="twp-card" style={{
         maxWidth: 440, width: '100%', background: C.white, borderRadius: 20,
@@ -195,7 +227,7 @@ function SuccessView({ onDone }) {
             Password updated
           </h2>
           <p style={{ fontFamily: bodyFont, fontSize: '0.92rem', color: C.inkSoft, lineHeight: 1.7, marginBottom: '2.1rem' }}>
-            Your new password is active. Use it the next time you sign in.
+            Your password has been changed. Use it the next time you sign in.
           </p>
           <button
             onClick={onDone}
@@ -206,7 +238,7 @@ function SuccessView({ onDone }) {
               boxShadow: '0 8px 24px -6px rgba(10,77,120,0.45)',
             }}
           >
-            Back to account
+            Go to sign in
           </button>
         </div>
       </div>
@@ -215,42 +247,47 @@ function SuccessView({ onDone }) {
 }
 
 /* ---------------------- Main page ---------------------- */
+// Public flow: no login required. Identity is proven by supplying the
+// account email together with its current password — the backend looks
+// the user up by email and verifies `current` against the stored hash.
 
-export default function UpdatePasswordPage({ onNavigate = () => {} }) {
-  const [form, setForm] = useState({ current: '', next: '', confirm: '' })
-  const [status, setStatus] = useState('idle')
+export default function UpdatePasswordPage() {
+  const { navigate } = useRouter()
+
+  const [form, setForm] = useState({ email: '', current: '', next: '', confirm: '' })
+  const [status, setStatus] = useState('idle') // idle | saving | success | error
   const [errorMsg, setErrorMsg] = useState('')
 
   const upForm = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const passwordsMatch = form.next && form.next === form.confirm
-  const formOK = form.current && form.next.length >= 8 && passwordsMatch
+  const emailLooksValid = /\S+@\S+\.\S+/.test(form.email)
+  const passwordsMatch  = form.next && form.next === form.confirm
+  const formOK = emailLooksValid && form.current && form.next.length >= 8 && passwordsMatch
 
   async function handleSubmit() {
     if (!formOK || status === 'saving') return
     setStatus('saving')
     setErrorMsg('')
+
     try {
-      // await passwordApi.update(form.current, form.next)
-      await new Promise((res, rej) => setTimeout(() => res(), 900))
+      await passwordApi.update(form.email.trim().toLowerCase(), form.current, form.next)
       setStatus('success')
     } catch (err) {
       setStatus('error')
-      setErrorMsg(err?.message || 'Could not update your password. Please try again.')
+      setErrorMsg(err.message || 'Could not update password. Please try again.')
     }
   }
 
   if (status === 'success') {
-    return <SuccessView onDone={() => onNavigate('/account')} />
+    return <SuccessView onDone={() => navigate('/signin')} />
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.sand }}>
+    <div className="page-wrapper" style={{ minHeight: '100vh', background: C.sand }}>
       <FontImports />
 
       {/* ---------- Hero ---------- */}
       <div style={{ position: 'relative', background: waterGrad, padding: '4.2rem 1.5rem 6.5rem', overflow: 'hidden' }}>
-        {/* drifting light texture, decorative only */}
         <div className="twp-wave" style={{
           position: 'absolute', top: -120, right: -100, width: 360, height: 360, borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(255,255,255,0.10), transparent 70%)',
@@ -264,7 +301,7 @@ export default function UpdatePasswordPage({ onNavigate = () => {} }) {
 
         <div style={{ maxWidth: 600, margin: '0 auto', position: 'relative' }}>
           <button
-            onClick={() => onNavigate('/account')}
+            onClick={() => navigate('/signin')}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 7,
               background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)',
@@ -274,7 +311,7 @@ export default function UpdatePasswordPage({ onNavigate = () => {} }) {
             }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            Account
+            Back to sign in
           </button>
 
           <div style={{
@@ -290,7 +327,7 @@ export default function UpdatePasswordPage({ onNavigate = () => {} }) {
             Update your password
           </h1>
           <p style={{ fontFamily: bodyFont, fontSize: '0.95rem', color: 'rgba(255,255,255,0.78)', maxWidth: 380, lineHeight: 1.65 }}>
-            A strong, unique password is your first line of defense. This change applies the moment you save it.
+            Enter your email and current password to set a new one. No sign-in needed.
           </p>
         </div>
       </div>
@@ -316,8 +353,18 @@ export default function UpdatePasswordPage({ onNavigate = () => {} }) {
               </div>
             )}
 
+            <TextField
+              label="Email address"
+              type="email"
+              autoComplete="email"
+              value={form.email}
+              onChange={e => { upForm('email', e.target.value); setStatus('idle') }}
+              placeholder="you@example.com"
+            />
+
             <PasswordField
               label="Current password"
+              autoComplete="current-password"
               value={form.current}
               onChange={e => { upForm('current', e.target.value); setStatus('idle') }}
               placeholder="Enter your current password"
@@ -327,6 +374,7 @@ export default function UpdatePasswordPage({ onNavigate = () => {} }) {
 
             <PasswordField
               label="New password"
+              autoComplete="new-password"
               value={form.next}
               onChange={e => upForm('next', e.target.value)}
               placeholder="At least 8 characters"
@@ -336,6 +384,7 @@ export default function UpdatePasswordPage({ onNavigate = () => {} }) {
 
             <PasswordField
               label="Confirm new password"
+              autoComplete="new-password"
               value={form.confirm}
               onChange={e => upForm('confirm', e.target.value)}
               placeholder="Re-enter new password"
@@ -356,7 +405,6 @@ export default function UpdatePasswordPage({ onNavigate = () => {} }) {
               </div>
             )}
 
-            {/* Tips, restyled as a quiet checklist rather than a boxed callout */}
             <div style={{ margin: '1.7rem 0 0.4rem', padding: '1rem 1.1rem', background: C.sand, borderRadius: 10, border: `1px solid ${C.sandLine}` }}>
               <div style={{ fontFamily: monoFont, fontSize: '0.64rem', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.inkFaint, marginBottom: '0.65rem' }}>
                 For a deeper tide
@@ -386,7 +434,7 @@ export default function UpdatePasswordPage({ onNavigate = () => {} }) {
 
             <div style={{ textAlign: 'center', margin: '1.5rem 0 0.3rem' }}>
               <button
-                onClick={() => onNavigate('/forgot-password')}
+                onClick={() => navigate('/forgot-password')}
                 style={{ background: 'none', border: 'none', color: C.mid, fontFamily: bodyFont, fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
               >
                 Forgot your current password instead?
@@ -404,7 +452,7 @@ export default function UpdatePasswordPage({ onNavigate = () => {} }) {
                 fontFamily: bodyFont, fontWeight: 700, fontSize: '0.95rem',
                 cursor: formOK && status !== 'saving' ? 'pointer' : 'not-allowed',
                 boxShadow: formOK ? '0 10px 28px -8px rgba(10,77,120,0.5)' : 'none',
-                transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                transition: 'all 0.2s',
               }}
             >
               {status === 'saving' ? 'Updating…' : 'Update password'}
