@@ -182,19 +182,19 @@ async function updateQty(productId, qty) {
   return (
     <div className="page-wrapper">
       {/* Hero */}
-      <div className="page-hero" style={{ background:'var(--sky-con-light)' }}>
+      <div className="page-hero" style={{ background:'var(--green-deep)' }}>
         <span className="section-tag" style={{ color:'var(--green-pale)' }}>Wellness Store</span>
-        <h1 className="section-title" style={{ color:'white' }}>Mental Wellness Products </h1>
+        <h1 className="section-title" style={{ color:'white' }}>Mental Wellness <em>Products</em></h1>
         <p className="section-desc" style={{ color:'rgba(255,255,255,0.75)', maxWidth:500 }}>Books, workbooks, digital tools, and more — curated for your healing journey.</p>
       </div>
 
       {/* Toolbar */}
       <div style={{ background:'var(--white)', padding:'1.25rem 2rem', borderBottom:'1px solid var(--earth-cream)', display:'flex', gap:'1rem', alignItems:'center', flexWrap:'wrap', justifyContent:'space-between', position:'sticky', top:0, zIndex:10 }}>
         <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap', flex:1 }}>
-          <button onClick={() => { setActiveCategory('all'); setPage(1) }} style={{ padding:'0.4rem 1rem', borderRadius:'100px', border:`1.5px solid ${activeCategory==='all'?'var(--sky-con-light)':'var(--earth-cream)'}`, background:activeCategory==='all'?'var(--sky-con-light)':'var(--white)', color:activeCategory==='all'?'white':'var(--text-mid)', fontSize:'0.8rem', fontWeight:600, cursor:'pointer' }}>All</button>
+          <button onClick={() => { setActiveCategory('all'); setPage(1) }} style={{ padding:'0.4rem 1rem', borderRadius:'100px', border:`1.5px solid ${activeCategory==='all'?'var(--green-deep)':'var(--earth-cream)'}`, background:activeCategory==='all'?'var(--green-deep)':'var(--white)', color:activeCategory==='all'?'white':'var(--text-mid)', fontSize:'0.8rem', fontWeight:600, cursor:'pointer' }}>All</button>
           {categories.map(c => (
             <button key={c.id} onClick={() => { setActiveCategory(c.id); setPage(1) }}
-              style={{ padding:'0.4rem 1rem', borderRadius:'100px', border:`1.5px solid ${activeCategory===c.id?'var(--sky-con-light)':'var(--earth-cream)'}`, background:activeCategory===c.id?'var(--sky-con-light)':'var(--white)', color:activeCategory===c.id?'white':'var(--text-mid)', fontSize:'0.8rem', fontWeight:600, cursor:'pointer' }}>
+              style={{ padding:'0.4rem 1rem', borderRadius:'100px', border:`1.5px solid ${activeCategory===c.id?'var(--green-deep)':'var(--earth-cream)'}`, background:activeCategory===c.id?'var(--green-deep)':'var(--white)', color:activeCategory===c.id?'white':'var(--text-mid)', fontSize:'0.8rem', fontWeight:600, cursor:'pointer' }}>
               {c.name}
             </button>
           ))}
@@ -202,14 +202,14 @@ async function updateQty(productId, qty) {
         <div style={{ display:'flex', gap:'0.75rem', alignItems:'center' }}>
           <input placeholder="Search products…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
             style={{ padding:'0.5rem 1rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.85rem', outline:'none', width:200 }}/>
-          <button onClick={() => setCartOpen(true)} style={{ position:'relative', padding:'0.5rem 1rem', background:'var(--sky-con-light)', color:'white', border:'none', borderRadius:8, fontSize:'0.85rem', fontWeight:700, cursor:'pointer' }}>
+          <button onClick={() => setCartOpen(true)} style={{ position:'relative', padding:'0.5rem 1rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:8, fontSize:'0.85rem', fontWeight:700, cursor:'pointer' }}>
             🛒 Cart {cartCount > 0 && <span style={{ background:'#f97316', borderRadius:'50%', padding:'0 5px', fontSize:'0.72rem', marginLeft:4 }}>{cartCount}</span>}
           </button>
         </div>
       </div>
 
       {cartMsg && (
-        <div style={{ position:'fixed', bottom:'2rem', right:'2rem', background:'var(--sky-con-light)', color:'white', padding:'0.75rem 1.5rem', borderRadius:10, fontWeight:600, fontSize:'0.9rem', zIndex:1000, boxShadow:'0 4px 20px rgba(0,0,0,0.15)' }}>{cartMsg}</div>
+        <div style={{ position:'fixed', bottom:'2rem', right:'2rem', background:'var(--green-deep)', color:'white', padding:'0.75rem 1.5rem', borderRadius:10, fontWeight:600, fontSize:'0.9rem', zIndex:1000, boxShadow:'0 4px 20px rgba(0,0,0,0.15)' }}>{cartMsg}</div>
       )}
 
       {/* Products grid */}
@@ -230,29 +230,29 @@ async function updateQty(productId, qty) {
                 onMouseLeave={e => e.currentTarget.style.boxShadow='none'}>
                 <div style={{ height:200, background:'var(--green-mist)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3rem', position:'relative' }}>
                   {p.images?.[0] ? <img src={p.images[0]} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : '📚'}
-                  {p.is_featured && <span style={{ position:'absolute', top:10, left:10, background:'var(--sky-con-light)', color:'white', fontSize:'0.68rem', fontWeight:800, padding:'0.2rem 0.6rem', borderRadius:'100px', letterSpacing:'0.08em' }}>FEATURED</span>}
+                  {p.is_featured && <span style={{ position:'absolute', top:10, left:10, background:'var(--green-deep)', color:'white', fontSize:'0.68rem', fontWeight:800, padding:'0.2rem 0.6rem', borderRadius:'100px', letterSpacing:'0.08em' }}>FEATURED</span>}
                   {p.sale_price && <span style={{ position:'absolute', top:10, right:10, background:'#ef4444', color:'white', fontSize:'0.68rem', fontWeight:800, padding:'0.2rem 0.6rem', borderRadius:'100px' }}>SALE</span>}
                 </div>
                 <div style={{ padding:'1.25rem', display:'flex', flexDirection:'column', height:'calc(100% - 200px)' }}>
-  <div style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--sky-con-light)', fontWeight:600, marginBottom:'0.4rem' }}>{p.name}</div>
+  <div style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:600, marginBottom:'0.4rem' }}>{p.name}</div>
   {p.short_description && <p style={{ fontSize:'0.8rem', color:'var(--text-light)', lineHeight:1.5, marginBottom:'0.75rem' }}>{p.short_description}</p>}
   <div style={{ marginBottom:'0.5rem' }}>
-    {p.tags?.slice(0,2).map((t,i) => <span key={i} style={{ fontSize:'0.7rem', fontWeight:600, background:'var(--green-mist)', color:'var(--sky-con-light)', padding:'0.15rem 0.5rem', borderRadius:'100px', marginRight:'0.35rem' }}>{t}</span>)}
+    {p.tags?.slice(0,2).map((t,i) => <span key={i} style={{ fontSize:'0.7rem', fontWeight:600, background:'var(--green-mist)', color:'var(--green-deep)', padding:'0.15rem 0.5rem', borderRadius:'100px', marginRight:'0.35rem' }}>{t}</span>)}
   </div>
   <div style={{ flex:1 }} />
   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'0.75rem' }}>
                     <div>
                       {p.sale_price
-                        ? <><span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--sky-con-light)', fontWeight:700 }}>NPR {p.sale_price.toLocaleString()}</span><span style={{ fontSize:'0.8rem', color:'var(--text-light)', textDecoration:'line-through', marginLeft:'0.5rem' }}>NPR {p.price?.toLocaleString()}</span></>
-                        : <span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--sky-con-light)', fontWeight:700 }}>NPR {p.price?.toLocaleString()}</span>
+                        ? <><span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--green-deep)', fontWeight:700 }}>NPR {p.sale_price.toLocaleString()}</span><span style={{ fontSize:'0.8rem', color:'var(--text-light)', textDecoration:'line-through', marginLeft:'0.5rem' }}>NPR {p.price?.toLocaleString()}</span></>
+                        : <span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--green-deep)', fontWeight:700 }}>NPR {p.price?.toLocaleString()}</span>
                       }
                     </div>
-                    <span style={{ fontSize:'0.75rem', color:p.stock_quantity>0?'var(--sky-con-light)':'#ef4444', fontWeight:600 }}>
+                    <span style={{ fontSize:'0.75rem', color:p.stock_quantity>0?'var(--green-deep)':'#ef4444', fontWeight:600 }}>
                       {p.is_digital ? '📥 Digital' : p.stock_quantity > 0 ? `${p.stock_quantity} left` : 'Out of stock'}
                     </span>
                   </div>
                   <button onClick={() => addToCart(p.id)} disabled={adding===p.id||p.stock_quantity===0}
-                    style={{ width:'100%', marginTop:'0.75rem', padding:'0.65rem', background:p.stock_quantity===0?'#e5e7eb':'var(--sky-con-light)', color:p.stock_quantity===0?'#9ca3af':'white', border:'none', borderRadius:8, fontSize:'0.85rem', fontWeight:700, cursor:p.stock_quantity===0?'not-allowed':'pointer', transition:'background 0.2s' }}>
+                    style={{ width:'100%', marginTop:'0.75rem', padding:'0.65rem', background:p.stock_quantity===0?'#e5e7eb':'var(--green-deep)', color:p.stock_quantity===0?'#9ca3af':'white', border:'none', borderRadius:8, fontSize:'0.85rem', fontWeight:700, cursor:p.stock_quantity===0?'not-allowed':'pointer', transition:'background 0.2s' }}>
                     {adding===p.id ? 'Adding…' : p.stock_quantity===0 ? 'Out of Stock' : '+ Add to Cart'}
                   </button>
                 </div>
@@ -275,7 +275,7 @@ async function updateQty(productId, qty) {
           onClick={e => e.target===e.currentTarget && setCartOpen(false)}>
           <div style={{ position:'absolute', right:0, top:0, bottom:0, width:'100%', maxWidth:420, background:'var(--white)', boxShadow:'-4px 0 24px rgba(0,0,0,0.12)', display:'flex', flexDirection:'column' }}>
             <div style={{ padding:'1.5rem', borderBottom:'1px solid var(--earth-cream)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--sky-con-light)' }}>Your Cart ({cartCount})</h2>
+              <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--green-deep)' }}>Your Cart ({cartCount})</h2>
               <button onClick={() => setCartOpen(false)} style={{ background:'none', border:'none', fontSize:'1.25rem', cursor:'pointer', color:'var(--text-light)' }}>✕</button>
             </div>
             <div style={{ flex:1, overflowY:'auto', padding:'1rem 1.5rem' }}>
@@ -292,7 +292,7 @@ async function updateQty(productId, qty) {
                       {p.images?.[0] ? <img src={p.images[0]} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : '📚'}
                     </div>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontWeight:600, fontSize:'0.88rem', color:'var(--sky-con-light)' }}>{p.name}</div>
+                      <div style={{ fontWeight:600, fontSize:'0.88rem', color:'var(--green-deep)' }}>{p.name}</div>
                       <div style={{ fontSize:'0.8rem', color:'var(--text-light)' }}>NPR {price.toLocaleString()} each</div>
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:'0.4rem' }}>
@@ -309,11 +309,11 @@ async function updateQty(productId, qty) {
               <div style={{ padding:'1.5rem', borderTop:'1px solid var(--earth-cream)' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'1rem' }}>
                   <span style={{ fontWeight:600, color:'var(--text-mid)' }}>Total</span>
-                  <span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', fontWeight:700, color:'var(--sky-con-light)' }}>NPR {cartTotal.toLocaleString()}</span>
+                  <span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {cartTotal.toLocaleString()}</span>
                 </div>
                 {/* Single button — opens centralized payment modal */}
                 <button onClick={handleCheckout}
-                  style={{ width:'100%', padding:'0.9rem', background:'var(--sky-con-light)', color:'white', border:'none', borderRadius:10, fontWeight:700, fontSize:'0.95rem', cursor:'pointer' }}>
+                  style={{ width:'100%', padding:'0.9rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:10, fontWeight:700, fontSize:'0.95rem', cursor:'pointer' }}>
                   Choose Payment Method →
                 </button>
                 <p style={{ fontFamily:'var(--font-body)', fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.5rem' }}>
