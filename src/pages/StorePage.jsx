@@ -184,7 +184,7 @@ async function updateQty(productId, qty) {
       {/* Hero */}
       <div className="page-hero" style={{ background:'var(--sky-con-light)' }}>
         <span className="section-tag" style={{ color:'var(--green-pale)' }}>Wellness Store</span>
-        <h1 className="section-title" style={{ color:'white' }}>Mental Wellness <em>Products</em></h1>
+        <h1 className="section-title" style={{ color:'white' }}>Mental Wellness Products </h1>
         <p className="section-desc" style={{ color:'rgba(255,255,255,0.75)', maxWidth:500 }}>Books, workbooks, digital tools, and more — curated for your healing journey.</p>
       </div>
 
