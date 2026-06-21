@@ -314,6 +314,20 @@ export const polls = {
   submit: (answers) => post('/polls/submit', { answers }).catch(() => null),
 }
 
+export const passwordApi = {
+  update: (current, next) =>
+    apiFetch('/password/update', { method: 'PATCH', body: { current, next } }),
+
+  requestOtp: (email) =>
+    apiFetch('/password/forgot/request-otp', { method: 'POST', body: { email } }),
+
+  verifyOtp: (email, otp) =>
+    apiFetch('/password/forgot/verify-otp', { method: 'POST', body: { email, otp } }),
+
+  resetWithToken: (email, resetToken, next) =>
+    apiFetch('/password/forgot/reset', { method: 'POST', body: { email, resetToken, next } }),
+}
+
 // =============================================================================
 // CONTENT
 // =============================================================================

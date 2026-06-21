@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { passwordApi } from '../services/api'
 import { useRouter } from '../context/RouterContext'
 
 const C = {
@@ -108,17 +109,13 @@ export default function UpdatePasswordPage() {
     setStatus('saving')
     setErrorMsg('')
 
-    // Simulate API call — replace with real auth logic
-    await new Promise(r => setTimeout(r, 1200))
-
-    // Simulate wrong current password ~20% of time for demo
-    if (form.current === 'wrongpass') {
+    try {
+      await passwordApi.update(form.current, form.next)
+      setStatus('success')
+    } catch (err) {
       setStatus('error')
-      setErrorMsg('Current password is incorrect. Please try again.')
-      return
+      setErrorMsg(err.message || 'Could not update password. Please try again.')
     }
-
-    setStatus('success')
   }
 
   if (status === 'success') return (
@@ -261,6 +258,15 @@ export default function UpdatePasswordPage() {
                 </div>
               ))}
             </div>
+
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+  <button
+    onClick={() => navigate('/forgot-password')}
+    style={{ background: 'none', border: 'none', color: C.skyDeep, fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+  >
+    Forgot your current password instead?
+  </button>
+</div>
 
             {/* Submit */}
             <button

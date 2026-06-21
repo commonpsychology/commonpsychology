@@ -27,6 +27,7 @@ import ResearchDetailPage  from './pages/ResearchDetailPage'  // ← detail page
 import ContactPage         from './pages/ContactPage'
 import PaymentEthicsPage   from './pages/PaymentEthicsPage'
 import SignInPage          from './pages/SignInPage'
+import ForgotPasswordPage   from './pages/ForgotPasswordPage'
 import RegisterPage        from './pages/RegisterPage'
 import StorePage           from './pages/StorePage'
 import OnlineCourses      from './pages/OnlineCourses'
@@ -81,6 +82,7 @@ const ROUTES = {
   '/mental-fitness':     MentalFitness,
   '/my-orders':          MyOrdersPage,
   '/our-news':           OurNews,
+  '/forgot-password':     ForgotPasswordPage,
 '/payment/esewa/success': EsewaSuccessPage,
   '/payment/esewa/failure':      EsewaFailurePage,
   '/courses-videos':     OnlineCourses,
@@ -113,8 +115,8 @@ const ROUTES = {
   '/ashram':             OurPlacePage,
 }
 
-const NO_SHELL_PAGES  = new Set(['/signin','/register','/register-staffs','/payment','/staff','/staff/admin','/staff/therapist','/verify','/delivery/login','/staff/portal','/delivery/dashboard','/update-password'])
-const NO_FOOTER_PAGES = new Set(['/portal','/account','/verify', '/register-staffs','/delivery/login', '/staff/portal','/delivery/dashboard','/update-password'])
+const NO_SHELL_PAGES  = new Set(['/signin','/register','/register-staffs','/payment','/staff','/staff/admin','/staff/therapist','/verify','/delivery/login','/staff/portal','/delivery/dashboard','/update-password','/forgot-password'])
+const NO_FOOTER_PAGES = new Set(['/portal','/account','/verify', '/register-staffs','/delivery/login', '/staff/portal','/delivery/dashboard','/update-password','/forgot-password'])
 
 const DYNAMIC_ROUTES = [
   { prefix: '/news/',               Component: NewsDetailPage           },
