@@ -1,5 +1,5 @@
 // src/pages/GalleryPage.jsx — real images via useImages()
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useImages, SmartImage } from '../hooks/useImages'
 
 const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
@@ -14,6 +14,41 @@ const C = {
 const heroGrad    = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyMid} 40%,${C.skyBright} 80%,#22d3ee 100%)`
 const sectionGrad = `linear-gradient(135deg,${C.skyFainter} 0%,${C.mint} 60%,${C.skyFaint} 100%)`
 const btnGrad     = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyBright} 100%)`
+
+// ── Responsive breakpoint hook ──────────────────────────────
+// Single source of truth for layout breakpoints. The grid container
+// AND each card read from this same hook, so they can never disagree
+// about which breakpoint we're in. window.innerWidth read directly
+// inside render (the old approach) doesn't update on resize and can
+// get out of sync between components rendered in different passes —
+// that mismatch is what was causing different/misordered images to
+// show on mobile vs desktop.
+function useBreakpoint() {
+  const getBp = () => {
+    if (typeof window === 'undefined') return 'desktop'
+    const w = window.innerWidth
+    if (w <= 600) return 'mobile'
+    if (w <= 900) return 'tablet'
+    return 'desktop'
+  }
+  const [bp, setBp] = useState(getBp)
+
+  useEffect(() => {
+    let raf = null
+    function onResize() {
+      if (raf) cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => setBp(getBp()))
+    }
+    window.addEventListener('resize', onResize)
+    onResize()
+    return () => {
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
+  return bp // 'mobile' | 'tablet' | 'desktop'
+}
 
 // ── Photo Submission Modal ──────────────────────────────────
 function SubmitPhotoModal({ onClose }) {
@@ -110,10 +145,15 @@ function SubmitPhotoModal({ onClose }) {
 }
 
 // ── Gallery Card ─────────────────────────────────────────────
-function GalleryCard({ item, onOpen }) {
+// isMobile is passed in from the parent (driven by the single
+// useBreakpoint() call in GalleryPage) instead of being computed
+// here from window.innerWidth. This guarantees every card and the
+// grid container agree on layout in the same render pass — that's
+// what was causing the desktop/mobile image-set mismatch.
+function GalleryCard({ item, onOpen, isMobile }) {
   const [hovered, setHovered] = useState(false)
-  const colSpan = item.cols || 1
-  const rowSpan = item.rows || 1
+  const colSpan = isMobile ? 1 : (item.cols || 1)
+  const rowSpan = isMobile ? 1 : (item.rows || 1)
 
   return (
     <div
@@ -121,8 +161,9 @@ function GalleryCard({ item, onOpen }) {
       onMouseLeave={() => setHovered(false)}
       onClick={() => onOpen(item)}
       style={{
-gridColumn: window.innerWidth <= 900 ? 'span 1' : `span ${colSpan}`,
-gridRow: window.innerWidth <= 900 ? 'span 1' : `span ${rowSpan}`,        borderRadius:20, background:C.white, position:'relative',
+        gridColumn: `span ${colSpan}`,
+        gridRow: `span ${rowSpan}`,
+        borderRadius:20, background:C.white, position:'relative',
         overflow:'visible', cursor:'pointer',
         boxShadow: hovered
           ? `0 2px 0 0 ${C.skyDeep},0 5px 0 0 ${C.skyMid}bb,0 9px 0 0 ${C.skyBright}55,0 24px 56px rgba(0,191,255,0.22)`
@@ -216,21 +257,28 @@ export default function GalleryPage() {
   const [lightbox, setLightbox]         = useState(null)
   const [showSubmit, setShowSubmit]     = useState(false)
 
-const { getGalleryItems, getGalleryCategories, loading, gallery } = useImages()
+  const bp = useBreakpoint() // 'mobile' | 'tablet' | 'desktop' — single source of truth
+  const isMobile = bp === 'mobile'
+
+  const { getGalleryItems, getGalleryCategories, loading, gallery } = useImages()
 
   const filters  = getGalleryCategories()
 
-  // ✅ Fix: useMemo ensures filtered recomputes when activeFilter changes
- // Replace the useMemo filtered block with:
-const allItems   = getGalleryItems('All')
-const filtered   = useMemo(
-  () => activeFilter === 'All' ? allItems : allItems.filter(i => i.category === activeFilter),
-  [activeFilter, allItems]
-)
+  // useMemo ensures filtered recomputes when activeFilter changes
+  const allItems   = getGalleryItems('All')
+  const filtered   = useMemo(
+    () => activeFilter === 'All' ? allItems : allItems.filter(i => i.category === activeFilter),
+    [activeFilter, allItems]
+  )
 
   const openLightbox  = useCallback(item => setLightbox(item), [])
   const closeLightbox = useCallback(() => setLightbox(null), [])
   const navLightbox   = useCallback(item => setLightbox(item), [])
+
+  const gridColumns =
+    bp === 'mobile'  ? '1fr' :
+    bp === 'tablet'   ? 'repeat(2,1fr)' :
+    'repeat(3,1fr)'
 
   return (
     <div className="page-wrapper" style={{ background:C.skyGhost }}>
@@ -263,17 +311,25 @@ const filtered   = useMemo(
           </span>
         </div>
 
-        {/* Grid */}
-<div style={{
-  display: 'grid',
-  gridTemplateColumns: window.innerWidth <= 600 ? '1fr' : window.innerWidth <= 900 ? 'repeat(2,1fr)' : 'repeat(3,1fr)',
-  gridAutoRows: 'auto',
-  gap: '1.75rem',
-  paddingTop: '0.5rem',
-}}>          {loading
-            ? [1,2,3,4,5,6].map((_, i) => <SkeletonCard key={i} colSpan={i===0?2:1} rowSpan={i===0?2:1} />)
+        {/* Grid — gridColumns is derived from the same `bp` state used by
+           GalleryCard, so the container and every card are always in sync. */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: gridColumns,
+          gridAutoRows: 'auto',
+          gap: '1.75rem',
+          paddingTop: '0.5rem',
+        }}>
+          {loading
+            ? [1,2,3,4,5,6].map((_, i) => (
+                <SkeletonCard
+                  key={i}
+                  colSpan={!isMobile && i===0 ? 2 : 1}
+                  rowSpan={!isMobile && i===0 ? 2 : 1}
+                />
+              ))
             : filtered.map((item) => (
-                <GalleryCard key={item.id} item={item} onOpen={openLightbox} />
+                <GalleryCard key={item.id} item={item} onOpen={openLightbox} isMobile={isMobile} />
               ))
           }
         </div>
