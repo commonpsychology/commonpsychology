@@ -90,7 +90,7 @@ const ROUTES = {
   '/disaster-management': DisasterManagement,
   '/store':              StorePage,
   '/portal':             ClientPortalPage,
-  '/community':          CommunityPage,
+  '/community':          CommunityPage,  
   '/ai-tools':           AIToolsPage,
   '/verify':             VerifyAccountPage,
   '/staff/portal':        StaffportalPage,
