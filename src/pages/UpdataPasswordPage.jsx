@@ -32,10 +32,22 @@ const displayFont = `'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia
 const bodyFont    = `'Inter', 'Helvetica Neue', Arial, sans-serif`
 const monoFont    = `'IBM Plex Mono', 'SF Mono', Menlo, monospace`
 
+/* Reset applied to the page root, independent of any global/page-wrapper
+   CSS that might otherwise add a top margin/padding/gap above the hero. */
+const rootResetStyle = {
+  margin: 0,
+  padding: 0,
+  display: 'block',
+  minHeight: '100vh',
+  background: C.sand,
+}
+
 const FontImports = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap');
     * { box-sizing: border-box; }
+    html, body, #root { margin: 0; padding: 0; }
+    .page-wrapper { margin: 0 !important; padding: 0 !important; }
     @keyframes drift {
       0%   { transform: translateX(0) translateY(0); }
       50%  { transform: translateX(-6px) translateY(3px); }
@@ -205,7 +217,7 @@ function PasswordField({ label, value, onChange, placeholder, hint, autoComplete
 
 function SuccessView({ onDone }) {
   return (
-    <div className="page-wrapper" style={{ minHeight: '100vh', background: C.sand, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+    <div className="page-wrapper" style={{ ...rootResetStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
       <FontImports />
       <div className="twp-card" style={{
         maxWidth: 440, width: '100%', background: C.white, borderRadius: 20,
@@ -283,7 +295,7 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <div className="page-wrapper" style={{ minHeight: '100vh', background: C.sand }}>
+    <div className="page-wrapper" style={rootResetStyle}>
       <FontImports />
 
       {/* ---------- Hero ---------- */}

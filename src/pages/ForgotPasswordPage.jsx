@@ -188,7 +188,8 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="page-wrapper" style={{ background: `linear-gradient(180deg, ${C.skyGhost} 0%, ${C.skyFainter} 100%)`, minHeight: '100vh' }}>
+    <div className="page-wrapper" style={{ margin: 0, padding: 0, display: 'block', background: `linear-gradient(180deg, ${C.skyGhost} 0%, ${C.skyFainter} 100%)`, minHeight: '100vh' }}>
+      <style>{`html, body, #root { margin: 0; padding: 0; } .page-wrapper { margin: 0 !important; padding: 0 !important; }`}</style>
       <div style={{ background: heroGrad, padding: '4.5rem 4rem 4.25rem', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -60, right: -40, width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -90, left: '12%', width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
