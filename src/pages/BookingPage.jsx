@@ -204,8 +204,7 @@ export default function BookingPage() {
     if (userSlots.some(b => norm(b) === nl))   return 'user_booked'
     return 'available'
   }
-
-  async function handleConfirm() {
+async function handleConfirm() {
     if (!user) { navigate('/signin'); return }
     if (!selected.therapist || !selected.date || !selected.time) { setError('Please complete all required fields.'); return }
     const status = getSlotStatus(selected.time)
@@ -213,11 +212,12 @@ export default function BookingPage() {
     if (status === 'user_booked')      { setError('You already have an appointment at this time.'); return }
 
     setSubmitting(true); setError('')
+    let appointmentId = null
     try {
       const dateTime     = slotToISO(selected.date, selected.time)
       const therapistId  = selected.therapist.id
       const data         = await appointments.book(therapistId, dateTime, selected.type, selected.notes)
-      const appointmentId = data.appointment?.id || data.id
+      appointmentId       = data.appointment?.id || data.id
       const fee          = selected.therapist.consultation_fee || 2000
       const therapistName = selected.therapist.full_name || 'Therapist'
       const sessionLabel = SESSION_TYPES.find(t => t.value === selected.type)?.label || selected.type
@@ -234,9 +234,21 @@ export default function BookingPage() {
 
       if (result.success) {
         navigate('/portal')
-      } else if (!result.cancelled) {
-        setError('Payment was not completed. Your booking slot is held for 30 minutes.')
+        return
       }
+
+      // Payment did not succeed — release the slot we just held.
+      try {
+        await appointments.cancel(appointmentId)
+      } catch (cancelErr) {
+        console.error('Failed to release unpaid appointment hold:', cancelErr)
+      }
+      setError(
+        result.cancelled
+          ? 'Booking was not completed. The time slot has been released — feel free to try again.'
+          : 'Payment was not completed. The time slot has been released — please book again when ready.'
+      )
+      await loadBookedSlots()
     } catch (err) {
       if (err.status === 409 || err.message?.includes('conflict')) {
         setError('This slot was just taken. Please choose a different time.')

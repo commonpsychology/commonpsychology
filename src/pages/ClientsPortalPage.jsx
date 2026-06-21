@@ -452,13 +452,19 @@ export default function ClientPortalPage() {
     } catch {}
   }
 
-  async function loadAppointments() {
+ async function loadAppointments() {
     setLoadingAppts(true)
     try {
       const res = await appointments.list({ limit:20 })
       const all = res.appointments || []
-      setUpcoming(all.filter(a => ['pending','confirmed'].includes(a.status)))
-      setPast(all.filter(a => ['completed','cancelled'].includes(a.status)))
+      // Only surface appointments that are actually paid for (or don't require payment).
+      // Anything still 'unpaid' was abandoned mid-checkout and should not appear as a
+      // booked session to the client.
+      const visible = all.filter(a =>
+        a.payment_status === 'completed' || a.payment_status === 'not_required'
+      )
+      setUpcoming(visible.filter(a => ['pending','confirmed'].includes(a.status)))
+      setPast(visible.filter(a => ['completed','cancelled'].includes(a.status)))
     } catch {} finally { setLoadingAppts(false) }
   }
 
