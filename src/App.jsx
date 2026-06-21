@@ -113,8 +113,8 @@ const ROUTES = {
   '/ashram':             OurPlacePage,
 }
 
-const NO_SHELL_PAGES  = new Set(['/signin','/register','/register-staffs','/payment','/staff','/staff/admin','/staff/therapist','/verify','/delivery/login','/staff/portal','/delivery/dashboard'])
-const NO_FOOTER_PAGES = new Set(['/portal','/account','/verify', '/register-staffs','/delivery/login', '/staff/portal','/delivery/dashboard'])
+const NO_SHELL_PAGES  = new Set(['/signin','/register','/register-staffs','/payment','/staff','/staff/admin','/staff/therapist','/verify','/delivery/login','/staff/portal','/delivery/dashboard','/update-password'])
+const NO_FOOTER_PAGES = new Set(['/portal','/account','/verify', '/register-staffs','/delivery/login', '/staff/portal','/delivery/dashboard','/update-password'])
 
 const DYNAMIC_ROUTES = [
   { prefix: '/news/',               Component: NewsDetailPage           },
