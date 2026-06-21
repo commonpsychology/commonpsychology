@@ -257,9 +257,7 @@ export default function MentalFitnessScore({ onNavigate }) {
                 <button className="btn btn-primary" onClick={startQuiz}>
                   {lang==='NP' ? 'आफ्नो स्कोर हेर्नुहोस्' : 'Check My Score'} →
                 </button>
-                <button className="btn btn-outline" onClick={() => go('/resources')}>
-                  {lang==='NP' ? 'यो कसरी काम गर्छ' : 'How it works'}
-                </button>
+                
               </div>
             </>
           )}
