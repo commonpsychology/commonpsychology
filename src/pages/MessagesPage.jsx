@@ -647,7 +647,7 @@ export default function MessagesPage() {
       <div className="mp-hero">
         <div className="mp-hero-orb" style={{ width:420, height:420, top:'5%', right:'-8%', background:'radial-gradient(circle,rgba(255,255,255,0.35),transparent 70%)', animationDuration:'11s' }} />
         <div className="mp-hero-orb" style={{ width:300, height:300, bottom:'10%', left:'-5%', background:'radial-gradient(circle,rgba(0,100,160,0.18),transparent 70%)', animationDuration:'8s', animationDelay:'-3s' }} />
-        <span className="mp-hero-kicker">Common Psyhcologyrgi Mental Wellness</span>
+        <span className="mp-hero-kicker">Common Psychology Mental Wellness</span>
         <h1 className="mp-hero-title">Words from the<br /><em>Hearts That Lead</em></h1>
         <p className="mp-hero-sub">
           Messages from our director, therapists, and team —
