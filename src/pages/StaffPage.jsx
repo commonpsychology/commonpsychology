@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { supabase } from '../lib/supabaseClient'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 
 const roleColors = {
@@ -181,24 +181,19 @@ export default function StaffPage() {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
 
-  useEffect(() => {
-    async function fetchStaff() {
-      try {
-        const { data, error } = await supabase
-          .from("staff_members")
-          .select("id, full_name, phone, role, department, notes, is_active, avatar_url")
-          .order("full_name");
-
-        if (error) throw error;
-        setStaff(data || []);
-      } catch (e) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchStaff();
-  }, []);
+useEffect(() => {
+  fetch(`${API_BASE}/staff`)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    })
+    .then(data => {
+      const list = data.staff || data.data || []
+      setStaff(list)
+    })
+    .catch(e => setError(e.message))
+    .finally(() => setLoading(false))
+}, [])
 
   const roles = ["all", ...Array.from(new Set(staff.map(s => s.role?.toLowerCase()).filter(Boolean)))];
   const filtered = filter === "all" ? staff : staff.filter(s => s.role?.toLowerCase() === filter);
