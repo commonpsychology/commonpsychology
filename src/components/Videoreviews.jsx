@@ -30,10 +30,6 @@ function VideoThumbnail({ v }) {
   const [playing, setPlaying] = useState(false)
   const videoRef = useRef(null)
 
-  const thumbBg = v.thumbnail_url
-    ? `url(${v.thumbnail_url}) center/cover no-repeat`
-    : 'var(--sky-light)'
-
   if (v.video_url && !errored) {
     return (
       <div style={{ position: 'relative', width: '100%', background: '#0a1520' }}>
@@ -124,13 +120,19 @@ function VideoCard({ v, cardW }) {
   return (
     <div
       style={{
-        width: cardW, minWidth: cardW, flexShrink: 0,
+        // Use CSS calc so the width is always exact — avoids px rounding cutoff
+        width: cardW,
+        minWidth: cardW,
+        maxWidth: cardW,
+        flexShrink: 0,
+        flexGrow: 0,
         background: 'var(--white)',
         borderRadius: 'var(--radius-lg)', overflow: 'hidden',
         border: '1px solid var(--blue-pale)',
         boxShadow: 'var(--shadow-soft)',
         transition: 'box-shadow 0.25s, transform 0.25s',
         display: 'flex', flexDirection: 'column',
+        boxSizing: 'border-box',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.boxShadow = 'var(--shadow-mid)'
@@ -358,6 +360,7 @@ function UploadModal({ onClose, onSuccess }) {
                         fontFamily: 'var(--font-body)', fontSize: '0.85rem',
                         color: 'var(--text-dark)', outline: 'none',
                         background: 'var(--white)',
+                        boxSizing: 'border-box',
                       }}
                     />
                   </div>
@@ -376,6 +379,7 @@ function UploadModal({ onClose, onSuccess }) {
                     fontFamily: 'var(--font-body)', fontSize: '0.85rem',
                     color: form.topic ? 'var(--text-dark)' : 'var(--text-light)',
                     background: 'var(--white)', outline: 'none',
+                    boxSizing: 'border-box',
                   }}
                 >
                   <option value="">Select your experience area...</option>
@@ -399,6 +403,7 @@ function UploadModal({ onClose, onSuccess }) {
                     fontFamily: 'var(--font-body)', fontSize: '0.85rem',
                     color: 'var(--text-dark)', resize: 'none', outline: 'none',
                     background: 'var(--white)',
+                    boxSizing: 'border-box',
                   }}
                 />
               </div>
@@ -448,7 +453,7 @@ export default function VideoReviews() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [index, setIndex] = useState(0)
-  const [width, setWidth] = useState(960)
+  const [containerWidth, setContainerWidth] = useState(0)
   const wrapRef = useRef(null)
 
   const fetchVideos = useCallback(async () => {
@@ -467,26 +472,36 @@ export default function VideoReviews() {
 
   useEffect(() => { fetchVideos() }, [fetchVideos])
 
+  // Measure the outer wrapper width accurately after paint
   useEffect(() => {
     function measure() {
-      if (wrapRef.current) setWidth(wrapRef.current.offsetWidth)
+      if (wrapRef.current) {
+        // Use getBoundingClientRect for sub-pixel accuracy
+        setContainerWidth(Math.floor(wrapRef.current.getBoundingClientRect().width))
+      }
     }
-    measure()
-    const ro = new ResizeObserver(measure)
+    // Small delay so the layout has settled
+    const raf = requestAnimationFrame(measure)
+    const ro = new ResizeObserver(() => requestAnimationFrame(measure))
     if (wrapRef.current) ro.observe(wrapRef.current)
-    return () => ro.disconnect()
+    return () => { cancelAnimationFrame(raf); ro.disconnect() }
   }, [])
 
-  const visible  = getVisible(width)
-  const cardW    = Math.floor((width - GAP * (visible - 1)) / visible)
-  const maxIndex = Math.max(0, videos.length - visible)
+  const visible  = getVisible(containerWidth)
+  // Subtract 1px safety margin so the 3rd card never bleeds under the clip
+  const cardW    = containerWidth > 0
+    ? Math.floor((containerWidth - GAP * (visible - 1)) / visible) - 1
+    : 0
+
+  const maxIndex   = Math.max(0, videos.length - visible)
   const pageCount  = Math.ceil(videos.length / visible)
   const activePage = Math.floor(index / visible)
 
   useEffect(() => { setIndex(i => Math.min(i, maxIndex)) }, [maxIndex])
 
-  function prev() { setIndex(i => Math.max(0, i - visible)) }
-  function next() { setIndex(i => Math.min(maxIndex, i + visible)) }
+  // Step one card at a time so prev/next feel natural
+  function prev() { setIndex(i => Math.max(0, i - 1)) }
+  function next() { setIndex(i => Math.min(maxIndex, i + 1)) }
 
   const touchX = useRef(null)
   function onTouchStart(e) { touchX.current = e.touches[0].clientX }
@@ -497,6 +512,9 @@ export default function VideoReviews() {
     if (dx < -40) prev()
     touchX.current = null
   }
+
+  // Pixel offset per step: one card-width + one gap
+  const stepPx = cardW + GAP
 
   return (
     <>
@@ -566,7 +584,7 @@ export default function VideoReviews() {
         {/* Loading skeleton */}
         {loading && (
           <div style={{ display: 'flex', gap: GAP }}>
-            {[1,2,3].slice(0, visible).map(i => (
+            {[1,2,3].slice(0, Math.max(visible, 1)).map(i => (
               <div key={i} style={{
                 flex: 1, height: 340, borderRadius: 20,
                 background: 'linear-gradient(90deg,var(--sky-light) 0%,#e8f3ee 50%,var(--sky-light) 100%)',
@@ -597,27 +615,44 @@ export default function VideoReviews() {
         )}
 
         {/* Carousel */}
-        {!loading && videos.length > 0 && (
+        {!loading && videos.length > 0 && containerWidth > 0 && (
           <>
+            {/*
+              Outer div: clips the sliding track. Width is exactly the container.
+              We do NOT set overflow:hidden here because it can clip box-shadows —
+              instead we use a negative-margin trick: let the track overflow but
+              wrap it in a box that is exactly wide enough for `visible` cards.
+            */}
             <div
               ref={wrapRef}
-              style={{ overflow: 'hidden', width: '100%' }}
+              style={{
+                width: '100%',
+                overflow: 'hidden',
+                // Ensure the clip boundary is pixel-perfect
+                position: 'relative',
+              }}
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
             >
-              <div style={{
-                display: 'flex', gap: GAP,
-                transition: 'transform 0.44s cubic-bezier(0.4,0,0.2,1)',
-                transform: `translateX(${-index * (cardW + GAP)}px)`,
-                willChange: 'transform',
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: GAP,
+                  // Translate by exact pixel steps so card edges always align with the clip edge
+                  transform: `translateX(${-(index * stepPx)}px)`,
+                  transition: 'transform 0.44s cubic-bezier(0.4,0,0.2,1)',
+                  willChange: 'transform',
+                  // Allow the track to be wider than the container — parent clips it
+                  width: 'max-content',
+                }}
+              >
                 {videos.map((v, i) => (
                   <VideoCard key={v.id || i} v={v} cardW={cardW} />
                 ))}
               </div>
             </div>
 
-            {/* Dots */}
+            {/* Dots — one dot per page */}
             {pageCount > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: '1.5rem' }}>
                 {Array.from({ length: pageCount }).map((_, p) => (
@@ -637,6 +672,11 @@ export default function VideoReviews() {
           </>
         )}
 
+        {/* Carousel wrapper for initial render before containerWidth is measured */}
+        {!loading && videos.length > 0 && containerWidth === 0 && (
+          <div ref={wrapRef} style={{ width: '100%', minHeight: 340 }} />
+        )}
+
         {/* Footer actions */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginTop: '1.75rem', flexWrap: 'wrap' }}>
           <button className="btn btn-primary" onClick={() => navigate('/reviews')}>
@@ -650,7 +690,7 @@ export default function VideoReviews() {
 
       <style>{`
         @keyframes shimmer {
-          0% { background-position: 200% 0; }
+          0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
       `}</style>
