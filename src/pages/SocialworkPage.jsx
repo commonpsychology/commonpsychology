@@ -297,16 +297,120 @@ export default function SocialWorkPage() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: innerPadding }}>
 
         {/* Section header */}
-        <div style={{ background: sectionGrad, borderRadius: 16, padding: '1.4rem 2rem', marginBottom: '2.5rem', border: `1px solid ${C.borderFaint}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: C.textDark, margin: 0 }}>Our Active Programmes</h2>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: C.textMid, margin: '0.3rem 0 0' }}>All programmes are free or heavily subsidised for beneficiaries.</p>
-          </div>
-          <button onClick={() => navigate('/contact')}
-            style={{ padding: '0.55rem 1.3rem', borderRadius: 10, border: 'none', background: btnGrad, color: 'white', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,191,255,0.3)', whiteSpace: 'nowrap' }}>
-            Partner With Us
-          </button>
-        </div>
+      {/* Section header */}
+<div style={{ 
+  background: sectionGrad, 
+  borderRadius: 16, 
+  padding: '1.4rem 2rem', 
+  marginBottom: '2.5rem',
+  border: `1px solid ${C.borderFaint}`,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  flexWrap: 'wrap',
+  gap: '1rem'
+}}>
+  
+  <div>
+    <h2 style={{ 
+      fontFamily: 'var(--font-display)', 
+      fontSize: '1.4rem', 
+      color: C.textDark, 
+      margin: 0 
+    }}>
+      Our Active Programmes
+    </h2>
+
+    <p style={{ 
+      fontFamily: 'var(--font-body)', 
+      fontSize: '0.85rem', 
+      color: C.textMid, 
+      margin: '0.3rem 0 0' 
+    }}>
+      All programmes are free or heavily subsidised for beneficiaries.
+    </p>
+  </div>
+
+
+  {/* Action buttons */}
+  <div style={{
+    display: 'flex',
+    gap: '0.6rem',
+    flexWrap: 'wrap',
+    alignItems: 'center'
+  }}>
+
+    {/* See Images */}
+    <button 
+      onClick={() => navigate('/gallery')}
+      style={{
+        padding: '0.55rem 1.1rem',
+        borderRadius: 10,
+        border: 'none',
+        background: btnGrad,
+        color: 'white',
+        fontFamily: 'var(--font-body)',
+        fontWeight: 700,
+        fontSize: '0.85rem',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.45rem',
+        boxShadow: '0 4px 14px rgba(0,191,255,0.3)',
+        whiteSpace: 'nowrap'
+      }}
+    >
+      🖼️ See Images
+    </button>
+
+
+    {/* See Videos */}
+    <button 
+      onClick={() => navigate('/reviews')}
+      style={{
+        padding: '0.55rem 1.1rem',
+        borderRadius: 10,
+        border: 'none',
+        background: btnGrad,
+        color: 'white',
+        fontFamily: 'var(--font-body)',
+        fontWeight: 700,
+        fontSize: '0.85rem',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.45rem',
+        boxShadow: '0 4px 14px rgba(0,191,255,0.3)',
+        whiteSpace: 'nowrap'
+      }}
+    >
+      🎥 See Videos
+    </button>
+
+
+    {/* Partner With Us */}
+    <button 
+      onClick={() => navigate('/contact')}
+      style={{
+        padding: '0.55rem 1.3rem',
+        borderRadius: 10,
+        border: 'none',
+        background: btnGrad,
+        color: 'white',
+        fontFamily: 'var(--font-body)',
+        fontWeight: 700,
+        fontSize: '0.85rem',
+        cursor: 'pointer',
+        boxShadow: '0 4px 14px rgba(0,191,255,0.3)',
+        whiteSpace: 'nowrap'
+      }}
+    >
+      🤝 Partner With Us
+    </button>
+
+  </div>
+
+</div>
 
         {/* Error state */}
         {fetchErr && !loading && (
