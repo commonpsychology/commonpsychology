@@ -145,11 +145,11 @@ function injectCSS(id, css) {
 ───────────────────────────────────────────────────────────── */
 const CONTACT_INFO = {
   whatsapp: {
-    number: '+977 9849350088', link: 'https://wa.me/9779849350088',
+    number: '+977 9845064701', link: 'https://wa.me/9779845064701',
     label: 'WhatsApp', emoji: '💬', color: '#25D366', faint: '#e8fdf0',
   },
   messenger: {
-    number: 'puja.samargi', link: 'https://m.me/puja.samargi',
+    number: 'Common Psychology', link: 'https://m.me/commonpscyhology',
     label: 'Messenger', emoji: '💙', color: '#0084FF', faint: '#e0f0ff',
   },
 }
