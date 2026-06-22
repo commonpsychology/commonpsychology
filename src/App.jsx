@@ -85,7 +85,7 @@ const ROUTES = {
   '/my-orders':          MyOrdersPage,
   '/our-news':           OurNews,
   '/staff-detail':      StaffPage,
-  '/forgot-password':     ForgotPasswordPage,
+  '/forgot-password':     ForgotPasswordPage, 
 '/payment/esewa/success': EsewaSuccessPage,
   '/payment/esewa/failure':      EsewaFailurePage,
   '/courses-videos':     OnlineCourses,
