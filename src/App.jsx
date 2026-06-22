@@ -34,6 +34,7 @@ import OnlineCourses      from './pages/OnlineCourses'
 import MessagesPage        from './pages/MessagesPage'
 import PrivacyPage         from './pages/PrivacyPage'
 import OurPlacePage        from './pages/OurplacePage'
+import Storepage     from './pages/Storepage'
 import StaffportalPage      from './pages/StaffportalPage'
 import PaymentInfoPage     from './pages/PaymentInfoPage'
 import UpdatePasswordPage  from './pages/UpdataPasswordPage'
@@ -50,6 +51,7 @@ import PsychologicalViewPage from './pages/PsychologicalViewPage'
 import WorkshopsPage       from './pages/WorkshopPage'
 import ReviewsPage         from './pages/ReviewsPage'
 import SocialWorkPage      from './pages/SocialworkPage'
+import StaffPage            from './pages/StaffPage'
 import GalleryPage         from './pages/GalleryPage'
 import VolunteerPage       from './pages/VolunteerPage'
 import PaymentPage         from './pages/Paymentpage'
@@ -82,6 +84,7 @@ const ROUTES = {
   '/mental-fitness':     MentalFitness,
   '/my-orders':          MyOrdersPage,
   '/our-news':           OurNews,
+  '/staff-detail':      StaffPage,
   '/forgot-password':     ForgotPasswordPage,
 '/payment/esewa/success': EsewaSuccessPage,
   '/payment/esewa/failure':      EsewaFailurePage,
