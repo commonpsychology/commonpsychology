@@ -601,7 +601,7 @@ export default function VideoReviews() {
         )}
 
         {/* Carousel */}
-        {!loading && videos.length > 0 && cardW > 0 && (
+        {!loading && videos.length > 0 && (
           <>
             {/*
               Outer div clips overflow. Inner div is the sliding track.
@@ -616,21 +616,22 @@ export default function VideoReviews() {
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  gap: GAP,
-                  // Width of the full track: all cards + all gaps between them
-                  width: videos.length * cardW + (videos.length - 1) * GAP,
-                  transform: `translateX(${-translateX}px)`,
-                  transition: 'transform 0.44s cubic-bezier(0.4,0,0.2,1)',
-                  willChange: 'transform',
-                }}
-              >
-                {videos.map((v, i) => (
-                  <VideoCard key={v.id || i} v={v} cardW={cardW} />
-                ))}
-              </div>
+              {cardW > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: GAP,
+                    width: videos.length * cardW + (videos.length - 1) * GAP,
+                    transform: `translateX(${-translateX}px)`,
+                    transition: 'transform 0.44s cubic-bezier(0.4,0,0.2,1)',
+                    willChange: 'transform',
+                  }}
+                >
+                  {videos.map((v, i) => (
+                    <VideoCard key={v.id || i} v={v} cardW={cardW} />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Dot pagination */}
