@@ -6,7 +6,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useAuth } from '../context/AuthContext'
 
-const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL}/api`
 const GAP = 20
 
 function getVisible(w) {
@@ -29,10 +29,6 @@ function VideoThumbnail({ v }) {
   const [errored, setErrored] = useState(false)
   const [playing, setPlaying] = useState(false)
   const videoRef = useRef(null)
-
-  const thumbBg = v.thumbnail_url
-    ? `url(${v.thumbnail_url}) center/cover no-repeat`
-    : 'var(--sky-light)'
 
   if (v.video_url && !errored) {
     return (
@@ -124,13 +120,18 @@ function VideoCard({ v, cardW }) {
   return (
     <div
       style={{
-        width: cardW, minWidth: cardW, flexShrink: 0,
+        width: cardW,
+        minWidth: cardW,
+        maxWidth: cardW,
+        flexShrink: 0,
+        flexGrow: 0,
         background: 'var(--white)',
         borderRadius: 'var(--radius-lg)', overflow: 'hidden',
         border: '1px solid var(--blue-pale)',
         boxShadow: 'var(--shadow-soft)',
         transition: 'box-shadow 0.25s, transform 0.25s',
         display: 'flex', flexDirection: 'column',
+        boxSizing: 'border-box',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.boxShadow = 'var(--shadow-mid)'
@@ -169,7 +170,7 @@ function VideoCard({ v, cardW }) {
 /* ── UPLOAD MODAL ── */
 function UploadModal({ onClose, onSuccess }) {
   const { user } = useAuth()
-  const [step, setStep] = useState(1) // 1=form, 2=uploading, 3=done
+  const [step, setStep] = useState(1)
   const [form, setForm] = useState({
     name: user?.fullName || '',
     city: '',
@@ -273,7 +274,6 @@ function UploadModal({ onClose, onSuccess }) {
         {/* Content */}
         <div style={{ padding: '1.5rem 1.75rem' }}>
 
-          {/* Step 3: Done */}
           {step === 3 && (
             <div style={{ textAlign: 'center', padding: '2rem 0' }}>
               <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>🎉</div>
@@ -286,7 +286,6 @@ function UploadModal({ onClose, onSuccess }) {
             </div>
           )}
 
-          {/* Step 2: Uploading */}
           {step === 2 && (
             <div style={{ textAlign: 'center', padding: '2rem 0' }}>
               <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📤</div>
@@ -307,7 +306,6 @@ function UploadModal({ onClose, onSuccess }) {
             </div>
           )}
 
-          {/* Step 1: Form */}
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {error && (
@@ -320,7 +318,6 @@ function UploadModal({ onClose, onSuccess }) {
                 </div>
               )}
 
-              {/* Video file */}
               <div>
                 <label style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-mid)', display: 'block', marginBottom: '0.4rem' }}>
                   Video File * <span style={{ fontWeight: 400, color: 'var(--text-light)' }}>(MP4, max 100MB)</span>
@@ -343,7 +340,6 @@ function UploadModal({ onClose, onSuccess }) {
                 <input ref={fileRef} type="file" accept="video/mp4,video/*" style={{ display: 'none' }} onChange={handleFile} />
               </div>
 
-              {/* Name + City */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 {[['name', 'Your Name *', 'Sita Maharjan'], ['city', 'Your City *', 'Kathmandu']].map(([key, label, ph]) => (
                   <div key={key}>
@@ -357,14 +353,13 @@ function UploadModal({ onClose, onSuccess }) {
                         border: '1.5px solid var(--blue-pale)', borderRadius: 8,
                         fontFamily: 'var(--font-body)', fontSize: '0.85rem',
                         color: 'var(--text-dark)', outline: 'none',
-                        background: 'var(--white)',
+                        background: 'var(--white)', boxSizing: 'border-box',
                       }}
                     />
                   </div>
                 ))}
               </div>
 
-              {/* Topic */}
               <div>
                 <label style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-mid)', display: 'block', marginBottom: '0.3rem' }}>Topic *</label>
                 <select
@@ -383,7 +378,6 @@ function UploadModal({ onClose, onSuccess }) {
                 </select>
               </div>
 
-              {/* Quote */}
               <div>
                 <label style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-mid)', display: 'block', marginBottom: '0.3rem' }}>
                   Short Quote <span style={{ fontWeight: 400, color: 'var(--text-light)' }}>(optional)</span>
@@ -403,7 +397,6 @@ function UploadModal({ onClose, onSuccess }) {
                 />
               </div>
 
-              {/* Stars */}
               <div>
                 <label style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-mid)', display: 'block', marginBottom: '0.4rem' }}>Your Rating</label>
                 <div style={{ display: 'flex', gap: 6 }}>
@@ -448,7 +441,7 @@ export default function VideoReviews() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [index, setIndex] = useState(0)
-  const [width, setWidth] = useState(960)
+  const [wrapWidth, setWrapWidth] = useState(0)
   const wrapRef = useRef(null)
 
   const fetchVideos = useCallback(async () => {
@@ -467,9 +460,12 @@ export default function VideoReviews() {
 
   useEffect(() => { fetchVideos() }, [fetchVideos])
 
+  // Measure the carousel wrapper width accurately
   useEffect(() => {
     function measure() {
-      if (wrapRef.current) setWidth(wrapRef.current.offsetWidth)
+      if (wrapRef.current) {
+        setWrapWidth(wrapRef.current.getBoundingClientRect().width)
+      }
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -477,10 +473,16 @@ export default function VideoReviews() {
     return () => ro.disconnect()
   }, [])
 
-  const visible  = getVisible(width)
-  const cardW    = Math.floor((width - GAP * (visible - 1)) / visible)
-  const maxIndex = Math.max(0, videos.length - visible)
-  const pageCount  = Math.ceil(videos.length / visible)
+  const visible = getVisible(wrapWidth || window.innerWidth)
+
+  // cardW fills the wrapper exactly: total width minus all gaps between visible cards
+  const cardW = wrapWidth > 0
+    ? Math.floor((wrapWidth - GAP * (visible - 1)) / visible)
+    : 0
+
+  // Step by exactly `visible` cards per page
+  const maxIndex  = Math.max(0, videos.length - visible)
+  const pageCount = Math.ceil(videos.length / visible)
   const activePage = Math.floor(index / visible)
 
   useEffect(() => { setIndex(i => Math.min(i, maxIndex)) }, [maxIndex])
@@ -488,6 +490,7 @@ export default function VideoReviews() {
   function prev() { setIndex(i => Math.max(0, i - visible)) }
   function next() { setIndex(i => Math.min(maxIndex, i + visible)) }
 
+  // Touch / swipe
   const touchX = useRef(null)
   function onTouchStart(e) { touchX.current = e.touches[0].clientX }
   function onTouchEnd(e) {
@@ -497,6 +500,9 @@ export default function VideoReviews() {
     if (dx < -40) prev()
     touchX.current = null
   }
+
+  // Pixel offset: each step shifts by one card-width + one gap
+  const translateX = index * (cardW + GAP)
 
   return (
     <>
@@ -520,7 +526,6 @@ export default function VideoReviews() {
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            {/* Share your story button */}
             <button
               className="btn btn-outline"
               onClick={() => user ? setShowModal(true) : navigate('/signin')}
@@ -529,7 +534,6 @@ export default function VideoReviews() {
               🎥 Share Your Story
             </button>
 
-            {/* Carousel nav */}
             {videos.length > visible && (
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
@@ -566,7 +570,7 @@ export default function VideoReviews() {
         {/* Loading skeleton */}
         {loading && (
           <div style={{ display: 'flex', gap: GAP }}>
-            {[1,2,3].slice(0, visible).map(i => (
+            {Array.from({ length: visible }).map((_, i) => (
               <div key={i} style={{
                 flex: 1, height: 340, borderRadius: 20,
                 background: 'linear-gradient(90deg,var(--sky-light) 0%,#e8f3ee 50%,var(--sky-light) 100%)',
@@ -597,27 +601,39 @@ export default function VideoReviews() {
         )}
 
         {/* Carousel */}
-        {!loading && videos.length > 0 && (
+        {!loading && videos.length > 0 && cardW > 0 && (
           <>
+            {/*
+              Outer div clips overflow. Inner div is the sliding track.
+              width is explicitly set so it never bleeds outside the wrapper.
+            */}
             <div
               ref={wrapRef}
-              style={{ overflow: 'hidden', width: '100%' }}
+              style={{
+                width: '100%',
+                overflow: 'hidden',
+              }}
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
             >
-              <div style={{
-                display: 'flex', gap: GAP,
-                transition: 'transform 0.44s cubic-bezier(0.4,0,0.2,1)',
-                transform: `translateX(${-index * (cardW + GAP)}px)`,
-                willChange: 'transform',
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: GAP,
+                  // Width of the full track: all cards + all gaps between them
+                  width: videos.length * cardW + (videos.length - 1) * GAP,
+                  transform: `translateX(${-translateX}px)`,
+                  transition: 'transform 0.44s cubic-bezier(0.4,0,0.2,1)',
+                  willChange: 'transform',
+                }}
+              >
                 {videos.map((v, i) => (
                   <VideoCard key={v.id || i} v={v} cardW={cardW} />
                 ))}
               </div>
             </div>
 
-            {/* Dots */}
+            {/* Dot pagination */}
             {pageCount > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: '1.5rem' }}>
                 {Array.from({ length: pageCount }).map((_, p) => (
@@ -650,7 +666,7 @@ export default function VideoReviews() {
 
       <style>{`
         @keyframes shimmer {
-          0% { background-position: 200% 0; }
+          0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
       `}</style>
