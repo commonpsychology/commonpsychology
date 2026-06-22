@@ -37,8 +37,7 @@ const NAV = [
   { label: 'About', labelNP: ' हाम्रो बारेमा', path: '/about', children: [
     { label: 'Contact',          labelNP: 'सम्पर्क गर्नुहोस्',           path: '/contact',      icon: '📞', desc: 'Get in touch',               descNP: 'सम्पर्कमा आउनुहोस्' },
     { label: 'Payment & Ethics', labelNP: 'भुक्तान र नैतिकता', path: '/payment-info', icon: '🔒', desc: 'Billing & legal info',       descNP: 'बिलिङ र कानुनी जानकारी' },
-{ label: 'Staff Information', labelNP: 'हाम्रो टोली', path: '/staff-info', icon: '👥', desc: 'Meet our team', descNP: 'हाम्रो टोलीसँग भेट्नुहोस्' },
-    { label: 'Our Values',       labelNP: 'हाम्रा वाचा',   path: '/our-values',   icon: '🌱', desc: 'What we stand for',          descNP: 'हामी के मा विश्वास गर्छौं' },
+    { label: 'Staff Information', labelNP: 'हाम्रो टोली', path: '/staff-info', icon: '👥', desc: 'Meet our team', descNP: 'हाम्रो टोलीसँग भेट्नुहोस्' },
   ]},
 
   { label: 'Ashram', labelNP: 'आश्रम', path: '/ashram', children: [
