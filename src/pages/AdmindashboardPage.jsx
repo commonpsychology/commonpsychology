@@ -1991,14 +1991,15 @@ const fetchRiders = async () => {
     finally { setB('ws_regs', false) }
   }
 
-  const saveSessionModal = async () => {
+ const saveSessionModal = async () => {
     setSessionSaving(true); setSessionErr('')
     try {
       const body = { ...sessionForm, max_spots:Number(sessionForm.max_spots||20), price:Number(sessionForm.price||0) }
       if (sessionModal?.data) await apiFetch(`/admin/group-sessions/${sessionModal.data.id}`, { method:'PUT', body:JSON.stringify(body) })
       else await apiFetch('/admin/group-sessions', { method:'POST', body:JSON.stringify(body) })
       setSessionModal(null); setSessionForm({})
-      fetchCommSessions(commSessionPage)
+      // Use view-based fetch which avoids PostgREST join issues
+      setTimeout(() => fetchCommSessions(commSessionPage), 300)
     } catch (e) { setSessionErr(e.message) }
     finally { setSessionSaving(false) }
   }
