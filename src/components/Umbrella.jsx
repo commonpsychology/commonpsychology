@@ -46,7 +46,7 @@ export default function UmbrellaPage() {
               50%     { opacity: 0.28; }
             }
             .rdrop { animation: fall linear infinite; }
-            .umb   { transform-origin: 340px 430px; animation: sway 5s ease-in-out infinite; }
+            .umb   { transform-origin: 340px 350px; animation: sway 5s ease-in-out infinite; }
             .lamp  { animation: flicker 7s ease-in-out infinite; }
             .glow  { animation: lightpulse 3s ease-in-out infinite; }
           `}</style>
@@ -180,14 +180,16 @@ export default function UmbrellaPage() {
           <ellipse cx="274" cy="561" rx="14" ry="5" fill="#0d2238" stroke="none"/>
         </g>
 
-        {/* Center figure */}
+        {/* Center figure — right arm raised to grip handle */}
         <g stroke="#f0a030" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="340" cy="438" r="20" fill="#e08820" stroke="#f0a030"/>
           <path d="M320,442 Q322,418 340,414 Q358,418 360,442" fill="#1a4a8a" stroke="#1a4a8a"/>
           <path d="M322,456 Q308,488 306,524 Q316,534 340,536 Q364,534 374,524 Q372,488 358,456 Z" fill="#1a4a8a" stroke="#1a4a8a"/>
           <circle cx="340" cy="472" r="2.5" fill="#7aa8e0" stroke="none"/>
           <circle cx="340" cy="487" r="2.5" fill="#7aa8e0" stroke="none"/>
-          <path d="M355,460 Q368,445 346,442" stroke="#e08820" strokeWidth="3"/>
+          {/* Right arm raised up to grip handle at 340,428 */}
+          <path d="M355,456 Q358,440 340,430" stroke="#e08820" strokeWidth="3"/>
+          {/* Left arm — unchanged */}
           <path d="M322,462 Q295,478 278,488" stroke="#e08820" strokeWidth="2.8"/>
           <path d="M322,532 Q316,550 312,562" stroke="#0d2238" strokeWidth="6" strokeLinecap="round"/>
           <path d="M358,532 Q364,550 368,562" stroke="#0d2238" strokeWidth="6" strokeLinecap="round"/>
@@ -211,27 +213,37 @@ export default function UmbrellaPage() {
         <ellipse cx="278" cy="492" rx="10" ry="7" fill="#c47040" stroke="#d4824a" strokeWidth="1.5"/>
         <ellipse cx="362" cy="492" rx="10" ry="7" fill="#c47040" stroke="#d4824a" strokeWidth="1.5"/>
 
-        {/* Umbrella — low arc */}
+        {/* Hand gripping umbrella shaft */}
+        <ellipse cx="340" cy="428" rx="9" ry="6" fill="#e08820" stroke="#f0a030" strokeWidth="1.5"/>
+
+        {/* Umbrella — lifted ~90px vs original */}
         <g className="umb">
-          <ellipse cx="340" cy="440" rx="190" ry="38" fill="url(#umbGlow)" opacity="0.5" filter="url(#softBlur)"/>
-          <path d="M158,432 Q188,340 340,324 Q492,340 522,432 Z" fill="url(#umbTop)"/>
-          <line x1="340" y1="323" x2="158" y2="432" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
-          <line x1="340" y1="323" x2="215" y2="336" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
-          <line x1="340" y1="323" x2="272" y2="324" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
-          <line x1="340" y1="323" x2="340" y2="432" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
-          <line x1="340" y1="323" x2="408" y2="324" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
-          <line x1="340" y1="323" x2="465" y2="336" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
-          <line x1="340" y1="323" x2="522" y2="432" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
-          <path d="M158,432 Q168,457 180,432 Q192,457 204,432 Q216,457 228,432 Q240,457 252,432 Q264,457 276,432 Q288,457 300,432 Q312,457 324,432 Q332,457 340,432 Q348,457 356,432 Q368,457 380,432 Q392,457 404,432 Q416,457 428,432 Q440,457 452,432 Q464,457 476,432 Q488,457 500,432 Q510,457 522,432"
+          <ellipse cx="340" cy="350" rx="190" ry="38" fill="url(#umbGlow)" opacity="0.5" filter="url(#softBlur)"/>
+          {/* Canopy: tip at y=241, hem at y=350 */}
+          <path d="M158,350 Q188,258 340,242 Q492,258 522,350 Z" fill="url(#umbTop)"/>
+          {/* Ribs */}
+          <line x1="340" y1="241" x2="158" y2="350" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
+          <line x1="340" y1="241" x2="215" y2="254" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
+          <line x1="340" y1="241" x2="272" y2="242" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
+          <line x1="340" y1="241" x2="340" y2="350" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
+          <line x1="340" y1="241" x2="408" y2="242" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
+          <line x1="340" y1="241" x2="465" y2="254" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
+          <line x1="340" y1="241" x2="522" y2="350" stroke="#0a2878" strokeWidth="1.2" opacity="0.6"/>
+          {/* Scalloped hem at y=350/375 */}
+          <path d="M158,350 Q168,375 180,350 Q192,375 204,350 Q216,375 228,350 Q240,375 252,350 Q264,375 276,350 Q288,375 300,350 Q312,375 324,350 Q332,375 340,350 Q348,375 356,350 Q368,375 380,350 Q392,375 404,350 Q416,375 428,350 Q440,375 452,350 Q464,375 476,350 Q488,375 500,350 Q510,375 522,350"
                 fill="#0f3aa8" stroke="#0a2878" strokeWidth="1" opacity="0.95"/>
-          <path d="M158,432 Q188,340 340,324 Q492,340 522,432" fill="url(#umbSheen)" opacity="0.9"/>
-          <path d="M228,338 Q280,326 340,324" fill="none" stroke="#c8d8f8" strokeWidth="1.5" opacity="0.25" strokeLinecap="round"/>
-          <ellipse cx="340" cy="323" rx="8"   ry="6.5" fill="#7aaaf2"/>
-          <ellipse cx="340" cy="323" rx="3.5" ry="3"   fill="#ddeeff"/>
-          <line x1="340" y1="324" x2="340" y2="510" stroke="#2c3e50" strokeWidth="6" strokeLinecap="round"/>
-          <path d="M340,510 Q340,532 318,532 Q296,532 296,510" fill="none" stroke="#2c3e50" strokeWidth="6" strokeLinecap="round"/>
-          <circle cx="296" cy="510" r="9" fill="#1a2738"/>
-          <circle cx="296" cy="510" r="4" fill="#2c3e50"/>
+          {/* Sheen overlay */}
+          <path d="M158,350 Q188,258 340,242 Q492,258 522,350" fill="url(#umbSheen)" opacity="0.9"/>
+          <path d="M228,256 Q280,244 340,242" fill="none" stroke="#c8d8f8" strokeWidth="1.5" opacity="0.25" strokeLinecap="round"/>
+          {/* Tip finial */}
+          <ellipse cx="340" cy="241" rx="8"   ry="6.5" fill="#7aaaf2"/>
+          <ellipse cx="340" cy="241" rx="3.5" ry="3"   fill="#ddeeff"/>
+          {/* Shaft from tip down to hand */}
+          <line x1="340" y1="242" x2="340" y2="428" stroke="#2c3e50" strokeWidth="6" strokeLinecap="round"/>
+          {/* Crook curving left, tip resting at y=428 */}
+          <path d="M340,428 Q340,450 318,450 Q296,450 296,428" fill="none" stroke="#2c3e50" strokeWidth="6" strokeLinecap="round"/>
+          <circle cx="296" cy="428" r="9" fill="#1a2738"/>
+          <circle cx="296" cy="428" r="4" fill="#2c3e50"/>
         </g>
 
         {/* Text */}
