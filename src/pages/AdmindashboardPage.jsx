@@ -1991,18 +1991,37 @@ const fetchRiders = async () => {
     finally { setB('ws_regs', false) }
   }
 
-  const saveSessionModal = async () => {
+const saveSessionModal = async () => {
     setSessionSaving(true); setSessionErr('')
     try {
-      const body = { ...sessionForm, max_spots:Number(sessionForm.max_spots||20), price:Number(sessionForm.price||0) }
-      if (sessionModal?.data) await apiFetch(`/admin/group-sessions/${sessionModal.data.id}`, { method:'PUT', body:JSON.stringify(body) })
-      else await apiFetch('/admin/group-sessions', { method:'POST', body:JSON.stringify(body) })
-      setSessionModal(null); setSessionForm({})
+      if (!sessionForm.group_id)           throw new Error('Please select a group')
+      if (!sessionForm.title?.trim())      throw new Error('Title is required')
+      if (!sessionForm.facilitator?.trim()) throw new Error('Facilitator is required')
+      if (!sessionForm.scheduled_at)       throw new Error('Date and time is required')
+
+      const body = {
+        ...sessionForm,
+        scheduled_at:     new Date(sessionForm.scheduled_at).toISOString(),
+        max_spots:        Number(sessionForm.max_spots        || 20),
+        price:            Number(sessionForm.price            || 0),
+        duration_minutes: Number(sessionForm.duration_minutes || 60),
+      }
+
+      if (sessionModal?.data) {
+        await apiFetch(`/admin/group-sessions/${sessionModal.data.id}`, {
+          method: 'PUT', body: JSON.stringify(body),
+        })
+      } else {
+        await apiFetch('/admin/group-sessions', {
+          method: 'POST', body: JSON.stringify(body),
+        })
+      }
+      setSessionModal(null)
+      setSessionForm({})
       fetchCommSessions(commSessionPage)
     } catch (e) { setSessionErr(e.message) }
     finally { setSessionSaving(false) }
   }
-
   const ENDPOINTS = {
     post:'/admin/posts', news_article:'/admin/news', resource:'/admin/resources',
     gallery_item:'/admin/gallery', research_paper:'/admin/research', therapist_profile:'/admin/therapists',

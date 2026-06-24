@@ -242,11 +242,13 @@ export const community = {
   // My memberships with payment status
   myMemberships: () => get('/community/my-memberships'),
 
-  // Sessions
+// Sessions
   sessions:         ()         => get('/community/sessions'),
   myReservations:   ()         => get('/community/my-reservations'),
   reserveSession:   (id, body) => post(`/community/sessions/${id}/reserve`, body),
   cancelReservation:(id)       => del(`/community/sessions/${id}/cancel-reservation`),
+  // cancel by reservation id directly (used in MyReservationsPanel)
+  cancelReservationById: (reservationId) => del(`/community/reservations/${reservationId}`),
 
   // Posts
   posts:      (params={}) => { const q = new URLSearchParams(params).toString(); return get(`/community/posts${q ? `?${q}` : ''}`) },
