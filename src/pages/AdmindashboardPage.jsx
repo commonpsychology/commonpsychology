@@ -1778,9 +1778,15 @@ export default function AdminDashboardPage() {
       contacts:            () => sec('/admin/contacts',         setContacts,   setCtcTotal,    ctcPage),
       subscriptions:       () => sec('/admin/subscriptions',    setSubs,       setSubTotal,    subPage),
       settings:            fetchSettings,
-      community_admin:     fetchCommGroups,
-    }
-    if (MAP[tab]) MAP[tab]()
+      // AFTER (fixed)
+      community_admin: () => {
+        fetchCommGroups()
+        fetchCommSessions(1)
+        fetchCommReservations(null)
+        fetchCommMemberships()
+      },
+    }                          // ← closes the MAP object
+    if (MAP[tab]) MAP[tab]()   // ← now correctly outside the object
 }, [tab, uPage, aPage, oPage, oStatus, oDeliveryStatus,   // ← added oStatus, oDeliveryStatus
     postsPage, newsPage, resPage, galSubPage, volPage,
     rscPage, pvPage, paPage, pcPage, prodPage, coursePage, assPage, comPage,
