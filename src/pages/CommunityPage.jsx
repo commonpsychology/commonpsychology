@@ -117,6 +117,52 @@ function AuthGateModal({ onLogin, onClose }) {
   )
 }
 
+// ── Confirm Modal ─────────────────────────────────────────────────────────────
+function ConfirmModal({ title, message, confirmLabel, confirmStyle = 'danger', onConfirm, onCancel }) {
+  const isDanger  = confirmStyle === 'danger'
+  const confirmBg = isDanger ? C.red : btnGrad
+  return (
+    <div
+      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:1500,
+        display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}
+      onClick={onCancel}
+    >
+      <div
+        style={{ background:C.white, borderRadius:24, padding:'2.25rem 2rem', maxWidth:380, width:'100%',
+          boxShadow:`0 24px 64px rgba(0,0,0,0.22)`, position:'relative' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <button onClick={onCancel}
+          style={{ position:'absolute', top:14, right:16, background:'none', border:'none',
+            fontSize:'1.2rem', cursor:'pointer', color:C.textLight }}>✕</button>
+
+        <div style={{ fontSize:'2.4rem', marginBottom:'0.85rem', textAlign:'center' }}>
+          {isDanger ? '⚠️' : '❓'}
+        </div>
+        <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.15rem', color:C.textDark,
+          marginBottom:'0.5rem', textAlign:'center' }}>{title}</h2>
+        <p style={{ fontFamily:'var(--font-body)', fontSize:'0.85rem', color:C.textLight,
+          lineHeight:1.65, marginBottom:'1.75rem', textAlign:'center' }}>{message}</p>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:'0.65rem' }}>
+          <button onClick={onConfirm}
+            style={{ width:'100%', padding:'0.85rem', borderRadius:14, border:'none',
+              background:confirmBg, color:'white', fontFamily:'var(--font-body)',
+              fontWeight:700, fontSize:'0.92rem', cursor:'pointer' }}>
+            {confirmLabel}
+          </button>
+          <button onClick={onCancel}
+            style={{ width:'100%', padding:'0.75rem', borderRadius:14,
+              border:`1.5px solid ${C.borderFaint}`, background:'transparent', color:C.textLight,
+              fontFamily:'var(--font-body)', fontWeight:600, fontSize:'0.85rem', cursor:'pointer' }}>
+            Keep my spot
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Membership badge ──────────────────────────────────────────────────────────
 function MembershipBadge({ status }) {
   const MAP = {
@@ -416,6 +462,7 @@ export default function CommunityPage() {
   const [posts,          setPosts]          = useState([])
   const [myGroupIds,     setMyGroupIds]     = useState(new Set())
   const [memberStatuses, setMemberStatuses] = useState({})
+  const [confirm, setConfirm] = useState(null) // { title, message, confirmLabel, confirmStyle, onConfirm }
   const [mySessionIds,   setMySessionIds]   = useState(new Set())
   const [myReservations, setMyReservations] = useState([])
   const [myMemberships,  setMyMemberships]  = useState([])
@@ -508,8 +555,14 @@ export default function CommunityPage() {
   async function handleJoinGroup(group) {
     if (!user) { setAuthGate(true); return }
 
-    if (myGroupIds.has(group.id)) {
-      if (!window.confirm(`Leave "${group.name}"? You will lose access to this group.`)) return
+if (myGroupIds.has(group.id)) {
+  setConfirm({
+    title:        `Leave ${group.name}?`,
+    message:      'You will lose access to this group and its sessions.',
+    confirmLabel: '🚪 Yes, Leave Group',
+    confirmStyle: 'danger',
+    onConfirm: async () => {
+      setConfirm(null)
       setActionBusy(group.id)
       try {
         await communityApi.leaveGroup(group.id)
@@ -519,8 +572,11 @@ export default function CommunityPage() {
         fetchGroups()
       } catch (e) { showToast('⚠️', e.message, 'error') }
       finally { setActionBusy(null) }
-      return
-    }
+    },
+    onCancel: () => setConfirm(null),
+  })
+  return
+}
 
     const fee  = Number(group.membership_fee || 0)
     const free = isFreeGroup(group)
@@ -679,21 +735,30 @@ export default function CommunityPage() {
   }
 
   async function handleCancelReservation(reservationId) {
-    if (!window.confirm('Cancel this reservation?')) return
-    setCancelBusy(reservationId)
-    try {
-      await apiFetch(`/community/reservations/${reservationId}`, { method:'DELETE' })
-      const removed = myReservations.find(r => r.id === reservationId)
-      setMyReservations(rs => rs.filter(r => r.id !== reservationId))
-      if (removed) {
-        const sid = removed.session_id || removed.group_session_id
-        setMySessionIds(s => { const ns = new Set(s); ns.delete(sid); return ns })
-      }
-      showToast('❌', 'Reservation cancelled.')
-      fetchSessions()
-    } catch (e) { showToast('⚠️', e.message, 'error') }
-    finally { setCancelBusy(null) }
-  }
+  setConfirm({
+    title:        'Cancel Reservation?',
+    message:      'Your spot will be released and may be taken by someone else.',
+    confirmLabel: '✕ Yes, Cancel It',
+    confirmStyle: 'danger',
+    onConfirm: async () => {
+      setConfirm(null)
+      setCancelBusy(reservationId)
+      try {
+        await apiFetch(`/community/reservations/${reservationId}`, { method: 'DELETE' })
+        const removed = myReservations.find(r => r.id === reservationId)
+        setMyReservations(rs => rs.filter(r => r.id !== reservationId))
+        if (removed) {
+          const sid = removed.session_id || removed.group_session_id
+          setMySessionIds(s => { const ns = new Set(s); ns.delete(sid); return ns })
+        }
+        showToast('❌', 'Reservation cancelled.')
+        fetchSessions()
+      } catch (e) { showToast('⚠️', e.message, 'error') }
+      finally { setCancelBusy(null) }
+    },
+    onCancel: () => setConfirm(null),
+  })
+}
 
   // ── POSTS ──────────────────────────────────────────────────────────────────
   async function handlePost(body) {
@@ -709,10 +774,21 @@ export default function CommunityPage() {
     } catch {}
   }
   async function handleDeletePost(postId) {
-    if (!confirm('Delete this post?')) return
-    try { await communityApi.deletePost(postId); setPosts(ps => ps.filter(p => p.id !== postId)) }
-    catch (e) { showToast('⚠️', e.message, 'error') }
-  }
+  setConfirm({
+    title:        'Delete this post?',
+    message:      'This cannot be undone.',
+    confirmLabel: '🗑 Yes, Delete',
+    confirmStyle: 'danger',
+    onConfirm: async () => {
+      setConfirm(null)
+      try {
+        await communityApi.deletePost(postId)
+        setPosts(ps => ps.filter(p => p.id !== postId))
+      } catch (e) { showToast('⚠️', e.message, 'error') }
+    },
+    onCancel: () => setConfirm(null),
+  })
+}
 
   const tabs = [
     ['groups',        'Support Groups'],
@@ -1059,6 +1135,17 @@ export default function CommunityPage() {
           onClose={() => setAuthGate(false)}
         />
       )}
+
+      {confirm && (
+  <ConfirmModal
+    title={confirm.title}
+    message={confirm.message}
+    confirmLabel={confirm.confirmLabel}
+    confirmStyle={confirm.confirmStyle}
+    onConfirm={confirm.onConfirm}
+    onCancel={confirm.onCancel}
+  />
+)}
       {toast && (
         <Toast emoji={toast.emoji} msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />
       )}
