@@ -150,8 +150,12 @@ const PLACE = {
     { icon:'🖥️', label:'65" display screen' },{ icon:'♿', label:'Fully accessible' },
   ],
   images: [
-    { src:'https://i.postimg.cc/Dwm1ySRY/f55930be-23c7-4774-9ba4-d103afc21752.png', thumb:'https://postimg.cc/68J8MpWd][img]https://i.postimg.cc/68J8MpWd/f55930be-23c7-4774-9ba4-d103afc21752.png', alt:'The Serenity Room — main circle space', label:'Main Room' },
-    { src:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=200&q=70', alt:'Natural light & living wall', label:'Natural Light' },
+{ 
+  src:   'https://i.postimg.cc/Dwm1ySRY/f55930be-23c7-4774-9ba4-d103afc21752.png', 
+  thumb: 'https://i.postimg.cc/68J8MpWd/f55930be-23c7-4774-9ba4-d103afc21752.png', 
+  alt:   'The Serenity Room — main circle space', 
+  label: 'Main Room' 
+},    { src:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=200&q=70', alt:'Natural light & living wall', label:'Natural Light' },
     { src:'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=200&q=70', alt:'Mindfulness & meditation corner', label:'Meditation Corner' },
     { src:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=200&q=70', alt:'Group session space', label:'Group Space' },
     { src:'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=200&q=70', alt:'Wellness & yoga area', label:'Wellness Area' },
