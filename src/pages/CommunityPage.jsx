@@ -489,10 +489,17 @@ export default function CommunityPage() {
   }, [])
 
   const fetchSessions = useCallback(async () => {
-    setL('sessions', true)
-    try { const d = await communityApi.sessions(); setSessions(d.sessions || []) }
-    catch {} finally { setL('sessions', false) }
-  }, [])
+  setL('sessions', true)
+  try {
+    const d = await communityApi.sessions()
+    const now = new Date()
+    const upcoming = (d.sessions || []).filter(
+      s => s.scheduled_at && new Date(s.scheduled_at) > now
+    )
+    setSessions(upcoming)
+  } catch {}
+  finally { setL('sessions', false) }
+}, [])
 
   const fetchPosts = useCallback(async () => {
     setL('posts', true)
