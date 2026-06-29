@@ -295,7 +295,7 @@ export default function GalleryPage() {
     radial-gradient(ellipse 72% 58% at 10% 25%, rgba(0,191,255,0.1) 0%, transparent 63%),
     radial-gradient(ellipse 58% 65% at 87% 12%, rgba(0,123,168,0.08) 0%, transparent 58%),
     radial-gradient(ellipse 48% 45% at 53% 92%, rgba(0,159,212,0.07) 0%, transparent 55%),
-linear-gradient(158deg, #c8e8f5 0%, #b8dcef 42%, #a8d0ea 100%)  `,
+linear-gradient(158deg, #0574fc 0%, #0574fc 42%, #0574fc 100%)  `,
 }}>
   <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-50, right:'3%', pointerEvents:'none' }} />
   <div style={{ position:'absolute', width:140, height:140, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-30, left:'5%', pointerEvents:'none' }} />        <div style={{ position:'absolute', top:-60, right:-60, width:300, height:300, borderRadius:'50%', background:'rgba(255,255,255,0.07)', pointerEvents:'none' }} />
