@@ -102,7 +102,7 @@ export default function BlogPage() {
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: C.textDark, lineHeight: 1.2, maxWidth: 700, marginBottom: '0.75rem' }}>
             Insights for Mind &amp; Wellbeing
           </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'rgba(255,255,255,0.8)', maxWidth: 560, lineHeight: 1.7, marginBottom: '2rem' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'rgba(16, 12, 245, 0.8)', maxWidth: 560, lineHeight: 1.7, marginBottom: '2rem' }}>
             Expert-written articles on mental health, psychology, and holistic wellbeing — grounded in Nepali context.
           </p>
 
@@ -112,7 +112,7 @@ export default function BlogPage() {
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
               placeholder="Search articles…"
-              style={{ flex: 1, padding: '0.65rem 1.1rem', borderRadius: 10, border: `1.5px solid ${C.border}`, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: C.textDark, fontFamily: 'var(--font-body)', fontSize: '0.9rem', outline: 'none' }}
+              style={{ flex: 1, padding: '0.65rem 1.1rem', borderRadius: 10, border: '1.5px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: C.textDark, fontFamily: 'var(--font-body)', fontSize: '0.9rem', outline: 'none' }}
             />
             <button type="submit" style={{ padding: '0.65rem 1.25rem', borderRadius: 10, background: C.white, color: C.skyDeep, border: 'none', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>
               Search
