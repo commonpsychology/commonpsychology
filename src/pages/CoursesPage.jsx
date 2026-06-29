@@ -507,25 +507,38 @@ function handleGoToCourse(course) {
     <div className="page-wrapper">
       
 
-      {/* Hero */}
-      <div className="page-hero" style={{ background:'var(--earth-cream,#f5ede0)' }}>
-        <span className="section-tag">Online Learning</span>
-        <h1 className="section-title">Trainings for <em>Every</em> Journey</h1>
-        <p className="section-desc">Self-paced, expert-led programs designed to support your mental wellness from home.</p>
+      <div className="page-hero" style={{
+  position: 'relative',
+  overflow: 'hidden',
+  borderRadius: '0 0 50% 50% / 0 0 32px 32px',
+  background: `
+    radial-gradient(ellipse 70% 60% at 10% 30%, rgba(0,191,255,0.12) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 70% at 90% 20%, rgba(0,123,168,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 55% 90%, rgba(0,159,212,0.08) 0%, transparent 55%),
+    linear-gradient(160deg, #ffffff 0%, #f0f9ff 45%, #e8f6fb 100%)
+  `,
+}}>
+  <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.08)', filter:'blur(36px)', top:-50, right:'3%', pointerEvents:'none' }} />
+  <div style={{ position:'absolute', width:150, height:150, borderRadius:'50%', background:'rgba(0,123,168,0.07)', filter:'blur(28px)', bottom:-30, left:'6%', pointerEvents:'none' }} />
+  <div style={{ position:'relative', zIndex:1 }}>
+    <span className="section-tag">Online Learning</span>
+    <h1 className="section-title">Trainings for <em>Every</em> Journey</h1>
+    <p className="section-desc">Self-paced, expert-led programs designed to support your mental wellness from home.</p>
 
-        <div style={{ display:'flex', gap:'0.75rem', marginTop:'1.25rem', flexWrap:'wrap', justifyContent:'center' }}>
-          {confirmedCount > 0 && (
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'linear-gradient(135deg,#22c55e,#16a34a)', color:'white', padding:'0.5rem 1.2rem', borderRadius:100, fontFamily:'var(--font-body,sans-serif)', fontSize:'0.82rem', fontWeight:700, boxShadow:'0 4px 18px rgba(34,197,94,0.35)' }}>
-              🎓 {confirmedCount} course{confirmedCount>1?'s':''} active
-            </div>
-          )}
-          {pendingCount > 0 && (
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#fffbeb', color:'#92400e', border:'1.5px solid #fcd34d', padding:'0.5rem 1.2rem', borderRadius:100, fontFamily:'var(--font-body,sans-serif)', fontSize:'0.82rem', fontWeight:700, animation:'pending-pulse 2.2s ease infinite' }}>
-              <span className="pending-spinner" />{pendingCount} awaiting confirmation
-            </div>
-          )}
+    <div style={{ display:'flex', gap:'0.75rem', marginTop:'1.25rem', flexWrap:'wrap', justifyContent:'center' }}>
+      {confirmedCount > 0 && (
+        <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'linear-gradient(135deg,#22c55e,#16a34a)', color:'white', padding:'0.5rem 1.2rem', borderRadius:100, fontFamily:'var(--font-body,sans-serif)', fontSize:'0.82rem', fontWeight:700, boxShadow:'0 4px 18px rgba(34,197,94,0.35)' }}>
+          🎓 {confirmedCount} course{confirmedCount>1?'s':''} active
         </div>
-      </div>
+      )}
+      {pendingCount > 0 && (
+        <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#fffbeb', color:'#92400e', border:'1.5px solid #fcd34d', padding:'0.5rem 1.2rem', borderRadius:100, fontFamily:'var(--font-body,sans-serif)', fontSize:'0.82rem', fontWeight:700, animation:'pending-pulse 2.2s ease infinite' }}>
+          <span className="pending-spinner" />{pendingCount} awaiting confirmation
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
       {/* Grid */}
       <div className="section" style={{ background:'var(--white,#fff)' }}>
