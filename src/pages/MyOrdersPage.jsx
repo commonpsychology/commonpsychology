@@ -14,7 +14,7 @@ import { useRouter } from '../context/RouterContext'
 const API_BASE = import.meta.env?.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 const C = {
-  sky:'#9cd9ef', skyLt:'#e0f7ff', skyDk:'#47b9f2',
+  sky:'#007BA8', skyLt:'#e0f7ff', skyDk:'#005580',
   white:'#fff', bg:'#f4f8fb', border:'#daeef8',
   mid:'#4a6a7a', slate:'#1a3a4a', green:'#1a7a4a',
   greenLt:'#e8f8f0', red:'#c0392b', redLt:'#fff0f0',
