@@ -83,8 +83,19 @@ export default function BlogPage() {
     <div style={{ background: C.skyGhost, minHeight: '100vh' }}>
 
       {/* ── Hero ── */}
-      <div style={{ background: heroGrad, padding: '5rem 5rem 4rem' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+<div style={{
+  position: 'relative', overflow: 'hidden',
+  padding: '5rem 5rem 4rem',
+  borderRadius: '0 0 50% 50% / 0 0 32px 32px',
+  background: `
+    radial-gradient(ellipse 75% 60% at 10% 25%, rgba(0,191,255,0.11) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 70% at 88% 15%, rgba(0,123,168,0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 55% 90%, rgba(0,159,212,0.07) 0%, transparent 55%),
+    linear-gradient(160deg, #ffffff 0%, #f0f9ff 40%, #e6f5fc 100%)
+  `,
+}}>
+  <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-50, right:'3%', pointerEvents:'none' }} />
+  <div style={{ position:'absolute', width:140, height:140, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-30, left:'6%', pointerEvents:'none' }} />        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 100, padding: '0.3rem 1rem', marginBottom: '1.25rem' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'white', fontFamily: 'var(--font-body)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>✍️ Blog &amp; Articles</span>
           </div>
