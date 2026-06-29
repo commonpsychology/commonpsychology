@@ -211,8 +211,14 @@ useEffect(() => {
       {/* Header */}
       <div
         style={{
-          background: "linear-gradient(120deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%)",
-          padding: "48px 40px 36px",
+          position: 'relative', overflow: 'hidden',
+padding: "48px 40px 36px",
+borderRadius: '0 0 50% 50% / 0 0 32px 32px',
+background: `
+  radial-gradient(ellipse 72% 58% at 10% 28%, rgba(37,99,235,0.12) 0%, transparent 63%),
+  radial-gradient(ellipse 58% 62% at 88% 12%, rgba(29,78,216,0.1) 0%, transparent 58%),
+  linear-gradient(158deg, #ffffff 0%, #eff6ff 42%, #dbeafe 100%)
+`,
           textAlign: "center",
           position: "relative",
           overflow: "hidden",
