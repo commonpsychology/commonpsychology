@@ -97,9 +97,9 @@ export default function BlogPage() {
   <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-50, right:'3%', pointerEvents:'none' }} />
   <div style={{ position:'absolute', width:140, height:140, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-30, left:'6%', pointerEvents:'none' }} />        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 100, padding: '0.3rem 1rem', marginBottom: '1.25rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'white', fontFamily: 'var(--font-body)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>✍️ Blog &amp; Articles</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: C.textDark, fontFamily: 'var(--font-body)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>✍️ Blog &amp; Articles</span>
           </div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: 'white', lineHeight: 1.2, maxWidth: 700, marginBottom: '0.75rem' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: C.textDark, lineHeight: 1.2, maxWidth: 700, marginBottom: '0.75rem' }}>
             Insights for Mind &amp; Wellbeing
           </h1>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'rgba(255,255,255,0.8)', maxWidth: 560, lineHeight: 1.7, marginBottom: '2rem' }}>
@@ -112,7 +112,7 @@ export default function BlogPage() {
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
               placeholder="Search articles…"
-              style={{ flex: 1, padding: '0.65rem 1.1rem', borderRadius: 10, border: '1.5px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: 'white', fontFamily: 'var(--font-body)', fontSize: '0.9rem', outline: 'none' }}
+              style={{ flex: 1, padding: '0.65rem 1.1rem', borderRadius: 10, border: `1.5px solid ${C.border}`, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: C.textDark, fontFamily: 'var(--font-body)', fontSize: '0.9rem', outline: 'none' }}
             />
             <button type="submit" style={{ padding: '0.65rem 1.25rem', borderRadius: 10, background: C.white, color: C.skyDeep, border: 'none', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>
               Search
@@ -188,7 +188,7 @@ export default function BlogPage() {
               {featured.image_url && (
                 <img src={featured.image_url} alt={featured.title} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
               )}
-              <div style={{ position: 'absolute', top: '1.25rem', left: '1.25rem', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', color: 'white', fontSize: '0.72rem', fontWeight: 800, padding: '4px 12px', borderRadius: 100, border: '1px solid rgba(255,255,255,0.3)' }}>
+              <div style={{ position: 'absolute', top: '1.25rem', left: '1.25rem', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', color: C.textDark, fontSize: '0.72rem', fontWeight: 800, padding: '4px 12px', borderRadius: 100, border: '1px solid rgba(255,255,255,0.3)' }}>
                 ⭐ Featured
               </div>
             </div>
@@ -205,7 +205,7 @@ export default function BlogPage() {
                 {featured.excerpt}
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white', fontWeight: 700 }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: C.textDark, fontWeight: 700 }}>
                   {(featured.author || '?').split(' ').map(w => w[0]).join('').slice(0, 2)}
                 </div>
                 <div>
@@ -236,11 +236,11 @@ export default function BlogPage() {
                   {post.image_url && (
                     <img src={post.image_url} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   )}
-                  <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', fontSize: '0.65rem', fontWeight: 700, padding: '3px 10px', borderRadius: 100, background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>
+                  <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', fontSize: '0.65rem', fontWeight: 700, padding: '3px 10px', borderRadius: 100, background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', color: C.textDark, border: '1px solid rgba(255,255,255,0.3)' }}>
                     {post.category}
                   </span>
                   {post.featured && (
-                    <span style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', fontSize: '0.6rem', padding: '2px 8px', borderRadius: 100, background: 'rgba(255,255,255,0.2)', color: 'white' }}>⭐</span>
+                    <span style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', fontSize: '0.6rem', padding: '2px 8px', borderRadius: 100, background: 'rgba(255,255,255,0.2)', color: C.textDark }}>⭐</span>
                   )}
                 </div>
                 {/* Card body */}
@@ -256,7 +256,7 @@ export default function BlogPage() {
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: 'white', fontWeight: 700, flexShrink: 0 }}>
+                      <div style={{ width: 26, height: 26, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: C.textDark, fontWeight: 700, flexShrink: 0 }}>
                         {(post.author || '?').split(' ').map(w => w[0]).join('').slice(0, 2)}
                       </div>
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600, color: C.textDark }}>{post.author}</span>
