@@ -57,12 +57,40 @@ export default function ServicesPage() {
 
   return (
     <div className="page-wrapper">
-      <div className="page-hero" style={{ background: 'var(--green-mist)' }}>
+      <div
+  className="page-hero"
+  style={{
+    position: 'relative',
+    overflow: 'hidden',
+    padding: '4rem 2rem 5rem',
+    textAlign: 'center',
+    borderRadius: '0 0 60% 60% / 0 0 40px 40px',
+    background: `
+      radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
+      radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
+      linear-gradient(160deg, #f0faf5 0%, #e8f4fb 45%, #fefce8 100%)
+    `,
+  }}
+>
+  <div style={{
+    position: 'absolute', width: 220, height: 220, borderRadius: '50%',
+    background: 'rgba(0,123,168,0.12)', filter: 'blur(32px)',
+    top: -40, right: '5%', pointerEvents: 'none',
+  }} />
+  <div style={{
+    position: 'absolute', width: 180, height: 180, borderRadius: '50%',
+    background: 'rgba(29,158,117,0.1)', filter: 'blur(32px)',
+    bottom: -20, left: '8%', pointerEvents: 'none',
+  }} />
+  <div style={{ position: 'relative', zIndex: 1, maxWidth: 560, margin: '0 auto' }}>
         <span className="section-tag">All Services</span>
         <h1 className="section-title">Everything You Need for <em>Mental Wellness</em></h1>
         <p className="section-desc">
           Comprehensive, evidence-based mental health services designed for the Nepali community.
         </p>
+      </div>
+
       </div>
 
       <div className="section" style={{ background: 'var(--white)' }}>
