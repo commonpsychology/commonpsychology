@@ -291,11 +291,13 @@ export default function GalleryPage() {
   position:'relative', overflow:'hidden',
   padding:'5rem 4rem 4rem',
   borderRadius: '0 0 50% 50% / 0 0 32px 32px',
-  background: `
+    background: `
     radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
       radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
       radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
-  linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)s `,}}>
+      linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)
+  `,
+}}>
   <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-50, right:'3%', pointerEvents:'none' }} />
   <div style={{ position:'absolute', width:140, height:140, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-30, left:'5%', pointerEvents:'none' }} />        <div style={{ position:'absolute', top:-60, right:-60, width:300, height:300, borderRadius:'50%', background:'rgba(255,255,255,0.07)', pointerEvents:'none' }} />
         <div style={{ maxWidth:680, position:'relative' }}>
