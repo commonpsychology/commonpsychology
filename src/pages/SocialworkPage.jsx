@@ -275,10 +275,10 @@ export default function SocialWorkPage() {
   padding: heroPadding,
   borderRadius: '0 0 50% 50% / 0 0 32px 32px',
   background: `
-    radial-gradient(ellipse 75% 60% at 12% 28%, rgba(0,191,255,0.11) 0%, transparent 65%),
-    radial-gradient(ellipse 60% 65% at 85% 12%, rgba(0,123,168,0.09) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 45% at 52% 92%, rgba(0,159,212,0.07) 0%, transparent 55%),
-    linear-gradient(158deg, #0574fc 0%, #0574fc 40%, #0574fc 100%)
+    radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
+      radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
+      linear-gradient(160deg, #f0faf5 0%, #e8f4fb 45%, #fefce8 100%)
   `,
 }}>
   <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-50, right:'4%', pointerEvents:'none' }} />

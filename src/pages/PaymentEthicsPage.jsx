@@ -222,10 +222,10 @@ export default function PaymentEthicsPage() {
   padding:'5rem 4rem 4rem',
   borderRadius: '0 0 50% 50% / 0 0 32px 32px',
   background: `
-    radial-gradient(ellipse 70% 58% at 10% 28%, rgba(0,191,255,0.1) 0%, transparent 63%),
-    radial-gradient(ellipse 58% 62% at 88% 12%, rgba(0,123,168,0.08) 0%, transparent 58%),
-    radial-gradient(ellipse 48% 44% at 52% 92%, rgba(0,159,212,0.07) 0%, transparent 55%),
-linear-gradient(158deg, #0574fc 0%, #0574fc 42%, #0574fc 100%)  `,
+ radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
+      radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
+      linear-gradient(160deg, #f0faf5 0%, #e8f4fb 45%, #fefce8 100%)  `,
 }}>
   <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-60, right:'4%', pointerEvents:'none' }} />
   <div style={{ position:'absolute', width:150, height:150, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-35, left:'5%', pointerEvents:'none' }} />        <div style={{ position:'absolute', top:-60, right:-60, width:280, height:280, borderRadius:'50%',

@@ -215,9 +215,10 @@ useEffect(() => {
 padding: "48px 40px 36px",
 borderRadius: '0 0 50% 50% / 0 0 32px 32px',
 background: `
-  radial-gradient(ellipse 72% 58% at 10% 28%, rgba(37,99,235,0.12) 0%, transparent 63%),
-  radial-gradient(ellipse 58% 62% at 88% 12%, rgba(29,78,216,0.1) 0%, transparent 58%),
-  linear-gradient(158deg, #0574fc 0%, #0574fc 42%, #0574fc 100%)
+   radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
+      radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
+      linear-gradient(160deg, #f0faf5 0%, #e8f4fb 45%, #fefce8 100%)
 `,
           textAlign: "center",
           position: "relative",
