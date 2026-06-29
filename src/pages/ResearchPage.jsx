@@ -87,8 +87,7 @@ export default function ResearchPage() {
     radial-gradient(ellipse 70% 55% at 8% 20%, rgba(0,191,255,0.1) 0%, transparent 60%),
     radial-gradient(ellipse 55% 65% at 90% 10%, rgba(15,95,165,0.08) 0%, transparent 58%),
     radial-gradient(ellipse 45% 45% at 50% 95%, rgba(0,159,212,0.07) 0%, transparent 55%),
-    linear-gradient(155deg, #ffffff 0%, #f2faff 42%, #e8f4fb 100%)
-  `,
+linear-gradient(155deg, #c8e8f5 0%, #b8dcef 42%, #a8d0ea 100%)  `,
 }}>
   <div style={{ position:'absolute', width:220, height:220, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(40px)', top:-60, right:'4%', pointerEvents:'none' }} />
   <div style={{ position:'absolute', width:150, height:150, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(30px)', bottom:-30, left:'5%', pointerEvents:'none' }} />        <div style={{ maxWidth: 1100, margin: '0 auto' }}>

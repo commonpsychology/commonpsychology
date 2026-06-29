@@ -225,8 +225,7 @@ export default function PaymentEthicsPage() {
     radial-gradient(ellipse 70% 58% at 10% 28%, rgba(0,191,255,0.1) 0%, transparent 63%),
     radial-gradient(ellipse 58% 62% at 88% 12%, rgba(0,123,168,0.08) 0%, transparent 58%),
     radial-gradient(ellipse 48% 44% at 52% 92%, rgba(0,159,212,0.07) 0%, transparent 55%),
-    linear-gradient(158deg, #ffffff 0%, #f0f9ff 42%, #e6f5fc 100%)
-  `,
+linear-gradient(158deg, #c8e8f5 0%, #b8dcef 42%, #a8d0ea 100%)  `,
 }}>
   <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-60, right:'4%', pointerEvents:'none' }} />
   <div style={{ position:'absolute', width:150, height:150, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-35, left:'5%', pointerEvents:'none' }} />        <div style={{ position:'absolute', top:-60, right:-60, width:280, height:280, borderRadius:'50%',
