@@ -264,8 +264,21 @@ async function handleConfirm() {
 
   return (
     <div className="page-wrapper">
-      <div style={{ background:`linear-gradient(135deg,${C.skyDeep},${C.skyBright})`, padding:'3rem 2rem 2rem', color:'white' }}>
-        <div style={{ maxWidth:800, margin:'0 auto' }}>
+<div style={{
+  position: 'relative',
+  overflow: 'hidden',
+  padding: '3rem 2rem 2.5rem',
+  color: 'white',
+  borderRadius: '0 0 50% 50% / 0 0 32px 32px',
+  background: `
+    radial-gradient(ellipse 80% 60% at 15% 30%, rgba(0,191,255,0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 70% at 85% 10%, rgba(0,191,255,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 60% 90%, rgba(0,140,200,0.25) 0%, transparent 55%),
+    linear-gradient(150deg, #004f72 0%, #006a9a 40%, ${C.skyDeep} 100%)
+  `,
+}}>
+  <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(0,191,255,0.15)', filter:'blur(30px)', top:-40, right:'5%', pointerEvents:'none' }} />
+  <div style={{ position:'absolute', width:130, height:130, borderRadius:'50%', background:'rgba(0,150,220,0.12)', filter:'blur(24px)', bottom:-20, left:'8%', pointerEvents:'none' }} />        <div style={{ maxWidth:800, margin:'0 auto' }}>
           <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.12em', textTransform:'uppercase', opacity:0.7 }}>Book a Session</span>
           <h1 style={{ fontFamily:'var(--font-display)', fontSize:'2rem', margin:'0.5rem 0' }}>Schedule Your Therapy</h1>
           <StepBar step={step}/>
