@@ -394,9 +394,17 @@ export default function NeuroscienceLab() {
     }}>
       {/* Header */}
       <div style={{
-        background: "linear-gradient(135deg, #042C53 0%, #0C447C 60%, #185FA5 100%)",
-        padding: "32px 24px 28px", position: "relative", overflow: "hidden",
-      }}>
+  position: "relative", overflow: "hidden",
+  padding: "32px 24px 28px",
+  borderRadius: "0 0 40% 40% / 0 0 20px 20px",
+  background: `
+    radial-gradient(ellipse 72% 58% at 10% 28%, rgba(12,68,124,0.13) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 62% at 88% 10%, rgba(24,95,165,0.1) 0%, transparent 58%),
+    linear-gradient(158deg, #ffffff 0%, #eef5fc 42%, #e2eff9 100%)
+  `,
+}}>
+  <div style={{ position:"absolute", width:180, height:180, borderRadius:"50%", background:"rgba(12,68,124,0.06)", filter:"blur(32px)", top:-40, right:"3%", pointerEvents:"none" }} />
+  <div style={{ position:"absolute", width:130, height:130, borderRadius:"50%", background:"rgba(24,95,165,0.05)", filter:"blur(26px)", bottom:-20, left:"5%", pointerEvents:"none" }} />
         {/* decorative circles */}
         {[...Array(6)].map((_, i) => (
           <div key={i} style={{
@@ -417,14 +425,14 @@ export default function NeuroscienceLab() {
               <circle cx="18" cy="12" r="2" fill="#1D9E75" opacity="0.8"/>
               <circle cx="15" cy="18" r="2.5" fill="#D85A30" opacity="0.8"/>
             </svg>
-            <span style={{ fontSize: 11, color: "#85B7EB", letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "system-ui" }}>
+            <span style={{ fontSize: 11, color: "#185FA5", letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "system-ui" }}>
               Neuroscience Lab
             </span>
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: "#fff", margin: "0 0 6px", lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: "#042C53", margin: "0 0 6px", lineHeight: 1.2 }}>
             Brain & Neuroscience Lab
           </h1>
-          <p style={{ fontSize: 14, color: "#85B7EB", margin: 0, fontFamily: "system-ui", fontWeight: 400 }}>
+          <p style={{ fontSize: 14, color: "#185FA5", margin: 0, fontFamily: "system-ui", fontWeight: 400 }}>
             Interactive maps · Neurotransmitters · Anxiety circuits
           </p>
         </div>

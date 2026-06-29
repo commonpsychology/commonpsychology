@@ -37,8 +37,7 @@ const STATUS_STEPS = ['pending', 'confirmed', 'processing', 'shipped', 'delivere
 
 const CSS = `
   .acc-layout { min-height:100vh; background:${BG}; }
-  .acc-hero { background:linear-gradient(135deg,#007BA8 0%,#00BFFF 100%); padding:clamp(1.25rem,4vw,2rem); padding-top:calc(clamp(1.25rem,4vw,2rem) + 72px); }
-  .acc-hero-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; }
+.acc-hero { position:relative; overflow:hidden; padding:clamp(1.25rem,4vw,2rem); padding-top:calc(clamp(1.25rem,4vw,2rem) + 72px); border-radius:0 0 40% 40% / 0 0 24px 24px; background:radial-gradient(ellipse 75% 60% at 12% 30%, rgba(0,191,255,0.11) 0%, transparent 65%), radial-gradient(ellipse 60% 70% at 88% 10%, rgba(0,123,168,0.09) 0%, transparent 60%), linear-gradient(158deg, #ffffff 0%, #f0f9ff 42%, #e6f5fc 100%); }  .acc-hero-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; }
   .acc-main { max-width:900px; margin:0 auto; padding:clamp(1rem,4vw,2rem); display:grid; grid-template-columns:200px 1fr; gap:1.5rem; align-items:start; }
   .acc-sidebar { background:${WHITE}; border-radius:14px; border:1px solid ${BORDER}; padding:0.85rem; position:sticky; top:1rem; }
   .acc-sidebar-btn { display:flex; align-items:center; gap:0.6rem; width:100%; padding:0.65rem 0.85rem; border-radius:10px; border:none; cursor:pointer; text-align:left; margin-bottom:0.15rem; font-family:inherit; transition:background 0.15s; }
@@ -383,6 +382,8 @@ export default function MyAccountPage() {
 
       {/* ── Hero ── */}
       <div className="acc-hero">
+        <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(32px)', top:-40, right:'4%', pointerEvents:'none' }} />
+<div style={{ position:'absolute', width:130, height:130, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(26px)', bottom:-25, left:'5%', pointerEvents:'none' }} />
         <div className="acc-hero-inner">
 
           <AvatarUploader
@@ -393,13 +394,13 @@ export default function MyAccountPage() {
           <div style={{ flex:1, minWidth:0 }}>
             <h1 style={{
               fontFamily:'var(--font-display)',
-              fontSize:'clamp(1.2rem,5vw,1.6rem)', color:WHITE, margin:0,
+              fontSize:'clamp(1.2rem,5vw,1.6rem)', color:'#1a3a4a', margin:0,
               overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
             }}>
               {user?.fullName || user?.full_name || 'Your Account'}
             </h1>
             <p style={{
-              color:'rgba(255,255,255,0.75)', fontSize:'clamp(0.72rem,2vw,0.82rem)',
+              color:'#4a6a7a', fontSize:'clamp(0.72rem,2vw,0.82rem)',
               margin:'0.25rem 0 0',
               overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
             }}>
@@ -411,8 +412,8 @@ export default function MyAccountPage() {
             onClick={logout}
             style={{
               padding:'0.45rem 1rem', borderRadius:9,
-              border:'1.5px solid rgba(255,255,255,0.35)',
-              background:'rgba(255,255,255,0.12)', color:WHITE,
+           border:`1.5px solid ${BORDER}`,
+background:'rgba(0,123,168,0.08)', color:SKY_D,
               fontSize:'0.8rem', fontWeight:600, cursor:'pointer',
               flexShrink:0, whiteSpace:'nowrap',
             }}
