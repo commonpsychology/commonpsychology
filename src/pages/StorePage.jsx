@@ -182,31 +182,62 @@ async function updateQty(productId, qty) {
   return (
     <div className="page-wrapper">
       {/* Hero */}
-      <div className="page-hero" style={{ background:'var(--green-deep)' }}>
-        <span className="section-tag" style={{ color:'var(--green-pale)' }}>Wellness Store</span>
-        <h1 className="section-title" style={{ color:'white' }}>Mental Wellness <em>Products</em></h1>
-        <p className="section-desc" style={{ color:'rgba(255,255,255,0.75)', maxWidth:500 }}>Books, workbooks, digital tools, and more — curated for your healing journey.</p>
-      </div>
+      <div className="page-hero" style={{
+  position: 'relative',
+  overflow: 'hidden',
+  padding: '3rem 1.5rem 4rem',
+  textAlign: 'center',
+  borderRadius: '0 0 50% 50% / 0 0 32px 32px',
+  background: `
+    radial-gradient(ellipse 90% 70% at 15% 30%, rgba(100,200,150,0.45) 0%, transparent 65%),
+    radial-gradient(ellipse 80% 60% at 85% 15%, rgba(34,197,94,0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 70% 85%, rgba(187,247,208,0.4) 0%, transparent 60%),
+    linear-gradient(150deg, #064e3b 0%, #065f46 40%, #047857 100%)
+  `,
+}}>
+  <div style={{ position:'absolute', width:160, height:160, borderRadius:'50%', background:'rgba(52,211,153,0.18)', filter:'blur(28px)', top:-30, right:0, pointerEvents:'none' }} />
+  <div style={{ position:'absolute', width:120, height:120, borderRadius:'50%', background:'rgba(16,185,129,0.15)', filter:'blur(24px)', bottom:-20, left:'5%', pointerEvents:'none' }} />
+  <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto' }}>
+    <span className="section-tag" style={{ color:'#6ee7b7', background:'rgba(110,231,183,0.15)', border:'1px solid rgba(110,231,183,0.3)' }}>Wellness Store</span>
+    <h1 className="section-title" style={{ color:'#fff' }}>Mental Wellness <em style={{ color:'#6ee7b7', fontStyle:'normal' }}>Products</em></h1>
+    <p className="section-desc" style={{ color:'rgba(255,255,255,0.72)', maxWidth:400, margin:'0 auto' }}>Books, workbooks, digital tools, and more — curated for your healing journey.</p>
+  </div>
+</div>
 
-      {/* Toolbar */}
-      <div style={{ background:'var(--white)', padding:'1.25rem 2rem', borderBottom:'1px solid var(--earth-cream)', display:'flex', gap:'1rem', alignItems:'center', flexWrap:'wrap', justifyContent:'space-between', position:'sticky', top:0, zIndex:10 }}>
-        <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap', flex:1 }}>
-          <button onClick={() => { setActiveCategory('all'); setPage(1) }} style={{ padding:'0.4rem 1rem', borderRadius:'100px', border:`1.5px solid ${activeCategory==='all'?'var(--green-deep)':'var(--earth-cream)'}`, background:activeCategory==='all'?'var(--green-deep)':'var(--white)', color:activeCategory==='all'?'white':'var(--text-mid)', fontSize:'0.8rem', fontWeight:600, cursor:'pointer' }}>All</button>
-          {categories.map(c => (
-            <button key={c.id} onClick={() => { setActiveCategory(c.id); setPage(1) }}
-              style={{ padding:'0.4rem 1rem', borderRadius:'100px', border:`1.5px solid ${activeCategory===c.id?'var(--green-deep)':'var(--earth-cream)'}`, background:activeCategory===c.id?'var(--green-deep)':'var(--white)', color:activeCategory===c.id?'white':'var(--text-mid)', fontSize:'0.8rem', fontWeight:600, cursor:'pointer' }}>
-              {c.name}
-            </button>
-          ))}
-        </div>
-        <div style={{ display:'flex', gap:'0.75rem', alignItems:'center' }}>
-          <input placeholder="Search products…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
-            style={{ padding:'0.5rem 1rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.85rem', outline:'none', width:200 }}/>
-          <button onClick={() => setCartOpen(true)} style={{ position:'relative', padding:'0.5rem 1rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:8, fontSize:'0.85rem', fontWeight:700, cursor:'pointer' }}>
-            🛒 Cart {cartCount > 0 && <span style={{ background:'#f97316', borderRadius:'50%', padding:'0 5px', fontSize:'0.72rem', marginLeft:4 }}>{cartCount}</span>}
-          </button>
-        </div>
-      </div>
+     <div style={{ background:'var(--white)', padding:'0.75rem 1rem', borderBottom:'1px solid var(--earth-cream)', position:'sticky', top:0, zIndex:10 }}>
+  {/* Search + cart row */}
+  <div style={{ display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.6rem' }}>
+    <input
+      placeholder="Search products…"
+      value={search}
+      onChange={e => { setSearch(e.target.value); setPage(1) }}
+      style={{ flex:1, minWidth:0, padding:'0.45rem 0.75rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.82rem', outline:'none' }}
+    />
+    <button
+      onClick={() => setCartOpen(true)}
+      style={{ flexShrink:0, display:'flex', alignItems:'center', gap:4, padding:'0.45rem 0.85rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:8, fontSize:'0.78rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}
+    >
+      🛒 Cart
+      {cartCount > 0 && (
+        <span style={{ background:'#f97316', borderRadius:'50%', width:18, height:18, fontSize:'0.6rem', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800 }}>{cartCount}</span>
+      )}
+    </button>
+  </div>
+  {/* Horizontally scrollable filter pills */}
+  <div style={{ display:'flex', gap:'0.4rem', overflowX:'auto', paddingBottom:2, scrollbarWidth:'none', msOverflowStyle:'none' }}>
+    <button
+      onClick={() => { setActiveCategory('all'); setPage(1) }}
+      style={{ flexShrink:0, padding:'0.3rem 0.9rem', borderRadius:'100px', border:`1.5px solid ${activeCategory==='all'?'var(--green-deep)':'var(--earth-cream)'}`, background:activeCategory==='all'?'var(--green-deep)':'var(--white)', color:activeCategory==='all'?'white':'var(--text-mid)', fontSize:'0.75rem', fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' }}
+    >All</button>
+    {categories.map(c => (
+      <button
+        key={c.id}
+        onClick={() => { setActiveCategory(c.id); setPage(1) }}
+        style={{ flexShrink:0, padding:'0.3rem 0.9rem', borderRadius:'100px', border:`1.5px solid ${activeCategory===c.id?'var(--green-deep)':'var(--earth-cream)'}`, background:activeCategory===c.id?'var(--green-deep)':'var(--white)', color:activeCategory===c.id?'white':'var(--text-mid)', fontSize:'0.75rem', fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' }}
+      >{c.name}</button>
+    ))}
+  </div>
+</div>
 
       {cartMsg && (
         <div style={{ position:'fixed', bottom:'2rem', right:'2rem', background:'var(--green-deep)', color:'white', padding:'0.75rem 1.5rem', borderRadius:10, fontWeight:600, fontSize:'0.9rem', zIndex:1000, boxShadow:'0 4px 20px rgba(0,0,0,0.15)' }}>{cartMsg}</div>
