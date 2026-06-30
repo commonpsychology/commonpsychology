@@ -57,7 +57,7 @@ export default function Assessment() {
         .section-title {
           font-size: 32px;
           font-weight: 700;
-          color: #0c4a6e;
+          color: #111111;
           line-height: 1.25;
           margin-bottom: 14px;
         }
@@ -69,7 +69,7 @@ export default function Assessment() {
 
         .section-desc {
           font-size: 15px;
-          color: #4a7a9b;
+          color: #222222;
           line-height: 1.65;
           margin-bottom: 28px;
           max-width: 380px;
@@ -89,7 +89,7 @@ export default function Assessment() {
           align-items: flex-start;
           gap: 10px;
           font-size: 14px;
-          color: #334155;
+          color: #111111;
         }
 
         .assessment-check {
@@ -160,13 +160,13 @@ export default function Assessment() {
         .assessment-card h4 {
           font-size: 16px;
           font-weight: 700;
-          color: #0c4a6e;
+          color: #111111;
           margin-bottom: 6px;
         }
 
         .assessment-card p {
           font-size: 12px;
-          color: #64748b;
+          color: #333333;
           line-height: 1.5;
           margin-bottom: 10px;
         }
