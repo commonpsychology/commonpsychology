@@ -1,13 +1,15 @@
 // src/pages/BlogPage.jsx  — list of all blog posts
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
+import Honeycomb from '../components/Honeycomb'
+
 
 const C = {
   skyBright:  '#00BFFF',
   skyMid:     '#009FD4',
   skyDeep:    '#007BA8',
   skyFaint:   '#E0F7FF',
-  skyFainter: '#F0FBFF',
+  skyFainter: '#F0Fbff',
   skyGhost:   '#F8FEFF',
   white:      '#ffffff',
   mint:       '#e8f3ee',
@@ -94,6 +96,8 @@ export default function BlogPage() {
           linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)
         `,
       }}>
+        <Honeycomb words={['Read & Reflect', 'Stay Curious', 'Grow Daily', 'Keep Exploring', 'Insightful Reads', 'Learn Together']} />
+
         <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-50, right:'3%', pointerEvents:'none' }} />
         <div style={{ position:'absolute', width:140, height:140, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-30, left:'6%', pointerEvents:'none' }} />
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
+import Honeycomb from '../components/Honeycomb'
+
 
 const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
@@ -281,6 +283,8 @@ export default function SocialWorkPage() {
       linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)
   `,
 }}>
+  <Honeycomb words={['Community First', 'We Care', 'Together We Rise', 'Reaching Every Home', 'Hope For All', 'Standing With You']} />
+
   <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-50, right:'4%', pointerEvents:'none' }} />
   <div style={{ position:'absolute', width:150, height:150, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-30, left:'5%', pointerEvents:'none' }} />        <div style={{ position: 'absolute', top: -60, right: -60, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 680, position: 'relative' }}>
