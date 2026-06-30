@@ -15,7 +15,7 @@ const AFFIRMATIONS = [
 
 // ── Micro-habits — tiny wins that feel achievable ────────────
 const HABITS = [
-  { icon: "🌬️", label: "60-sec breath reset", time: "1 min", color: "#e0f7ff", accent: "#007BA8" },
+  { icon: "🌬️", label: "60-sec breath reset", time: "1 min", color: "#e0f2fe", accent: "#0284c7" },
   { icon: "📓", label: "Write 3 grateful things", time: "2 min", color: "#e8f8f0", accent: "#1a7a4a" },
   { icon: "🚶", label: "Walk outside barefoot", time: "5 min", color: "#fff5e6", accent: "#b45309" },
   { icon: "💧", label: "Drink a full glass of water", time: "30 sec", color: "#f0f0ff", accent: "#4338ca" },
@@ -23,8 +23,7 @@ const HABITS = [
   { icon: "🤲", label: "Name one emotion you feel", time: "1 min", color: "#f0fdf4", accent: "#166534" },
 ]
 
-// ── Streak tracker using window-level state (avoids localStorage issues) ──
-// We keep a module-level variable so it survives re-renders/remounts in same session
+// ── Streak tracker ────────────────────────────────────────────
 let _sessionStreak = null
 
 function useStreak() {
@@ -32,7 +31,6 @@ function useStreak() {
   const [checked, setChecked] = useState(false)
 
   useEffect(() => {
-    // If already computed this session, reuse
     if (_sessionStreak !== null) {
       setStreak(_sessionStreak)
       setChecked(true)
@@ -67,19 +65,17 @@ function useStreak() {
     }
   }, [])
 
-  function checkIn() {
-    setChecked(true)
-  }
+  function checkIn() { setChecked(true) }
 
   return { streak, checked, checkIn }
 }
 
-// ── Mood pulse — quick 1-tap daily check-in ──────────────────
+// ── Mood pulse ────────────────────────────────────────────────
 const MOODS = [
-  { emoji: "😔", label: "Low", val: 1 },
-  { emoji: "😐", label: "Okay", val: 2 },
-  { emoji: "🙂", label: "Good", val: 3 },
-  { emoji: "😊", label: "Great", val: 4 },
+  { emoji: "😔", label: "Low",     val: 1 },
+  { emoji: "😐", label: "Okay",    val: 2 },
+  { emoji: "🙂", label: "Good",    val: 3 },
+  { emoji: "😊", label: "Great",   val: 4 },
   { emoji: "🤩", label: "Amazing", val: 5 },
 ]
 
@@ -93,34 +89,30 @@ const MOOD_MESSAGES = [
 
 export default function DailyReturnHook({ visible = true }) {
   const { streak, checked, checkIn } = useStreak()
-  const [selectedMood, setSelectedMood]       = useState(null)
-  const [completedHabit, setCompletedHabit]   = useState(null)
+  const [selectedMood, setSelectedMood]     = useState(null)
+  const [completedHabit, setCompletedHabit] = useState(null)
   const [affirmIdx]  = useState(() => new Date().getDate() % AFFIRMATIONS.length)
   const [habitIdx]   = useState(() => new Date().getDate() % HABITS.length)
-  const [hasAnimated, setHasAnimated]         = useState(false)
+  const [hasAnimated, setHasAnimated]       = useState(false)
   const ref = useRef(null)
 
-  // FIX: Check if already in viewport on mount, then fall back to IntersectionObserver
   useEffect(() => {
     const el = ref.current
     if (!el) return
 
-    // Immediately visible? Animate right away.
     const rect = el.getBoundingClientRect()
     if (rect.top < window.innerHeight) {
-      // Small delay so CSS transition has time to attach
       const raf = requestAnimationFrame(() => setHasAnimated(true))
       return () => cancelAnimationFrame(raf)
     }
 
-    // Otherwise watch for scroll-in
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setHasAnimated(true) },
       { threshold: 0.10 }
     )
     obs.observe(el)
     return () => obs.disconnect()
-  }, []) // runs once on mount — no dependency on `visible` so remounts don't break it
+  }, [])
 
   function handleMood(mood) {
     setSelectedMood(mood)
@@ -144,7 +136,7 @@ export default function DailyReturnHook({ visible = true }) {
         @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
         .drh-root {
-          background: #f7f4ef;
+          background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 45%, #ffffff 100%);
           padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 5vw, 2rem);
           font-family: 'DM Sans', sans-serif;
           position: relative;
@@ -156,7 +148,7 @@ export default function DailyReturnHook({ visible = true }) {
           position: absolute;
           top: -120px; right: -120px;
           width: 400px; height: 400px;
-          background: radial-gradient(circle, rgba(0,191,255,0.07) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
           pointer-events: none;
         }
 
@@ -165,7 +157,7 @@ export default function DailyReturnHook({ visible = true }) {
           position: absolute;
           bottom: -80px; left: -80px;
           width: 300px; height: 300px;
-          background: radial-gradient(circle, rgba(26,122,74,0.06) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(186,230,253,0.18) 0%, transparent 70%);
           pointer-events: none;
         }
 
@@ -176,7 +168,7 @@ export default function DailyReturnHook({ visible = true }) {
           z-index: 1;
         }
 
-        /* ── Section header ── */
+        /* ── Header ── */
         .drh-header {
           text-align: center;
           margin-bottom: clamp(2rem, 4vw, 3.5rem);
@@ -186,7 +178,7 @@ export default function DailyReturnHook({ visible = true }) {
           font-weight: 600;
           letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: #007BA8;
+          color: #0284c7;
           margin-bottom: 0.65rem;
           display: flex;
           align-items: center;
@@ -197,30 +189,30 @@ export default function DailyReturnHook({ visible = true }) {
           content: '';
           display: block;
           width: 30px; height: 1px;
-          background: #007BA8;
+          background: #0284c7;
           opacity: 0.4;
         }
         .drh-title {
           font-family: 'Lora', serif;
           font-size: clamp(1.8rem, 4vw, 2.6rem);
-          color: #1a3a4a;
+          color: #0c4a6e;
           font-weight: 600;
           line-height: 1.25;
           margin: 0 0 0.75rem;
         }
         .drh-title em {
           font-style: italic;
-          color: #007BA8;
+          color: #0284c7;
         }
         .drh-subtitle {
           font-size: 0.95rem;
-          color: #7a9aaa;
+          color: #4a7a9b;
           max-width: 480px;
           margin: 0 auto;
           line-height: 1.7;
         }
 
-        /* ── Streak bar ── */
+        /* ── Streak ── */
         .drh-streak {
           display: flex;
           align-items: center;
@@ -249,25 +241,24 @@ export default function DailyReturnHook({ visible = true }) {
           color: #b45309;
         }
 
-        /* ── Grid layout ── */
+        /* ── Grid ── */
         .drh-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           grid-template-rows: auto auto;
           gap: 1.25rem;
         }
-
         @media (max-width: 768px) {
           .drh-grid { grid-template-columns: 1fr; }
         }
 
-        /* ── Cards shared ── */
+        /* ── Cards ── */
         .drh-card {
-          background: #ffffff;
+          background: linear-gradient(145deg, #ffffff, #f0f9ff);
           border-radius: 20px;
           padding: 2rem;
-          border: 1px solid rgba(0,0,0,0.06);
-          box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+          border: 1.5px solid #bae6fd;
+          box-shadow: 0 4px 24px rgba(186,230,253,0.35);
           opacity: 0;
           transform: translateY(24px);
           transition: opacity 0.55s ease, transform 0.55s ease, box-shadow 0.2s ease;
@@ -275,6 +266,9 @@ export default function DailyReturnHook({ visible = true }) {
         .drh-card.animated {
           opacity: 1;
           transform: translateY(0);
+        }
+        .drh-card:hover {
+          box-shadow: 0 8px 32px rgba(56,189,248,0.18);
         }
         .drh-card:nth-child(1) { transition-delay: 0.05s; }
         .drh-card:nth-child(2) { transition-delay: 0.15s; }
@@ -286,13 +280,13 @@ export default function DailyReturnHook({ visible = true }) {
           font-weight: 700;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #aac;
+          color: #7ec8e3;
           margin-bottom: 1rem;
         }
 
         /* ── Affirmation card ── */
         .drh-affirmation {
-          background: linear-gradient(135deg, #1a3a4a 0%, #007BA8 100%);
+          background: linear-gradient(135deg, #0c4a6e 0%, #0284c7 100%);
           color: white;
           grid-column: span 2;
           display: flex;
@@ -301,6 +295,7 @@ export default function DailyReturnHook({ visible = true }) {
           padding: 2.5rem;
           position: relative;
           overflow: hidden;
+          border: none;
         }
         @media (max-width: 768px) {
           .drh-affirmation { grid-column: span 1; flex-direction: column; gap: 1.25rem; }
@@ -311,14 +306,14 @@ export default function DailyReturnHook({ visible = true }) {
           top: -20px; left: 20px;
           font-family: 'Lora', serif;
           font-size: 12rem;
-          color: rgba(255,255,255,0.04);
+          color: rgba(255,255,255,0.05);
           line-height: 1;
           pointer-events: none;
         }
         .drh-affirmation-icon {
           font-size: 3rem;
           flex-shrink: 0;
-          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
         }
         .drh-affirmation-text {
           font-family: 'Lora', serif;
@@ -346,7 +341,7 @@ export default function DailyReturnHook({ visible = true }) {
           display: inline-block;
         }
 
-        /* ── Mood card ── */
+        /* ── Mood ── */
         .drh-mood-grid {
           display: flex;
           gap: 0.6rem;
@@ -362,41 +357,41 @@ export default function DailyReturnHook({ visible = true }) {
           gap: 0.3rem;
           padding: 0.75rem 0.4rem;
           border-radius: 14px;
-          border: 2px solid #eef2f6;
-          background: #f8fafc;
+          border: 2px solid #bae6fd;
+          background: #f0f9ff;
           cursor: pointer;
           transition: all 0.18s ease;
           font-family: 'DM Sans', sans-serif;
         }
         .drh-mood-btn:hover {
-          border-color: #007BA8;
-          background: #e0f7ff;
+          border-color: #0284c7;
+          background: #e0f2fe;
           transform: translateY(-3px);
         }
         .drh-mood-btn.selected {
-          border-color: #007BA8;
-          background: #e0f7ff;
-          box-shadow: 0 4px 16px rgba(0,123,168,0.2);
+          border-color: #0284c7;
+          background: #e0f2fe;
+          box-shadow: 0 4px 16px rgba(2,132,199,0.18);
           transform: translateY(-3px) scale(1.05);
         }
         .drh-mood-emoji { font-size: 1.5rem; }
-        .drh-mood-label { font-size: 0.62rem; font-weight: 600; color: #7a9aaa; }
+        .drh-mood-label { font-size: 0.62rem; font-weight: 600; color: #4a7a9b; }
         .drh-mood-response {
           margin-top: 1rem;
           padding: 0.85rem 1rem;
-          background: linear-gradient(135deg, #e0f7ff, #f0fbff);
+          background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
           border-radius: 12px;
           font-size: 0.85rem;
-          color: #1a3a4a;
+          color: #0c4a6e;
           font-weight: 500;
           line-height: 1.5;
-          border-left: 3px solid #007BA8;
+          border-left: 3px solid #0284c7;
           animation: fadeSlideIn 0.4s ease;
         }
 
-        /* ── Habit card ── */
+        /* ── Habit ── */
         .drh-habit-today {
-          border: 2px dashed #e0e8f0;
+          border: 2px dashed #bae6fd;
           border-radius: 16px;
           padding: 1.25rem;
           display: flex;
@@ -409,8 +404,8 @@ export default function DailyReturnHook({ visible = true }) {
           overflow: hidden;
         }
         .drh-habit-today:hover {
-          border-color: #007BA8;
-          background: #f7fdff;
+          border-color: #0284c7;
+          background: #f0f9ff;
           transform: translateX(4px);
         }
         .drh-habit-today.done {
@@ -427,13 +422,13 @@ export default function DailyReturnHook({ visible = true }) {
         }
         .drh-habit-name {
           font-weight: 600;
-          color: #1a3a4a;
+          color: #0c4a6e;
           font-size: 0.95rem;
           line-height: 1.3;
         }
         .drh-habit-time {
           font-size: 0.72rem;
-          color: #7a9aaa;
+          color: #4a7a9b;
           margin-top: 0.2rem;
           font-weight: 500;
         }
@@ -441,7 +436,7 @@ export default function DailyReturnHook({ visible = true }) {
           margin-left: auto;
           width: 32px; height: 32px;
           border-radius: 50%;
-          border: 2px solid #c0d4e0;
+          border: 2px solid #bae6fd;
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
           transition: all 0.22s ease;
@@ -462,20 +457,20 @@ export default function DailyReturnHook({ visible = true }) {
           display: flex;
           align-items: center;
           gap: 0.35rem;
-          background: #f0f4f8;
+          background: #e0f2fe;
           border-radius: 100px;
           padding: 0.3rem 0.75rem;
           font-size: 0.75rem;
-          color: #4a6a7a;
+          color: #0369a1;
           font-weight: 500;
           cursor: pointer;
-          border: 1px solid transparent;
+          border: 1px solid #bae6fd;
           transition: all 0.15s ease;
         }
         .drh-habit-chip:hover {
-          background: #e0f7ff;
-          border-color: #007BA8;
-          color: #007BA8;
+          background: #bae6fd;
+          border-color: #0284c7;
+          color: #0c4a6e;
         }
         .drh-habit-chip.done {
           background: #e8f8f0;
@@ -483,10 +478,10 @@ export default function DailyReturnHook({ visible = true }) {
           color: #1a7a4a;
         }
 
-        /* ── Quote refresh card ── */
+        /* ── Resource card ── */
         .drh-refresh-card {
-          background: linear-gradient(135deg, #fff8f0, #fff3e6);
-          border: 1.5px solid #fed7aa;
+          background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
+          border: 1.5px solid #bae6fd;
         }
         .drh-resource-list {
           display: flex;
@@ -501,15 +496,15 @@ export default function DailyReturnHook({ visible = true }) {
           padding: 0.85rem 1rem;
           background: white;
           border-radius: 12px;
-          border: 1px solid #f0e0d0;
+          border: 1px solid #bae6fd;
           cursor: pointer;
           transition: all 0.18s ease;
           text-decoration: none;
         }
         .drh-resource-item:hover {
-          border-color: #f97316;
+          border-color: #0284c7;
           transform: translateX(4px);
-          box-shadow: 0 4px 12px rgba(249,115,22,0.1);
+          box-shadow: 0 4px 12px rgba(2,132,199,0.12);
         }
         .drh-resource-icon {
           width: 38px; height: 38px;
@@ -521,24 +516,24 @@ export default function DailyReturnHook({ visible = true }) {
         .drh-resource-title {
           font-size: 0.85rem;
           font-weight: 600;
-          color: #1a3a4a;
+          color: #0c4a6e;
           line-height: 1.3;
         }
         .drh-resource-sub {
           font-size: 0.72rem;
-          color: #7a9aaa;
+          color: #4a7a9b;
           margin-top: 1px;
         }
         .drh-resource-arrow {
           margin-left: auto;
-          color: #c0a890;
+          color: #7ec8e3;
           font-size: 0.9rem;
           flex-shrink: 0;
           transition: transform 0.18s;
         }
         .drh-resource-item:hover .drh-resource-arrow { transform: translateX(3px); }
 
-        /* ── CTA bottom ── */
+        /* ── CTA ── */
         .drh-cta {
           text-align: center;
           margin-top: clamp(2rem, 4vw, 3rem);
@@ -550,7 +545,7 @@ export default function DailyReturnHook({ visible = true }) {
         .drh-cta-text {
           font-family: 'Lora', serif;
           font-size: clamp(1rem, 2vw, 1.2rem);
-          color: #4a6a7a;
+          color: #0369a1;
           margin-bottom: 1.25rem;
           font-style: italic;
         }
@@ -558,7 +553,7 @@ export default function DailyReturnHook({ visible = true }) {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          background: linear-gradient(135deg, #1a3a4a, #007BA8);
+          background: linear-gradient(135deg, #0c4a6e, #0284c7);
           color: white;
           border: none;
           border-radius: 100px;
@@ -567,31 +562,31 @@ export default function DailyReturnHook({ visible = true }) {
           font-size: 0.9rem;
           font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 6px 24px rgba(0,123,168,0.3);
+          box-shadow: 0 6px 24px rgba(2,132,199,0.3);
           transition: all 0.2s ease;
           text-decoration: none;
         }
         .drh-cta-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 32px rgba(0,123,168,0.4);
+          box-shadow: 0 10px 32px rgba(2,132,199,0.4);
         }
         .drh-notify-badge {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          background: #fff;
-          border: 1.5px solid #e0eaf0;
+          background: white;
+          border: 1.5px solid #bae6fd;
           border-radius: 100px;
           padding: 0.45rem 1rem;
           font-size: 0.78rem;
-          color: #4a6a7a;
+          color: #0369a1;
           font-weight: 500;
           margin-left: 0.75rem;
           cursor: pointer;
           transition: all 0.18s;
           vertical-align: middle;
         }
-        .drh-notify-badge:hover { border-color: #007BA8; color: #007BA8; }
+        .drh-notify-badge:hover { border-color: #0284c7; background: #e0f2fe; }
 
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(8px); }
@@ -641,10 +636,10 @@ export default function DailyReturnHook({ visible = true }) {
             )}
           </div>
 
-          {/* Main grid */}
+          {/* Grid */}
           <div className="drh-grid">
 
-            {/* Card 1 — Daily affirmation (full width) */}
+            {/* Card 1 — Affirmation */}
             <div className={`drh-card drh-affirmation ${hasAnimated ? 'animated' : ''}`}>
               <div className="drh-affirmation-icon">🌿</div>
               <div>
@@ -659,13 +654,13 @@ export default function DailyReturnHook({ visible = true }) {
               </div>
             </div>
 
-            {/* Card 2 — Quick mood check-in */}
+            {/* Card 2 — Mood */}
             <div className={`drh-card ${hasAnimated ? 'animated' : ''}`}>
               <div className="drh-card-label">How are you right now?</div>
-              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#1a3a4a', marginBottom:'0.25rem', fontWeight:600 }}>
+              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#0c4a6e', marginBottom:'0.25rem', fontWeight:600 }}>
                 One tap. No pressure.
               </div>
-              <div style={{ fontSize:'0.8rem', color:'#7a9aaa', marginBottom:'1rem', lineHeight:1.5 }}>
+              <div style={{ fontSize:'0.8rem', color:'#4a7a9b', marginBottom:'1rem', lineHeight:1.5 }}>
                 Tracking your mood, even briefly, rewires your brain toward self-awareness.
               </div>
               <div className="drh-mood-grid">
@@ -687,13 +682,13 @@ export default function DailyReturnHook({ visible = true }) {
               )}
             </div>
 
-            {/* Card 3 — Micro-habit of the day */}
+            {/* Card 3 — Habit */}
             <div className={`drh-card ${hasAnimated ? 'animated' : ''}`}>
               <div className="drh-card-label">Today's micro-habit</div>
-              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#1a3a4a', marginBottom:'0.25rem', fontWeight:600 }}>
+              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#0c4a6e', marginBottom:'0.25rem', fontWeight:600 }}>
                 Just one tiny thing
               </div>
-              <div style={{ fontSize:'0.8rem', color:'#7a9aaa', marginBottom:'1rem', lineHeight:1.5 }}>
+              <div style={{ fontSize:'0.8rem', color:'#4a7a9b', marginBottom:'1rem', lineHeight:1.5 }}>
                 Tiny habits compound. Do this one thing and your brain logs a win.
               </div>
 
@@ -714,7 +709,7 @@ export default function DailyReturnHook({ visible = true }) {
                 </div>
               </div>
 
-              <div style={{ fontSize:'0.72rem', color:'#aac', margin:'0.85rem 0 0.4rem', fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>
+              <div style={{ fontSize:'0.72rem', color:'#7ec8e3', margin:'0.85rem 0 0.4rem', fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>
                 Or try another
               </div>
               <div className="drh-habit-other">
@@ -730,20 +725,20 @@ export default function DailyReturnHook({ visible = true }) {
               </div>
             </div>
 
-            {/* Card 4 — Return hooks: resources */}
+            {/* Card 4 — Resources */}
             <div className={`drh-card drh-refresh-card ${hasAnimated ? 'animated' : ''}`}>
               <div className="drh-card-label">Explore today</div>
-              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#1a3a4a', marginBottom:'0.25rem', fontWeight:600 }}>
+              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#0c4a6e', marginBottom:'0.25rem', fontWeight:600 }}>
                 New resources, always
               </div>
-              <div style={{ fontSize:'0.8rem', color:'#7a9aaa', marginBottom:'1rem', lineHeight:1.5 }}>
+              <div style={{ fontSize:'0.8rem', color:'#4a7a9b', marginBottom:'1rem', lineHeight:1.5 }}>
                 Something fresh for your mind. Updated weekly.
               </div>
               <div className="drh-resource-list">
                 {[
-                  { icon:'🧠', bg:'#e0f7ff', title:'5-Minute Mindfulness Reset', sub:'Guided · Audio', href:'/resources' },
-                  { icon:'📖', bg:'#e8f8f0', title:'Understanding Anxiety', sub:'Article · 4 min read', href:'/resources' },
-                  { icon:'🩺', bg:'#fff5e6', title:'Talk to a therapist today', sub:'Book a free 15-min call', href:'/book' },
+                  { icon:'🧠', bg:'#e0f2fe', title:'5-Minute Mindfulness Reset', sub:'Guided · Audio', href:'/resources' },
+                  { icon:'📖', bg:'#e0f2fe', title:'Understanding Anxiety', sub:'Article · 4 min read', href:'/resources' },
+                  { icon:'🩺', bg:'#e0f2fe', title:'Talk to a therapist today', sub:'Book a free 15-min call', href:'/book' },
                 ].map((r, i) => (
                   <a key={i} href={r.href} className="drh-resource-item">
                     <div className="drh-resource-icon" style={{ background: r.bg }}>{r.icon}</div>
@@ -759,7 +754,7 @@ export default function DailyReturnHook({ visible = true }) {
 
           </div>
 
-          {/* Bottom CTA */}
+          {/* CTA */}
           <div className={`drh-cta ${hasAnimated ? 'animated' : ''}`}>
             <p className="drh-cta-text">
               "The best investment you'll ever make is in your mental health."
