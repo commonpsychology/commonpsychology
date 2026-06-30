@@ -20,7 +20,7 @@ const C = {
 const heroGrad = `linear-gradient(135deg, ${C.skyDeep} 0%, ${C.skyMid} 40%, ${C.skyBright} 80%, #22d3ee 100%)`
 const btnGrad  = `linear-gradient(135deg, ${C.skyDeep} 0%, ${C.skyBright} 100%)`
 
-const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
 const CATEGORIES = ['All', 'Anxiety', 'Depression', 'Self-Care', 'Mindfulness', 'Relationships', 'Trauma', 'Parenting', 'Sleep']
 
@@ -83,19 +83,20 @@ export default function BlogPage() {
     <div style={{ background: C.skyGhost, minHeight: '100vh' }}>
 
       {/* ── Hero ── */}
-<div style={{
-  position: 'relative', overflow: 'hidden',
-  padding: '5rem 5rem 4rem',
-  borderRadius: '0 0 50% 50% / 0 0 32px 32px',
-    background: `
-    radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
-      radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
-      radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
-      linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)
-  `,
-}}>
-  <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-50, right:'3%', pointerEvents:'none' }} />
-  <div style={{ position:'absolute', width:140, height:140, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-30, left:'6%', pointerEvents:'none' }} />        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{
+        position: 'relative', overflow: 'hidden',
+        padding: 'clamp(2.5rem, 8vw, 5rem) clamp(1.25rem, 5vw, 5rem) clamp(2rem, 6vw, 4rem)',
+        borderRadius: '0 0 32px 32px',
+        background: `
+          radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
+          radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
+          radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
+          linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)
+        `,
+      }}>
+        <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(36px)', top:-50, right:'3%', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', width:140, height:140, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(28px)', bottom:-30, left:'6%', pointerEvents:'none' }} />
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 100, padding: '0.3rem 1rem', marginBottom: '1.25rem' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: C.textDark, fontFamily: 'var(--font-body)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>✍️ Blog &amp; Articles</span>
           </div>
@@ -107,14 +108,14 @@ export default function BlogPage() {
           </p>
 
           {/* Search bar */}
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', maxWidth: 500 }}>
+          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', maxWidth: 500, flexWrap: 'wrap' }}>
             <input
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
               placeholder="Search articles…"
-              style={{ flex: 1, padding: '0.65rem 1.1rem', borderRadius: 10, border: '1.5px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: C.textDark, fontFamily: 'var(--font-body)', fontSize: '0.9rem', outline: 'none' }}
+              style={{ flex: '1 1 200px', minWidth: 0, padding: '0.65rem 1.1rem', borderRadius: 10, border: '1.5px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: C.textDark, fontFamily: 'var(--font-body)', fontSize: '0.9rem', outline: 'none' }}
             />
-            <button type="submit" style={{ padding: '0.65rem 1.25rem', borderRadius: 10, background: C.white, color: C.skyDeep, border: 'none', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>
+            <button type="submit" style={{ padding: '0.65rem 1.25rem', borderRadius: 10, background: C.white, color: C.skyDeep, border: 'none', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', flexShrink: 0 }}>
               Search
             </button>
           </form>
@@ -123,7 +124,7 @@ export default function BlogPage() {
 
       {/* ── Category filter tabs ── */}
       <div style={{ background: C.white, borderBottom: `1px solid ${C.borderFaint}`, position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 4rem', overflowX: 'auto', display: 'flex', gap: '0.25rem', scrollbarWidth: 'none' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(1rem, 4vw, 4rem)', overflowX: 'auto', display: 'flex', gap: '0.25rem', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
           {CATEGORIES.map(cat => (
             <button
               key={cat}
@@ -139,6 +140,7 @@ export default function BlogPage() {
                 fontWeight: category === cat ? 700 : 500,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
                 transition: 'all 0.15s',
               }}
             >
@@ -148,14 +150,13 @@ export default function BlogPage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '3rem 4rem' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 4rem)' }}>
 
         {/* Loading */}
         {loading && (
           <div style={{ textAlign: 'center', padding: '4rem 0' }}>
             <div style={{ width: 44, height: 44, border: `3px solid ${C.skyFaint}`, borderTop: `3px solid ${C.skyBright}`, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
             <p style={{ fontFamily: 'var(--font-body)', color: C.textLight }}>Loading articles…</p>
-            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
           </div>
         )}
 
@@ -178,13 +179,14 @@ export default function BlogPage() {
         {/* Featured post — only on page 1, no filter, no search */}
         {!loading && !error && featured && page === 1 && category === 'All' && !search && (
           <div
+            className="blog-featured"
             onClick={() => navigate(`/blog/${featured.slug}`)}
             style={{ background: C.white, borderRadius: 20, border: `1px solid ${C.borderFaint}`, overflow: 'hidden', marginBottom: '2.5rem', cursor: 'pointer', display: 'grid', gridTemplateColumns: '1fr 1fr', boxShadow: `0 4px 24px rgba(0,191,255,0.08)`, transition: 'transform 0.2s, box-shadow 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 12px 40px rgba(0,191,255,0.16)` }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 4px 24px rgba(0,191,255,0.08)` }}
           >
             {/* Image side */}
-            <div style={{ background: featured.gradient || heroGrad, minHeight: 320, position: 'relative', overflow: 'hidden' }}>
+            <div className="blog-featured-img" style={{ background: featured.gradient || heroGrad, minHeight: 320, position: 'relative', overflow: 'hidden' }}>
               {featured.image_url && (
                 <img src={featured.image_url} alt={featured.title} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
               )}
@@ -193,7 +195,7 @@ export default function BlogPage() {
               </div>
             </div>
             {/* Content side */}
-            <div style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 100, background: C.skyFaint, color: C.skyMid }}>{featured.category}</span>
                 <span style={{ fontSize: '0.7rem', color: C.textLight, fontFamily: 'var(--font-body)' }}>{featured.read_time} · {formatDate(featured.published_at)}</span>
@@ -204,8 +206,8 @@ export default function BlogPage() {
               <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: C.textMid, lineHeight: 1.75, marginBottom: '1.5rem' }}>
                 {featured.excerpt}
               </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: C.textDark, fontWeight: 700 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: C.textDark, fontWeight: 700, flexShrink: 0 }}>
                   {(featured.author || '?').split(' ').map(w => w[0]).join('').slice(0, 2)}
                 </div>
                 <div>
@@ -222,7 +224,7 @@ export default function BlogPage() {
 
         {/* Grid of posts */}
         {!loading && !error && posts.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+          <div className="blog-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
             {(page === 1 && category === 'All' && !search ? rest : posts).map(post => (
               <div
                 key={post.id || post.slug}
@@ -254,7 +256,7 @@ export default function BlogPage() {
                   <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', color: C.textMid, lineHeight: 1.65, marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {post.excerpt}
                   </p>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <div style={{ width: 26, height: 26, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: C.textDark, fontWeight: 700, flexShrink: 0 }}>
                         {(post.author || '?').split(' ').map(w => w[0]).join('').slice(0, 2)}
@@ -271,7 +273,7 @@ export default function BlogPage() {
 
         {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button
               onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo(0, 0) }}
               disabled={page === 1}
@@ -303,9 +305,11 @@ export default function BlogPage() {
         @media (max-width: 900px) {
           .blog-grid { grid-template-columns: repeat(2,1fr) !important; }
           .blog-featured { grid-template-columns: 1fr !important; }
+          .blog-featured-img { min-height: 240px !important; }
         }
         @media (max-width: 600px) {
           .blog-grid { grid-template-columns: 1fr !important; }
+          .blog-featured-img { min-height: 200px !important; }
         }
         input::placeholder { color: rgba(255,255,255,0.6); }
         @keyframes spin { to { transform: rotate(360deg) } }
