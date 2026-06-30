@@ -581,16 +581,103 @@ export default function ClientPortalPage() {
       <JournalModal entry={openEntry} onClose={() => setOpenEntry(null)} />
 
       {/* ── Header ── */}
-      <div style={{ background:'var(--white)', borderBottom:'1px solid var(--blue-pale)', padding:'1.25rem clamp(1rem,4vw,2rem)', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'0.75rem' }}>
-        <div>
-          <div style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.1rem,4vw,1.4rem)', color:'var(--blue-deep)' }}>
-            Welcome back, <em>{user?.fullName?.split(' ')[0] || 'there'}</em> 👋
+      <div
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'linear-gradient(135deg, #0f3a4a 0%, #0e5f73 45%, #0d8a7a 100%)',
+          padding: 'clamp(1.5rem,4vw,2.25rem) clamp(1rem,4vw,2rem)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}
+      >
+        {/* decorative glow blobs */}
+        <div style={{
+          position: 'absolute', width: 260, height: 260, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.08)', filter: 'blur(40px)',
+          top: -120, right: '8%', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', width: 180, height: 180, borderRadius: '50%',
+          background: 'rgba(16,185,129,0.18)', filter: 'blur(36px)',
+          bottom: -90, left: '12%', pointerEvents: 'none',
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(1.2rem,4vw,1.55rem)',
+              color: '#fff',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            Welcome back, <em style={{ color: '#ffe9b3', fontStyle: 'normal' }}>{user?.fullName?.split(' ')[0] || 'there'}</em>
+            <span style={{ fontSize: '1.3rem' }}>👋</span>
           </div>
-          <div style={{ fontSize:'0.82rem', color:'var(--text-light)', marginTop:2 }}>
-            {stats?.nextSession !== '—' ? `Next session: ${stats?.nextSession}` : 'No upcoming sessions'}
+
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              marginTop: '0.65rem',
+              background: stats?.nextSession !== '—' ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              borderRadius: 999,
+              padding: '0.4rem 0.9rem',
+              fontSize: '0.82rem',
+              color: 'rgba(255,255,255,0.92)',
+              fontWeight: 500,
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            <span style={{ fontSize: '0.95rem' }}>
+              {stats?.nextSession !== '—' ? '📅' : '🌙'}
+            </span>
+            {stats?.nextSession !== '—'
+              ? <>Next session: <strong style={{ color: '#fff' }}>{stats?.nextSession}</strong></>
+              : 'No upcoming sessions — your calendar is clear'}
           </div>
         </div>
-        <button onClick={logout} style={{ padding:'0.45rem 1rem', borderRadius:8, border:'1px solid var(--earth-cream)', background:'none', fontSize:'0.82rem', color:'var(--text-light)', cursor:'pointer' }}>
+
+        <button
+          onClick={logout}
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.6rem 1.2rem',
+            borderRadius: 12,
+            border: '1.5px solid rgba(255,255,255,0.25)',
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(6px)',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            color: '#fff',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.18)'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'
+            e.currentTarget.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'
+            e.currentTarget.style.transform = 'none'
+          }}
+        >
           🚪 Log Out
         </button>
       </div>
