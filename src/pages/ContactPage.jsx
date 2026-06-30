@@ -162,7 +162,16 @@ export default function ContactPage() {
         </svg>
 
         <div style={{ position: 'relative', zIndex: 2 }}>
-          <span className="section-tag" style={{ color: 'rgba(255,255,255,0.85)' }}>
+          <span
+            className="section-tag"
+            style={{
+              color: 'rgba(255,255,255,0.92)',
+              background: '#10221b',
+              padding: '0.4rem 0.9rem',
+              borderRadius: '999px',
+              display: 'inline-block',
+            }}
+          >
             Get In Touch
           </span>
 
