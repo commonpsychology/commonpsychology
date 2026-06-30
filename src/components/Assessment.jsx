@@ -69,7 +69,7 @@ export default function Assessment() {
 
         .section-desc {
           font-size: 15px;
-          color: #222222;
+          color: #111111;
           line-height: 1.65;
           margin-bottom: 28px;
           max-width: 380px;
