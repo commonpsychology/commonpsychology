@@ -52,7 +52,7 @@ body { font-family:'DM Sans',system-ui,sans-serif; background:${C.bg}; min-heigh
 
 /* ── Hero: padding-top accounts for fixed navbar ── */
 .mo-hero {
-  background: linear-gradient(135deg,#007BA8 0%,#00BFFF 100%);
+  background: linear-gradient(135deg, rgba(0,123,168,0.2) 0%, rgba(0,191,255,0.2) 100%);
   padding: clamp(1.5rem,5vw,2.5rem);
   padding-top: calc(clamp(1.5rem,5vw,2.5rem) + var(--navbar-height,64px));
 }
