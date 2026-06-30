@@ -175,6 +175,116 @@ function StaffCard({ member }) {
   );
 }
 
+/* ---------- Honeycomb header background ---------- */
+
+const HONEY_WORDS = [
+  "We Value You", "We Love You", "We Respect You", "You Matter",
+  "Our Strength", "Thank You", "You Inspire Us", "Well Done",
+  "We See You", "You're Heard", "Keep Shining", "We Honor You",
+  "You Belong", "Grateful", "You're Vital", "Stay Strong",
+];
+
+function Hexagon({ word, opacity, scale = 1, delay = 0 }) {
+  // pointy-top-flat-side hexagon via clip-path
+  return (
+    <div
+      style={{
+        width: 108 * scale,
+        height: 124 * scale,
+        margin: "-9px 3px",
+        clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+        background: "rgba(255,255,255,0.14)",
+        border: "1px solid rgba(255,255,255,0.22)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        padding: "0 10px",
+        flexShrink: 0,
+        opacity,
+        animation: `honeyFloat 7s ease-in-out ${delay}s infinite`,
+      }}
+    >
+      <span
+        style={{
+          fontSize: 11.5 * scale,
+          fontWeight: 700,
+          color: "rgba(255,255,255,0.92)",
+          letterSpacing: 0.3,
+          lineHeight: 1.25,
+          textShadow: "0 1px 3px rgba(15,40,90,0.35)",
+        }}
+      >
+        {word}
+      </span>
+    </div>
+  );
+}
+
+function HoneycombField() {
+  // build staggered honeycomb rows; odd rows shifted half a hex to the right
+  const rowCount = 5;
+  const perRow = 9;
+
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        pointerEvents: "none",
+        maskImage: "radial-gradient(ellipse 90% 100% at 50% 35%, black 35%, transparent 85%)",
+        WebkitMaskImage: "radial-gradient(ellipse 90% 100% at 50% 35%, black 35%, transparent 85%)",
+      }}
+    >
+      <style>{`
+        @keyframes honeyFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+        }
+      `}</style>
+      <div
+        style={{
+          position: "absolute",
+          top: -40,
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {Array.from({ length: rowCount }).map((_, rowIdx) => (
+          <div
+            key={rowIdx}
+            style={{
+              display: "flex",
+              marginLeft: rowIdx % 2 === 1 ? 54 : 0,
+            }}
+          >
+            {Array.from({ length: perRow }).map((_, colIdx) => {
+              const wordIdx = (rowIdx * perRow + colIdx) % HONEY_WORDS.length;
+              // fade cells nearer the edges / bottom so it blends into the gradient
+              const distFromCenterRow = Math.abs(rowIdx - (rowCount - 1) / 2);
+              const baseOpacity = 0.85 - distFromCenterRow * 0.16;
+              return (
+                <Hexagon
+                  key={colIdx}
+                  word={HONEY_WORDS[wordIdx]}
+                  opacity={Math.max(0.12, baseOpacity)}
+                  delay={(rowIdx * perRow + colIdx) * 0.15}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------------------------------- */
+
 export default function StaffPage() {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -211,7 +321,7 @@ useEffect(() => {
       {/* Header */}
       <div
         style={{
-        position: "relative",
+          position: "relative",
           overflow: "hidden",
           padding: "48px 40px 36px",
           borderRadius: "0 0 50% 50% / 0 0 32px 32px",
@@ -222,9 +332,11 @@ useEffect(() => {
             linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)
           `,
           textAlign: "center",
-
         }}
       >
+        {/* Honeycomb of affirming words */}
+        <HoneycombField />
+
         {/* Decorative circles */}
         {[...Array(5)].map((_, i) => (
           <div
@@ -246,10 +358,29 @@ useEffect(() => {
           <div style={{ fontSize: 13, letterSpacing: 3, textTransform: "uppercase", color: "#93c5fd", marginBottom: 10, fontWeight: 600 }}>
             Our Team
           </div>
-          <h1 style={{ fontSize: 38, fontWeight: 800, color: "#fff", margin: "0 0 10px", lineHeight: 1.1 }}>
+          <h1
+            style={{
+              fontSize: 38,
+              fontWeight: 800,
+              color: "#fff",
+              margin: "0 0 10px",
+              lineHeight: 1.1,
+              textShadow: "0 2px 12px rgba(15,40,90,0.25)",
+            }}
+          >
             Meet Our Staff
           </h1>
-          <p style={{ color: "#bfdbfe", fontSize: 16, margin: "0 0 28px", maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+          <p
+            style={{
+              color: "#f0f9ff",
+              fontSize: 16,
+              margin: "0 0 28px",
+              maxWidth: 480,
+              marginLeft: "auto",
+              marginRight: "auto",
+              textShadow: "0 1px 6px rgba(15,40,90,0.25)",
+            }}
+          >
             The dedicated professionals who make a difference every day
           </p>
 
@@ -263,14 +394,15 @@ useEffect(() => {
               <div
                 key={stat.label}
                 style={{
-                  background: "rgba(255,255,255,0.12)",
+                  background: "rgba(255,255,255,0.16)",
+                  backdropFilter: "blur(4px)",
                   borderRadius: 12,
                   padding: "10px 22px",
-                  border: "1px solid rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(255,255,255,0.28)",
                 }}
               >
                 <div style={{ fontSize: 24, fontWeight: 800, color: "#fff" }}>{stat.value}</div>
-                <div style={{ fontSize: 12, color: "#93c5fd", marginTop: 2 }}>{stat.label}</div>
+                <div style={{ fontSize: 12, color: "#eff6ff", marginTop: 2 }}>{stat.label}</div>
               </div>
             ))}
           </div>
