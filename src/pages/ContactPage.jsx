@@ -28,6 +28,51 @@ const CONTACT_CSS = `
       grid-template-columns: 1fr;
     }
   }
+
+  .contact-hero-blobs {
+    isolation: isolate;
+  }
+  .hero-blob {
+    position: absolute;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .hero-blob-1 {
+    width: 60vw;
+    max-width: 640px;
+    top: -18%;
+    left: -10%;
+    animation: blobFloat1 22s ease-in-out infinite;
+  }
+  .hero-blob-2 {
+    width: 45vw;
+    max-width: 480px;
+    top: 10%;
+    right: -8%;
+    animation: blobFloat2 26s ease-in-out infinite;
+  }
+  .hero-blob-3 {
+    width: 38vw;
+    max-width: 420px;
+    bottom: -22%;
+    left: 28%;
+    animation: blobFloat3 30s ease-in-out infinite;
+  }
+  @keyframes blobFloat1 {
+    0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+    50% { transform: translate(2%, 4%) scale(1.06) rotate(8deg); }
+  }
+  @keyframes blobFloat2 {
+    0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+    50% { transform: translate(-3%, 3%) scale(1.08) rotate(-10deg); }
+  }
+  @keyframes blobFloat3 {
+    0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+    50% { transform: translate(3%, -3%) scale(1.05) rotate(6deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-blob { animation: none !important; }
+  }
 `
 
 function injectContactCSS() {
@@ -98,26 +143,41 @@ export default function ContactPage() {
   return (
     <div className="page-wrapper">
       <div
-  className="page-hero"
-  style={{
-    background: 'linear-gradient(135deg, #00BFFF 0%, #ffffff 50%, #bfe9ff 100%)'
-  }}
->
-  <span className="section-tag" style={{ color: 'var(--green-light)' }}>
-    Get In Touch
-  </span>
+        className="page-hero contact-hero-blobs"
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'linear-gradient(135deg, #0077c2 0%, #00a3e0 45%, #6fd0ff 100%)',
+        }}
+      >
+        {/* Flowing blob layers */}
+        <svg className="hero-blob hero-blob-1" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="rgba(255,255,255,0.10)" d="M300,80 C420,60 540,150 540,280 C540,410 430,500 300,500 C170,500 60,420 60,290 C60,150 180,100 300,80Z" />
+        </svg>
+        <svg className="hero-blob hero-blob-2" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="rgba(255,255,255,0.14)" d="M280,40 C400,10 520,110 500,250 C480,390 360,470 230,460 C100,450 0,350 20,220 C40,90 160,70 280,40Z" />
+        </svg>
+        <svg className="hero-blob hero-blob-3" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="rgba(0,40,90,0.18)" d="M320,60 C450,90 530,210 500,330 C470,450 340,520 220,490 C100,460 30,340 60,220 C90,100 190,30 320,60Z" />
+        </svg>
 
-  <h1 className="section-title" style={{ color: 'var(--green-deep)' }}>
-    Contact Us
-  </h1>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <span className="section-tag" style={{ color: 'rgba(255,255,255,0.85)' }}>
+            Get In Touch
+          </span>
 
-  <p
-    className="section-desc"
-    style={{ color: 'var(--green-deep) ', maxWidth: 500 }}
-  >
-    Have questions? We're here to help you take the first step toward better mental health.
-  </p>
-</div>
+          <h1 className="section-title" style={{ color: '#ffffff' }}>
+            Contact Us
+          </h1>
+
+          <p
+            className="section-desc"
+            style={{ color: 'rgba(255,255,255,0.9)', maxWidth: 500 }}
+          >
+            Have questions? We're here to help you take the first step toward better mental health.
+          </p>
+        </div>
+      </div>
 
       <div className="section" style={{ background:'var(--off-white)' }}>
         {/* Responsive two-column layout via CSS class */}
