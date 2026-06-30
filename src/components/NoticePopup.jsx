@@ -9,8 +9,7 @@ const NOTICES = [
       </svg>
     ),
     iconBg: '#E0F7FF',
-    title: '2026-04-30 AWARENESS PROGRAM IN COLLABORATION WITH ABC FOUNDATION AT TRIBHUVAN UNIVERSITY',
-    titleNP: '२०२६-०४-३० त्रिभुवन विश्वविद्यालयमा ABC फाउन्डेसनको सहकार्यमा चेतनामूलक कार्यक्रम आयोजना हुनेछ।',
+    title: '2026-04-30 AWARNESS PROGRAM IN COLLABORATION WITH ABC FOUNDATION AT TRIBHUVAN UNIVERSITY',
   },
 ]
 
@@ -37,7 +36,7 @@ export default function NoticePopup({ storageKey = 'notice_v2' }) {
     }}>
       <div style={{
         background: '#ffffff',
-        borderRadius: 18, width: '100%', maxWidth: 560,
+        borderRadius: 16, width: '100%', maxWidth: 460,
         overflow: 'hidden',
         border: '1px solid #b0d4e8',
         boxShadow: '0 20px 60px rgba(0,123,168,0.25)',
@@ -56,7 +55,7 @@ export default function NoticePopup({ storageKey = 'notice_v2' }) {
         {/* Header */}
         <div style={{
           background: 'linear-gradient(135deg, #007BA8 0%, #00BFFF 100%)',
-          padding: '1.85rem 1.85rem 1.5rem',
+          padding: '1.5rem 1.5rem 1.25rem',
           position: 'relative', overflow: 'hidden',
         }}>
           {/* Decorative circles */}
@@ -102,38 +101,33 @@ export default function NoticePopup({ storageKey = 'notice_v2' }) {
             >✕</button>
           </div>
 
-          <h2 style={{ margin: '0 0 4px', fontSize: 25, fontWeight: 600, color: '#ffffff', lineHeight: 1.25 }}>
+          <h2 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 600, color: '#ffffff', lineHeight: 1.25 }}>
             Important announcement
           </h2>
-          <p style={{ margin: 0, fontSize: 14, color: 'rgba(255,255,255,0.8)' }}>
+          <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
             From the team — please read before continuing
           </p>
         </div>
 
         {/* Body */}
-        <div style={{ padding: '1.85rem', background: '#ffffff' }}>
+        <div style={{ padding: '1.5rem', background: '#ffffff' }}>
           {NOTICES.map((n, i) => (
             <div key={i} style={{
-              display: 'flex', alignItems: 'flex-start', gap: 14,
-              padding: '12px 0',
+              display: 'flex', alignItems: 'flex-start', gap: 12,
+              padding: '10px 0',
               borderBottom: i < NOTICES.length - 1 ? '1px solid #daeef8' : 'none',
             }}>
               <div style={{
-                width: 38, height: 38, borderRadius: 9,
+                width: 32, height: 32, borderRadius: 8,
                 background: n.iconBg, flexShrink: 0, marginTop: 1,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{n.icon}</div>
               <div>
-                <p style={{ margin: '0 0 4px', fontSize: 14.5, fontWeight: 600, color: '#1a3a4a', lineHeight: 1.45 }}>
+                <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 600, color: '#1a3a4a' }}>
                   {n.title}
                 </p>
-                {n.titleNP && (
-                  <p style={{ margin: '0 0 4px', fontSize: 13.5, fontWeight: 500, color: '#2e6080', lineHeight: 1.55 }}>
-                    {n.titleNP}
-                  </p>
-                )}
                 {n.body && (
-                  <p style={{ margin: 0, fontSize: 12.5, color: '#7a9aaa', lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, fontSize: 12, color: '#7a9aaa', lineHeight: 1.5 }}>
                     {n.body}
                   </p>
                 )}
@@ -141,14 +135,14 @@ export default function NoticePopup({ storageKey = 'notice_v2' }) {
             </div>
           ))}
 
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: 10 }}>
+          <div style={{ marginTop: '1.25rem', display: 'flex', gap: 8 }}>
             <button
               onClick={dismiss}
               style={{
-                flex: 2, padding: '12px 0', borderRadius: 9,
+                flex: 2, padding: '10px 0', borderRadius: 8,
                 background: 'linear-gradient(135deg, #007BA8, #00BFFF)',
                 border: 'none',
-                color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                 boxShadow: '0 4px 14px rgba(0,191,255,0.3)',
                 transition: 'opacity 0.2s',
               }}
@@ -156,10 +150,10 @@ export default function NoticePopup({ storageKey = 'notice_v2' }) {
             <button
               onClick={dismiss}
               style={{
-                flex: 1, padding: '12px 0', borderRadius: 9,
+                flex: 1, padding: '10px 0', borderRadius: 8,
                 background: 'transparent',
                 border: '1.5px solid #b0d4e8',
-                color: '#2e6080', fontSize: 14, fontWeight: 500, cursor: 'pointer',
+                color: '#2e6080', fontSize: 13, fontWeight: 500, cursor: 'pointer',
               }}
             >Dismiss</button>
           </div>
