@@ -52,10 +52,25 @@ body { font-family:'DM Sans',system-ui,sans-serif; background:${C.bg}; min-heigh
 
 /* ── Hero: padding-top accounts for fixed navbar ── */
 .mo-hero {
-  background: linear-gradient(135deg, rgba(0,123,168,0.2) 0%, rgba(0,191,255,0.2) 100%);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg,#007BA8 0%,#00BFFF 100%);
   padding: clamp(1.5rem,5vw,2.5rem);
   padding-top: calc(clamp(1.5rem,5vw,2.5rem) + var(--navbar-height,64px));
 }
+.mo-hero-blob {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+.mo-hero-blob-1 { width: 50vw; max-width: 520px; top: -22%; left: -8%; animation: moBlob1 24s ease-in-out infinite; }
+.mo-hero-blob-2 { width: 38vw; max-width: 400px; top: 5%; right: -6%; animation: moBlob2 28s ease-in-out infinite; }
+.mo-hero-blob-3 { width: 32vw; max-width: 340px; bottom: -30%; left: 30%; animation: moBlob3 32s ease-in-out infinite; }
+@keyframes moBlob1 { 0%,100% { transform:translate(0,0) scale(1) rotate(0deg) } 50% { transform:translate(2%,4%) scale(1.06) rotate(8deg) } }
+@keyframes moBlob2 { 0%,100% { transform:translate(0,0) scale(1) rotate(0deg) } 50% { transform:translate(-3%,3%) scale(1.08) rotate(-10deg) } }
+@keyframes moBlob3 { 0%,100% { transform:translate(0,0) scale(1) rotate(0deg) } 50% { transform:translate(3%,-3%) scale(1.05) rotate(6deg) } }
+@media (prefers-reduced-motion: reduce) { .mo-hero-blob { animation:none !important } }
+.mo-hero-inner { position:relative; z-index:1 }
 .mo-hero-inner { max-width:960px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem }
 .mo-hero-left  { display:flex; align-items:center; gap:1rem; flex-wrap:wrap }
 .mo-hero-icon  { width:52px; height:52px; border-radius:14px; background:rgba(255,255,255,.18); border:2px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0 }
@@ -576,6 +591,15 @@ const res = await fetch(`${API_BASE}/store/orders?limit=50`, {
   return (
     <div className="mo-wrap">
       <div className="mo-hero">
+        <svg className="mo-hero-blob mo-hero-blob-1" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="rgba(255,255,255,0.10)" d="M300,80 C420,60 540,150 540,280 C540,410 430,500 300,500 C170,500 60,420 60,290 C60,150 180,100 300,80Z" />
+        </svg>
+        <svg className="mo-hero-blob mo-hero-blob-2" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="rgba(255,255,255,0.14)" d="M280,40 C400,10 520,110 500,250 C480,390 360,470 230,460 C100,450 0,350 20,220 C40,90 160,70 280,40Z" />
+        </svg>
+        <svg className="mo-hero-blob mo-hero-blob-3" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="rgba(0,60,90,0.16)" d="M320,60 C450,90 530,210 500,330 C470,450 340,520 220,490 C100,460 30,340 60,220 C90,100 190,30 320,60Z" />
+        </svg>
         <div className="mo-hero-inner">
           <div className="mo-hero-left">
             <div className="mo-hero-icon">📦</div>
