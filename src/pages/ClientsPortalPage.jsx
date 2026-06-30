@@ -580,7 +580,7 @@ export default function ClientPortalPage() {
 
       <JournalModal entry={openEntry} onClose={() => setOpenEntry(null)} />
 
-      {/* ── Header ── */}
+     {/* ── Header ── */}
       <div
         style={{
           position: 'relative',
@@ -610,40 +610,65 @@ export default function ClientPortalPage() {
           <div
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(1.2rem,4vw,1.55rem)',
-              color: '#fff',
-              fontWeight: 600,
+              fontSize: 'clamp(1.3rem,4.5vw,1.75rem)',
+              color: 'rgba(255,255,255,0.92)',
+              fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
               flexWrap: 'wrap',
             }}
           >
-            Welcome back, <em style={{ color: '#ffe9b3', fontStyle: 'normal' }}>{user?.fullName?.split(' ')[0] || 'there'}</em>
-            <span style={{ fontSize: '1.3rem' }}>👋</span>
+            Welcome back,
+            <span
+              style={{
+                fontWeight: 800,
+                background: 'linear-gradient(90deg, #ffe9b3, #ffd166 50%, #ffe9b3)',
+                backgroundSize: '200% auto',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                animation: 'shine 3.5s linear infinite',
+                textShadow: '0 0 24px rgba(255,209,102,0.35)',
+              }}
+            >
+              {user?.fullName?.split(' ')[0] || 'there'}
+            </span>
+            <span style={{ fontSize: '1.4rem' }}>👋</span>
           </div>
 
+          {/* ── Next session callout — the eye-catching part ── */}
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.45rem',
-              marginTop: '0.65rem',
-              background: stats?.nextSession !== '—' ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.18)',
-              borderRadius: 999,
-              padding: '0.4rem 0.9rem',
-              fontSize: '0.82rem',
-              color: 'rgba(255,255,255,0.92)',
-              fontWeight: 500,
-              backdropFilter: 'blur(6px)',
+              gap: '0.65rem',
+              marginTop: '0.85rem',
+              borderRadius: 14,
+              padding: '0.6rem 1.1rem',
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              ...(stats?.nextSession !== '—'
+                ? {
+                    background: 'linear-gradient(135deg, #ffd166, #ffb74d)',
+                    color: '#3a2400',
+                    boxShadow: '0 6px 24px rgba(255,183,77,0.45)',
+                    animation: 'glowPulse 2.4s ease-in-out infinite',
+                  }
+                : {
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    color: 'rgba(255,255,255,0.85)',
+                    fontWeight: 500,
+                    backdropFilter: 'blur(6px)',
+                  }),
             }}
           >
-            <span style={{ fontSize: '0.95rem' }}>
-              {stats?.nextSession !== '—' ? '📅' : '🌙'}
+            <span style={{ fontSize: '1.15rem' }}>
+              {stats?.nextSession !== '—' ? '🔔' : '🌙'}
             </span>
             {stats?.nextSession !== '—'
-              ? <>Next session: <strong style={{ color: '#fff' }}>{stats?.nextSession}</strong></>
+              ? <>Upcoming session — <strong>{stats?.nextSession}</strong></>
               : 'No upcoming sessions — your calendar is clear'}
           </div>
         </div>
@@ -681,6 +706,16 @@ export default function ClientPortalPage() {
           🚪 Log Out
         </button>
       </div>
+
+      <style>{`
+        @keyframes shine {
+          to { background-position: 200% center; }
+        }
+        @keyframes glowPulse {
+          0%, 100% { box-shadow: 0 6px 24px rgba(255,183,77,0.45); transform: scale(1); }
+          50% { box-shadow: 0 8px 32px rgba(255,183,77,0.7); transform: scale(1.02); }
+        }
+      `}</style>
 
       {/* ── Tab bar — responsive via CSS class ── */}
       <div className="portal-tabbar">
