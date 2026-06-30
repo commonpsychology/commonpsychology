@@ -246,10 +246,10 @@ export default function PaymentEthicsPage() {
               color:'rgba(255,255,255,0.9)', textTransform:'uppercase' }}>🔒 Payments & Ethics</span>
           </div>
           <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(2rem,4vw,2.8rem)',
-            color:'white', marginBottom:'1rem', lineHeight:1.2 }}>
+            color:'rgba(8, 1, 1, 0.82)', marginBottom:'1rem', lineHeight:1.2 }}>
             Transparent Pricing,<br />Ethical Care
           </h1>
-          <p style={{ fontFamily:'var(--font-body)', fontSize:'1rem', color:'rgba(255,255,255,0.82)',
+          <p style={{ fontFamily:'var(--font-body)', fontSize:'1rem', color:'rgba(8, 1, 1, 0.82)',
             lineHeight:1.7, maxWidth:480 }}>
             We believe quality mental healthcare should be accessible and honest. No hidden fees,
             no surprises — just clear pricing and unwavering ethical standards.

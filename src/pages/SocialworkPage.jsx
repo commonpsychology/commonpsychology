@@ -291,10 +291,10 @@ export default function SocialWorkPage() {
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 100, padding: '0.3rem 1rem', marginBottom: '1rem' }}>
             <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase' }}>🤝 Community Social Work</span>
           </div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 4vw, 3rem)', color: 'white', marginBottom: '1rem', lineHeight: 1.2 }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 4vw, 3rem)', color: 'rgba(8, 1, 1, 0.82)', marginBottom: '1rem', lineHeight: 1.2 }}>
             Mental Health for<br />Every Nepali
           </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'rgba(255,255,255,0.82)', lineHeight: 1.75, maxWidth: 520, marginBottom: '2.5rem' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'rgba(8, 1, 1, 0.82)', lineHeight: 1.75, maxWidth: 520, marginBottom: '2.5rem' }}>
             Beyond the clinic — reaching underserved communities, rural villages, schools, and shelters. Our social work programmes bring mental health support to those who need it most.
           </p>
           <div style={{ display: 'flex', gap: winWidth < 480 ? '1.25rem' : '2rem', flexWrap: 'wrap' }}>

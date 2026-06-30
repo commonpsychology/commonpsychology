@@ -1,7 +1,6 @@
 // src/pages/ResearchPage.jsx
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
-import Honeycomb from '../components/Honeycomb'
 
 const C = {
   skyBright:  '#00BFFF',
@@ -90,7 +89,6 @@ export default function ResearchPage() {
       radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
       linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)  `,
 }}>
-  <Honeycomb words={['Evidence Matters', 'Advancing Science', 'Knowledge Grows', 'Discover Insights', 'Research For Nepal', 'Peer Reviewed']} />
 
   <div style={{ position:'absolute', width:220, height:220, borderRadius:'50%', background:'rgba(0,191,255,0.07)', filter:'blur(40px)', top:-60, right:'4%', pointerEvents:'none' }} />
   <div style={{ position:'absolute', width:150, height:150, borderRadius:'50%', background:'rgba(0,123,168,0.06)', filter:'blur(30px)', bottom:-30, left:'5%', pointerEvents:'none' }} />        <div style={{ maxWidth: 1100, margin: '0 auto' }}>

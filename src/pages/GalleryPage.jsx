@@ -308,8 +308,8 @@ export default function GalleryPage() {
           <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.15)', backdropFilter:'blur(10px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, padding:'0.3rem 1rem', marginBottom:'1rem' }}>
             <span style={{ fontSize:'0.72rem', fontWeight:700, letterSpacing:'0.1em', color:'rgba(255,255,255,0.92)', textTransform:'uppercase' }}>🖼️ Photo Gallery</span>
           </div>
-          <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(2rem,4vw,3rem)', color:'white', marginBottom:'1rem', lineHeight:1.2 }}>Moments That<br/>Matter</h1>
-          <p style={{ fontFamily:'var(--font-body)', fontSize:'1rem', color:'rgba(255,255,255,0.82)', lineHeight:1.75, maxWidth:520 }}>A glimpse into our workshops, community programs, team life, and the spaces we've built.</p>
+          <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(2rem,4vw,3rem)', color:'rgba(8, 1, 1, 0.82)', marginBottom:'1rem', lineHeight:1.2 }}>Moments That<br/>Matter</h1>
+          <p style={{ fontFamily:'var(--font-body)', fontSize:'1rem', color:'rgba(8, 1, 1, 0.82)', lineHeight:1.75, maxWidth:520 }}>A glimpse into our workshops, community programs, team life, and the spaces we've built.</p>
         </div>
       </div>
 
