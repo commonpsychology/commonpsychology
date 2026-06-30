@@ -413,7 +413,7 @@ function PostComposer({ groups, onPost }) {
 }
 
 // ── Post Card ─────────────────────────────────────────────────────────────────
-function PostCard({ post, onLike, likedIds, onDelete, canDelete }) {
+function PostCard({ post, onLike, likedIds, onDelete, canDelete, rank }) {
   const liked = likedIds.has(post.id)
   const timeAgo = t => {
     const s = Math.floor((Date.now() - new Date(t)) / 1000)
@@ -423,26 +423,75 @@ function PostCard({ post, onLike, likedIds, onDelete, canDelete }) {
     return `${Math.floor(s / 86400)}d ago`
   }
   return (
-    <div style={{ background:C.white, borderRadius:14, padding:'1.4rem 1.5rem', border:`1px solid ${C.borderFaint}`, marginBottom:'0.85rem' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.75rem' }}>
-        <div style={{ display:'flex', gap:'0.5rem', alignItems:'center' }}>
-          <div style={{ width:34, height:34, borderRadius:'50%', background:C.skyFaint, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.9rem' }}>
+    <div
+      style={{
+        background: C.white,
+        borderRadius: 18,
+        padding: '1.5rem 1.6rem',
+        border: `1px solid ${C.borderFaint}`,
+        marginBottom: '1rem',
+        position: 'relative',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+        transition: 'box-shadow 0.2s, transform 0.2s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,123,168,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)'; e.currentTarget.style.transform = 'none' }}
+    >
+      {rank && rank <= 3 && (
+        <div style={{
+          position: 'absolute', top: -10, left: 18,
+          background: rank === 1 ? 'linear-gradient(135deg,#ffd166,#ffb74d)' : rank === 2 ? 'linear-gradient(135deg,#cbd5e1,#94a3b8)' : 'linear-gradient(135deg,#d99a6c,#b8703f)',
+          color: '#fff', fontSize: '0.65rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: 100,
+          boxShadow: '0 3px 10px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', gap: 4,
+        }}>
+          {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'} Top {rank}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.85rem' }}>
+        <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: '50%',
+            background: post.is_anonymous ? 'linear-gradient(135deg,#94a3b8,#64748b)' : 'linear-gradient(135deg,#00BFFF,#007BA8)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem',
+            boxShadow: '0 3px 10px rgba(0,123,168,0.25)', flexShrink: 0,
+          }}>
             {post.is_anonymous ? '🕵️' : '😊'}
           </div>
           <div>
-            <div style={{ fontFamily:'var(--font-body)', fontWeight:700, fontSize:'0.82rem', color:C.textDark }}>{post.display_name}</div>
-            <div style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', color:C.textLight }}>{post.community_groups?.emoji} {post.community_groups?.name} · {timeAgo(post.created_at)}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem', color: C.textDark }}>{post.display_name}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: C.textLight, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span>{post.community_groups?.emoji} {post.community_groups?.name}</span>
+              <span style={{ opacity: 0.5 }}>·</span>
+              <span>{timeAgo(post.created_at)}</span>
+            </div>
           </div>
         </div>
         {canDelete && (
-          <button onClick={() => onDelete(post.id)} style={{ background:'none', border:'none', color:C.textLight, cursor:'pointer', fontSize:'0.78rem' }}>🗑</button>
+          <button onClick={() => onDelete(post.id)} style={{ background: 'none', border: 'none', color: C.textLight, cursor: 'pointer', fontSize: '0.85rem', padding: 4 }}>🗑</button>
         )}
       </div>
-      <p style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', color:C.textMid, lineHeight:1.7, margin:'0 0 1rem' }}>{post.content}</p>
-      <button onClick={() => onLike(post.id)}
-        style={{ border:'none', background:'none', cursor:'pointer', fontFamily:'var(--font-body)', fontSize:'0.8rem', color:liked ? '#e53935' : C.textLight, display:'flex', alignItems:'center', gap:4 }}>
-        {liked ? '❤️' : '🤍'} {post.like_count}
-      </button>
+
+      <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.92rem', color: C.textMid, lineHeight: 1.75, margin: '0 0 1.1rem' }}>{post.content}</p>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', paddingTop: '0.75rem', borderTop: `1px solid ${C.borderFaint}` }}>
+        <button
+          onClick={() => onLike(post.id)}
+          style={{
+            border: `1.5px solid ${liked ? '#f3b4ae' : C.borderFaint}`,
+            background: liked ? '#fff0ef' : C.skyFainter,
+            borderRadius: 100, padding: '0.4rem 0.9rem', cursor: 'pointer',
+            fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700,
+            color: liked ? '#e53935' : C.textMid,
+            display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s',
+          }}
+        >
+          {liked ? '❤️' : '🤍'} {post.like_count}
+        </button>
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: C.textLight, display: 'flex', alignItems: 'center', gap: 5 }}>
+          💬 {post.comment_count || 0} {post.comment_count === 1 ? 'comment' : 'comments'}
+        </span>
+      </div>
     </div>
   )
 }
@@ -467,6 +516,7 @@ export default function CommunityPage() {
   const [myReservations, setMyReservations] = useState([])
   const [myMemberships,  setMyMemberships]  = useState([])
   const [likedPostIds,   setLikedPostIds]   = useState(new Set())
+  const [showAllPosts, setShowAllPosts] = useState(false)
   const [loading,        setLoading]        = useState({ groups:true, sessions:true, posts:true, myRes:false })
   const [toast,          setToast]          = useState(null)
   const [authGate,       setAuthGate]       = useState(false)
@@ -1109,30 +1159,84 @@ if (myGroupIds.has(group.id)) {
         )}
 
         {/* ════ FEED TAB ════ */}
-        {activeTab === 'feed' && (
-          <div>
-            <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.25rem' }}>Community Feed</div>
-            <div style={{ background:'rgba(0,191,255,0.06)', border:'1px solid var(--blue-pale)', borderRadius:'var(--radius-md)', padding:'1rem 1.5rem', marginBottom:'1.5rem', fontSize:'0.82rem', color:'var(--blue-mid)' }}>
-              💡 All posts are anonymous by default. Please be kind and supportive.
-            </div>
-            <PostComposer groups={groups} onPost={handlePost} />
-            {loading.posts ? (
-              <div style={{ textAlign:'center', padding:'3rem', color:C.textLight, fontFamily:'var(--font-body)' }}>Loading posts…</div>
-            ) : posts.length === 0 ? (
-              <div style={{ textAlign:'center', padding:'3rem', color:C.textLight, fontFamily:'var(--font-body)' }}>No posts yet. Be the first to share!</div>
-            ) : posts.map(p => (
-              <PostCard
-                key={p.id}
-                post={p}
-                onLike={handleLike}
-                likedIds={likedPostIds}
-                onDelete={handleDeletePost}
-                canDelete={user && (p.user_id === user?.sub || ['admin','staff'].includes(user?.role))}
-              />
-            ))}
-          </div>
-        )}
+       {/* ════ FEED TAB ════ */}
+        {activeTab === 'feed' && (() => {
+          const sortedPosts = [...posts].sort((a, b) => (b.like_count || 0) - (a.like_count || 0))
+          const topPosts    = sortedPosts.slice(0, 10)
+          const restPosts   = sortedPosts.slice(10)
 
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--blue-deep)' }}>Community Feed</div>
+                {posts.length > 0 && (
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: C.textLight, background: C.skyFainter, border: `1px solid ${C.borderFaint}`, borderRadius: 100, padding: '0.3rem 0.85rem', fontWeight: 600 }}>
+                    🔥 Showing top {Math.min(10, posts.length)} of {posts.length} posts
+                  </span>
+                )}
+              </div>
+
+              <div style={{ background: 'rgba(0,191,255,0.06)', border: '1px solid var(--blue-pale)', borderRadius: 'var(--radius-md)', padding: '1rem 1.5rem', marginBottom: '1.5rem', fontSize: '0.82rem', color: 'var(--blue-mid)' }}>
+                💡 All posts are anonymous by default. Please be kind and supportive.
+              </div>
+
+              <PostComposer groups={groups} onPost={handlePost} />
+
+              {loading.posts ? (
+                <div style={{ textAlign: 'center', padding: '3rem', color: C.textLight, fontFamily: 'var(--font-body)' }}>Loading posts…</div>
+              ) : posts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3rem', color: C.textLight, fontFamily: 'var(--font-body)' }}>No posts yet. Be the first to share!</div>
+              ) : (
+                <>
+                  {topPosts.map((p, i) => (
+                    <PostCard
+                      key={p.id}
+                      post={p}
+                      rank={i + 1}
+                      onLike={handleLike}
+                      likedIds={likedPostIds}
+                      onDelete={handleDeletePost}
+                      canDelete={user && (p.user_id === user?.sub || ['admin', 'staff'].includes(user?.role))}
+                    />
+                  ))}
+
+                  {restPosts.length > 0 && (
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <button
+                        onClick={() => setShowAllPosts(v => !v)}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          padding: '0.85rem', borderRadius: 14, border: `1.5px dashed ${C.skyBright}`,
+                          background: showAllPosts ? C.skyFaint : C.skyFainter, color: C.skyDeep,
+                          fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <span style={{ display: 'inline-block', transition: 'transform 0.25s', transform: showAllPosts ? 'rotate(180deg)' : 'none' }}>▾</span>
+                        {showAllPosts ? 'Hide older posts' : `Show ${restPosts.length} more post${restPosts.length !== 1 ? 's' : ''}`}
+                      </button>
+
+                      {showAllPosts && (
+                        <div style={{ marginTop: '1rem' }}>
+                          {restPosts.map((p, i) => (
+                            <PostCard
+                              key={p.id}
+                              post={p}
+                              onLike={handleLike}
+                              likedIds={likedPostIds}
+                              onDelete={handleDeletePost}
+                              canDelete={user && (p.user_id === user?.sub || ['admin', 'staff'].includes(user?.role))}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )
+        })()}
       </div>
 
       {/* ── Modals ── */}
