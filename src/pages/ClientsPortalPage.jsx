@@ -485,19 +485,18 @@ export default function ClientPortalPage() {
       // Always show pending/confirmed — new bookings are 'unpaid' until
       // the payment gateway callback fires, so don't gate on payment_status here.
      const now = new Date()
-      setUpcoming(
-        all.filter(a =>
-          a.status === 'confirmed' &&
-          new Date(a.scheduled_at) >= now
-        )
-      )
-      setPast(
-        all.filter(a =>
-          a.status === 'completed' ||
-          a.status === 'cancelled' ||
-          (a.status === 'confirmed' && new Date(a.scheduled_at) < now)
-        )
-      )
+const upcomingAppts = all.filter(a => {
+  if (a.status === 'cancelled') return false
+  if (a.status === 'completed') return false
+  return new Date(a.scheduled_at) >= now
+})
+const pastAppts = all.filter(a => {
+  if (a.status === 'completed') return true
+  if (a.status === 'cancelled') return true
+  return new Date(a.scheduled_at) < now
+})
+setUpcoming(upcomingAppts)
+setPast(pastAppts)
     } catch (err) {
       console.error('[DEBUG] loadAppointments FAILED:', err)
     } finally { setLoadingAppts(false) }
@@ -819,8 +818,23 @@ export default function ClientPortalPage() {
                 <p style={{ color:'var(--text-light)', marginBottom:'1rem' }}>No upcoming appointments.</p>
                 <button className="btn btn-primary" onClick={() => navigate('/book')}>Book Your First Session →</button>
               </div>
-) : upcoming.map((a) => {              const now2 = new Date()
-              const apptDate = new Date(a.scheduled_at)
+)       
+   : upcoming.map((a) => {
+              const apptDate   = new Date(a.scheduled_at)
+              const msUntil    = apptDate - Date.now()
+      setUpcoming(
+        all.filter(a =>
+          a.status === 'confirmed' &&
+          new Date(a.scheduled_at) >= now
+        )
+      )
+      setPast(
+        all.filter(a =>
+          a.status === 'completed' ||
+          a.status === 'cancelled' ||
+          (a.status === 'confirmed' && new Date(a.scheduled_at) < now)
+        )
+      )
               const daysUntil = Math.ceil((apptDate - now2) / 86400000)
               const isToday    = daysUntil === 0
               const isTomorrow = daysUntil === 1
