@@ -21,9 +21,9 @@ export default function PsychologicalEye() {
     <section style={{
 background: `
   radial-gradient(circle at 50% 45%,
-    rgba(255,255,255,0.10) 0%,
-    rgba(173,216,255,0.08) 10%,
-    rgba(120,160,255,0.06) 20%,
+    rgba(10, 1, 1, 0.1) 0%,
+    rgba(1, 6, 11, 0.08) 10%,
+    rgba(1, 3, 8, 0.06) 20%,
     rgba(0,0,0,0) 55%
   ),
 
