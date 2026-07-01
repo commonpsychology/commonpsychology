@@ -33,8 +33,19 @@ const PAGE_CSS = `
   .nb-page {
     min-height: 100vh;
     background:
-      radial-gradient(ellipse at 50% -10%, rgba(255,255,255,0.5), transparent 55%),
-      linear-gradient(180deg, #efe8d8 0%, #e6dcc6 55%, #ddd0b2 100%);
+      radial-gradient(
+    ellipse at 50% -10%,
+    rgba(255,255,255,0.9),
+    rgba(220,245,255,0.35) 45%,
+    transparent 65%
+  ),
+  linear-gradient(
+    180deg,
+    #87cefa 0%,
+    #aee8ff 35%,
+    #dff7ff 70%,
+    #ffffff 100%
+  );
     padding: 3.5rem 1.5rem 5rem;
     display: flex; flex-direction: column; align-items: center;
     font-family: 'Nunito', sans-serif;
