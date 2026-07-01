@@ -374,7 +374,7 @@ useEffect(() => {
             style={{
               fontSize: 38,
               fontWeight: 800,
-              color: "#fff",
+              color: "#1a0bef",
               margin: "0 0 10px",
               lineHeight: 1.1,
               textShadow: "0 2px 12px rgba(15,40,90,0.25)",
