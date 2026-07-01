@@ -239,6 +239,7 @@ async function updateQty(productId, qty) {
   </div>
 </div>
 
+
       {cartMsg && (
         <div style={{ position:'fixed', bottom:'2rem', right:'2rem', background:'var(--green-deep)', color:'white', padding:'0.75rem 1.5rem', borderRadius:10, fontWeight:600, fontSize:'0.9rem', zIndex:1000, boxShadow:'0 4px 20px rgba(0,0,0,0.15)' }}>{cartMsg}</div>
       )}
