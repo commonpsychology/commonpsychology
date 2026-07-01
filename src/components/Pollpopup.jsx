@@ -175,7 +175,7 @@ export default function PollPopup({ onClose }) {
           )}
         </div>
 
-        {/* Footer */}
+      
         <div style={{ padding:'1rem 1.75rem', borderTop:'1.5px solid #000', display:'flex', gap:'0.75rem', flexShrink:0 }}>
           {!submitted ? (
             <>
