@@ -820,24 +820,13 @@ setPast(pastAppts)
               </div>
 )       
    : upcoming.map((a) => {
-              const apptDate   = new Date(a.scheduled_at)
-              const msUntil    = apptDate - Date.now()
-      setUpcoming(
-        all.filter(a =>
-          a.status === 'confirmed' &&
-          new Date(a.scheduled_at) >= now
-        )
-      )
-      setPast(
-        all.filter(a =>
-          a.status === 'completed' ||
-          a.status === 'cancelled' ||
-          (a.status === 'confirmed' && new Date(a.scheduled_at) < now)
-        )
-      )
-              const daysUntil = Math.ceil((apptDate - now2) / 86400000)
-              const isToday    = daysUntil === 0
-              const isTomorrow = daysUntil === 1
+           
+   const apptDate  = new Date(a.scheduled_at)
+  const msUntil   = apptDate - Date.now()
+  const daysUntil = Math.ceil((apptDate - new Date()) / 86400000)
+  const isToday    = daysUntil === 0
+  const isTomorrow = daysUntil === 1
+             
               const urgencyColor = isToday ? '#ef4444' : isTomorrow ? '#f59e0b' : '#10b981'
               const urgencyBg    = isToday ? '#fee2e2' : isTomorrow ? '#fef3c7' : '#d1fae5'
               const urgencyLabel = isToday ? '🔴 Today' : isTomorrow ? '🟡 Tomorrow' : `🟢 In ${daysUntil} days`
