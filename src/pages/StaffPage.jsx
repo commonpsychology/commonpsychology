@@ -358,18 +358,7 @@ useEffect(() => {
           <div style={{ fontSize: 13, letterSpacing: 3, textTransform: "uppercase", color: "#93c5fd", marginBottom: 10, fontWeight: 600 }}>
             Our Team
           </div>
-          <h1
-            style={{
-              fontSize: 38,
-              fontWeight: 800,
-              color: "#fff",
-              margin: "0 0 10px",
-              lineHeight: 1.1,
-              textShadow: "0 2px 12px rgba(15,40,90,0.25)",
-            }}
-          >
-            Meet Our Staff
-          </h1>
+         
           <p
             style={{
               color: "#f0f9ff",
@@ -381,7 +370,18 @@ useEffect(() => {
               textShadow: "0 1px 6px rgba(15,40,90,0.25)",
             }}
           >
-            The dedicated professionals who make a difference every day
+            <h1
+            style={{
+              fontSize: 38,
+              fontWeight: 800,
+              color: "#fff",
+              margin: "0 0 10px",
+              lineHeight: 1.1,
+              textShadow: "0 2px 12px rgba(15,40,90,0.25)",
+            }}
+          >
+            Meet Our Staff
+          </h1>
           </p>
 
           {/* Stats */}
