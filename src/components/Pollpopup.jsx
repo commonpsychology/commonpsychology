@@ -197,3 +197,4 @@ export default function PollPopup({ onClose }) {
     </div>
   )
 }
+
