@@ -869,7 +869,6 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      {/* ════════ CLOSING IMAGE ════════ */}
       <div className="mp-closing-section">
         <div className="mp-closing-glow" />
         <div className="mp-closing-rule" />
