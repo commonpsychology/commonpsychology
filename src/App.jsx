@@ -35,6 +35,7 @@ import MessagesPage        from './pages/MessagesPage'
 import PrivacyPage         from './pages/PrivacyPage'
 import OurPlacePage        from './pages/OurplacePage'
 import Storepage     from './pages/StorePage'
+import NoticePage    from './pages/NoticePage'
 import StaffportalPage      from './pages/StaffportalPage'
 import PaymentInfoPage     from './pages/PaymentInfoPage'
 import UpdatePasswordPage  from './pages/UpdataPasswordPage'
@@ -94,6 +95,7 @@ const ROUTES = {
   '/store':              StorePage,
   '/portal':             ClientPortalPage,
   '/community':          CommunityPage,  
+  '/notices':             NoticePage,
   '/ai-tools':           AIToolsPage,
   '/verify':             VerifyAccountPage,
   '/staff/portal':        StaffportalPage,
