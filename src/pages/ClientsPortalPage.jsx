@@ -480,13 +480,16 @@ export default function ClientPortalPage() {
     setLoadingAppts(true)
     try {
       const res = await appointments.list({ limit: 20 })
+      console.log('[DEBUG] /appointments raw response:', res)
       const all = res.appointments || []
-      // ✅ Show pending (awaiting admin approval) AND paid appointments.
-      // Only hide truly abandoned mid-checkout holds (payment_status:'unpaid').
+      console.log('[DEBUG] appointment count:', all.length, all)
       const visible = all.filter(a => a.payment_status !== 'unpaid')
+      console.log('[DEBUG] visible after filter:', visible.length, visible)
       setUpcoming(visible.filter(a => ['pending', 'confirmed'].includes(a.status)))
       setPast(visible.filter(a => ['completed', 'cancelled'].includes(a.status)))
-    } catch {} finally { setLoadingAppts(false) }
+    } catch (err) {
+      console.error('[DEBUG] loadAppointments FAILED:', err)
+    } finally { setLoadingAppts(false) }
   }
 
   async function loadRoomBookings() {
