@@ -9,8 +9,8 @@ function Hexagon({ word, opacity, delay }) {
         height: 120,
         margin: '-8px 3px',
         clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-        background: 'rgba(255,255,255,0.16)',
-        border: '1px solid rgba(255,255,255,0.26)',
+        background: 'rgba(255,255,255,0.09)',
+        border: '1px solid rgba(255,255,255,0.16)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -23,12 +23,11 @@ function Hexagon({ word, opacity, delay }) {
     >
       <span
         style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: 'rgba(255,255,255,0.95)',
+          fontSize: 10,
+          fontWeight: 500,
+          color: 'rgba(255,255,255,0.55)',
           letterSpacing: 0.3,
           lineHeight: 1.25,
-          textShadow: '0 1px 3px rgba(15,40,90,0.4)',
         }}
       >
         {word}
@@ -36,6 +35,8 @@ function Hexagon({ word, opacity, delay }) {
     </div>
   )
 }
+    
+
 
 /**
  * Honeycomb word-pattern overlay for hero/header sections.
@@ -53,8 +54,8 @@ export default function Honeycomb({ words, rows = 4, perRow = 8 }) {
         inset: 0,
         overflow: 'hidden',
         pointerEvents: 'none',
-        WebkitMaskImage: 'radial-gradient(ellipse 95% 100% at 50% 30%, black 45%, transparent 95%)',
-        maskImage: 'radial-gradient(ellipse 95% 100% at 50% 30%, black 45%, transparent 95%)',
+       WebkitMaskImage: 'radial-gradient(ellipse 85% 90% at 78% 55%, black 35%, transparent 88%)',
+        maskImage: 'radial-gradient(ellipse 85% 90% at 78% 55%, black 35%, transparent 88%)',
       }}
     >
       <style>{`
@@ -77,13 +78,13 @@ export default function Honeycomb({ words, rows = 4, perRow = 8 }) {
           <div key={rowIdx} style={{ display: 'flex', marginLeft: rowIdx % 2 === 1 ? 53 : 0 }}>
             {Array.from({ length: perRow }).map((_, colIdx) => {
               const wordIdx = (rowIdx * perRow + colIdx) % words.length
-              const distFromCenterRow = Math.abs(rowIdx - (rows - 1) / 2)
-              const baseOpacity = 0.7 - distFromCenterRow * 0.14
+             const distFromCenterRow = Math.abs(rowIdx - (rows - 1) / 2)
+              const baseOpacity = 0.42 - distFromCenterRow * 0.1
               return (
                 <Hexagon
                   key={colIdx}
                   word={words[wordIdx]}
-                  opacity={Math.max(0.2, baseOpacity)}
+                  opacity={Math.max(0.12, baseOpacity)}
                   delay={(rowIdx * perRow + colIdx) * 0.14}
                 />
               )
