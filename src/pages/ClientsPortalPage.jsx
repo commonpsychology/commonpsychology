@@ -460,9 +460,7 @@ export default function ClientPortalPage() {
       // Only surface appointments that are actually paid for (or don't require payment).
       // Anything still 'unpaid' was abandoned mid-checkout and should not appear as a
       // booked session to the client.
-      const visible = all.filter(a =>
-        a.payment_status === 'completed' || a.payment_status === 'not_required'
-      )
+      const visible = all.filter(a => a.payment_status === 'paid')
       setUpcoming(visible.filter(a => ['pending','confirmed'].includes(a.status)))
       setPast(visible.filter(a => ['completed','cancelled'].includes(a.status)))
     } catch {} finally { setLoadingAppts(false) }
