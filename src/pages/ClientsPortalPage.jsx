@@ -484,11 +484,20 @@ export default function ClientPortalPage() {
       console.log('[DEBUG] appointment count:', all.length, all)
       // Always show pending/confirmed — new bookings are 'unpaid' until
       // the payment gateway callback fires, so don't gate on payment_status here.
-      setUpcoming(all.filter(a => ['pending', 'confirmed'].includes(a.status)))
-      setPast(all.filter(a =>
-        ['completed', 'cancelled'].includes(a.status) &&
-        a.payment_status !== 'unpaid'   // hide truly abandoned past holds
-      ))
+     const now = new Date()
+      setUpcoming(
+        all.filter(a =>
+          a.status === 'confirmed' &&
+          new Date(a.scheduled_at) >= now
+        )
+      )
+      setPast(
+        all.filter(a =>
+          a.status === 'completed' ||
+          a.status === 'cancelled' ||
+          (a.status === 'confirmed' && new Date(a.scheduled_at) < now)
+        )
+      )
     } catch (err) {
       console.error('[DEBUG] loadAppointments FAILED:', err)
     } finally { setLoadingAppts(false) }
@@ -810,25 +819,71 @@ export default function ClientPortalPage() {
                 <p style={{ color:'var(--text-light)', marginBottom:'1rem' }}>No upcoming appointments.</p>
                 <button className="btn btn-primary" onClick={() => navigate('/book')}>Book Your First Session →</button>
               </div>
-          ) : past.map((a,i) => (
-              <div key={i} style={{ background:'var(--off-white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--blue-pale)', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.75rem', flexWrap:'wrap', gap:'1rem' }}>
-                <div style={{ display:'flex', gap:'1rem', alignItems:'center' }}>
-                  <div style={{ width:48, height:48, borderRadius:'50%', background:'var(--sky-light)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.3rem' }}>📅</div>
-                  <div>
-                    <div style={{ fontWeight:700, color:'var(--blue-deep)' }}>{a.type} · {a.therapists?.profiles?.full_name || 'Therapist'}</div>
-                    <div style={{ fontSize:'0.82rem', color:'var(--text-light)' }}>{fmtDate(a.scheduled_at)} at {fmtTime(a.scheduled_at)}</div>
+) : upcoming.map((a) => {              const now2 = new Date()
+              const apptDate = new Date(a.scheduled_at)
+              const daysUntil = Math.ceil((apptDate - now2) / 86400000)
+              const isToday    = daysUntil === 0
+              const isTomorrow = daysUntil === 1
+              const urgencyColor = isToday ? '#ef4444' : isTomorrow ? '#f59e0b' : '#10b981'
+              const urgencyBg    = isToday ? '#fee2e2' : isTomorrow ? '#fef3c7' : '#d1fae5'
+              const urgencyLabel = isToday ? '🔴 Today' : isTomorrow ? '🟡 Tomorrow' : `🟢 In ${daysUntil} days`
+              return (
+                <div key={a.id} style={{
+                  background: '#fff',
+                  borderRadius: 16,
+                  border: `1.5px solid ${isToday ? '#fca5a5' : isTomorrow ? '#fde68a' : '#a7f3d0'}`,
+                  marginBottom: '0.85rem',
+                  overflow: 'hidden',
+                  boxShadow: `0 4px 18px ${urgencyColor}18`,
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 28px ${urgencyColor}28` }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 18px ${urgencyColor}18` }}
+                >
+                  <div style={{ height: 3, background: `linear-gradient(90deg, ${urgencyColor}, ${urgencyColor}88)` }} />
+                  <div style={{ padding: '1.1rem 1.4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.85rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <div style={{
+                        width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+                        background: urgencyBg, border: `1.5px solid ${urgencyColor}44`,
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <span style={{ fontSize: '0.58rem', fontWeight: 800, color: urgencyColor, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          {apptDate.toLocaleDateString('en-US', { month: 'short' })}
+                        </span>
+                        <span style={{ fontSize: '1.1rem', fontWeight: 900, color: urgencyColor, lineHeight: 1.1 }}>
+                          {apptDate.getDate()}
+                        </span>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem', marginBottom: '0.2rem' }}>
+                          {a.type} · {a.therapists?.profiles?.full_name || 'Therapist'}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.35rem' }}>
+                          🕐 {fmtTime(a.scheduled_at)}
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 8px', borderRadius: 100, background: urgencyBg, color: urgencyColor, border: `1px solid ${urgencyColor}44` }}>
+                            {urgencyLabel}
+                          </span>
+                          <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 8px', borderRadius: 100, background: '#d1fae5', color: '#065f46' }}>
+                            ✓ Confirmed
+                          </span>
+                          {(() => { const b = apptPaymentBadge(a.payment_status); return <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 8px', borderRadius: 100, background: b.bg, color: b.color }}>{b.label}</span> })()}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-outline"
+                      style={{ fontSize: '0.78rem', padding: '0.4rem 1rem', color: '#ef4444', borderColor: '#fca5a5' }}
+                      onClick={() => cancelAppt(a.id)}
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
-              <div style={{ display:'flex', gap:'0.75rem', alignItems:'center', flexWrap:'wrap' }}>
-                  <span style={{ fontSize:'0.72rem', fontWeight:800, padding:'3px 10px', borderRadius:100, background:a.status==='confirmed'?'var(--green-mist)':'var(--earth-cream)', color:a.status==='confirmed'?'var(--green-deep)':'var(--earth-warm)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{a.status}</span>
-                  {(() => {
-                    const b = apptPaymentBadge(a.payment_status)
-                    return <span style={{ fontSize:'0.72rem', fontWeight:800, padding:'3px 10px', borderRadius:100, background:b.bg, color:b.color }}>{b.label}</span>
-                  })()}
-                  <button className="btn btn-outline" style={{ fontSize:'0.78rem', padding:'0.35rem 0.9rem' }} onClick={() => cancelAppt(a.id)}>Cancel</button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
 
             <button onClick={() => setShowPastAppts(v => !v)} style={{ display:'flex', alignItems:'center', gap:'0.5rem', background:'none', border:'none', cursor:'pointer', fontSize:'0.78rem', fontWeight:700, color:'#64748b', padding:'0.5rem 0', margin:'2rem 0 0.75rem', fontFamily:'var(--font-body)' }}>
               <span style={{ display:'inline-flex', width:20, height:20, borderRadius:6, background:'#f1f5f9', border:'1px solid #e2e8f0', alignItems:'center', justifyContent:'center', fontSize:'0.65rem', transition:'transform 0.2s', transform:showPastAppts?'rotate(90deg)':'none' }}>▶</span>
