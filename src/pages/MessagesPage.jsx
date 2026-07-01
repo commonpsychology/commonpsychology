@@ -456,6 +456,51 @@ const PAGE_CSS = `
   }
 
   /* ────────────────────────────────────────
+     CLOSING IMAGE SECTION
+  ──────────────────────────────────────── */
+  .mp-closing-section {
+    background: linear-gradient(180deg, #040d18 0%, #071a2a 40%, #0a2436 100%);
+    padding: 5rem 2rem 6rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .mp-closing-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,191,255,0.1) 0%, transparent 68%);
+    animation: mp-peace-glow 6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .mp-closing-rule {
+    width: 60px; height: 1px;
+    background: rgba(0,191,255,0.35);
+    margin: 0 auto 2.25rem;
+    animation: mp-lineGrow 1s ease both;
+    transform-origin: center;
+  }
+  .mp-closing-img-frame {
+    position: relative;
+    z-index: 2;
+    animation: mp-float 7s ease-in-out infinite, mp-fadein 1.1s ease both;
+  }
+  .mp-closing-img {
+    max-width: min(420px, 80vw);
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 18px;
+    filter: drop-shadow(0 16px 48px rgba(0,191,255,0.22));
+  }
+
+  /* ────────────────────────────────────────
      RESPONSIVE
   ──────────────────────────────────────── */
   @media (max-width: 900px) {
@@ -473,7 +518,7 @@ const PAGE_CSS = `
     .mp-peace-pillars { grid-template-columns: 1fr 1fr; gap: .85rem; }
     .mp-photo-frame, .mp-photo-img, .mp-photo-placeholder { width: 160px; height: 176px; }
     .mp-messages-section { padding: 3rem 1.25rem; }
-    .mp-values-section, .mp-peace-section { padding: 4rem 1.25rem; }
+    .mp-values-section, .mp-peace-section, .mp-closing-section { padding: 4rem 1.25rem; }
     .mp-peace-corner-dove { display: none; }
   }
 `
@@ -821,6 +866,15 @@ export default function MessagesPage() {
             <div className="mp-peace-rule" />
             <div className="mp-peace-attribution">Common Psyhcologyrgi · Our Eternal Pledge</div>
           </div>
+        </div>
+      </div>
+
+      {/* ════════ CLOSING IMAGE ════════ */}
+      <div className="mp-closing-section">
+        <div className="mp-closing-glow" />
+        <div className="mp-closing-rule" />
+        <div className="mp-closing-img-frame">
+          <img src="/oinf.png" alt="" className="mp-closing-img" />
         </div>
       </div>
 
