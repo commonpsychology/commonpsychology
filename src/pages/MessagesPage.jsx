@@ -59,52 +59,95 @@ const PAGE_CSS = `
   }
 
   /* ────────────────────────────────────────
-     HERO
+     HERO — soft cloudy fairytale sky
   ──────────────────────────────────────── */
+  @keyframes mp-cloud-drift {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(24px,-12px) scale(1.04); }
+  }
+  @keyframes mp-cloud-drift-rev {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(-20px,10px) scale(1.03); }
+  }
+  @keyframes mp-twinkle {
+    0%,100% { opacity: 0.15; transform: scale(0.7); }
+    50%     { opacity: 1;    transform: scale(1.25); }
+  }
+  @keyframes mp-dovedrift {
+    0%   { transform: translateY(-10px) rotate(0deg);  opacity: 0; }
+    15%  { opacity: 0.5; }
+    85%  { opacity: 0.5; }
+    100% { transform: translateY(340px) rotate(20deg); opacity: 0; }
+  }
+
   .mp-hero {
-    background: linear-gradient(160deg,
-      #007BA8 0%, #009FD4 25%, #00BFFF 50%,
-      #7dd8f8 70%, #c8eefb 85%, #e8f9ff 100%
+    background: linear-gradient(180deg,
+      #ffffff 0%, #fbfeff 20%, #f2faff 45%,
+      #e4f5fd 70%, #cfeefb 100%
     );
-    min-height: 52vh;
+    min-height: 56vh;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    text-align: center; padding: 5rem 2rem 4rem;
+    text-align: center; padding: 6.5rem 2rem 6rem;
     position: relative; overflow: hidden;
   }
-  .mp-hero-orb {
-    position: absolute; border-radius: 50%;
-    filter: blur(80px); pointer-events: none;
-    animation: mp-orb 9s ease-in-out infinite;
+  .mp-hero-cloud {
+    position: absolute;
+    background: radial-gradient(ellipse at 35% 35%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.75) 40%, rgba(255,255,255,0) 72%);
+    border-radius: 50%;
+    filter: blur(2px);
+    pointer-events: none;
+  }
+  .mp-hero-sparkle {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 0%, rgba(0,191,255,0.5) 55%, transparent 75%);
+    pointer-events: none;
+    animation: mp-twinkle 3.2s ease-in-out infinite;
+  }
+  .mp-hero-dove {
+    position: absolute;
+    top: -10px;
+    pointer-events: none;
+    animation: mp-dovedrift linear infinite;
+  }
+  .mp-hero-wave {
+    position: absolute; left: 0; right: 0; bottom: -2px;
+    width: 100%; height: 90px; display: block;
+    pointer-events: none;
   }
   .mp-hero-kicker {
     font-family: 'Nunito', sans-serif; font-size: 0.7rem;
     font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
-    color: #005a80; background: rgba(255,255,255,0.45);
-    border: 1px solid rgba(255,255,255,0.7); border-radius: 100px;
-    padding: 0.32rem 1.1rem; margin-bottom: 1.5rem;
+    color: #0080b0; background: rgba(0,191,255,0.08);
+    border: 1px solid rgba(0,159,212,0.28); border-radius: 100px;
+    padding: 0.32rem 1.1rem; margin-bottom: 1.6rem;
     display: inline-block; animation: mp-fadein 0.8s ease both;
+    position: relative; z-index: 2;
   }
   .mp-hero-title {
     font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 700;
-    color: #fff; text-shadow: 0 2px 20px rgba(0,80,130,0.3);
+    color: #123a52; text-shadow: 0 2px 24px rgba(0,159,212,0.12);
     line-height: 1.12; margin-bottom: 1.25rem;
     animation: mp-fadeup 0.9s 0.1s ease both;
+    position: relative; z-index: 2;
   }
-  .mp-hero-title em { font-style: italic; color: #003d5c; }
+  .mp-hero-title em { font-style: italic; color: #009fd4; }
   .mp-hero-sub {
     font-family: 'Lora', Georgia, serif;
     font-size: clamp(0.92rem, 2vw, 1.08rem);
-    color: rgba(0,55,90,0.78); line-height: 1.75;
+    color: rgba(20,60,90,0.68); line-height: 1.75;
     max-width: 520px; margin: 0 auto;
     animation: mp-fadeup 0.9s 0.2s ease both; font-style: italic;
+    position: relative; z-index: 2;
   }
   .mp-hero-rule {
     width: 80px; height: 2px;
-    background: linear-gradient(to right, transparent, #fff, transparent);
+    background: linear-gradient(to right, transparent, #00a8e8, transparent);
     margin: 2rem auto 0;
     animation: mp-lineGrow 1s 0.5s ease both; transform-origin: center;
+    position: relative; z-index: 2;
   }
 
   /* ────────────────────────────────────────
@@ -643,10 +686,26 @@ export default function MessagesPage() {
   return (
     <div className="page-wrapper">
 
-      {/* ════════ HERO ════════ */}
+    {/* ════════ HERO — soft cloudy fairytale sky ════════ */}
       <div className="mp-hero">
-        <div className="mp-hero-orb" style={{ width:420, height:420, top:'5%', right:'-8%', background:'radial-gradient(circle,rgba(255,255,255,0.35),transparent 70%)', animationDuration:'11s' }} />
-        <div className="mp-hero-orb" style={{ width:300, height:300, bottom:'10%', left:'-5%', background:'radial-gradient(circle,rgba(0,100,160,0.18),transparent 70%)', animationDuration:'8s', animationDelay:'-3s' }} />
+        {/* drifting cloud shapes */}
+        <div className="mp-hero-cloud" style={{ width:260, height:100, top:'12%', left:'-4%', animation:'mp-cloud-drift 16s ease-in-out infinite' }} />
+        <div className="mp-hero-cloud" style={{ width:200, height:80,  top:'22%', right:'2%',  animation:'mp-cloud-drift-rev 13s ease-in-out infinite' }} />
+        <div className="mp-hero-cloud" style={{ width:340, height:120, bottom:'8%', left:'8%',  animation:'mp-cloud-drift 20s ease-in-out infinite', opacity:0.8 }} />
+        <div className="mp-hero-cloud" style={{ width:220, height:90,  bottom:'14%', right:'10%', animation:'mp-cloud-drift-rev 15s ease-in-out infinite' }} />
+        <div className="mp-hero-cloud" style={{ width:160, height:64,  top:'6%', left:'38%',  animation:'mp-cloud-drift 18s ease-in-out infinite', opacity:0.7 }} />
+
+        {/* twinkling sparkles */}
+        <div className="mp-hero-sparkle" style={{ width:6, height:6, top:'18%', left:'20%', animationDelay:'0s' }} />
+        <div className="mp-hero-sparkle" style={{ width:4, height:4, top:'30%', left:'72%', animationDelay:'0.8s' }} />
+        <div className="mp-hero-sparkle" style={{ width:5, height:5, top:'62%', left:'12%', animationDelay:'1.4s' }} />
+        <div className="mp-hero-sparkle" style={{ width:4, height:4, top:'70%', left:'85%', animationDelay:'2s' }} />
+        <div className="mp-hero-sparkle" style={{ width:6, height:6, top:'45%', left:'50%', animationDelay:'1.1s' }} />
+
+        {/* drifting dove silhouettes */}
+        <div className="mp-hero-dove" style={{ left:'15%', animationDuration:'9s',  animationDelay:'0s' }}><CornerDove size={26} /></div>
+        <div className="mp-hero-dove" style={{ left:'80%', animationDuration:'11s', animationDelay:'3s' }}><CornerDove size={22} flip /></div>
+
         <span className="mp-hero-kicker">Common Psychology Mental Wellness</span>
         <h1 className="mp-hero-title">Words from the<br /><em>Hearts That Lead</em></h1>
         <p className="mp-hero-sub">
@@ -654,6 +713,11 @@ export default function MessagesPage() {
           the people behind every act of care this centre provides.
         </p>
         <div className="mp-hero-rule" />
+
+        {/* smooth wave transition into the messages section below */}
+        <svg className="mp-hero-wave" viewBox="0 0 1440 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,40 C240,90 480,0 720,24 C960,48 1200,90 1440,40 L1440,100 L0,100 Z" fill="#007BA8" />
+        </svg>
       </div>
 
       {/* ════════ MESSAGES ════════ */}
