@@ -1,13 +1,4 @@
-// ============================================================
-//  EsewaFailurePage.jsx
-//  Place at: src/pages/EsewaFailurePage.jsx
-//
-//  This is the page eSewa redirects to when payment FAILS or
-//  the user cancels.
-//
-//  Register this route in your router:
-//    <Route path="/payment/esewa/failure" element={<EsewaFailurePage />} />
-// ============================================================
+
 
 import { useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'   // ← adjust path if needed
