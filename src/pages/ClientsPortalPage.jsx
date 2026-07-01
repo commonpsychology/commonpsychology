@@ -195,6 +195,21 @@ function paymentStatusBadge(paymentStatus, paymentMethod) {
   return                                    { label:'💳 Payment Due',                            bg:'#fee2e2', color:'#991b1b' }
 }
 
+function paymentStatusBadge(paymentStatus, paymentMethod) {
+  if (paymentStatus === 'completed') return { label:'✓ Paid',                                   bg:'#d1fae5', color:'#065f46' }
+  if (paymentMethod)                 return { label:`⏳ ${paymentMethod.toUpperCase()} Pending`, bg:'#fef3c7', color:'#92400e' }
+  return                                    { label:'💳 Payment Due',                            bg:'#fee2e2', color:'#991b1b' }
+}
+
+// ✅ NEW — badge for regular therapy appointments (uses a.payment_status
+// values: 'unpaid' | 'pending' | 'pending_cod' | 'paid' | 'failed')
+function apptPaymentBadge(status) {
+  if (status === 'paid')                                  return { label:'✓ Paid',            bg:'#d1fae5', color:'#065f46' }
+  if (status === 'pending' || status === 'pending_cod')    return { label:'⏳ Payment Pending', bg:'#fef3c7', color:'#92400e' }
+  if (status === 'failed')                                 return { label:'⚠️ Payment Issue',  bg:'#fee2e2', color:'#991b1b' }
+  return                                                        { label:'💳 Payment Due',      bg:'#fee2e2', color:'#991b1b' }
+}
+
 /* ─────────────────────────────────────────────────────────────
    SERENITY ROOM CARD
 ───────────────────────────────────────────────────────────── */
@@ -438,31 +453,39 @@ export default function ClientPortalPage() {
   async function loadOverview() {
     try {
       const [apptRes, moodRes] = await Promise.all([
-        appointments.list({ limit:5, status:'confirmed' }),
-        wellness.getMoodLogs({ limit:7 }),
+        appointments.list({ limit: 50 }),   // ✅ no status filter anymore
+        wellness.getMoodLogs({ limit: 7 }),
       ])
-      const up      = apptRes.appointments?.filter(a => new Date(a.scheduled_at) >= new Date()) || []
-      const moodAvg = moodRes.logs?.reduce((s,l) => s + l.mood_score, 0) / (moodRes.logs?.length || 1)
+      const all     = apptRes.appointments || []
+      // ✅ Exclude only truly abandoned (never-paid) holds. Pending / paid
+      // both count toward "you have a session coming up".
+      const visible = all.filter(a => a.payment_status !== 'unpaid')
+
+      const upcoming = visible
+        .filter(a => a.status !== 'cancelled' && new Date(a.scheduled_at) >= new Date())
+        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))
+
+      const completedCount = all.filter(a => a.status === 'completed').length
+      const moodAvg = moodRes.logs?.reduce((s, l) => s + l.mood_score, 0) / (moodRes.logs?.length || 1)
+
       setStats({
-        sessions:    apptRes.pagination?.total || 0,
-        nextSession: up[0] ? new Date(up[0].scheduled_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—',
+        sessions:    completedCount,
+        nextSession: upcoming[0] ? new Date(upcoming[0].scheduled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—',
         moodAvg:     moodAvg ? moodAvg.toFixed(1) : '—',
         streak:      moodRes.logs?.length || 0,
       })
     } catch {}
   }
-
  async function loadAppointments() {
     setLoadingAppts(true)
     try {
-      const res = await appointments.list({ limit:20 })
+      const res = await appointments.list({ limit: 20 })
       const all = res.appointments || []
-      // Only surface appointments that are actually paid for (or don't require payment).
-      // Anything still 'unpaid' was abandoned mid-checkout and should not appear as a
-      // booked session to the client.
-      const visible = all.filter(a => a.payment_status === 'paid')
-      setUpcoming(visible.filter(a => ['pending','confirmed'].includes(a.status)))
-      setPast(visible.filter(a => ['completed','cancelled'].includes(a.status)))
+      // ✅ Show pending (awaiting admin approval) AND paid appointments.
+      // Only hide truly abandoned mid-checkout holds (payment_status:'unpaid').
+      const visible = all.filter(a => a.payment_status !== 'unpaid')
+      setUpcoming(visible.filter(a => ['pending', 'confirmed'].includes(a.status)))
+      setPast(visible.filter(a => ['completed', 'cancelled'].includes(a.status)))
     } catch {} finally { setLoadingAppts(false) }
   }
 
@@ -791,8 +814,12 @@ export default function ClientPortalPage() {
                     <div style={{ fontSize:'0.82rem', color:'var(--text-light)' }}>{fmtDate(a.scheduled_at)} at {fmtTime(a.scheduled_at)}</div>
                   </div>
                 </div>
-                <div style={{ display:'flex', gap:'0.75rem', alignItems:'center' }}>
+              <div style={{ display:'flex', gap:'0.75rem', alignItems:'center', flexWrap:'wrap' }}>
                   <span style={{ fontSize:'0.72rem', fontWeight:800, padding:'3px 10px', borderRadius:100, background:a.status==='confirmed'?'var(--green-mist)':'var(--earth-cream)', color:a.status==='confirmed'?'var(--green-deep)':'var(--earth-warm)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{a.status}</span>
+                  {(() => {
+                    const b = apptPaymentBadge(a.payment_status)
+                    return <span style={{ fontSize:'0.72rem', fontWeight:800, padding:'3px 10px', borderRadius:100, background:b.bg, color:b.color }}>{b.label}</span>
+                  })()}
                   <button className="btn btn-outline" style={{ fontSize:'0.78rem', padding:'0.35rem 0.9rem' }} onClick={() => cancelAppt(a.id)}>Cancel</button>
                 </div>
               </div>
