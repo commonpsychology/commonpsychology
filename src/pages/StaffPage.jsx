@@ -175,10 +175,11 @@ function StaffCard({ member }) {
   );
 }
 
-/* ---------- Honeycomb header background ---------- */
-
 const HONEY_WORDS = [
-  
+  "We Value You", "We Love You", "We Respect You", "You Matter",
+  "Our Strength", "Thank You", "You Inspire Us", "Well Done",
+  "We See You", "You're Heard", "Keep Shining", "We Honor You",
+  "You Belong", "Equal", "You're Vital", "Stay Strong",
 ];
 
 function Hexagon({ word, opacity, scale = 1, delay = 0 }) {
