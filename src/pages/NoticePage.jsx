@@ -311,53 +311,53 @@ const NOTICES = [
     id: 1, category: 'Workshops', title: 'Managing Exam Stress — Free Workshop',
     body: '2026-04-30 AWARNESS PROGRAM IN COLLABORATION WITH ABC FOUNDATION AT TRIBHUVAN UNIVERSITY २०८३-०१-१७ मा ABC फाउन्डेसनको सहकार्यमा त्रिभुवन विश्वविद्यालयमा चेतनामूलक कार्यक्रम आयोजना गरिने छ।',
     date: 'Sat 04 OCT · 10 AM', paper: 'cream', attach: 'pin', pinColor: 'blue', font: 'serif', rotate: -3,
-  },
-  {
-    id: 2, category: 'Support Groups', title: 'New Parents Circle',
-    body: 'A quiet weekly space for new mothers and fathers to talk openly about the adjustment to parenthood. Tea provided. Childcare available on request.',
-    date: 'Every Thursday · 4 PM', paper: 'blue', attach: 'pin', pinColor: 'green', font: 'hand', rotate: 2,
-  },
-  {
-    id: 3, category: 'Announcements', title: 'OFFICE CLOSED — DASHAIN FESTIVAL',
-    body: 'The centre will be closed from Kojagrat Purnima through Dashain Tika. All bookings during this period have been rescheduled — check your inbox for new times.',
-    date: 'Closed 6–19 Oct', paper: 'yellow', attach: 'tape-double', font: 'type', rotate: -1.5,
-  },
-  {
-    id: 4, category: 'Community', title: 'Volunteer Counsellors Needed',
-    body: 'We are recruiting trained volunteers for our Pokhara outreach programme. Weekend commitment, full supervision provided. Ideal for psychology graduates.',
-    date: 'Apply by 30 Jul', paper: 'cream', attach: 'pin', pinColor: 'gold', font: 'serif', rotate: 3,
-    tearTabs: ['9841-0000', '9841-0000', '9841-0000', '9841-0000', '9841-0000'],
-  },
-  {
-    id: 5, category: 'Events', title: 'World Mental Health Day Walk',
-    body: 'Join staff, clients, and families for a morning awareness walk through Bhrikutimandap, ending with music and a short talk in the park.',
-    date: 'Fri 10 Oct · 7 AM', paper: 'white', attach: 'pin', pinColor: 'red', font: 'hand', rotate: -2,
-  },
-  {
-    id: 6, category: 'Announcements', title: 'New Sliding-Scale Fee Schedule',
-    body: 'From next month, session fees will be assessed on a wider income-based scale so more families can access regular therapy. Ask reception for details.',
-    date: 'Effective 1 Aug', paper: 'lined', attach: 'tape', font: 'type', rotate: 1.5,
-  },
-  {
-    id: 7, category: 'Workshops', title: 'Teen Mindfulness Circle',
-    body: 'A relaxed after-school group for ages 13–17 covering focus, sleep, and screen-time habits through simple guided practice. No experience needed.',
-    date: 'Saturdays · 4 PM', paper: 'cream', attach: 'pin', pinColor: 'blue', font: 'hand', rotate: -3.5,
-  },
-  {
-    id: 8, category: 'Events', title: 'Free Screening Camp — Butwal Schools',
-    body: 'Our outreach team will run confidential wellbeing screenings in partnership with three local secondary schools. Parents welcome to attend the info session.',
-    date: 'Mon 3 Aug · All day', paper: 'white', attach: 'pin', pinColor: 'gold', font: 'serif', rotate: 2.5,
-  },
-  {
-    id: 9, category: 'Community', title: 'Clinical Psychologist — Vacancy',
-    body: 'Full-time position open for a licensed clinical psychologist to join our Kathmandu team. Nepali and English fluency required. Send CV to reception.',
-    date: 'Rolling applications', paper: 'yellow', attach: 'tape-double', font: 'type', rotate: -2,
-  },
-  {
-    id: 10, category: 'Support Groups', title: 'Grief & Loss Group',
-    body: 'A gentle, confidential space held twice monthly for anyone navigating bereavement. Facilitated by a trained grief counsellor. First session is free.',
-    date: '2nd & 4th Tue · 5 PM', paper: 'blue', attach: 'pin', pinColor: 'green', font: 'serif', rotate: 3,
-  },
+//   },
+//   {
+//     id: 2, category: 'Support Groups', title: 'New Parents Circle',
+//     body: 'A quiet weekly space for new mothers and fathers to talk openly about the adjustment to parenthood. Tea provided. Childcare available on request.',
+//     date: 'Every Thursday · 4 PM', paper: 'blue', attach: 'pin', pinColor: 'green', font: 'hand', rotate: 2,
+//   },
+//   {
+//     id: 3, category: 'Announcements', title: 'OFFICE CLOSED — DASHAIN FESTIVAL',
+//     body: 'The centre will be closed from Kojagrat Purnima through Dashain Tika. All bookings during this period have been rescheduled — check your inbox for new times.',
+//     date: 'Closed 6–19 Oct', paper: 'yellow', attach: 'tape-double', font: 'type', rotate: -1.5,
+//   },
+//   {
+//     id: 4, category: 'Community', title: 'Volunteer Counsellors Needed',
+//     body: 'We are recruiting trained volunteers for our Pokhara outreach programme. Weekend commitment, full supervision provided. Ideal for psychology graduates.',
+//     date: 'Apply by 30 Jul', paper: 'cream', attach: 'pin', pinColor: 'gold', font: 'serif', rotate: 3,
+//     tearTabs: ['9841-0000', '9841-0000', '9841-0000', '9841-0000', '9841-0000'],
+//   },
+//   {
+//     id: 5, category: 'Events', title: 'World Mental Health Day Walk',
+//     body: 'Join staff, clients, and families for a morning awareness walk through Bhrikutimandap, ending with music and a short talk in the park.',
+//     date: 'Fri 10 Oct · 7 AM', paper: 'white', attach: 'pin', pinColor: 'red', font: 'hand', rotate: -2,
+//   },
+//   {
+//     id: 6, category: 'Announcements', title: 'New Sliding-Scale Fee Schedule',
+//     body: 'From next month, session fees will be assessed on a wider income-based scale so more families can access regular therapy. Ask reception for details.',
+//     date: 'Effective 1 Aug', paper: 'lined', attach: 'tape', font: 'type', rotate: 1.5,
+//   },
+//   {
+//     id: 7, category: 'Workshops', title: 'Teen Mindfulness Circle',
+//     body: 'A relaxed after-school group for ages 13–17 covering focus, sleep, and screen-time habits through simple guided practice. No experience needed.',
+//     date: 'Saturdays · 4 PM', paper: 'cream', attach: 'pin', pinColor: 'blue', font: 'hand', rotate: -3.5,
+//   },
+//   {
+//     id: 8, category: 'Events', title: 'Free Screening Camp — Butwal Schools',
+//     body: 'Our outreach team will run confidential wellbeing screenings in partnership with three local secondary schools. Parents welcome to attend the info session.',
+//     date: 'Mon 3 Aug · All day', paper: 'white', attach: 'pin', pinColor: 'gold', font: 'serif', rotate: 2.5,
+//   },
+//   {
+//     id: 9, category: 'Community', title: 'Clinical Psychologist — Vacancy',
+//     body: 'Full-time position open for a licensed clinical psychologist to join our Kathmandu team. Nepali and English fluency required. Send CV to reception.',
+//     date: 'Rolling applications', paper: 'yellow', attach: 'tape-double', font: 'type', rotate: -2,
+//   },
+//   {
+//     id: 10, category: 'Support Groups', title: 'Grief & Loss Group',
+//     body: 'A gentle, confidential space held twice monthly for anyone navigating bereavement. Facilitated by a trained grief counsellor. First session is free.',
+//     date: '2nd & 4th Tue · 5 PM', paper: 'blue', attach: 'pin', pinColor: 'green', font: 'serif', rotate: 3,
+  }
 ]
 
 const CATEGORIES = ['All', ...Array.from(new Set(NOTICES.map(n => n.category)))]
