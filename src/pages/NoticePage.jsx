@@ -119,7 +119,7 @@ const PAGE_CSS = `
   }
 
   .nb-hinge {
-    position: absolute; width: 20px; height: 34px; background: linear-gradient(180deg, #d8b46a, var(--brass));
+    position: absolute; width: 20px; height: 34px; background: linear-gradient(180deg, #9bd1f5, var(--brass));
     border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.25);
     z-index: 4;
   }
@@ -131,7 +131,7 @@ const PAGE_CSS = `
 
   .nb-latch {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 16px; height: 44px; background: linear-gradient(90deg, var(--brass), #e0bd72, var(--brass));
+    width: 16px; height: 44px; background: linear-gradient(90deg, var(--brass), #a6f9e6, var(--brass));
     border-radius: 4px; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.45);
   }
   .nb-latch::after { content:''; position:absolute; top:50%; left:50%; width:7px; height:7px; background:#5c4419; border-radius:50%; transform:translate(-50%,-50%); box-shadow: 0 0 0 2px rgba(255,255,255,0.15); }
@@ -298,19 +298,19 @@ function injectCSS(id, css) {
 
 /* ── Data ── */
 const CATEGORY_META = {
-  All:            { color: '#4a2f1c' },
+  All:            { color: '#1ea0f7' },
   Workshops:      { color: 'var(--pin-blue)' },
   'Support Groups': { color: 'var(--pin-green)' },
   Events:         { color: 'var(--pin-gold)' },
   Announcements:  { color: 'var(--pin-red)' },
-  Community:      { color: '#7b5a34' },
+  Community:      { color: '#51aff7' },
 }
 
 const NOTICES = [
   {
     id: 1, category: 'Workshops', title: 'Managing Exam Stress — Free Workshop',
-    body: 'A one-hour session for students and parents on healthy study habits, breathing techniques, and coping with exam pressure. Open to all, no booking required.',
-    date: 'Sat 11 Jul · 10 AM', paper: 'cream', attach: 'pin', pinColor: 'blue', font: 'serif', rotate: -3,
+    body: '2026-04-30 AWARNESS PROGRAM IN COLLABORATION WITH ABC FOUNDATION AT TRIBHUVAN UNIVERSITY २०८३-०१-१७ मा ABC फाउन्डेसनको सहकार्यमा त्रिभुवन विश्वविद्यालयमा चेतनामूलक कार्यक्रम आयोजना गरिने छ।',
+    date: 'Sat 04 OCT · 10 AM', paper: 'cream', attach: 'pin', pinColor: 'blue', font: 'serif', rotate: -3,
   },
   {
     id: 2, category: 'Support Groups', title: 'New Parents Circle',
