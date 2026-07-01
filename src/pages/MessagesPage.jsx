@@ -706,6 +706,26 @@ export default function MessagesPage() {
         <div className="mp-hero-dove" style={{ left:'15%', animationDuration:'9s',  animationDelay:'0s' }}><CornerDove size={26} /></div>
         <div className="mp-hero-dove" style={{ left:'80%', animationDuration:'11s', animationDelay:'3s' }}><CornerDove size={22} flip /></div>
 
+    <div style={{
+          position: 'relative', zIndex: 2,
+          marginBottom: '1.75rem',
+          animation: 'mp-float 6s ease-in-out infinite',
+          filter: 'drop-shadow(0 8px 32px rgba(0,159,212,0.18))',
+        }}>
+          <img
+            src="/roots.png"
+            alt="Roots tree illustration"
+            style={{
+              width: 'clamp(180px, 28vw, 300px)',
+              height: 'auto',
+              display: 'block',
+              margin: '0 auto',
+              animation: 'mp-fadein 1.2s ease both',
+              mixBlendMode: 'multiply',
+            }}
+          />
+        </div>
+
         <span className="mp-hero-kicker">Common Psychology Mental Wellness</span>
         <h1 className="mp-hero-title">Words from the<br /><em>Hearts That Lead</em></h1>
         <p className="mp-hero-sub">
