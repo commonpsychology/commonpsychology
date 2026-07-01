@@ -195,6 +195,17 @@ function paymentStatusBadge(paymentStatus, paymentMethod) {
   return                                    { label:'💳 Payment Due',                            bg:'#fee2e2', color:'#991b1b' }
 }
 
+
+
+// ✅ NEW — badge for regular therapy appointments (uses a.payment_status
+// values: 'unpaid' | 'pending' | 'pending_cod' | 'paid' | 'failed')
+function apptPaymentBadge(status) {
+  if (status === 'paid')                                  return { label:'✓ Paid',            bg:'#d1fae5', color:'#065f46' }
+  if (status === 'pending' || status === 'pending_cod')    return { label:'⏳ Payment Pending', bg:'#fef3c7', color:'#92400e' }
+  if (status === 'failed')                                 return { label:'⚠️ Payment Issue',  bg:'#fee2e2', color:'#991b1b' }
+  return                                                        { label:'💳 Payment Due',      bg:'#fee2e2', color:'#991b1b' }
+}
+
 /* ─────────────────────────────────────────────────────────────
    SERENITY ROOM CARD
 ───────────────────────────────────────────────────────────── */
@@ -438,34 +449,49 @@ export default function ClientPortalPage() {
   async function loadOverview() {
     try {
       const [apptRes, moodRes] = await Promise.all([
-        appointments.list({ limit:5, status:'confirmed' }),
-        wellness.getMoodLogs({ limit:7 }),
+        appointments.list({ limit: 50 }),   // ✅ no status filter anymore
+        wellness.getMoodLogs({ limit: 7 }),
       ])
-      const up      = apptRes.appointments?.filter(a => new Date(a.scheduled_at) >= new Date()) || []
-      const moodAvg = moodRes.logs?.reduce((s,l) => s + l.mood_score, 0) / (moodRes.logs?.length || 1)
+      const all     = apptRes.appointments || []
+      // ✅ Exclude only truly abandoned (never-paid) holds. Pending / paid
+      // both count toward "you have a session coming up".
+      // Show pending/confirmed regardless of payment stage —
+      // a brand-new booking starts as unpaid until gateway callback fires.
+      const upcoming = all
+        .filter(a =>
+          ['pending', 'confirmed'].includes(a.status) &&
+          new Date(a.scheduled_at) >= new Date()
+        )
+        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))
+
+      const completedCount = all.filter(a => a.status === 'completed').length
+      const moodAvg = moodRes.logs?.reduce((s, l) => s + l.mood_score, 0) / (moodRes.logs?.length || 1)
+
       setStats({
-        sessions:    apptRes.pagination?.total || 0,
-        nextSession: up[0] ? new Date(up[0].scheduled_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—',
+        sessions:    completedCount,
+        nextSession: upcoming[0] ? new Date(upcoming[0].scheduled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—',
         moodAvg:     moodAvg ? moodAvg.toFixed(1) : '—',
         streak:      moodRes.logs?.length || 0,
       })
     } catch {}
   }
-
  async function loadAppointments() {
     setLoadingAppts(true)
     try {
-      const res = await appointments.list({ limit:20 })
+      const res = await appointments.list({ limit: 20 })
+      console.log('[DEBUG] /appointments raw response:', res)
       const all = res.appointments || []
-      // Only surface appointments that are actually paid for (or don't require payment).
-      // Anything still 'unpaid' was abandoned mid-checkout and should not appear as a
-      // booked session to the client.
-      const visible = all.filter(a =>
-        a.payment_status === 'completed' || a.payment_status === 'not_required'
-      )
-      setUpcoming(visible.filter(a => ['pending','confirmed'].includes(a.status)))
-      setPast(visible.filter(a => ['completed','cancelled'].includes(a.status)))
-    } catch {} finally { setLoadingAppts(false) }
+      console.log('[DEBUG] appointment count:', all.length, all)
+      // Always show pending/confirmed — new bookings are 'unpaid' until
+      // the payment gateway callback fires, so don't gate on payment_status here.
+      setUpcoming(all.filter(a => ['pending', 'confirmed'].includes(a.status)))
+      setPast(all.filter(a =>
+        ['completed', 'cancelled'].includes(a.status) &&
+        a.payment_status !== 'unpaid'   // hide truly abandoned past holds
+      ))
+    } catch (err) {
+      console.error('[DEBUG] loadAppointments FAILED:', err)
+    } finally { setLoadingAppts(false) }
   }
 
   async function loadRoomBookings() {
@@ -580,20 +606,142 @@ export default function ClientPortalPage() {
 
       <JournalModal entry={openEntry} onClose={() => setOpenEntry(null)} />
 
-      {/* ── Header ── */}
-      <div style={{ background:'var(--white)', borderBottom:'1px solid var(--blue-pale)', padding:'1.25rem clamp(1rem,4vw,2rem)', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'0.75rem' }}>
-        <div>
-          <div style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.1rem,4vw,1.4rem)', color:'var(--blue-deep)' }}>
-            Welcome back, <em>{user?.fullName?.split(' ')[0] || 'there'}</em> 👋
+     {/* ── Header ── */}
+      <div
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'linear-gradient(135deg, #0f3a4a 0%, #0e5f73 45%, #0d8a7a 100%)',
+          padding: 'clamp(1.5rem,4vw,2.25rem) clamp(1rem,4vw,2rem)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}
+      >
+        {/* decorative glow blobs */}
+        <div style={{
+          position: 'absolute', width: 260, height: 260, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.08)', filter: 'blur(40px)',
+          top: -120, right: '8%', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', width: 180, height: 180, borderRadius: '50%',
+          background: 'rgba(16,185,129,0.18)', filter: 'blur(36px)',
+          bottom: -90, left: '12%', pointerEvents: 'none',
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(1.3rem,4.5vw,1.75rem)',
+              color: 'rgba(255,255,255,0.92)',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            Welcome back,
+            <span
+              style={{
+                fontWeight: 800,
+                background: 'linear-gradient(90deg, #ffe9b3, #ffd166 50%, #ffe9b3)',
+                backgroundSize: '200% auto',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                animation: 'shine 3.5s linear infinite',
+                textShadow: '0 0 24px rgba(255,209,102,0.35)',
+              }}
+            >
+              {user?.fullName?.split(' ')[0] || 'there'}
+            </span>
+            <span style={{ fontSize: '1.4rem' }}>👋</span>
           </div>
-          <div style={{ fontSize:'0.82rem', color:'var(--text-light)', marginTop:2 }}>
-            {stats?.nextSession !== '—' ? `Next session: ${stats?.nextSession}` : 'No upcoming sessions'}
+
+          {/* ── Next session callout — the eye-catching part ── */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              marginTop: '0.85rem',
+              borderRadius: 14,
+              padding: '0.6rem 1.1rem',
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              ...(stats?.nextSession !== '—'
+                ? {
+                    background: 'linear-gradient(135deg, #ffd166, #ffb74d)',
+                    color: '#3a2400',
+                    boxShadow: '0 6px 24px rgba(255,183,77,0.45)',
+                    animation: 'glowPulse 2.4s ease-in-out infinite',
+                  }
+                : {
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    color: 'rgba(255,255,255,0.85)',
+                    fontWeight: 500,
+                    backdropFilter: 'blur(6px)',
+                  }),
+            }}
+          >
+            <span style={{ fontSize: '1.15rem' }}>
+              {stats?.nextSession !== '—' ? '🔔' : '🌙'}
+            </span>
+            {stats?.nextSession !== '—'
+              ? <>Upcoming session — <strong>{stats?.nextSession}</strong></>
+              : 'No upcoming sessions — your calendar is clear'}
           </div>
         </div>
-        <button onClick={logout} style={{ padding:'0.45rem 1rem', borderRadius:8, border:'1px solid var(--earth-cream)', background:'none', fontSize:'0.82rem', color:'var(--text-light)', cursor:'pointer' }}>
+
+        <button
+          onClick={logout}
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.6rem 1.2rem',
+            borderRadius: 12,
+            border: '1.5px solid rgba(255,255,255,0.25)',
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(6px)',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            color: '#fff',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.18)'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'
+            e.currentTarget.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'
+            e.currentTarget.style.transform = 'none'
+          }}
+        >
           🚪 Log Out
         </button>
       </div>
+
+      <style>{`
+        @keyframes shine {
+          to { background-position: 200% center; }
+        }
+        @keyframes glowPulse {
+          0%, 100% { box-shadow: 0 6px 24px rgba(255,183,77,0.45); transform: scale(1); }
+          50% { box-shadow: 0 8px 32px rgba(255,183,77,0.7); transform: scale(1.02); }
+        }
+      `}</style>
 
       {/* ── Tab bar — responsive via CSS class ── */}
       <div className="portal-tabbar">
@@ -614,13 +762,13 @@ export default function ClientPortalPage() {
         {tab === 'Overview' && (
           <div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'1rem', marginBottom:'2rem' }}>
-              {[
+            {[
                 { label:'Sessions Completed', val:stats?.sessions??'…',         icon:'✅', color:'var(--sky-light)' },
                 { label:'Next Appointment',   val:stats?.nextSession??'…',      icon:'📅', color:'var(--green-mist)' },
                 { label:'Log Streak',         val:`${stats?.streak??'…'} days`, icon:'🔥', color:'#fff5e6' },
                 { label:'Avg Mood (7 days)',  val:stats?.moodAvg??'…',          icon:'😊', color:'var(--blue-mist)' },
-              ].map((c,i) => (
-                <div key={i} style={{ background:c.color, borderRadius:'var(--radius-md)', padding:'1.25rem', border:'1px solid var(--blue-pale)' }}>
+              ].map((c) => (
+                <div key={c.label} style={{ background:c.color, borderRadius:'var(--radius-md)', padding:'1.25rem', border:'1px solid var(--blue-pale)' }}>
                   <div style={{ fontSize:'1.5rem', marginBottom:'0.4rem' }}>{c.icon}</div>
                   <div style={{ fontFamily:'var(--font-display)', fontSize:'1.3rem', color:'var(--blue-deep)' }}>{c.val}</div>
                   <div style={{ fontSize:'0.75rem', color:'var(--text-light)', fontWeight:600 }}>{c.label}</div>
@@ -662,8 +810,8 @@ export default function ClientPortalPage() {
                 <p style={{ color:'var(--text-light)', marginBottom:'1rem' }}>No upcoming appointments.</p>
                 <button className="btn btn-primary" onClick={() => navigate('/book')}>Book Your First Session →</button>
               </div>
-            ) : upcoming.map((a,i) => (
-              <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--blue-pale)', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.75rem', flexWrap:'wrap', gap:'1rem' }}>
+          ) : past.map((a,i) => (
+              <div key={i} style={{ background:'var(--off-white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--blue-pale)', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.75rem', flexWrap:'wrap', gap:'1rem' }}>
                 <div style={{ display:'flex', gap:'1rem', alignItems:'center' }}>
                   <div style={{ width:48, height:48, borderRadius:'50%', background:'var(--sky-light)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.3rem' }}>📅</div>
                   <div>
@@ -671,8 +819,12 @@ export default function ClientPortalPage() {
                     <div style={{ fontSize:'0.82rem', color:'var(--text-light)' }}>{fmtDate(a.scheduled_at)} at {fmtTime(a.scheduled_at)}</div>
                   </div>
                 </div>
-                <div style={{ display:'flex', gap:'0.75rem', alignItems:'center' }}>
+              <div style={{ display:'flex', gap:'0.75rem', alignItems:'center', flexWrap:'wrap' }}>
                   <span style={{ fontSize:'0.72rem', fontWeight:800, padding:'3px 10px', borderRadius:100, background:a.status==='confirmed'?'var(--green-mist)':'var(--earth-cream)', color:a.status==='confirmed'?'var(--green-deep)':'var(--earth-warm)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{a.status}</span>
+                  {(() => {
+                    const b = apptPaymentBadge(a.payment_status)
+                    return <span style={{ fontSize:'0.72rem', fontWeight:800, padding:'3px 10px', borderRadius:100, background:b.bg, color:b.color }}>{b.label}</span>
+                  })()}
                   <button className="btn btn-outline" style={{ fontSize:'0.78rem', padding:'0.35rem 0.9rem' }} onClick={() => cancelAppt(a.id)}>Cancel</button>
                 </div>
               </div>
@@ -684,8 +836,8 @@ export default function ClientPortalPage() {
             </button>
             {showPastAppts && (past.length === 0 ? (
               <p style={{ color:'var(--text-light)' }}>No past sessions yet.</p>
-            ) : past.map((a,i) => (
-              <div key={i} style={{ background:'var(--off-white)', borderRadius:'var(--radius-md)', padding:'1rem 1.5rem', border:'1px solid var(--earth-cream)', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.5rem', flexWrap:'wrap', gap:'0.75rem' }}>
+          ) : past.map((a) => (
+              <div key={a.id} style={{ background:'var(--off-white)', borderRadius:'var(--radius-md)', padding:'1rem 1.5rem', border:'1px solid var(--earth-cream)', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.5rem', flexWrap:'wrap', gap:'0.75rem' }}>
                 <div>
                   <div style={{ fontWeight:600, color:'var(--text-mid)' }}>{a.therapists?.profiles?.full_name || 'Therapist'} · {fmtDate(a.scheduled_at)}</div>
                   <span style={{ fontSize:'0.75rem', fontWeight:700, textTransform:'uppercase', color:a.status==='completed'?'var(--green-deep)':'#c0392b' }}>{a.status}</span>
