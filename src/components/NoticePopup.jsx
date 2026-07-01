@@ -10,6 +10,10 @@ const NOTICES = [
     ),
     iconBg: '#E0F7FF',
     title: '2026-04-30 AWARNESS PROGRAM IN COLLABORATION WITH ABC FOUNDATION AT TRIBHUVAN UNIVERSITY',
+    titleNp: '२०८३-०१-१७ मा ABC फाउन्डेसनको सहकार्यमा त्रिभुवन विश्वविद्यालयमा चेतनामूलक कार्यक्रम आयोजना गरिने छ।',
+    body: '',
+    bodyNp: '',
+    // image: '/images/notices/awareness-program.jpg', // optional — add when available
   },
 ]
 
@@ -36,7 +40,8 @@ export default function NoticePopup({ storageKey = 'notice_v2' }) {
     }}>
       <div style={{
         background: '#ffffff',
-        borderRadius: 16, width: '100%', maxWidth: 460,
+        borderRadius: 16, width: '100%', maxWidth: 680,
+        maxHeight: '88vh', display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
         border: '1px solid #b0d4e8',
         boxShadow: '0 20px 60px rgba(0,123,168,0.25)',
@@ -110,28 +115,65 @@ export default function NoticePopup({ storageKey = 'notice_v2' }) {
         </div>
 
         {/* Body */}
-        <div style={{ padding: '1.5rem', background: '#ffffff' }}>
+        <div style={{ padding: '1.5rem', background: '#ffffff', overflowY: 'auto' }}>
           {NOTICES.map((n, i) => (
             <div key={i} style={{
-              display: 'flex', alignItems: 'flex-start', gap: 12,
               padding: '10px 0',
               borderBottom: i < NOTICES.length - 1 ? '1px solid #daeef8' : 'none',
             }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: n.iconBg, flexShrink: 0, marginTop: 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>{n.icon}</div>
-              <div>
-                <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 600, color: '#1a3a4a' }}>
-                  {n.title}
-                </p>
-                {n.body && (
-                  <p style={{ margin: 0, fontSize: 12, color: '#7a9aaa', lineHeight: 1.5 }}>
-                    {n.body}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: n.iconBg, flexShrink: 0, marginTop: 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>{n.icon}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 600, color: '#1a3a4a', lineHeight: 1.5 }}>
+                    {n.title}
                   </p>
-                )}
+                  {n.body && (
+                    <p style={{ margin: 0, fontSize: 12, color: '#7a9aaa', lineHeight: 1.5 }}>
+                      {n.body}
+                    </p>
+                  )}
+                </div>
               </div>
+
+              {n.image && (
+                <img
+                  src={n.image}
+                  alt=""
+                  style={{
+                    width: '100%', maxHeight: 320, objectFit: 'cover',
+                    borderRadius: 10, marginTop: 12,
+                    border: '1px solid #daeef8',
+                  }}
+                />
+              )}
+
+              {(n.titleNp || n.bodyNp) && (
+                <div style={{
+                  marginTop: 12, padding: '10px 12px',
+                  background: '#F0FBFF', borderRadius: 10,
+                  border: '1px solid #daeef8',
+                }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, color: '#007BA8',
+                    textTransform: 'uppercase', letterSpacing: '0.08em',
+                    display: 'block', marginBottom: 4,
+                  }}>नेपाली संस्करण</span>
+                  {n.titleNp && (
+                    <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 600, color: '#1a3a4a', lineHeight: 1.6 }}>
+                      {n.titleNp}
+                    </p>
+                  )}
+                  {n.bodyNp && (
+                    <p style={{ margin: 0, fontSize: 12, color: '#7a9aaa', lineHeight: 1.6 }}>
+                      {n.bodyNp}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           ))}
 
