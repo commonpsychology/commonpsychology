@@ -404,7 +404,7 @@ useEffect(() => {
 </p>
 
 {/* Stats */}
-<div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginTop: -6 }}>s
+<div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginTop: -6 }}>
             {[
               { label: "Total Members", value: staff.length },
               { label: "Active", value: activeCount },
