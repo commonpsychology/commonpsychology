@@ -1,12 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
+/* ---------------------------------------------------------------------
+   TOKENS
+------------------------------------------------------------------------ */
+const COLORS = {
+  void: "#05060f",
+  voidDeep: "#0a0e24",
+  navy: "#0f1533",
+  panel: "rgba(18,22,48,0.62)",
+  panelBorder: "rgba(148,163,255,0.16)",
+  amber: "#f5b942",
+  amberSoft: "rgba(245,185,66,0.16)",
+  violet: "#8b7cf6",
+  violetSoft: "rgba(139,124,246,0.18)",
+  teal: "#37c9c1",
+  textBright: "#f4f6ff",
+  textMuted: "#a3aed6",
+  textFaint: "#6b74a3",
+};
 
 const roleColors = {
-  admin: { bg: "#1e3a8a", light: "#dbeafe", text: "#1e3a8a", label: "Admin" },
-  therapist: { bg: "#0e7490", light: "#cffafe", text: "#0e7490", label: "Therapist" },
-  staff: { bg: "#4338ca", light: "#e0e7ff", text: "#4338ca", label: "Staff" },
+  admin: { bg: "rgba(139,124,246,0.16)", border: "rgba(139,124,246,0.4)", text: "#c3b8ff", label: "Admin" },
+  therapist: { bg: "rgba(55,201,193,0.14)", border: "rgba(55,201,193,0.4)", text: "#7fe3db", label: "Therapist" },
+  staff: { bg: "rgba(245,185,66,0.14)", border: "rgba(245,185,66,0.4)", text: "#f5c977", label: "Staff" },
 };
 
 function getInitials(name) {
@@ -19,29 +37,33 @@ function getInitials(name) {
     .slice(0, 2);
 }
 
-function Avatar({ src, name, size = 96 }) {
+function Avatar({ src, name, size = 84 }) {
   const [err, setErr] = useState(false);
   const initials = getInitials(name);
   const hue = (name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+
+  const ring = {
+    width: size,
+    height: size,
+    borderRadius: "50%",
+    flexShrink: 0,
+    border: "2px solid rgba(245,185,66,0.55)",
+    boxShadow: "0 0 0 4px rgba(245,185,66,0.08), 0 8px 24px rgba(0,0,0,0.45)",
+  };
 
   if (!src || err) {
     return (
       <div
         style={{
-          width: size,
-          height: size,
-          borderRadius: "50%",
-          background: `hsl(${hue},55%,55%)`,
+          ...ring,
+          background: `linear-gradient(155deg, hsl(${hue},60%,42%), hsl(${(hue + 40) % 360},55%,28%))`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: size * 0.33,
+          fontSize: size * 0.32,
           fontWeight: 700,
           color: "#fff",
           letterSpacing: 1,
-          flexShrink: 0,
-          border: "3px solid rgba(255,255,255,0.7)",
-          boxShadow: "0 4px 16px rgba(30,58,138,0.18)",
         }}
       >
         {initials}
@@ -54,15 +76,7 @@ function Avatar({ src, name, size = 96 }) {
       src={src}
       alt={name}
       onError={() => setErr(true)}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        objectFit: "cover",
-        border: "3px solid rgba(255,255,255,0.7)",
-        boxShadow: "0 4px 16px rgba(30,58,138,0.18)",
-        flexShrink: 0,
-      }}
+      style={{ ...ring, objectFit: "cover" }}
     />
   );
 }
@@ -72,7 +86,7 @@ function RoleBadge({ role }) {
   return (
     <span
       style={{
-        background: c.light,
+        background: c.bg,
         color: c.text,
         borderRadius: 20,
         padding: "3px 12px",
@@ -80,7 +94,7 @@ function RoleBadge({ role }) {
         fontWeight: 600,
         letterSpacing: 0.5,
         textTransform: "capitalize",
-        border: `1px solid ${c.text}22`,
+        border: `1px solid ${c.border}`,
       }}
     >
       {c.label}
@@ -94,37 +108,38 @@ function StaffCard({ member }) {
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.88)",
+        background: COLORS.panel,
         backdropFilter: "blur(18px)",
-        borderRadius: 20,
-        padding: "28px 24px 22px",
-        border: "1px solid rgba(147,197,253,0.45)",
-        boxShadow: "0 8px 32px rgba(30,58,138,0.10), 0 1.5px 4px rgba(30,58,138,0.06)",
+        borderRadius: 18,
+        padding: "26px 22px 20px",
+        border: `1px solid ${COLORS.panelBorder}`,
+        boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-        gap: 0,
-        transition: "transform 0.2s, box-shadow 0.2s",
+        transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s",
         cursor: "default",
       }}
       onMouseEnter={e => {
         e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow = "0 16px 48px rgba(30,58,138,0.18), 0 2px 8px rgba(30,58,138,0.10)";
+        e.currentTarget.style.borderColor = "rgba(245,185,66,0.4)";
+        e.currentTarget.style.boxShadow = "0 18px 44px rgba(0,0,0,0.5)";
       }}
       onMouseLeave={e => {
         e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 8px 32px rgba(30,58,138,0.10), 0 1.5px 4px rgba(30,58,138,0.06)";
+        e.currentTarget.style.borderColor = COLORS.panelBorder;
+        e.currentTarget.style.boxShadow = "0 10px 30px rgba(0,0,0,0.35)";
       }}
     >
-      <Avatar src={member.avatar_url} name={member.full_name} size={84} />
+      <Avatar src={member.avatar_url} name={member.full_name} size={80} />
 
       <div style={{ marginTop: 16, marginBottom: 6 }}>
-        <div style={{ fontSize: 18, fontWeight: 700, color: "#1e3a8a", lineHeight: 1.2 }}>
+        <div style={{ fontSize: 17, fontWeight: 700, color: COLORS.textBright, lineHeight: 1.2 }}>
           {member.full_name || "Unnamed"}
         </div>
         {member.notes && (
-          <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4, fontStyle: "italic", lineHeight: 1.4 }}>
+          <div style={{ fontSize: 12, color: COLORS.textFaint, marginTop: 4, fontStyle: "italic", lineHeight: 1.4 }}>
             {member.notes}
           </div>
         )}
@@ -137,7 +152,7 @@ function StaffCard({ member }) {
       <div
         style={{
           width: "100%",
-          borderTop: "1px solid rgba(147,197,253,0.35)",
+          borderTop: `1px solid ${COLORS.panelBorder}`,
           paddingTop: 14,
           display: "flex",
           flexDirection: "column",
@@ -145,14 +160,14 @@ function StaffCard({ member }) {
         }}
       >
         {member.phone && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: 14, color: "#374151" }}>
-            <span style={{ fontSize: 16, color: "#3b82f6" }}>📞</span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: 14, color: COLORS.textMuted }}>
+            <span style={{ fontSize: 15, color: COLORS.amber }}>📞</span>
             <span>{member.phone}</span>
           </div>
         )}
         {member.department && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: 13, color: "#6b7280" }}>
-            <span style={{ fontSize: 15 }}>🏢</span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: 13, color: COLORS.textFaint }}>
+            <span style={{ fontSize: 14 }}>🏢</span>
             <span>{member.department}</span>
           </div>
         )}
@@ -162,11 +177,12 @@ function StaffCard({ member }) {
               width: 8,
               height: 8,
               borderRadius: "50%",
-              background: member.is_active ? "#22c55e" : "#ef4444",
+              background: member.is_active ? "#34d399" : "#f87171",
+              boxShadow: member.is_active ? "0 0 6px rgba(52,211,153,0.7)" : "0 0 6px rgba(248,113,113,0.7)",
               display: "inline-block",
             }}
           />
-          <span style={{ fontSize: 12, color: member.is_active ? "#16a34a" : "#dc2626" }}>
+          <span style={{ fontSize: 12, color: member.is_active ? "#6ee7b7" : "#fca5a5" }}>
             {member.is_active ? "Active" : "Inactive"}
           </span>
         </div>
@@ -176,10 +192,54 @@ function StaffCard({ member }) {
 }
 
 /* ---------------------------------------------------------------------
-   HONEYCOMB BACKGROUND
-   Short, single-breath affirmations (never more than one short word or
-   two very short ones) so every cell stays readable at a glance instead
-   of turning into a wall of overlapping sentences.
+   STARFIELD — scattered twinkling points across the void
+------------------------------------------------------------------------ */
+function useStars(count, seed) {
+  return useMemo(() => {
+    let s = seed;
+    const rand = () => {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+    return Array.from({ length: count }).map((_, i) => ({
+      top: rand() * 100,
+      left: rand() * 100,
+      size: rand() * 1.8 + 0.6,
+      delay: rand() * 6,
+      dur: rand() * 3 + 3,
+      opacity: rand() * 0.5 + 0.35,
+    }));
+  }, [count, seed]);
+}
+
+function Starfield({ count = 90, seed = 7 }) {
+  const stars = useStars(count, seed);
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+      {stars.map((s, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            width: s.size,
+            height: s.size,
+            borderRadius: "50%",
+            background: "#fff",
+            opacity: s.opacity,
+            boxShadow: "0 0 3px rgba(255,255,255,0.8)",
+            animation: `starTwinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------
+   HONEYCOMB — set within the void, kept clear of the title band via a
+   mask so it never competes with the text sitting in front of it.
 ------------------------------------------------------------------------ */
 const HONEY_WORDS = [
   "Valued", "Loved", "Respected", "Matter",
@@ -188,17 +248,15 @@ const HONEY_WORDS = [
   "Belong", "Equal", "Vital", "Strong",
 ];
 
-// Real pointy-top hexagon geometry, so rows interlock without any
-// text-bearing cell overlapping its neighbor.
-const HEX_W = 104;
-const HEX_H = 118;
-const HEX_GAP = 10;
-const ROW_STEP = HEX_H * 0.75; // vertical distance between row centers
-const ROWS = 4;
-const PER_ROW = 8;
+const HEX_W = 92;
+const HEX_H = 104;
+const HEX_GAP = 9;
+const ROW_STEP = HEX_H * 0.75;
+const ROWS = 5;
+const PER_ROW = 9;
 
 function Hexagon({ word, opacity, delay = 0 }) {
-  const fontSize = word.length > 8 ? 11 : 13;
+  const fontSize = word.length > 8 ? 10 : 11.5;
   return (
     <div
       style={{
@@ -206,26 +264,25 @@ function Hexagon({ word, opacity, delay = 0 }) {
         height: HEX_H,
         marginRight: HEX_GAP,
         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-        background: "rgba(255,255,255,0.16)",
-        border: "1px solid rgba(255,255,255,0.24)",
+        background: "linear-gradient(155deg, rgba(245,185,66,0.10), rgba(139,124,246,0.08))",
+        border: "1px solid rgba(245,185,66,0.22)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        padding: "0 14px",
+        padding: "0 12px",
         flexShrink: 0,
         opacity,
-        animation: `honeyShimmer 8s ease-in-out ${delay}s infinite`,
+        animation: `honeyShimmer 9s ease-in-out ${delay}s infinite`,
       }}
     >
       <span
         style={{
           fontSize,
           fontWeight: 700,
-          color: "rgba(255,255,255,0.95)",
+          color: "rgba(245,230,200,0.85)",
           letterSpacing: 0.3,
           lineHeight: 1.2,
-          textShadow: "0 1px 3px rgba(15,40,90,0.35)",
           whiteSpace: "nowrap",
         }}
       >
@@ -244,26 +301,26 @@ function HoneycombField() {
         inset: 0,
         overflow: "hidden",
         pointerEvents: "none",
-        maskImage: "radial-gradient(ellipse 85% 90% at 50% 35%, black 30%, transparent 80%)",
-        WebkitMaskImage: "radial-gradient(ellipse 85% 90% at 50% 35%, black 30%, transparent 80%)",
+        // Fades out through the vertical center (where the title sits)
+        // and at the far top/bottom edges, so cells only read clearly
+        // in a quiet band around the headline — never behind the text.
+        maskImage:
+          "radial-gradient(ellipse 62% 40% at 50% 46%, transparent 0%, transparent 30%, black 62%, black 100%)",
+        WebkitMaskImage:
+          "radial-gradient(ellipse 62% 40% at 50% 46%, transparent 0%, transparent 30%, black 62%, black 100%)",
       }}
     >
       <style>{`
         @keyframes honeyShimmer {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-6px); }
+          50% { transform: translateY(-5px); }
+        }
+        @keyframes starTwinkle {
+          0%, 100% { opacity: 0.25; }
+          50% { opacity: 1; }
         }
       `}</style>
-      <div
-        style={{
-          position: "absolute",
-          top: -30,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <div style={{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column" }}>
         {Array.from({ length: ROWS }).map((_, rowIdx) => (
           <div
             key={rowIdx}
@@ -275,14 +332,12 @@ function HoneycombField() {
           >
             {Array.from({ length: PER_ROW }).map((_, colIdx) => {
               const wordIdx = (rowIdx * PER_ROW + colIdx) % HONEY_WORDS.length;
-              const distFromCenterRow = Math.abs(rowIdx - (ROWS - 1) / 2);
-              const baseOpacity = 0.55 - distFromCenterRow * 0.14;
               return (
                 <Hexagon
                   key={colIdx}
                   word={HONEY_WORDS[wordIdx]}
-                  opacity={Math.max(0.16, baseOpacity)}
-                  delay={(rowIdx * PER_ROW + colIdx) * 0.22}
+                  opacity={0.85}
+                  delay={(rowIdx * PER_ROW + colIdx) * 0.2}
                 />
               );
             })}
@@ -301,19 +356,19 @@ export default function StaffPage() {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
 
-useEffect(() => {
-  fetch(`${API_BASE}/staff`)
-    .then(res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      return res.json()
-    })
-    .then(data => {
-      const list = data.staff || data.data || []
-      setStaff(list)
-    })
-    .catch(e => setError(e.message))
-    .finally(() => setLoading(false))
-}, [])
+  useEffect(() => {
+    fetch(`${API_BASE}/staff`)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
+      })
+      .then(data => {
+        const list = data.staff || data.data || []
+        setStaff(list)
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }, [])
 
   const roles = ["all", ...Array.from(new Set(staff.map(s => s.role?.toLowerCase()).filter(Boolean)))];
   const filtered = filter === "all" ? staff : staff.filter(s => s.role?.toLowerCase() === filter);
@@ -323,60 +378,62 @@ useEffect(() => {
     <div
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 35%, #bfdbfe 60%, #93c5fd 100%)",
+        background: `linear-gradient(180deg, ${COLORS.void} 0%, ${COLORS.voidDeep} 38%, ${COLORS.navy} 100%)`,
         fontFamily: "system-ui, -apple-system, sans-serif",
         padding: "0 0 60px",
       }}
     >
-      {/* Header */}
+      {/* Header — galactic void */}
       <div
         style={{
           position: "relative",
           overflow: "hidden",
-          padding: "48px 40px 36px",
-          borderRadius: "0 0 50% 50% / 0 0 32px 32px",
-          background: `
-            radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
-            radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
-            radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
-            linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)
-          `,
+          padding: "64px 40px 44px",
           textAlign: "center",
+          borderBottom: "1px solid rgba(148,163,255,0.10)",
         }}
       >
-        {/* Honeycomb of affirming words */}
+        {/* Nebula glow */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: `
+              radial-gradient(ellipse 60% 55% at 18% 20%, rgba(139,124,246,0.22) 0%, transparent 70%),
+              radial-gradient(ellipse 55% 60% at 85% 15%, rgba(55,201,193,0.16) 0%, transparent 65%),
+              radial-gradient(ellipse 70% 50% at 50% 100%, rgba(245,185,66,0.10) 0%, transparent 60%)
+            `,
+            pointerEvents: "none",
+          }}
+        />
+
+        <Starfield count={110} seed={11} />
         <HoneycombField />
 
-        {/* Decorative circles */}
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.06)",
-              width: [180, 120, 90, 200, 60][i],
-              height: [180, 120, 90, 200, 60][i],
-              top: ["-40px", "10px", "30px", "-60px", "20px"][i],
-              left: ["70%", "5%", "85%", "20%", "50%"][i],
-              pointerEvents: "none",
-            }}
-          />
-        ))}
-
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ fontSize: 13, letterSpacing: 3, textTransform: "uppercase", color: "#93c5fd", marginBottom: 10, fontWeight: 600 }}>
+          <div
+            style={{
+              fontSize: 12,
+              letterSpacing: 4,
+              textTransform: "uppercase",
+              color: COLORS.amber,
+              marginBottom: 14,
+              fontWeight: 700,
+            }}
+          >
             Our Team
           </div>
 
           <h1
             style={{
-              fontSize: 38,
+              fontSize: 42,
               fontWeight: 800,
-              color: "#1404f0",
-              margin: "0 0 10px",
+              margin: "0 0 12px",
               lineHeight: 1.1,
-              textShadow: "0 2px 12px rgba(15,40,90,0.25)",
+              letterSpacing: 0.5,
+              color: COLORS.textBright,
+              textShadow: "0 0 28px rgba(139,124,246,0.35), 0 2px 20px rgba(0,0,0,0.6)",
             }}
           >
             Meet Our Staff
@@ -384,20 +441,19 @@ useEffect(() => {
 
           <p
             style={{
-              color: "#f0f9ff",
+              color: COLORS.textMuted,
               fontSize: 16,
-              margin: "0 0 28px",
+              margin: "0 0 30px",
               maxWidth: 480,
               marginLeft: "auto",
               marginRight: "auto",
-              textShadow: "0 1px 6px rgba(15,40,90,0.25)",
             }}
           >
             The people behind every session, every appointment, every check-in.
           </p>
 
           {/* Stats */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
             {[
               { label: "Total Members", value: staff.length },
               { label: "Active", value: activeCount },
@@ -406,15 +462,15 @@ useEffect(() => {
               <div
                 key={stat.label}
                 style={{
-                  background: "rgba(255,255,255,0.16)",
-                  backdropFilter: "blur(4px)",
+                  background: "rgba(18,22,48,0.55)",
+                  backdropFilter: "blur(6px)",
                   borderRadius: 12,
-                  padding: "10px 22px",
-                  border: "1px solid rgba(255,255,255,0.28)",
+                  padding: "10px 24px",
+                  border: "1px solid rgba(245,185,66,0.22)",
                 }}
               >
-                <div style={{ fontSize: 24, fontWeight: 800, color: "#fff" }}>{stat.value}</div>
-                <div style={{ fontSize: 12, color: "#eff6ff", marginTop: 2 }}>{stat.label}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: COLORS.amber }}>{stat.value}</div>
+                <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2 }}>{stat.label}</div>
               </div>
             ))}
           </div>
@@ -431,9 +487,9 @@ useEffect(() => {
               padding: "8px 20px",
               borderRadius: 20,
               border: "1.5px solid",
-              borderColor: filter === role ? "#1d4ed8" : "rgba(147,197,253,0.5)",
-              background: filter === role ? "#1d4ed8" : "rgba(255,255,255,0.7)",
-              color: filter === role ? "#fff" : "#1e3a8a",
+              borderColor: filter === role ? COLORS.amber : COLORS.panelBorder,
+              background: filter === role ? "rgba(245,185,66,0.14)" : COLORS.panel,
+              color: filter === role ? COLORS.amber : COLORS.textMuted,
               fontWeight: 600,
               fontSize: 13,
               cursor: "pointer",
@@ -449,7 +505,7 @@ useEffect(() => {
       {/* Content */}
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "20px 24px 0" }}>
         {loading && (
-          <div style={{ textAlign: "center", padding: "60px 0", color: "#1d4ed8", fontSize: 16 }}>
+          <div style={{ textAlign: "center", padding: "60px 0", color: COLORS.amber, fontSize: 16 }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
             Loading staff members…
           </div>
@@ -458,19 +514,19 @@ useEffect(() => {
         {error && (
           <div
             style={{
-              background: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.3)",
+              background: "rgba(248,113,113,0.08)",
+              border: "1px solid rgba(248,113,113,0.3)",
               borderRadius: 12,
               padding: "20px 24px",
-              color: "#b91c1c",
+              color: "#fca5a5",
               textAlign: "center",
               marginTop: 20,
             }}
           >
             <strong>Could not load staff.</strong> {error}
             <br />
-            <span style={{ fontSize: 13, color: "#6b7280", marginTop: 8, display: "block" }}>
-              Make sure your Supabase URL and anon key are set at the top of this file.
+            <span style={{ fontSize: 13, color: COLORS.textFaint, marginTop: 8, display: "block" }}>
+              Make sure your API URL is set correctly.
             </span>
           </div>
         )}
@@ -491,7 +547,7 @@ useEffect(() => {
         )}
 
         {!loading && !error && filtered.length === 0 && (
-          <div style={{ textAlign: "center", color: "#6b7280", padding: "40px 0", fontSize: 15 }}>
+          <div style={{ textAlign: "center", color: COLORS.textFaint, padding: "40px 0", fontSize: 15 }}>
             No staff found for this filter.
           </div>
         )}
