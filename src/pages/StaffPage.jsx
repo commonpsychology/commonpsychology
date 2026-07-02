@@ -390,21 +390,21 @@ useEffect(() => {
           </h1>
 
           <p
-            style={{
-              color: "#f0f9ff",
-              fontSize: 16,
-              margin: "0 0 28px",
-              maxWidth: 480,
-              marginLeft: "auto",
-              marginRight: "auto",
-              textShadow: "0 1px 6px rgba(15,40,90,0.25)",
-            }}
-          >
-            The people behind every session, every appointment, every check-in.
-          </p>
+  style={{
+    color: "#f0f9ff",
+    fontSize: 16,
+    margin: "0 0 16px",   // was "0 0 28px" — less space before stats
+    maxWidth: 480,
+    marginLeft: "auto",
+    marginRight: "auto",
+    textShadow: "0 1px 6px rgba(15,40,90,0.25)",
+  }}
+>
+  The people behind every session, every appointment, every check-in.
+</p>
 
-          {/* Stats */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap" }}>
+{/* Stats */}
+<div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginTop: -6 }}>
             {[
               { label: "Total Members", value: staff.length },
               { label: "Active", value: activeCount },
