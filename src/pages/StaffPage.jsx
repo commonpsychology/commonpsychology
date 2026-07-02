@@ -226,7 +226,7 @@ function Hexagon({ word, opacity, delay = 0 }) {
         style={{
           fontSize,
           fontWeight: 700,
-          color: "rgba(255,255,255,0.95)",
+          color: "rgba(72, 70, 70, 0.95)",
           letterSpacing: 0.3,
           lineHeight: 1.2,
           textShadow: "0 1px 3px rgba(15,40,90,0.35)",
