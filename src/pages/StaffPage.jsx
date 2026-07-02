@@ -400,11 +400,11 @@ useEffect(() => {
     textShadow: "0 1px 6px rgba(15,40,90,0.25)",
   }}
 >
-  The people behind every session, every appointment, every check-in.
+  The people behind our Success.
 </p>
 
 {/* Stats */}
-<div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginTop: -6 }}>
+<div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginTop: -6 }}>s
             {[
               { label: "Total Members", value: staff.length },
               { label: "Active", value: activeCount },
