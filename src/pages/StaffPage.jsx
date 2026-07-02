@@ -186,10 +186,10 @@ function StaffCard({ member }) {
    but never render behind the text itself.
 ------------------------------------------------------------------------ */
 const HONEY_WORDS = [
-  "Valued", "Loved", "Respected", "Matter",
-  "Strength", "Thank You", "Inspiring", "Well Done",
-  "Seen", "Heard", "Shine On", "Honored",
-  "Belong", "Equal", "Vital", "Strong",
+  "Valued", " We Love You", "Respected", " You Matter",
+  "Our Strength", "Thank You", "Inspiring", "Well Done",
+  "You are Seen", "Heard", "Shine On", "Honored",
+  "You belong", "All Equal", "Vital", "Stay Strong",
 ];
 
 // Real pointy-top hexagon geometry, so rows interlock without any
@@ -380,7 +380,7 @@ useEffect(() => {
             style={{
               fontSize: 38,
               fontWeight: 800,
-              color: "#1404f0",
+              color: "#f4f4f8",
               margin: "0 0 10px",
               lineHeight: 1.1,
               textShadow: "0 2px 12px rgba(15,40,90,0.25)",
