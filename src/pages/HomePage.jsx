@@ -14,6 +14,7 @@ import NewsSection      from '../components/Newssection'
 import Testimonials     from '../components/Testimonials'
 import PsychologicalEye from '../components/PsychologicalEye'
 import Crisis           from '../components/Crisis'
+import Donate           from '../components/Donate'
 import Balance          from '../components/Balance'
 import NoticePopup      from '../components/NoticePopup'
 import NamasteLoader    from '../components/NamasteLoader'
@@ -85,6 +86,7 @@ export default function HomePage() {
       <Balance />
       <Therapists />
       <Assessment />
+      <Donate />
       <VideoReviews />
       <ImageSlider />
       <Resources />
