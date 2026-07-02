@@ -29,7 +29,7 @@ const NAV = [
   ]},
   { label: 'Our Works', labelNP: 'हाम्रा कामहरू', path: '/workshops', children: [
     { label: 'Workshops & Training', labelNP: 'कार्यशालाहरू',  path: '/workshops',    icon: '🎓', desc: 'Live & recorded sessions',    descNP: 'लाइभ र रेकर्ड गरिएका सत्रहरू' },
-    { label: 'Social Work',     labelNP: 'सामाजिक कार्य',     path: '/social-work',  icon: '🤝', desc: 'Community outreach programs', descNP: 'सामुदायिक कार्यक्रमहरू' },
+    { label: 'Active Projects',     labelNP: 'सक्रिय कार्यक्रमहरू',     path: '/project-work',  icon: '🤝', desc: 'Community projects', descNP: 'सामुदायिक कार्यक्रमहरू' },
     { label: 'Gallery',         labelNP: 'फोटो ग्यालेरी',          path: '/gallery',      icon: '🖼️', desc: 'Photos & event memories',     descNP: 'फोटो र कार्यक्रम स्मृतिहरू' },
     { label: 'Disaster Mangement', labelNP: 'विपद व्यवस्थापन', path: '/disaster-management', icon: '🆘', desc: 'Our works and Commitment', descNP: 'हाम्रो काम र प्रतिवद्धता' },
   ]},

@@ -104,7 +104,7 @@ const ROUTES = {
   '/psychological-view': PsychologicalViewPage,
   '/workshops':          WorkshopsPage,
   '/privacy':            PrivacyPage,
-  '/social-work':        SocialWorkPage,
+  '/project-work':        SocialWorkPage,
   '/update-password':    UpdatePasswordPage,
   '/pay':                PaymentInfoPage,
   '/upgrade':            UpgradePage,
