@@ -19,37 +19,42 @@ export default function PsychologicalEye() {
 
   return (
     <section style={{
-background: `
-  radial-gradient(circle at 50% 45%,
-    rgba(10, 1, 1, 0.1) 0%,
-    rgba(1, 6, 11, 0.08) 10%,
-    rgba(1, 3, 8, 0.06) 20%,
-    rgba(0,0,0,0) 55%
-  ),
+      background: `
+        radial-gradient(circle at 50% 45%,
+          rgba(0,0,0,0.15) 0%,
+          rgba(0,0,0,0.08) 20%,
+          rgba(0,0,0,0) 55%
+        ),
 
-  radial-gradient(circle at 25% 20%,
-    rgba(140,180,255,0.10) 0%,
-    transparent 45%
-  ),
+        radial-gradient(circle at 22% 22%,
+          rgba(120,70,140,0.10) 0%,
+          transparent 42%
+        ),
 
-  radial-gradient(circle at 75% 80%,
-    rgba(255,255,255,0.05) 0%,
-    transparent 45%
-  ),
+        radial-gradient(circle at 78% 78%,
+          rgba(255,255,255,0.035) 0%,
+          transparent 40%
+        ),
 
-  radial-gradient(circle at 60% 30%,
-    rgba(90,130,255,0.08) 0%,
-    transparent 35%
-  ),
+        radial-gradient(circle at 62% 30%,
+          rgba(170,90,150,0.07) 0%,
+          transparent 32%
+        ),
 
-  linear-gradient(
-    180deg,
-    #01030a 0%,
-    #050813 25%,
-    #070d1c 55%,
-    #02040a 100%
-  )
-`,      padding: isMobile ? '3.5rem 1.5rem' : '5rem 6rem',
+        radial-gradient(circle at 40% 85%,
+          rgba(255,196,140,0.035) 0%,
+          transparent 30%
+        ),
+
+        linear-gradient(
+          180deg,
+          #000000 0%,
+          #030105 25%,
+          #05030a 55%,
+          #000000 100%
+        )
+      `,
+      padding: isMobile ? '3.5rem 1.5rem' : '5rem 6rem',
       display: 'flex',
       flexDirection: isMobile ? 'column' : 'row',
       alignItems: 'center',
@@ -66,110 +71,152 @@ background: `
         @keyframes pulse-ring{0%,100%{transform:scale(.94);opacity:.6}50%{transform:scale(1.06);opacity:1}}
         @keyframes iris-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
       `}</style>
+
+      {/* Soft nebula glows — violet + warm dust, no blue cast */}
       <div
-  style={{
-    position: 'absolute',
-    width: 500,
-    height: 500,
-    borderRadius: '50%',
-    background:
-      'radial-gradient(circle, rgba(90,140,255,.10), transparent 70%)',
-    filter: 'blur(90px)',
-    top: '-120px',
-    left: '-150px',
-    pointerEvents: 'none',
-  }}
-/>
+        style={{
+          position: 'absolute',
+          width: 500,
+          height: 500,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(130,80,150,.09), transparent 70%)',
+          filter: 'blur(90px)',
+          top: '-120px',
+          left: '-150px',
+          pointerEvents: 'none',
+        }}
+      />
 
-<div
-  style={{
-    position: 'absolute',
-    width: 650,
-    height: 650,
-    borderRadius: '50%',
-    background:
-      'radial-gradient(circle, rgba(255,255,255,.05), transparent 70%)',
-    filter: 'blur(120px)',
-    right: '-220px',
-    bottom: '-250px',
-    pointerEvents: 'none',
-  }}
-/>
+      <div
+        style={{
+          position: 'absolute',
+          width: 650,
+          height: 650,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,.04), transparent 70%)',
+          filter: 'blur(120px)',
+          right: '-220px',
+          bottom: '-250px',
+          pointerEvents: 'none',
+        }}
+      />
 
-{/* ================= MILKY WAY ================= */}
+      <div
+        style={{
+          position: 'absolute',
+          width: 420,
+          height: 420,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,190,140,.05), transparent 70%)',
+          filter: 'blur(100px)',
+          left: '35%',
+          bottom: '-160px',
+          pointerEvents: 'none',
+        }}
+      />
 
-<div
-  style={{
-    position: 'absolute',
-    inset: '-20%',
-    background: `
-      linear-gradient(
-        65deg,
-        transparent 32%,
-        rgba(255,255,255,.02) 38%,
-        rgba(180,220,255,.08) 45%,
-        rgba(255,255,255,.14) 50%,
-        rgba(180,220,255,.08) 55%,
-        rgba(255,255,255,.02) 62%,
-        transparent 68%
-      )
-    `,
-    filter: 'blur(55px)',
-    opacity: .95,
-    transform: 'rotate(-12deg)',
-    pointerEvents: 'none',
-  }}
-/>
-{/* ================= CONSTELLATIONS ================= */}
+      {/* ================= MILKY WAY BAND ================= */}
+      {/* Bright star-dense streak */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: '-20%',
+          background: `
+            linear-gradient(
+              65deg,
+              transparent 30%,
+              rgba(230,220,255,.02) 37%,
+              rgba(220,205,235,.06) 44%,
+              rgba(255,255,250,.11) 50%,
+              rgba(220,205,235,.06) 56%,
+              rgba(230,220,255,.02) 63%,
+              transparent 70%
+            )
+          `,
+          filter: 'blur(55px)',
+          opacity: 0.9,
+          transform: 'rotate(-12deg)',
+          pointerEvents: 'none',
+        }}
+      />
+      {/* Dark dust lane running through the band, for a real Milky Way look */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: '-20%',
+          background: `
+            linear-gradient(
+              65deg,
+              transparent 42%,
+              rgba(0,0,0,.28) 48%,
+              rgba(0,0,0,.32) 50%,
+              rgba(0,0,0,.22) 52%,
+              transparent 58%
+            )
+          `,
+          filter: 'blur(35px)',
+          opacity: 0.85,
+          transform: 'rotate(-12deg)',
+          mixBlendMode: 'multiply',
+          pointerEvents: 'none',
+        }}
+      />
 
-<svg
-  style={{
-    position: 'absolute',
-    inset: 0,
-    width: '100%',
-    height: '100%',
-    pointerEvents: 'none',
-    opacity: .22,
-  }}
->
-  <line x1="15%" y1="25%" x2="23%" y2="18%" stroke="white" strokeWidth=".4" />
-  <line x1="23%" y1="18%" x2="30%" y2="24%" stroke="white" strokeWidth=".4" />
-  <line x1="30%" y1="24%" x2="36%" y2="15%" stroke="white" strokeWidth=".4" />
+      {/* ================= CONSTELLATIONS ================= */}
+      <svg
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          opacity: .22,
+        }}
+      >
+        <line x1="15%" y1="25%" x2="23%" y2="18%" stroke="white" strokeWidth=".4" />
+        <line x1="23%" y1="18%" x2="30%" y2="24%" stroke="white" strokeWidth=".4" />
+        <line x1="30%" y1="24%" x2="36%" y2="15%" stroke="white" strokeWidth=".4" />
 
-  <line x1="70%" y1="70%" x2="77%" y2="62%" stroke="white" strokeWidth=".4" />
-  <line x1="77%" y1="62%" x2="84%" y2="66%" stroke="white" strokeWidth=".4" />
-  <line x1="84%" y1="66%" x2="88%" y2="58%" stroke="white" strokeWidth=".4" />
+        <line x1="70%" y1="70%" x2="77%" y2="62%" stroke="white" strokeWidth=".4" />
+        <line x1="77%" y1="62%" x2="84%" y2="66%" stroke="white" strokeWidth=".4" />
+        <line x1="84%" y1="66%" x2="88%" y2="58%" stroke="white" strokeWidth=".4" />
 
-  <line x1="55%" y1="18%" x2="62%" y2="28%" stroke="white" strokeWidth=".4" />
-  <line x1="62%" y1="28%" x2="68%" y2="22%" stroke="white" strokeWidth=".4" />
-</svg>
+        <line x1="55%" y1="18%" x2="62%" y2="28%" stroke="white" strokeWidth=".4" />
+        <line x1="62%" y1="28%" x2="68%" y2="22%" stroke="white" strokeWidth=".4" />
+      </svg>
+
+      {/* Starfield — mostly white, a few warm and pale-lavender flecks, no saturated blue */}
       {[...Array(250)].map((_, i) => {
-  const size = Math.random() * 2.8 + 1
+        const size = Math.random() * 2.8 + 1
+        const roll = Math.random()
+        const color =
+          roll > 0.93
+            ? 'rgba(255,224,180,0.95)'   // faint warm star
+            : roll > 0.86
+            ? 'rgba(220,205,235,0.9)'    // faint lavender star
+            : 'rgba(255,255,255,0.92)'   // white star
 
-  return (
-    <div
-      key={i}
-      style={{
-        position: 'absolute',
-        width: size,
-        height: size,
-        borderRadius: '50%',
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        background:
-          Math.random() > 0.9
-            ? 'rgba(180,220,255,0.95)'
-            : 'rgba(255,255,255,0.9)',
-        boxShadow:
-          Math.random() > 0.85
-            ? '0 0 10px rgba(255,255,255,.9)'
-            : '0 0 5px rgba(255,255,255,.45)',
-        animation: `twinkle ${2 + Math.random() * 5}s ease-in-out infinite ${Math.random() * 5}s`,
-        pointerEvents: 'none',
-      }}
-    />
-  )
-})}
+        return (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              width: size,
+              height: size,
+              borderRadius: '50%',
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              background: color,
+              boxShadow:
+                Math.random() > 0.85
+                  ? '0 0 10px rgba(255,255,255,.85)'
+                  : '0 0 5px rgba(255,255,255,.4)',
+              animation: `twinkle ${2 + Math.random() * 5}s ease-in-out infinite ${Math.random() * 5}s`,
+              pointerEvents: 'none',
+            }}
+          />
+        )
+      })}
 
       {/* LEFT — copy (order 2 on mobile so eye is on top) */}
       <div style={{ flex: 1, position: 'relative', zIndex: 1, order: isMobile ? 2 : 1 }}>
