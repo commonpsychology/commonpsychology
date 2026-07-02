@@ -187,7 +187,7 @@ function StaffCard({ member }) {
 ------------------------------------------------------------------------ */
 const HONEY_WORDS = [
   "Valued", " We Love You", "Respected", " You Matter",
-  "Our Strength", "Thank You", "Inspiring", "All Equal",
+  "Strength", "Thank You", "Inspiring", "All Equal",
   "You are Seen", "Heard", "Shine On", "Honored",
   "You belong", "All Equal", "Vital", "Stay Strong",
 ];
