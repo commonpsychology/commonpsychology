@@ -150,7 +150,7 @@ export default function DisasterManagementPage() {
             className="dmp-mono"
             style={{ color: PHASE.heroic, fontSize: "0.75rem", textTransform: "uppercase", marginBottom: "0.9rem" }}
           >
-            Disaster Psychology &amp; Recovery
+           
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 18 }}
