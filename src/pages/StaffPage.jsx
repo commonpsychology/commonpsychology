@@ -175,42 +175,58 @@ function StaffCard({ member }) {
   );
 }
 
+/* ---------------------------------------------------------------------
+   HONEYCOMB BACKGROUND
+   Short, single-breath affirmations (never more than one short word or
+   two very short ones) so every cell stays readable at a glance instead
+   of turning into a wall of overlapping sentences.
+------------------------------------------------------------------------ */
 const HONEY_WORDS = [
-  "We Value You", "We Love You", "We Respect You", "You Matter",
-  "Our Strength", "Thank You", "You Inspire Us", "Well Done",
-  "We See You", "You're Heard", "Keep Shining", "We Honor You",
-  "You Belong", "Equal", "You're Vital", "Stay Strong",
+  "Valued", "Loved", "Respected", "Matter",
+  "Strength", "Thank You", "Inspiring", "Well Done",
+  "Seen", "Heard", "Shine On", "Honored",
+  "Belong", "Equal", "Vital", "Strong",
 ];
 
-function Hexagon({ word, opacity, scale = 1, delay = 0 }) {
-  // pointy-top-flat-side hexagon via clip-path
+// Real pointy-top hexagon geometry, so rows interlock without any
+// text-bearing cell overlapping its neighbor.
+const HEX_W = 104;
+const HEX_H = 118;
+const HEX_GAP = 10;
+const ROW_STEP = HEX_H * 0.75; // vertical distance between row centers
+const ROWS = 4;
+const PER_ROW = 8;
+
+function Hexagon({ word, opacity, delay = 0 }) {
+  const fontSize = word.length > 8 ? 11 : 13;
   return (
     <div
       style={{
-        width: 108 * scale,
-        height: 124 * scale,
-        margin: "-9px 3px",
+        width: HEX_W,
+        height: HEX_H,
+        marginRight: HEX_GAP,
         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-        background: "rgba(255,255,255,0.14)",
-        border: "1px solid rgba(255,255,255,0.22)",
+        background: "rgba(255,255,255,0.16)",
+        border: "1px solid rgba(255,255,255,0.24)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        padding: "0 10px",
+        padding: "0 14px",
         flexShrink: 0,
         opacity,
-        animation: `honeyFloat 7s ease-in-out ${delay}s infinite`,
+        animation: `honeyShimmer 8s ease-in-out ${delay}s infinite`,
       }}
     >
       <span
         style={{
-          fontSize: 11.5 * scale,
+          fontSize,
           fontWeight: 700,
-          color: "rgba(255,255,255,0.92)",
+          color: "rgba(255,255,255,0.95)",
           letterSpacing: 0.3,
-          lineHeight: 1.25,
+          lineHeight: 1.2,
           textShadow: "0 1px 3px rgba(15,40,90,0.35)",
+          whiteSpace: "nowrap",
         }}
       >
         {word}
@@ -220,10 +236,6 @@ function Hexagon({ word, opacity, scale = 1, delay = 0 }) {
 }
 
 function HoneycombField() {
-  // build staggered honeycomb rows; odd rows shifted half a hex to the right
-  const rowCount = 5;
-  const perRow = 9;
-
   return (
     <div
       aria-hidden="true"
@@ -232,45 +244,45 @@ function HoneycombField() {
         inset: 0,
         overflow: "hidden",
         pointerEvents: "none",
-        maskImage: "radial-gradient(ellipse 90% 100% at 50% 35%, black 35%, transparent 85%)",
-        WebkitMaskImage: "radial-gradient(ellipse 90% 100% at 50% 35%, black 35%, transparent 85%)",
+        maskImage: "radial-gradient(ellipse 85% 90% at 50% 35%, black 30%, transparent 80%)",
+        WebkitMaskImage: "radial-gradient(ellipse 85% 90% at 50% 35%, black 30%, transparent 80%)",
       }}
     >
       <style>{`
-        @keyframes honeyFloat {
+        @keyframes honeyShimmer {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-5px); }
+          50% { transform: translateY(-6px); }
         }
       `}</style>
       <div
         style={{
           position: "absolute",
-          top: -40,
+          top: -30,
           left: "50%",
           transform: "translateX(-50%)",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        {Array.from({ length: rowCount }).map((_, rowIdx) => (
+        {Array.from({ length: ROWS }).map((_, rowIdx) => (
           <div
             key={rowIdx}
             style={{
               display: "flex",
-              marginLeft: rowIdx % 2 === 1 ? 54 : 0,
+              marginLeft: rowIdx % 2 === 1 ? (HEX_W + HEX_GAP) / 2 : 0,
+              marginTop: rowIdx === 0 ? 0 : -(HEX_H - ROW_STEP),
             }}
           >
-            {Array.from({ length: perRow }).map((_, colIdx) => {
-              const wordIdx = (rowIdx * perRow + colIdx) % HONEY_WORDS.length;
-              // fade cells nearer the edges / bottom so it blends into the gradient
-              const distFromCenterRow = Math.abs(rowIdx - (rowCount - 1) / 2);
-              const baseOpacity = 0.85 - distFromCenterRow * 0.16;
+            {Array.from({ length: PER_ROW }).map((_, colIdx) => {
+              const wordIdx = (rowIdx * PER_ROW + colIdx) % HONEY_WORDS.length;
+              const distFromCenterRow = Math.abs(rowIdx - (ROWS - 1) / 2);
+              const baseOpacity = 0.55 - distFromCenterRow * 0.14;
               return (
                 <Hexagon
                   key={colIdx}
                   word={HONEY_WORDS[wordIdx]}
-                  opacity={Math.max(0.12, baseOpacity)}
-                  delay={(rowIdx * perRow + colIdx) * 0.15}
+                  opacity={Math.max(0.16, baseOpacity)}
+                  delay={(rowIdx * PER_ROW + colIdx) * 0.22}
                 />
               );
             })}
@@ -356,20 +368,8 @@ useEffect(() => {
           <div style={{ fontSize: 13, letterSpacing: 3, textTransform: "uppercase", color: "#93c5fd", marginBottom: 10, fontWeight: 600 }}>
             Our Team
           </div>
-         
-          <p
-            style={{
-              color: "#f0f9ff",
-              fontSize: 16,
-              margin: "0 0 28px",
-              maxWidth: 480,
-              marginLeft: "auto",
-              marginRight: "auto",
-              textShadow: "0 1px 6px rgba(15,40,90,0.25)",
-            }}
-          >
-            
-            <h1
+
+          <h1
             style={{
               fontSize: 38,
               fontWeight: 800,
@@ -381,6 +381,19 @@ useEffect(() => {
           >
             Meet Our Staff
           </h1>
+
+          <p
+            style={{
+              color: "#f0f9ff",
+              fontSize: 16,
+              margin: "0 0 28px",
+              maxWidth: 480,
+              marginLeft: "auto",
+              marginRight: "auto",
+              textShadow: "0 1px 6px rgba(15,40,90,0.25)",
+            }}
+          >
+            The people behind every session, every appointment, every check-in.
           </p>
 
           {/* Stats */}
