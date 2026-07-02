@@ -420,8 +420,8 @@ useEffect(() => {
                   border: "1px solid rgba(255,255,255,0.28)",
                 }}
               >
-                <div style={{ fontSize: 24, fontWeight: 800, color: "#fff" }}>{stat.value}</div>
-                <div style={{ fontSize: 12, color: "#eff6ff", marginTop: 2 }}>{stat.label}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: "#0a0000" }}>{stat.value}</div>
+                <div style={{ fontSize: 12, color: "#000306", marginTop: 2 }}>{stat.label}</div>
               </div>
             ))}
           </div>
