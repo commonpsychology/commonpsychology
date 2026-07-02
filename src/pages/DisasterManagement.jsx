@@ -34,6 +34,48 @@ function getSmoothPath(points) {
   return d;
 }
 
+/* Responsive CSS for the phase-label row beneath the arc.
+   Desktop keeps the original 5-column grid; on small screens the
+   labels become a horizontally scrollable strip so long titles like
+   "Disillusionment Phase" never overflow or get crushed. */
+function ResponsiveArcStyles() {
+  return (
+    <style>{`
+      .phase-labels {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+      .phase-labels h3 {
+        overflow-wrap: break-word;
+        word-break: break-word;
+      }
+      @media (max-width: 640px) {
+        .phase-labels {
+          display: flex;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          gap: 1rem;
+          padding-bottom: 0.5rem;
+          -webkit-overflow-scrolling: touch;
+        }
+        .phase-labels > div {
+          flex: 0 0 auto;
+          width: 130px;
+          scroll-snap-align: start;
+        }
+        .phase-labels h3 {
+          font-size: 0.95rem !important;
+        }
+        .phase-labels p {
+          font-size: 0.78rem !important;
+        }
+      }
+    `}</style>
+  );
+}
+
 function EmotionalArc({ phases }) {
   const width = 900;
   const height = 260;
@@ -67,6 +109,8 @@ function EmotionalArc({ phases }) {
         boxShadow: "0 8px 25px rgba(0,0,0,0.05)",
       }}
     >
+      <ResponsiveArcStyles />
+
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto", overflow: "visible" }}>
         <defs>
           <linearGradient id="arcFill" x1="0" y1="0" x2="0" y2="1">
@@ -145,14 +189,7 @@ function EmotionalArc({ phases }) {
       </svg>
 
       {/* phase labels, aligned under each point */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${phases.length}, 1fr)`,
-          gap: "0.75rem",
-          marginTop: "1rem",
-        }}
-      >
+      <div className="phase-labels">
         {phases.map((p, i) => (
           <motion.div
             key={i}
@@ -198,82 +235,82 @@ export default function DisasterManagementPage() {
   return (
     <div style={{ background: BG }} className="page-wrapper">
       {/* HERO */}
-   <section
-  style={{
-    height: "70vh",
-    position: "relative",
-  }}
->
-  {/* Responsive background image */}
-  <picture
-    style={{
-      position: "absolute",
-      inset: 0,
-      width: "100%",
-      height: "100%",
-    }}
-  >
-    <source media="(min-width: 768px)" srcSet="/images/crisis.png" />
-    <img
-      src="/images/crisis.jpg"
-      alt=""
-      style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        objectPosition: "center",
-        display: "block",
-      }}
-    />
-  </picture>
-  <div
-    style={{
-      position: "absolute",
-      inset: 0,
-      background: "linear-gradient(to top, rgba(0,0,0,0.75), transparent)",
-    }}
-  />
+      <section
+        style={{
+          height: "70vh",
+          position: "relative",
+        }}
+      >
+        {/* Responsive background image */}
+        <picture
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <source media="(min-width: 768px)" srcSet="/images/crisis.png" />
+          <img
+            src="/images/crisis.jpg"
+            alt=""
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
+              display: "block",
+            }}
+          />
+        </picture>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to top, rgba(0,0,0,0.75), transparent)",
+          }}
+        />
 
-  <div
-    style={{
-      position: "absolute",
-      bottom: "3rem",
-      left: "2rem",
-      color: "white",
-      maxWidth: "700px",
-    }}
-  >
-    <h1 style={{ fontSize: "3rem", fontWeight: "800" }}>
-      Disaster Management & Psychology
-    </h1>
-    <p style={{ marginTop: "0.5rem", color: "#e2e8f0" }}>
-      Understanding trauma, resilience, and human behavior during crisis.
-    </p>
-  </div>
-</section>
+        <div
+          style={{
+            position: "absolute",
+            bottom: "3rem",
+            left: "2rem",
+            color: "white",
+            maxWidth: "700px",
+          }}
+        >
+          <h1 style={{ fontSize: "3rem", fontWeight: "800" }}>
+            Disaster Management & Psychology
+          </h1>
+          <p style={{ marginTop: "0.5rem", color: "#e2e8f0" }}>
+            Understanding trauma, resilience, and human behavior during crisis.
+          </p>
+        </div>
+      </section>
 
-<section
-  style={{
-    padding: "4rem 1.5rem",
-    background: "linear-gradient(to bottom, #f1f5f9, #e0f2fe)",
-  }}
->
-  <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-    <h2
-      style={{
-        fontSize: "2rem",
-        marginBottom: "2.5rem",
-        color: DARK,
-        textAlign: "center",
-        fontWeight: "800",
-      }}
-    >
-      Psychological Journey Through Disaster
-    </h2>
+      <section
+        style={{
+          padding: "4rem 1.5rem",
+          background: "linear-gradient(to bottom, #f1f5f9, #e0f2fe)",
+        }}
+      >
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+          <h2
+            style={{
+              fontSize: "2rem",
+              marginBottom: "2.5rem",
+              color: DARK,
+              textAlign: "center",
+              fontWeight: "800",
+            }}
+          >
+            Psychological Journey Through Disaster
+          </h2>
 
-    <EmotionalArc phases={phases} />
-  </div>
-</section>
+          <EmotionalArc phases={phases} />
+        </div>
+      </section>
 
       {/* CORE AREAS */}
       <section style={{ maxWidth: 1100, margin: "0 auto", padding: "3rem 1.5rem" }}>
@@ -302,7 +339,7 @@ export default function DisasterManagementPage() {
       </section>
 
       {/* BLOG STYLE SECTION */}
-      
+
 
       {/* DETERMINATION SECTION */}
       <section style={{ padding: "3rem 1.5rem" }}>
@@ -341,7 +378,7 @@ export default function DisasterManagementPage() {
         </div>
       </section>
 
-      
+
     </div>
   );
 }
