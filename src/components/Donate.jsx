@@ -3,32 +3,32 @@ import React, { useState, useEffect, useCallback } from "react";
 /**
  * WELLSPRING — flask widget
  * Transparent-background, 3D-glass flask that fills with falling
- * oceanic-blue droplets, then pours a real stream out of a side
- * spout, splitting to a family, a school, and a village. Tapping the
+ * oceanic-blue droplets, then pours a real stream out of an open spout
+ * hole, splitting to a family, a school, and a village. Tapping the
  * flask or the drop-shaped CTA opens a QR code to give.
  *
  * NOTE: layout is done with plain scoped CSS (see <style> block below)
- * instead of Tailwind utility classes. The previous version relied on
- * classes like `flex`, `gap-8`, `w-full`, `h-auto`, `text-center` etc.
- * If this file's path isn't covered by the host site's Tailwind
- * `content` globs, those classes compile to nothing and the layout
- * (and even the flask SVG's sizing) silently breaks — which is what
- * was happening. This version has no external CSS dependency.
+ * instead of Tailwind utility classes, so it renders correctly
+ * regardless of whether this file's path is covered by the host site's
+ * Tailwind `content` globs.
  */
 
 const TOKENS = {
-  oceanDeep: "#022278",
-  oceanMid: "#02225F",
-  ocean: "#022280",
-  oceanBright: "#453cf6",
-  oceanLight: "#3814ea",
+  oceanDeep: "#012A3F",
+  oceanMid: "#023E5C",
+  ocean: "#0B6E8C",
+  oceanBright: "#1EC3D6",
+  oceanLight: "#8FEAE0",
   glass: "rgba(255,255,255,0.06)",
   glassBorder: "rgba(255,255,255,0.35)",
-  ink: "#003C5F",
+  ink: "#043249",
   mist: "#F2FBFA",
   dim: "#4C7387",
   bgFrom: "#F5FAFD",
   bgTo: "#E6F0F6",
+  waveA: "#012A3F",
+  waveB: "#0B6E8C",
+  waveC: "#1EC3D6",
 };
 
 const DONATE_URL = "https://wellspring.org/give?src=hero-flask";
@@ -57,10 +57,6 @@ function DonateModal({ open, onClose }) {
 
   if (!open) return null;
 
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=12&qzone=1&color=062431&bgcolor=ffffff&data=${encodeURIComponent(
-    DONATE_URL
-  )}`;
-
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(DONATE_URL);
@@ -88,7 +84,7 @@ function DonateModal({ open, onClose }) {
 
         <div className="wf-qr-card">
           <img
-            src='/bank-qr.png'
+            src="/bank-qr.png"
             width={220}
             height={220}
             alt="QR code linking to the Wellspring donation page"
@@ -119,8 +115,6 @@ function DropButton({ onClick }) {
             <feDropShadow dx="0" dy="10" stdDeviation="10" floodColor={TOKENS.oceanDeep} floodOpacity="0.4" />
           </filter>
         </defs>
-        {/* rounder, fuller teardrop: bigger base circle (r=56), fully inside the 172px-tall
-            viewBox (bottom edge at 112+56=168, 4px clear) so it no longer clips */}
         <g filter="url(#dropBtnShadow)" className="wf-drop-btn-inner">
           <path
             d="M68 6 C102 56 124 86 124 112 A56 56 0 1 1 12 112 C12 86 34 56 68 6 Z"
@@ -139,6 +133,42 @@ function DropButton({ onClick }) {
   );
 }
 
+/** Decorative gradient wave band across the top of the section. */
+function TopWave() {
+  return (
+    <svg
+      className="wf-top-wave"
+      viewBox="0 0 1440 220"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="waveGradA" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={TOKENS.waveA} />
+          <stop offset="55%" stopColor={TOKENS.waveB} />
+          <stop offset="100%" stopColor={TOKENS.waveC} />
+        </linearGradient>
+        <linearGradient id="waveGradB" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={TOKENS.waveB} stopOpacity="0.55" />
+          <stop offset="100%" stopColor={TOKENS.waveC} stopOpacity="0.55" />
+        </linearGradient>
+      </defs>
+      {/* back wave */}
+      <path
+        className="wf-wave-layer wf-wave-back"
+        d="M0,90 C 220,150 420,40 720,90 C 1020,140 1240,40 1440,90 L1440,0 L0,0 Z"
+        fill="url(#waveGradA)"
+      />
+      {/* front wave, slightly offset for parallax depth */}
+      <path
+        className="wf-wave-layer wf-wave-front"
+        d="M0,130 C 260,80 460,180 760,130 C 1040,84 1260,170 1440,130 L1440,0 L0,0 Z"
+        fill="url(#waveGradB)"
+      />
+    </svg>
+  );
+}
+
 function FlaskVisual({ onGive }) {
   const drops = [0, 1, 2].map((i) => ({
     x: 194 + i * 10 - 10,
@@ -146,15 +176,19 @@ function FlaskVisual({ onGive }) {
     dur: 2.8 + (i % 2) * 0.4,
   }));
 
+  // All three channels fan out from the same point: the mouth of the
+  // spout hole (322, 380). Nothing else starts or ends disconnected from
+  // that point, so there's no stray floating segment.
+  const spout = { x: 322, y: 380 };
   const channels = [
-    { path: "M158 318 C 108 336 66 372 46 416", lx: 46, ly: 438, label: "family" },
-    { path: "M200 400 C 200 440 200 462 200 486", lx: 200, ly: 506, label: "school" },
-    { path: "M242 318 C 292 336 334 372 354 416", lx: 354, ly: 438, label: "village" },
+    { path: `M${spout.x} ${spout.y} C 248 396 118 414 46 434`, lx: 46, ly: 456, label: "family" },
+    { path: `M${spout.x} ${spout.y} C 292 432 232 480 202 502`, lx: 202, ly: 522, label: "school" },
+    { path: `M${spout.x} ${spout.y} C 340 398 350 414 354 434`, lx: 354, ly: 456, label: "village" },
   ];
 
   return (
     <button onClick={onGive} aria-label="Tap the flask to give a drop of water" className="wf-flask-btn">
-      <svg viewBox="0 0 400 540" width="400" height="540" className="wf-flask-svg">
+      <svg viewBox="0 0 400 560" width="400" height="560" className="wf-flask-svg">
         <defs>
           <linearGradient id="waterFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={TOKENS.oceanLight} />
@@ -171,6 +205,11 @@ function FlaskVisual({ onGive }) {
             <stop offset="0%" stopColor={TOKENS.oceanBright} stopOpacity="0.9" />
             <stop offset="100%" stopColor={TOKENS.ocean} stopOpacity="0.35" />
           </linearGradient>
+          <radialGradient id="spoutHole" cx="50%" cy="45%" r="65%">
+            <stop offset="0%" stopColor={TOKENS.oceanDeep} />
+            <stop offset="70%" stopColor={TOKENS.oceanMid} />
+            <stop offset="100%" stopColor={TOKENS.ocean} />
+          </radialGradient>
           <filter id="flaskShadow" x="-30%" y="-10%" width="160%" height="140%">
             <feDropShadow dx="0" dy="14" stdDeviation="16" floodColor={TOKENS.oceanDeep} floodOpacity="0.35" />
           </filter>
@@ -215,13 +254,39 @@ function FlaskVisual({ onGive }) {
             stroke={TOKENS.glassBorder}
             strokeWidth="3"
           />
-          <path d="M292 372 C 306 380 316 384 326 384" fill="none" stroke={TOKENS.glassBorder} strokeWidth="3" strokeLinecap="round" />
+
+          {/* Spout: a short protruding nozzle fused to the flask wall, ending
+              in an open elliptical hole. The stream below starts exactly at
+              the hole's mouth, so it reads as water pouring out of an
+              opening rather than a stray line floating near the glass. */}
+          <path
+            d="M290 360 C 306 356 322 360 330 372 C 334 382 328 392 314 396 C 300 398 288 392 284 380 C 282 372 284 364 290 360 Z"
+            fill="url(#glassBody)"
+            stroke={TOKENS.glassBorder}
+            strokeWidth="2.5"
+          />
+          <ellipse cx={spout.x} cy={spout.y} rx="10" ry="7" fill="url(#spoutHole)" />
+          <path
+            d={`M${spout.x - 9} ${spout.y - 3} A 10 7 0 0 1 ${spout.x + 8} ${spout.y - 4}`}
+            fill="none"
+            stroke={TOKENS.glassBorder}
+            strokeWidth="1.5"
+            opacity="0.8"
+          />
         </g>
 
+        {/* stream pouring from the open hole, fanning to the three destinations */}
         <g>
-          <path d="M320 380 C 330 384 340 388 344 396" fill="none" stroke="url(#streamGrad)" strokeWidth="9" strokeLinecap="round" opacity="0.85" />
           {channels.map((c, i) => (
-            <path key={i} d={c.path} fill="none" stroke="url(#streamGrad)" strokeWidth={i === 1 ? 7 : 5} strokeLinecap="round" opacity="0.7" />
+            <path
+              key={i}
+              d={c.path}
+              fill="none"
+              stroke="url(#streamGrad)"
+              strokeWidth={i === 1 ? 7 : 5}
+              strokeLinecap="round"
+              opacity="0.75"
+            />
           ))}
         </g>
 
@@ -260,6 +325,8 @@ export default function WellspringFlask() {
 
   return (
     <div className="wf-root">
+      <TopWave />
+
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
 
@@ -268,10 +335,33 @@ export default function WellspringFlask() {
           font-family: 'Inter', sans-serif;
           position: relative;
           width: 100%;
-          padding: 48px 16px;
+          padding: 160px 16px 48px 16px;
           box-sizing: border-box;
+          overflow: hidden;
         }
+
+        .wf-top-wave {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 190px;
+          display: block;
+        }
+        .wf-wave-layer { transform-origin: center; }
+        .wf-wave-back { animation: wfWaveSway 9s ease-in-out infinite; }
+        .wf-wave-front { animation: wfWaveSway 7s ease-in-out infinite reverse; }
+        @keyframes wfWaveSway {
+          0%, 100% { transform: translateY(0px); }
+          50%      { transform: translateY(6px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .wf-wave-back, .wf-wave-front { animation: none; }
+        }
+
         .wf-inner {
+          position: relative;
+          z-index: 1;
           max-width: 448px;
           margin: 0 auto;
           display: flex;
@@ -308,11 +398,11 @@ export default function WellspringFlask() {
         .wf-stat {
           text-align: center;
           background: rgba(255,255,255,0.65);
-          border: 1px solid rgba(0,60,95,0.12);
+          border: 1px solid rgba(3,60,90,0.12);
           border-radius: 16px;
           padding: 16px 20px;
           min-width: 108px;
-          box-shadow: 0 2px 10px rgba(0,60,95,0.06);
+          box-shadow: 0 2px 10px rgba(3,60,90,0.06);
           cursor: default;
           transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
         }
@@ -320,8 +410,8 @@ export default function WellspringFlask() {
         .wf-stat:focus-visible {
           transform: translateY(-4px);
           background: rgba(255,255,255,0.95);
-          border-color: rgba(0,60,95,0.28);
-          box-shadow: 0 12px 26px rgba(0,60,95,0.14);
+          border-color: rgba(3,60,90,0.28);
+          box-shadow: 0 12px 26px rgba(3,60,90,0.14);
         }
         .wf-stat-num {
           color: ${TOKENS.oceanMid};
@@ -444,7 +534,7 @@ export default function WellspringFlask() {
         .wf-wave-drift-2 { animation-duration: 6.5s; animation-direction: reverse; }
 
         @media (prefers-reduced-motion: reduce) {
-          .wf-drop-fall, .wf-wave-drift, .wf-wave-drift-2 { animation: none !important; }
+          .wf-wave-drift, .wf-wave-drift-2 { animation: none !important; }
         }
       `}</style>
 
