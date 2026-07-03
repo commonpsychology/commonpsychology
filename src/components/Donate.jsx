@@ -97,7 +97,7 @@ function useDonationStats() {
 }
 
 function formatLiters(n) {
-  return `${n.toLocaleString()} L`;
+  return `Rs. ${n.toLocaleString()}`;
 }
 
 function formatCount(n) {
