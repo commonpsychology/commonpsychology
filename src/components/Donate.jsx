@@ -399,10 +399,10 @@ export default function WellspringFlask() {
           font-family: 'Inter', sans-serif;
           position: relative;
           width: 100%;
-          max-width: 560px;
-          margin: 0 auto;
+          max-width: clamp(480px, 55vw, 820px);
+          margin: clamp(48px, 6vw, 96px) auto;
           border-radius: 28px;
-          padding: 160px 16px 48px 16px;
+          padding: 160px 16px 56px 16px;
           box-sizing: border-box;
           overflow: hidden;
           box-shadow: 0 12px 40px rgba(3,60,90,0.10);
@@ -430,7 +430,8 @@ export default function WellspringFlask() {
         .wf-inner {
           position: relative;
           z-index: 1;
-          max-width: 448px;
+          max-width: 520px;
+          width: 100%;
           margin: 0 auto;
           display: flex;
           flex-direction: column;
@@ -447,7 +448,7 @@ export default function WellspringFlask() {
         }
         .wf-flask-svg {
           width: 100%;
-          max-width: 440px;
+          max-width: 500px;
           height: auto;
           margin: 0 auto;
           display: block;
