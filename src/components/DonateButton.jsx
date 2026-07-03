@@ -119,7 +119,7 @@ export default function DonateButton() {
               >✕</button>
               <p style={{ margin: 0, color: 'rgba(255,255,255,0.85)', fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Support Our Mission</p>
               <h2 style={{ margin: '4px 0 0', color: '#fff', fontSize: '20px', fontWeight: 800, lineHeight: 1.2 }}>
-                Donate to Common Psychology 🙏
+                Donate to US.
               </h2>
             </div>
 
