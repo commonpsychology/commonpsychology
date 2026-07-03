@@ -33,6 +33,10 @@ const TOKENS = {
 
 const DONATE_URL = "https://wellspring.org/give?src=hero-flask";
 
+// Backend base URL — change this if your API lives elsewhere.
+const API_BASE = "https://puja-backend-gamma.vercel.app";
+const STATS_ENDPOINT = `${API_BASE}/api/donations/stats`;
+
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -43,6 +47,61 @@ function useReducedMotion() {
     return () => mq.removeEventListener?.("change", handler);
   }, []);
   return reduced;
+}
+
+/**
+ * Fetches live donation stats from the backend.
+ * Returns { stats, loading, error } where stats is always a
+ * three-item array in display order: [liters, people, wells].
+ * Falls back to zeroed values (not fake numbers) if the request fails,
+ * so the UI never silently shows made-up data.
+ */
+function useDonationStats() {
+  const [state, setState] = useState({
+    loading: true,
+    error: null,
+    litersThisMonth: 0,
+    peopleReached: 0,
+    wellsFunded: 0,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await fetch(STATS_ENDPOINT);
+        if (!res.ok) throw new Error(`Stats request failed: ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
+        setState({
+          loading: false,
+          error: null,
+          litersThisMonth: Number(data.litersThisMonth) || 0,
+          peopleReached: Number(data.peopleReached) || 0,
+          wellsFunded: Number(data.wellsFunded) || 0,
+        });
+      } catch (err) {
+        if (cancelled) return;
+        setState((prev) => ({ ...prev, loading: false, error: err.message }));
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return state;
+}
+
+function formatLiters(n) {
+  return `${n.toLocaleString()} L`;
+}
+
+function formatCount(n) {
+  return n.toLocaleString();
 }
 
 function DonateModal({ open, onClose }) {
@@ -317,10 +376,15 @@ export default function WellspringFlask() {
   const openModal = useCallback(() => setOpen(true), []);
   const closeModal = useCallback(() => setOpen(false), []);
 
+  const { loading, error, litersThisMonth, peopleReached, wellsFunded } = useDonationStats();
+
+  // Live data from the backend, formatted for display.
+  // While loading, show "—" instead of a fake placeholder number so the
+  // widget never claims a stat it hasn't actually fetched yet.
   const stats = [
-    ["12,480 L", "given this month"],
-    ["3,240", "people reached"],
-    ["58", "wells funded"],
+    [loading ? "—" : formatLiters(litersThisMonth), "given this month"],
+    [loading ? "—" : formatCount(peopleReached), "people reached"],
+    [loading ? "—" : formatCount(wellsFunded), "wells funded"],
   ];
 
   return (
@@ -335,9 +399,13 @@ export default function WellspringFlask() {
           font-family: 'Inter', sans-serif;
           position: relative;
           width: 100%;
+          max-width: 560px;
+          margin: 0 auto;
+          border-radius: 28px;
           padding: 160px 16px 48px 16px;
           box-sizing: border-box;
           overflow: hidden;
+          box-shadow: 0 12px 40px rgba(3,60,90,0.10);
         }
 
         .wf-top-wave {
@@ -428,6 +496,13 @@ export default function WellspringFlask() {
           letter-spacing: 0.05em;
           margin-top: 6px;
           line-height: 1.3;
+        }
+        .wf-stats-error {
+          text-align: center;
+          color: ${TOKENS.dim};
+          font-size: 11px;
+          margin-top: -20px;
+          margin-bottom: 24px;
         }
 
         .wf-drop-btn {
@@ -549,6 +624,10 @@ export default function WellspringFlask() {
             </div>
           ))}
         </div>
+
+        {error && (
+          <div className="wf-stats-error">Live totals unavailable right now — showing dashes.</div>
+        )}
 
         <DropButton onClick={openModal} />
       </div>
