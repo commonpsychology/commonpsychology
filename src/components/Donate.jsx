@@ -17,11 +17,11 @@ import React, { useState, useEffect, useCallback } from "react";
  */
 
 const TOKENS = {
-  oceanDeep: "#00263D",
-  oceanMid: "#003C5F",
-  ocean: "#0F5C82",
-  oceanBright: "#2FD0E0",
-  oceanLight: "#9CF3E8",
+  oceanDeep: "#022278",
+  oceanMid: "#02225F",
+  ocean: "#022280",
+  oceanBright: "#453cf6",
+  oceanLight: "#3814ea",
   glass: "rgba(255,255,255,0.06)",
   glassBorder: "rgba(255,255,255,0.35)",
   ink: "#003C5F",
