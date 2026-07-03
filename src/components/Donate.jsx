@@ -384,7 +384,7 @@ export default function WellspringFlask() {
   const stats = [
     [loading ? "—" : formatLiters(litersThisMonth), "given this month"],
     [loading ? "—" : formatCount(peopleReached), "people reached"],
-    [loading ? "—" : formatCount(wellsFunded), "wells funded"],
+    [loading ? "—" : formatCount(wellsFunded), "projects funded"],
   ];
 
   return (
