@@ -88,7 +88,7 @@ function DonateModal({ open, onClose }) {
 
         <div className="wf-qr-card">
           <img
-            src={qrSrc}
+            src='/bank-qr.png'
             width={220}
             height={220}
             alt="QR code linking to the Wellspring donation page"
