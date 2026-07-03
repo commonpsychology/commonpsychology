@@ -662,7 +662,7 @@ function DonatePopup({ onClose }) {
     <div
       className="pop-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      role="dialog" aria-modal="true" aria-label="Donate to Puja Samargi"
+      role="dialog" aria-modal="true" aria-label="Donate to Common Psychology"
     >
       <div className="pop-card">
         <div className="pop-header">
