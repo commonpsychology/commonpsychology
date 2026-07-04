@@ -157,7 +157,7 @@ export function AuthProvider({ children }) {
   }, [loginRaw, scheduleRefresh])
 
   // ── Register ────────────────────────────────────────────────
-  const register = useCallback(async (name, email, password, metadata = {}) => {
+const register = useCallback(async (name, email, password, metadata = {}) => {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -165,7 +165,7 @@ export function AuthProvider({ children }) {
         name,
         email,
         password,
-        phone: metadata.phone || null,
+        ...metadata,
       }),
     })
     const data = await res.json()
