@@ -10,6 +10,13 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { sendOTP, verifyOTP } from '../services/otpService'
 
+// Prevents the "send OTP on mount" effect from firing twice for the
+// same email — guards against React StrictMode's dev-only double-invoke
+// of effects, and against any accidental double-mount.
+let lastSentEmail = null
+import { useRouter } from '../context/RouterContext'
+import { sendOTP, verifyOTP } from '../services/otpService'
+
 // ── Design tokens ─────────────────────────────────────────────
 const G = {
   deep:   '#1a5c38',
@@ -395,8 +402,8 @@ function useCountdown(initialSeconds) {
 export default function VerifyAccountPage() {
   useEffect(() => { injectCSS() }, [])
 
-  const { navigate, state } = useRouter()
-  const payload  = state || JSON.parse(sessionStorage.getItem('verify_payload') || '{}')
+ const { navigate, params } = useRouter()
+  const payload = (params && params.email) ? params : JSON.parse(sessionStorage.getItem('verify_payload') || '{}')
   const { user_id = null, email = '', phone = '', name = 'there' } = payload
 
   // Bounce if no email
@@ -434,8 +441,12 @@ export default function VerifyAccountPage() {
     }
   }, [email, phone, user_id, name])
 
-  useEffect(() => { if (email) doSend() }, [email])
-
+useEffect(() => {
+    if (!email) return
+    if (lastSentEmail === email) return   // already sent for this email — skip
+    lastSentEmail = email
+    doSend()
+  }, [email])
   // ── Verify ────────────────────────────────────────────────────
   async function handleVerify() {
     if (otp.length < 6) { setError('Please enter all 6 digits.'); return }
