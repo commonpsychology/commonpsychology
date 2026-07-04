@@ -4,10 +4,10 @@ import { useRouter } from '../context/RouterContext'
 
 /* ----------------------------------------------------------------
    Design tokens — "Tidal" system
-   A deep-to-bright blue gradient world, paired with a warm ivory
-   surface so the blue reads as water against shore, not as a
-   generic SaaS gradient. Display serif for headlines (a quiet
-   nod to ink on water), a clean grotesk for body/UI.
+   A deep-to-bright blue gradient world, now paired with a light
+   sky-blue-to-white surface (instead of warm ivory) and a subtle
+   honeycomb texture for depth. Display serif for headlines, a
+   clean grotesk for body/UI.
 ------------------------------------------------------------------ */
 const C = {
   abyss:    '#04263F',
@@ -15,9 +15,9 @@ const C = {
   mid:      '#0E78AC',
   bright:   '#15A6D6',
   foam:     '#7FDDEE',
-  sand:     '#FBF7EE',
-  sandDeep: '#F1EADA',
-  sandLine: '#E4DBC4',
+  sky:      '#EAF7FD',   // pale sky blue (replaces warm sand)
+  skySoft:  '#DFF3FB',
+  sandLine: '#CFE9F5',   // cool line color to match the blue palette
   ink:      '#0F2A38',
   inkSoft:  '#4A6B78',
   inkFaint: '#8FA9B2',
@@ -32,14 +32,35 @@ const displayFont = `'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia
 const bodyFont    = `'Inter', 'Helvetica Neue', Arial, sans-serif`
 const monoFont    = `'IBM Plex Mono', 'SF Mono', Menlo, monospace`
 
+/* ---------------- Honeycomb texture helper ---------------- */
+// Generates a tileable pointy-top hexagon grid as an inline SVG data URI.
+function honeycombPattern(stroke, opacity = 1) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'>
+    <g fill='none' stroke='${stroke}' stroke-width='1.4' opacity='${opacity}'>
+      <path d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100'/>
+      <path d='M28 0L28 34L0 50M28 34L56 50'/>
+    </g>
+  </svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
+}
+
+const pageHoneycomb = honeycombPattern(C.mid, 0.09)   // faint blue comb on the page body
+const heroHoneycomb = honeycombPattern('#FFFFFF', 0.10) // faint white comb inside the hero
+
 /* Reset applied to the page root, independent of any global/page-wrapper
-   CSS that might otherwise add a top margin/padding/gap above the hero. */
+   CSS that might otherwise add a top margin/padding/gap above the hero.
+   Background is now a soft sky-blue-to-white gradient with a honeycomb
+   texture layered underneath it. */
 const rootResetStyle = {
   margin: 0,
   padding: 0,
   display: 'block',
   minHeight: '100vh',
-  background: C.sand,
+  backgroundColor: C.sky,
+  backgroundImage: `${pageHoneycomb}, linear-gradient(160deg, ${C.skySoft} 0%, ${C.white} 45%, ${C.sky} 100%)`,
+  backgroundSize: '56px 100px, cover',
+  backgroundRepeat: 'repeat, no-repeat',
+  backgroundAttachment: 'fixed, fixed',
 }
 
 const FontImports = () => (
@@ -151,7 +172,7 @@ function TextField({ label, value, onChange, placeholder, type = 'text', autoCom
           width: '100%', padding: '0.9rem 1.05rem',
           border: `1.5px solid ${focused ? C.mid : C.sandLine}`,
           borderRadius: 10, fontFamily: bodyFont, fontSize: '0.95rem',
-          color: C.ink, background: focused ? C.white : C.sand,
+          color: C.ink, background: focused ? C.white : C.sky,
           boxShadow: focused ? `0 0 0 4px ${C.mid}1a` : 'none',
           transition: 'all 0.18s ease', boxSizing: 'border-box',
         }}
@@ -187,7 +208,7 @@ function PasswordField({ label, value, onChange, placeholder, hint, autoComplete
             width: '100%', padding: '0.9rem 3rem 0.9rem 1.05rem',
             border: `1.5px solid ${focused ? C.mid : C.sandLine}`,
             borderRadius: 10, fontFamily: bodyFont, fontSize: '0.95rem',
-            color: C.ink, background: focused ? C.white : C.sand,
+            color: C.ink, background: focused ? C.white : C.sky,
             boxShadow: focused ? `0 0 0 4px ${C.mid}1a` : 'none',
             transition: 'all 0.18s ease', boxSizing: 'border-box',
           }}
@@ -222,7 +243,7 @@ function SuccessView({ onDone }) {
       <div className="twp-card" style={{
         maxWidth: 440, width: '100%', background: C.white, borderRadius: 20,
         border: `1px solid ${C.sandLine}`, boxShadow: '0 24px 60px -16px rgba(10,77,120,0.18)',
-        overflow: 'hidden', textAlign: 'center',
+        overflow: 'hidden', textAlign: 'center', position: 'relative', zIndex: 1,
       }}>
         <div style={{ height: 5, background: waterGrad }} />
         <div style={{ padding: '3.2rem 2.5rem' }}>
@@ -300,6 +321,14 @@ export default function UpdatePasswordPage() {
 
       {/* ---------- Hero ---------- */}
       <div style={{ position: 'relative', background: waterGrad, padding: '4.2rem 1.5rem 6.5rem', overflow: 'hidden' }}>
+        {/* Honeycomb texture layered over the hero gradient */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: heroHoneycomb,
+          backgroundSize: '56px 100px',
+          backgroundRepeat: 'repeat',
+          pointerEvents: 'none',
+        }} />
         <div className="twp-wave" style={{
           position: 'absolute', top: -120, right: -100, width: 360, height: 360, borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(255,255,255,0.10), transparent 70%)',
@@ -417,7 +446,7 @@ export default function UpdatePasswordPage() {
               </div>
             )}
 
-            <div style={{ margin: '1.7rem 0 0.4rem', padding: '1rem 1.1rem', background: C.sand, borderRadius: 10, border: `1px solid ${C.sandLine}` }}>
+            <div style={{ margin: '1.7rem 0 0.4rem', padding: '1rem 1.1rem', background: C.sky, borderRadius: 10, border: `1px solid ${C.sandLine}` }}>
               <div style={{ fontFamily: monoFont, fontSize: '0.64rem', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.inkFaint, marginBottom: '0.65rem' }}>
                 For a deeper tide
               </div>
@@ -459,7 +488,7 @@ export default function UpdatePasswordPage() {
               style={{
                 width: '100%', padding: '0.95rem', borderRadius: 10, border: 'none',
                 marginTop: '0.6rem',
-                background: formOK ? buttonGrad : C.sandDeep,
+                background: formOK ? buttonGrad : C.skySoft,
                 color: formOK ? 'white' : C.inkFaint,
                 fontFamily: bodyFont, fontWeight: 700, fontSize: '0.95rem',
                 cursor: formOK && status !== 'saving' ? 'pointer' : 'not-allowed',
