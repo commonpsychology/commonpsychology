@@ -127,16 +127,19 @@ export default function RegisterPage() {
   const [form, setForm]             = useState({ name: '', email: '', password: '', confirm: '' })
   const [phone, setPhone]           = useState('')
   const [phoneError, setPhoneError] = useState('')
+  const [emergency, setEmergency]         = useState({ name: '', phone: '', relation: '' })
+  const [emergencyError, setEmergencyError] = useState('')
   const [showPw, setShowPw]         = useState(false)
   const [error, setError]           = useState('')
   const [loading, setLoading]       = useState(false)
 
-  const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
+const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const updateEmergency = (k, v) => setEmergency(e => ({ ...e, [k]: v }))
   async function handleSubmit(e) {
     e.preventDefault()
-    setError('')
+setError('')
     setPhoneError('')
+    setEmergencyError('')
 
     if (!form.name || !form.email || !form.password) { setError('Please fill in all fields.'); return }
     if (form.password.length < 8)       { setError('Password must be at least 8 characters.'); return }
@@ -144,14 +147,27 @@ export default function RegisterPage() {
     if (!/[0-9]/.test(form.password))   { setError('Password must contain at least one number.'); return }
     if (form.password !== form.confirm) { setError('Passwords do not match.'); return }
 
-    // FIX: validate phone before registering
+ // FIX: validate phone before registering
     const { valid, normalized, error: phoneErr } = validateNepaliPhone(phone)
     if (!valid) { setPhoneError(phoneErr); return }
+
+    // Validate emergency contact
+    if (!emergency.name.trim() || !emergency.phone.trim() || !emergency.relation.trim()) {
+      setEmergencyError('Emergency contact name, phone, and relation are all required.')
+      return
+    }
+    const { valid: ecValid, normalized: ecPhone, error: ecErr } = validateNepaliPhone(emergency.phone)
+    if (!ecValid) { setEmergencyError(ecErr); return }
 
     setLoading(true)
     try {
       // FIX: pass phone in metadata — AuthContext now forwards it to backend
-      const result  = await register(form.name, form.email, form.password, { phone: normalized })
+      const result  = await register(form.name, form.email, form.password, {
+        phone: normalized,
+        emergency_contact_name: emergency.name.trim(),
+        emergency_contact_phone: ecPhone,
+        emergency_contact_relation: emergency.relation.trim(),
+      })
       const user_id = result?.user?.id
 
       // FIX: send OTP to BOTH email and SMS so user receives on mobile too
@@ -261,6 +277,40 @@ export default function RegisterPage() {
               </div>
               {phoneError && (
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: '#e53935', fontFamily: 'var(--font-body)' }}>{phoneError}</p>
+              )}
+            </div>
+
+           <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-mid)', marginBottom: '0.4rem', fontFamily: 'var(--font-body)' }}>
+                Emergency Contact <span style={{ color: '#999', fontWeight: 400 }}>(required)</span>
+              </label>
+              <input
+                className="reg-input"
+                placeholder="Contact's full name"
+                value={emergency.name}
+                onChange={e => updateEmergency('name', e.target.value)}
+                style={{ marginBottom: '0.6rem' }}
+              />
+              <div className="reg-phone-row" style={{ marginBottom: '0.6rem' }}>
+                <div className="reg-phone-prefix">🇳🇵 +977</div>
+                <input
+                  className="reg-input"
+                  type="tel"
+                  placeholder="98XXXXXXXX"
+                  maxLength={10}
+                  value={emergency.phone}
+                  onChange={e => updateEmergency('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  style={{ flex: 1 }}
+                />
+              </div>
+              <input
+                className="reg-input"
+                placeholder="Relation (e.g. Father, Spouse)"
+                value={emergency.relation}
+                onChange={e => updateEmergency('relation', e.target.value)}
+              />
+              {emergencyError && (
+                <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: '#e53935', fontFamily: 'var(--font-body)' }}>{emergencyError}</p>
               )}
             </div>
 
