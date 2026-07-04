@@ -295,9 +295,10 @@ export default function MyAccountPage() {
   const [saved,   setSaved]   = useState(false)
   const [error,   setError]   = useState('')
 
-  const [form, setForm] = useState({
+const [form, setForm] = useState({
     full_name:'', phone:'', date_of_birth:'', gender:'',
-    address:'', city:'', bio:'', language:'en', emergency_contact:'',
+    address:'', city:'', bio:'', language:'en',
+    emergency_contact_name:'', emergency_contact_phone:'', emergency_contact_relation:'',
   })
 
   const [pwForm,   setPwForm]   = useState({ current:'', newPw:'', confirm:'' })
@@ -309,7 +310,7 @@ export default function MyAccountPage() {
     if (!user) { navigate('/signin'); return }
     profileApi.get().then(d => {
       const p = d.user || d
-      setForm({
+    setForm({
         full_name:         p.fullName         || p.full_name         || '',
         phone:             p.phone            || '',
         date_of_birth:     p.dateOfBirth      || p.date_of_birth     || '',
@@ -318,7 +319,9 @@ export default function MyAccountPage() {
         city:              p.city             || '',
         bio:               p.bio              || '',
         language:          p.language         || 'en',
-        emergency_contact: p.emergencyContact || p.emergency_contact || '',
+        emergency_contact_name:     p.emergencyContactName     || p.emergency_contact_name     || '',
+        emergency_contact_phone:    p.emergencyContactPhone    || p.emergency_contact_phone    || '',
+        emergency_contact_relation: p.emergencyContactRelation || p.emergency_contact_relation || '',
       })
     }).catch(() => {})
   }, [user])
@@ -475,7 +478,9 @@ background:'rgba(0,123,168,0.08)', color:SKY_D,
                   { key:'date_of_birth',     label:'Date of Birth',     type:'date' },
                   { key:'city',              label:'City',              type:'text' },
                   { key:'address',           label:'Address',           type:'text' },
-                  { key:'emergency_contact', label:'Emergency Contact', type:'text' },
+                  { key:'emergency_contact_name',     label:'Emergency Contact Name',     type:'text' },
+                  { key:'emergency_contact_phone',    label:'Emergency Contact Phone',    type:'tel'  },
+                  { key:'emergency_contact_relation', label:'Emergency Contact Relation', type:'text' },
                 ].map(({ key, label, type }) => (
                   <div key={key}>
                     <label style={labelSx}>{label}</label>
