@@ -47,29 +47,28 @@ export default function BlogPage() {
     window.scrollTo(0, 0)
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    setError(null)
+useEffect(() => {
+  let cancelled = false
+  setLoading(true)
+  setError(null)
 
-    const params = new URLSearchParams({ page, limit: LIMIT })
-    if (category !== 'All') params.set('category', category)
-    if (search.trim())      params.set('q', search.trim())
+  const params = new URLSearchParams({ page, limit: LIMIT })
+  if (category !== 'All') params.set('category', category)
+  if (search.trim())      params.set('q', search.trim())
 
-    fetch(`${API_BASE}/blog?${params}`)
-      .then(r => r.json())
-      .then(d => {
-        if (cancelled) return
-        // handle various API shapes
-        const list = d.posts || d.items || d.data || (Array.isArray(d) ? d : [])
-        setPosts(list)
-        setTotal(d.pagination?.total ?? d.total ?? list.length)
-      })
-      .catch(e => { if (!cancelled) setError(e.message) })
-      .finally(() => { if (!cancelled) setLoading(false) })
+  fetch(`${API_BASE}/blog?${params}`, { cache: 'no-store' })
+    .then(r => r.json())
+    .then(d => {
+      if (cancelled) return
+      const list = d.posts || d.items || d.data || (Array.isArray(d) ? d : [])
+      setPosts(list)
+      setTotal(d.pagination?.total ?? d.total ?? list.length)
+    })
+    .catch(e => { if (!cancelled) setError(e.message) })
+    .finally(() => { if (!cancelled) setLoading(false) })
 
-    return () => { cancelled = true }
-  }, [category, page, search])
+  return () => { cancelled = true }
+}, [category, page, search])
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT))
 
