@@ -205,8 +205,11 @@ export default function ResearchPage() {
                       <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: C.textDark, lineHeight: 1 }}>{(paper.downloads || 0).toLocaleString()}</div>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.65rem', color: C.textLight, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Downloads</div>
                     </div>
-                    {paper.pdf_url && <span style={{ fontSize: '0.7rem', fontWeight: 700, color: C.skyDeep, background: C.skyFaint, padding: '4px 10px', borderRadius: 100 }}>📄 PDF</span>}
-                    <span style={{ fontSize: '0.75rem', color: C.skyMid, fontWeight: 600 }}>Read →</span>
+{paper.pdf_url && (
+  <a href={`${API_BASE}/research/${paper.id}/pdf`} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); fetch(`${API_BASE}/research/${paper.id}/download`, { method: 'POST' }).catch(() => {}); }} style={{ fontSize: '0.7rem', fontWeight: 700, color: C.skyDeep, background: C.skyFaint, padding: '4px 10px', borderRadius: 100, textDecoration: 'none' }}>
+    📄 PDF
+  </a>
+)}                    <span style={{ fontSize: '0.75rem', color: C.skyMid, fontWeight: 600 }}>Read →</span>
                   </div>
                 </div>
               )
