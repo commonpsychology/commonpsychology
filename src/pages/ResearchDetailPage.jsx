@@ -79,15 +79,23 @@ export default function ResearchDetailPage() {
   // The proxy URL — browser talks to YOUR backend, no CORS or CSP issues
 const proxyPdfUrl = `${BACKEND_ROOT}/api/research/${id}/pdf`
 
-  async function handleDownload() {
+ async function handleDownload() {
     if (!paper?.pdf_url || dlState === 'loading') return
     setDlState('loading')
 
-    // Fire-and-forget download counter
-fetch(`${BACKEND_ROOT}/api/research/${id}/download`, { method: 'POST' }).catch(() => {})
+    // Await the counter and use the SERVER's real count — no more optimistic guessing
+    let confirmedCount = null
+    try {
+      const dlRes = await fetch(`${BACKEND_ROOT}/api/research/${id}/download`, { method: 'POST' })
+      const dlJson = await dlRes.json().catch(() => null)
+      if (dlJson?.ok && typeof dlJson.downloads === 'number') {
+        confirmedCount = dlJson.downloads
+      }
+    } catch {
+      // counter failed — fall through, still let the download happen
+    }
 
     try {
-      // Fetch via proxy — same origin so no CORS block
       const res = await fetch(proxyPdfUrl)
       if (!res.ok) throw new Error('proxy fetch failed')
       const blob = await res.blob()
@@ -100,13 +108,12 @@ fetch(`${BACKEND_ROOT}/api/research/${id}/download`, { method: 'POST' }).catch((
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
-      setDlCount(c => (c ?? 0) + 1)
+      setDlCount(confirmedCount ?? (c => (c ?? 0) + 1))
       setDlState('done')
       setTimeout(() => setDlState('idle'), 2500)
     } catch {
-      // Fallback: open proxy URL in new tab
       window.open(proxyPdfUrl, '_blank')
-      setDlCount(c => (c ?? 0) + 1)
+      setDlCount(confirmedCount ?? (c => (c ?? 0) + 1))
       setDlState('done')
       setTimeout(() => setDlState('idle'), 2500)
     }
@@ -278,10 +285,11 @@ fetch(`${BACKEND_ROOT}/api/research/${id}/download`, { method: 'POST' }).catch((
         <div className="rdp-sidebar">
           <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.borderFaint}`, padding: '1.25rem', boxShadow: '0 2px 12px rgba(0,191,255,0.06)' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 800, color: C.textLight, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Paper Details</div>
-            {[
+           {[
               { label: 'Type',      value: paper.type },
               { label: 'Year',      value: paper.year },
               { label: 'Journal',   value: paper.journal },
+              { label: 'Views',     value: (paper.views || 0).toLocaleString() },
               { label: 'Downloads', value: downloads.toLocaleString() },
               { label: 'Access',    value: paper.open_access ? '🔓 Open' : '🔒 Subscription' },
             ].filter(r => r.value).map(({ label, value }) => (

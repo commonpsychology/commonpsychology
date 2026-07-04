@@ -4,7 +4,6 @@ import { useRouter } from '../context/RouterContext'
 import { useFetch } from '../hooks/useFetch'
 import ReactMarkdown from 'react-markdown'
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
 const C = {
   skyBright:  '#00BFFF',
@@ -71,10 +70,7 @@ export default function BlogDetailPage() {
   const { data: post, loading, error } = useFetch(`/blog/${slug}`, {}, [slug])
   const [imgLoaded, setImgLoaded] = useState(false)
 
-  useEffect(() => {
-    if (!slug) return
-    fetch(`${API_BASE}/blog/${slug}/view`, { method: 'POST' }).catch(() => {})
-  }, [slug])
+
 
   if (loading) return (
     <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.skyGhost }}>
