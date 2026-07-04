@@ -2446,11 +2446,23 @@ await REFRESH_MAP[modal.type]?.()
                 </select>
                 <button className="btn btn-ghost" onClick={()=>{setUPage(1);fetchUsers()}}>Search</button>
               </SectionHeader>
-              <Table loading={busy.users} cols={['User','Email','Role','Status','Joined','Actions']}
+            <Table loading={busy.users} cols={['User','Email','Emergency Contact','Role','Status','Joined','Actions']}
                 rows={users.map(u=>(
                   <tr key={u.id}>
                     <td><strong style={{fontSize:'.82rem'}}>{u.full_name}</strong></td>
                     <td style={{fontSize:'.74rem',color:'var(--text-muted)'}}>{u.email}</td>
+                    <td style={{fontSize:'.76rem', minWidth: 160}}>
+                      {u.emergency_contact_name
+                        ? <>
+                            <div style={{fontWeight:600}}>{u.emergency_contact_name}</div>
+                            <div style={{fontSize:'.68rem', color:'var(--text-muted)'}}>
+                              {u.emergency_contact_phone || '—'}
+                              {u.emergency_contact_relation ? ` · ${u.emergency_contact_relation}` : ''}
+                            </div>
+                          </>
+                        : <span style={{color:'var(--text-muted)'}}>—</span>
+                      }
+                    </td>
                     <td><select className="inp" value={u.role} onChange={e=>doRole(u.id,e.target.value)} style={{padding:'.18rem .45rem',fontSize:'.72rem'}}>{['client','therapist','admin','staff'].map(r=><option key={r} value={r}>{r}</option>)}</select></td>
                     <td><Badge s={u.is_active?'active':'paused'} /></td>
                     <td style={{fontSize:'.72rem',color:'var(--text-muted)'}}>{fmt(u.created_at)}</td>
