@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useAuth } from '../context/AuthContext'
-import { validateNepaliPhone, sendOTP } from '../services/otpService'
-
+import { validateNepaliPhone } from '../services/otpService'
 const CSS = `
   .reg-root {
     min-height: 100vh;
@@ -170,16 +169,8 @@ setError('')
       })
       const user_id = result?.user?.id
 
-      // FIX: send OTP to BOTH email and SMS so user receives on mobile too
-      await sendOTP({
-        user_id,
-        email:    form.email,
-        phone:    normalized,        // ← phone included
-        otp_type: 'email_verify',
-        name:     form.name,
-        channel:  'both',            // ← email + SMS
-      })
-
+      // OTP is sent by VerifyAccountPage on mount — don't send it here too,
+      // or the user gets it twice.
       const payload = { user_id, email: form.email, name: form.name, phone: normalized }
       sessionStorage.setItem('verify_payload', JSON.stringify(payload))
       navigate('/verify', { state: payload })
