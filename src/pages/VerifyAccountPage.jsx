@@ -14,8 +14,7 @@ import { sendOTP, verifyOTP } from '../services/otpService'
 // same email — guards against React StrictMode's dev-only double-invoke
 // of effects, and against any accidental double-mount.
 let lastSentEmail = null
-import { useRouter } from '../context/RouterContext'
-import { sendOTP, verifyOTP } from '../services/otpService'
+
 
 // ── Design tokens ─────────────────────────────────────────────
 const G = {
