@@ -367,7 +367,7 @@ export default function DeliveryDashboardPage() {
                   <table className="tbl">
                     <thead>
                       <tr>
-                        {['Order #', 'Client', 'Address', 'Amount', 'Pay Status', 'Delivery Status', 'Assigned', 'Actions'].map(h => (
+                        {['Order #', 'Client', 'Address', 'Amount', 'Delivery Status', 'Assigned', 'Actions'].map(h => (
                           <th key={h}>{h}</th>
                         ))}
                       </tr>
@@ -597,7 +597,7 @@ export default function DeliveryDashboardPage() {
                 { title: 'Order', rows: [
                   ['Order #',    detailRow.order_number || detailRow.id?.slice(0, 8)],
                   ['Amount',     `NPR ${Number(detailRow.total_amount || 0).toLocaleString()}`],
-                  ['Pay Status', detailRow.payment_status || '—'],
+                
                   ['Order Status', detailRow.status || '—'],
                 ]},
                 { title: 'Delivery', rows: [
