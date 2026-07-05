@@ -404,11 +404,25 @@ export default function DeliveryDashboardPage() {
                                     <div style={{ fontWeight: 600, fontSize: '.82rem', color: 'var(--text)' }}>{o.client_name || '—'}</div>
                                   </td>
 
-                                  {/* Address */}
-                                  <td style={{ maxWidth: 160 }}>
-                                    <div style={{ fontSize: '.74rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150 }}>
-                                      {o.delivery_address || '—'}
-                                    </div>
+                               {/* Address */}
+                                  <td style={{ maxWidth: 200, fontSize: '.74rem' }}>
+                                    {o.shipping_address ? (() => {
+                                      const a = o.shipping_address
+                                      const name    = a.full_name || a.name || ''
+                                      const address = a.address_line || a.address || ''
+                                      return (
+                                        <div>
+                                          {name && <div style={{ fontWeight: 600, color: 'var(--text)' }}>{name}</div>}
+                                          {a.phone && <div style={{ color: 'var(--muted)' }}>{a.phone}</div>}
+                                          {(address || a.city) && (
+                                            <div style={{ color: 'var(--muted)' }}>
+                                              {address}{address && a.city ? ', ' : ''}{a.city}
+                                              {a.landmark ? ` (${a.landmark})` : ''}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )
+                                    })() : (o.delivery_address || <span style={{ color: 'var(--muted)' }}>—</span>)}
                                   </td>
 
                                   {/* Amount */}
@@ -530,8 +544,12 @@ export default function DeliveryDashboardPage() {
                 <div style={{ fontWeight: 700, fontSize: '.83rem', marginBottom: '.25rem' }}>
                   {updateModal.order.order_number || updateModal.order.id?.slice(0, 8)}
                 </div>
-                <div style={{ fontSize: '.76rem', color: 'var(--muted)' }}>{updateModal.order.client_name || '—'}</div>
-                <div style={{ fontSize: '.72rem', color: 'var(--muted)', marginTop: '.15rem' }}>{updateModal.order.delivery_address || '—'}</div>
+               <div style={{ fontSize: '.76rem', color: 'var(--muted)' }}>{updateModal.order.client_name || '—'}</div>
+                <div style={{ fontSize: '.72rem', color: 'var(--muted)', marginTop: '.15rem' }}>
+                  {updateModal.order.shipping_address
+                    ? `${updateModal.order.shipping_address.address_line || updateModal.order.shipping_address.address || ''}${updateModal.order.shipping_address.city ? ', ' + updateModal.order.shipping_address.city : ''}`
+                    : (updateModal.order.delivery_address || '—')}
+                </div>
               </div>
 
               <div className="field">
@@ -588,9 +606,13 @@ export default function DeliveryDashboardPage() {
                   ['Picked Up',    detailRow.picked_up_at  ? fmtT(detailRow.picked_up_at)  : '—'],
                   ['Delivered At', detailRow.delivered_at  ? fmtT(detailRow.delivered_at)  : '—'],
                 ]},
-                { title: 'Client & Address', rows: [
-                  ['Client',   detailRow.client_name     || '—'],
-                  ['Address',  detailRow.delivery_address || '—'],
+              { title: 'Client & Address', rows: [
+                  ['Client', detailRow.client_name || '—'],
+                  ['Name',    detailRow.shipping_address?.full_name || detailRow.shipping_address?.name || '—'],
+                  ['Phone',   detailRow.shipping_address?.phone || '—'],
+                  ['Address', detailRow.shipping_address
+                      ? `${detailRow.shipping_address.address_line || detailRow.shipping_address.address || ''}${detailRow.shipping_address.city ? ', ' + detailRow.shipping_address.city : ''}${detailRow.shipping_address.landmark ? ` (${detailRow.shipping_address.landmark})` : ''}`
+                      : (detailRow.delivery_address || '—')],
                 ]},
               ].map(card => (
                 <div key={card.title} style={{ background: 'var(--surface2)', borderRadius: 8, padding: '.8rem', border: '1px solid var(--border)' }}>
