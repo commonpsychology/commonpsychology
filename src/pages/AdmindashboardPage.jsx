@@ -2556,11 +2556,11 @@ await REFRESH_MAP[modal.type]?.()
 )}
                   </tr>
                 </thead>
-                <tbody>
+               <tbody>
                   {busy.orders
-                    ? <tr><td className="tbl-loading" colSpan={8}><span className="spinner" /> Loading…</td></tr>
+                    ? <tr><td className="tbl-loading" colSpan={9}><span className="spinner" /> Loading…</td></tr>
                     : orders.length === 0
-                      ? <tr><td colSpan={8}>
+                      ? <tr><td colSpan={9}>
                           <div className="empty-state">
                             <div className="empty-icon">📦</div>
                             <div className="empty-text">No orders found</div>
@@ -2657,17 +2657,29 @@ await REFRESH_MAP[modal.type]?.()
                                 }
                               </td>
 
-                              <td style={{ maxWidth: 220, fontSize: '.74rem' }}>
-                                {o.shipping_address ? (
-                                  <div>
-                                    <div style={{ fontWeight: 600 }}>{o.shipping_address.full_name}</div>
-                                    <div style={{ color: 'var(--text-muted)' }}>{o.shipping_address.phone}</div>
-                                    <div style={{ color: 'var(--text-muted)' }}>
-                                      {o.shipping_address.address_line}, {o.shipping_address.city}
-                                      {o.shipping_address.landmark ? ` (${o.shipping_address.landmark})` : ''}
+                           <td style={{ maxWidth: 220, fontSize: '.74rem' }}>
+                                {o.shipping_address ? (() => {
+                                  const a = o.shipping_address
+                                  const name    = a.full_name || a.name || ''
+                                  const address = a.address_line || a.address || ''
+                                  return (
+                                    <div>
+                                      {name && <div style={{ fontWeight: 600 }}>{name}</div>}
+                                      {a.phone && <div style={{ color: 'var(--text-muted)' }}>{a.phone}</div>}
+                                      {(address || a.city) && (
+                                        <div style={{ color: 'var(--text-muted)' }}>
+                                          {address}{address && a.city ? ', ' : ''}{a.city}
+                                          {a.landmark ? ` (${a.landmark})` : ''}
+                                        </div>
+                                      )}
+                                      {a.notes && (
+                                        <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                                          {a.notes}
+                                        </div>
+                                      )}
                                     </div>
-                                  </div>
-                                ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                                  )
+                                })() : <span style={{ color: 'var(--text-muted)' }}>—</span>}
                               </td>
 
                               {/* Date */}
