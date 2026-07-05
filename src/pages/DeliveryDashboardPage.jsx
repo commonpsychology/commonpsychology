@@ -453,19 +453,16 @@ const pay = PAY_MAP[o.payment_status] || { bg: '#ecfdf5', c: '#065f46', t: '✓ 
                                     )}
                                   </td>
 
-                                 {/* Actions */}
+                                {/* Actions */}
                                   <td onClick={e => e.stopPropagation()} style={{ minWidth: 90 }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '.3rem', alignItems: 'flex-start' }}>
                                       <button className="btn btn-ghost btn-sm" onClick={() => setDetailRow(o)} title="View details" style={{ width: '100%', justifyContent: 'center' }}>👁</button>
-                                      {/* Rider can update if not already delivered/returned */}
-                                      {!['delivered','returned'].includes(o.delivery_status) && (
-                                        <button className="btn btn-primary btn-sm"
-                                          disabled={busy[o.id]}
-                                          onClick={() => openUpdate(o)}
-                                          style={{ width: '100%', justifyContent: 'center' }}>
-                                          Update
-                                        </button>
-                                      )}
+                                      <button className="btn btn-primary btn-sm"
+                                        disabled={busy[o.id]}
+                                        onClick={() => openUpdate(o)}
+                                        style={{ width: '100%', justifyContent: 'center' }}>
+                                        Update
+                                      </button>
                                     </div>
                                   </td>
                                 </tr>
