@@ -912,13 +912,14 @@ function PayBadge({ status }) {
 
 // ─── SIDEBAR ─────────────────────────────────────────────────────────────────
 const SIDEBAR = [
-  { group:'Core', items:[
+{ group:'Core', items:[
     { id:'dashboard',     label:'Dashboard',       icon:'◈' },
     { id:'users',         label:'Users',           icon:'◎' },
     { id:'appointments',  label:'Appointments',    icon:'▦' },
     { id:'orders',        label:'Orders',          icon:'⬡' },
     { id:'payments',      label:'Payments',        icon:'◉' },
     { id:'notifications', label:'Send Notify',     icon:'◈' },
+    { id:'sms',           label:'Send SMS',        icon:'📨' },
     { id:'reviews',       label:'Video Reviews',   icon:'▶' },
   ]},
   { group:'Content', items:[
@@ -1185,6 +1186,234 @@ function HeroStatsSection() {
   )
 }
 
+// ─── SMS SECTION ──────────────────────────────────────────────────────────
+const SMS_ROLES = [
+  { key: 'customer',  label: 'Users' },
+  { key: 'staff',     label: 'Staff' },
+  { key: 'rider',     label: 'Delivery Riders' },
+  { key: 'therapist', label: 'Therapists' },
+]
+
+function SmsSection() {
+  const [role, setRole]           = useState('customer')
+  const [templates, setTemplates] = useState({})
+  const [templateId, setTemplateId] = useState('')
+  const [message, setMessage]     = useState('')
+  const [search, setSearch]       = useState('')
+  const [recipients, setRecipients] = useState([])
+  const [selected, setSelected]   = useState({})
+  const [mode, setMode]           = useState('select')   // 'select' | 'broadcast'
+  const [loading, setLoading]     = useState(false)
+  const [sending, setSending]     = useState(false)
+  const [logs, setLogs]           = useState([])
+  const [showLogs, setShowLogs]   = useState(false)
+  const [toast, setToast]         = useState(null)
+
+  const flash = (msg, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3200) }
+
+  useEffect(() => { apiFetch('/admin/sms/templates').then(setTemplates).catch(() => {}) }, [])
+
+  const loadRecipients = useCallback(async () => {
+    setLoading(true)
+    try {
+      const p = new URLSearchParams({ role })
+      if (search) p.set('search', search)
+      const d = await apiFetch(`/admin/sms/recipients?${p}`)
+      setRecipients(d.items || [])
+    } catch (e) { flash(e.message, false) }
+    finally { setLoading(false) }
+  }, [role, search])
+
+  useEffect(() => { loadRecipients() }, [loadRecipients])
+  useEffect(() => { setSelected({}); setTemplateId(''); setMessage('') }, [role])
+
+  function applyTemplate(id) {
+    setTemplateId(id)
+    const t = (templates[role] || []).find(t => t.id === id)
+    setMessage(t ? t.text : '')
+  }
+
+  const toggleOne = id => setSelected(s => ({ ...s, [id]: !s[id] }))
+  const toggleAll = () => {
+    const allSel = recipients.every(r => selected[r.id])
+    const next = {}
+    if (!allSel) recipients.forEach(r => next[r.id] = true)
+    setSelected(next)
+  }
+  const selectedCount = Object.values(selected).filter(Boolean).length
+
+  async function loadLogs() {
+    try { const d = await apiFetch('/admin/sms/logs'); setLogs(d.items || []); setShowLogs(true) }
+    catch (e) { flash(e.message, false) }
+  }
+
+  async function handleSend() {
+    if (!message.trim()) return flash('Message cannot be empty', false)
+    if (mode === 'select' && selectedCount === 0) return flash('Select at least one recipient', false)
+
+    const confirmMsg = mode === 'broadcast'
+      ? `Send to ALL ${SMS_ROLES.find(r => r.key === role)?.label} (${recipients.length} people)?`
+      : `Send to ${selectedCount} selected recipient(s)?`
+    if (!window.confirm(confirmMsg)) return
+
+    setSending(true)
+    try {
+      const body = mode === 'broadcast'
+        ? { mode: 'broadcast', role, message }
+        : { mode: 'select', role, recipient_ids: Object.keys(selected).filter(id => selected[id]), message }
+      const d = await apiFetch('/admin/sms/send', { method: 'POST', body: JSON.stringify(body) })
+      flash(`✓ Sent to ${d.sent} recipient(s)`)
+      setSelected({})
+    } catch (e) { flash(e.message, false) }
+    finally { setSending(false) }
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 9999,
+          background: toast.ok ? 'var(--green)' : 'var(--red)', color: 'white',
+          padding: '.65rem 1.1rem', borderRadius: 'var(--radius)', fontWeight: 600,
+          fontSize: '.82rem', boxShadow: 'var(--shadow-md)',
+        }}>{toast.msg}</div>
+      )}
+
+      <SectionHeader title="Send SMS" sub="Notify users, staff, riders, or therapists via Sparrow SMS">
+        <button className="btn btn-ghost" onClick={loadLogs}>🕓 History</button>
+      </SectionHeader>
+
+      {/* Role tabs */}
+      <div className="sub-tabbar">
+        {SMS_ROLES.map(r => (
+          <button key={r.key} className={`sub-tab${role === r.key ? ' active' : ''}`} onClick={() => setRole(r.key)}>
+            {r.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', alignItems: 'start' }}>
+
+        {/* LEFT: Recipients */}
+        <div className="tbl-wrap">
+          <div style={{ padding: '.85rem .9rem', borderBottom: '1px solid var(--border)', display: 'flex', gap: '.9rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '.4rem', fontSize: '.78rem', fontWeight: 600 }}>
+              <input type="radio" checked={mode === 'select'} onChange={() => setMode('select')} /> Select individuals
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '.4rem', fontSize: '.78rem', fontWeight: 600 }}>
+              <input type="radio" checked={mode === 'broadcast'} onChange={() => setMode('broadcast')} />
+              Broadcast to all {SMS_ROLES.find(r => r.key === role)?.label}
+            </label>
+          </div>
+
+          {mode === 'select' && (
+            <>
+              <div style={{ padding: '.65rem .9rem', borderBottom: '1px solid var(--border)' }}>
+                <input className="inp" placeholder="Search by name or phone…" value={search}
+                  onChange={e => setSearch(e.target.value)} style={{ width: '100%' }} />
+              </div>
+              <div className="tbl-scroll" style={{ maxHeight: 360, overflowY: 'auto' }}>
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 30 }}>
+                        <input type="checkbox" checked={recipients.length > 0 && recipients.every(r => selected[r.id])} onChange={toggleAll} />
+                      </th>
+                      <th>Name</th>
+                      <th>Phone</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading
+                      ? <tr><td className="tbl-loading" colSpan={3}><span className="spinner" /> Loading…</td></tr>
+                      : recipients.length === 0
+                        ? <tr><td colSpan={3}><div className="empty-state"><div className="empty-text">No profiles found</div></div></td></tr>
+                        : recipients.map(r => (
+                          <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => toggleOne(r.id)}>
+                            <td onClick={e => e.stopPropagation()}>
+                              <input type="checkbox" checked={!!selected[r.id]} onChange={() => toggleOne(r.id)} />
+                            </td>
+                            <td style={{ fontWeight: 600 }}>{r.name || '—'}</td>
+                            <td className="mono">{r.phone}</td>
+                          </tr>
+                        ))
+                    }
+                  </tbody>
+                </table>
+              </div>
+              <div style={{ padding: '.6rem .9rem', fontSize: '.74rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}>
+                {selectedCount} of {recipients.length} selected
+              </div>
+            </>
+          )}
+
+          {mode === 'broadcast' && (
+            <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              <div style={{ fontSize: '1.8rem', marginBottom: '.5rem' }}>📢</div>
+              This will send to <strong>all {recipients.length}</strong> {SMS_ROLES.find(r => r.key === role)?.label.toLowerCase()} with a phone number on file.
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT: Compose */}
+        <div className="section-inner" style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '.85rem' }}>
+          <div className="field">
+            <label>Template</label>
+            <select className="inp" value={templateId} onChange={e => applyTemplate(e.target.value)}>
+              <option value="">Custom message…</option>
+              {(templates[role] || []).map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+            </select>
+          </div>
+
+          <div className="field">
+            <label>Message</label>
+            <textarea className="inp" rows={6} value={message} onChange={e => setMessage(e.target.value)}
+              placeholder="Type your message… use {name}, {order_number}, {date}, {time} as placeholders" />
+            <div className="field-hint" style={{ textAlign: 'right' }}>{message.length} chars</div>
+          </div>
+
+          <div className="alert alert-warn">
+            ⚠️ Placeholders like {'{name}'} aren't auto-replaced per-recipient in bulk sends — write generically, or send individually for personalization.
+          </div>
+
+          <button className="btn btn-primary" onClick={handleSend} disabled={sending} style={{ justifyContent: 'center' }}>
+            {sending ? <><span className="spinner" /> Sending…</> : `Send SMS ${mode === 'broadcast' ? `(${recipients.length})` : selectedCount ? `(${selectedCount})` : ''}`}
+          </button>
+        </div>
+      </div>
+
+      {/* History modal */}
+      {showLogs && (
+        <div className="overlay" onClick={() => setShowLogs(false)}>
+          <div className="modal" style={{ maxWidth: 640 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-head">
+              <span className="modal-head-title">🕓 SMS History</span>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowLogs(false)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: 420, overflowY: 'auto' }}>
+              {logs.length === 0
+                ? <div className="empty-state"><div className="empty-text">No messages sent yet</div></div>
+                : logs.map(l => (
+                  <div key={l.id} style={{ borderBottom: '1px solid var(--border-2)', padding: '.6rem 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.72rem', color: 'var(--text-muted)' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{l.role}</span>
+                      <span>{fmtT(l.created_at)}</span>
+                    </div>
+                    <div style={{ fontSize: '.78rem', margin: '.25rem 0' }}>{l.message}</div>
+                    <div style={{ fontSize: '.68rem', color: 'var(--text-muted)' }}>→ {l.recipient_count} recipient(s)</div>
+                  </div>
+                ))
+              }
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={() => setShowLogs(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 // ─── COURSE ENROLLMENTS SECTION ───────────────────────────────────────────────
 // FIX: Defined at MODULE LEVEL (outside AdminDashboardPage) so hooks are valid
 function CourseEnrollmentsSection() {
@@ -2743,6 +2972,8 @@ await REFRESH_MAP[modal.type]?.()
           )}
 
           {tab === 'hero_stats' && <HeroStatsSection />}
+                    {tab === 'sms'        && <SmsSection />}
+
           {tab === 'reviews'    && <ReviewsModeration />}
 
           {/* ═══ BLOG POSTS ═══ */}
