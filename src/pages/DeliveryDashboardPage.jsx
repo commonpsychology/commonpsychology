@@ -367,7 +367,7 @@ export default function DeliveryDashboardPage() {
                   <table className="tbl">
                     <thead>
                       <tr>
-                        {['Order #', 'Client', 'Address', 'Amount', 'Pay Status', 'Delivery Status', 'Assigned', 'Actions'].map(h => (
+                        {['Order #', 'Client', 'Address', 'Amount', '', 'Delivery Status', 'Assigned', 'Actions'].map(h => (
                           <th key={h}>{h}</th>
                         ))}
                       </tr>
