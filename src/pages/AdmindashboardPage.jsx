@@ -1205,9 +1205,10 @@ function SmsSection() {
   const [mode, setMode]           = useState('select')   // 'select' | 'broadcast'
   const [loading, setLoading]     = useState(false)
   const [sending, setSending]     = useState(false)
-  const [logs, setLogs]           = useState([])
+ const [logs, setLogs]           = useState([])
   const [showLogs, setShowLogs]   = useState(false)
   const [toast, setToast]         = useState(null)
+  const [confirmSend, setConfirmSend] = useState(false)
 
   const flash = (msg, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3200) }
 
@@ -1247,15 +1248,14 @@ function SmsSection() {
     catch (e) { flash(e.message, false) }
   }
 
-  async function handleSend() {
+function handleSend() {
     if (!message.trim()) return flash('Message cannot be empty', false)
     if (mode === 'select' && selectedCount === 0) return flash('Select at least one recipient', false)
+    setConfirmSend(true)
+  }
 
-    const confirmMsg = mode === 'broadcast'
-      ? `Send to ALL ${SMS_ROLES.find(r => r.key === role)?.label} (${recipients.length} people)?`
-      : `Send to ${selectedCount} selected recipient(s)?`
-    if (!window.confirm(confirmMsg)) return
-
+  async function doSend() {
+    setConfirmSend(false)
     setSending(true)
     try {
       const body = mode === 'broadcast'
@@ -1381,6 +1381,18 @@ function SmsSection() {
           </button>
         </div>
       </div>
+
+      {/* Send confirm modal */}
+      {confirmSend && (
+        <Confirm
+          danger={false}
+          msg={mode === 'broadcast'
+            ? `Send to ALL ${SMS_ROLES.find(r => r.key === role)?.label} (${recipients.length} people)?`
+            : `Send to ${selectedCount} selected recipient(s)?`}
+          onConfirm={doSend}
+          onCancel={() => setConfirmSend(false)}
+        />
+      )}
 
       {/* History modal */}
       {showLogs && (
