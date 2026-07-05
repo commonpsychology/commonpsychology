@@ -25,7 +25,23 @@ export default function StorePage() {
   const [cartMsg,     setCartMsg]     = useState('')
   const [page,        setPage]        = useState(1)
   const [total,       setTotal]       = useState(0)
+  const [address, setAddress] = useState({
+  full_name: '', phone: '', address_line: '', city: '', landmark: '', notes: ''
+})
+const [addrErr, setAddrErr] = useState('')
   const LIMIT = 12
+
+  function updateAddr(field) {
+  return e => setAddress(a => ({ ...a, [field]: e.target.value }))
+}
+
+function validateAddress() {
+  if (!address.full_name.trim())    return 'Full name is required.'
+  if (!address.phone.trim())        return 'Phone number is required.'
+  if (!address.address_line.trim())return 'Delivery address is required.'
+  if (!address.city.trim())         return 'City is required.'
+  return ''
+}
 
   useEffect(() => {
     storeApi.categories().then(d => setCategories(d.categories || [])).catch(() => {})
@@ -122,11 +138,13 @@ async function updateQty(productId, qty) {
   }
 }
 
-  // ── Main checkout: create order first, then open payment modal ────────────
-  async function handleCheckout() {
+ async function handleCheckout() {
   if (!user) { navigate('/signin'); return }
 
-  // Build itemLines from current cart STATE (before any API call wipes it)
+  const err = validateAddress()
+  if (err) { setAddrErr(err); return }
+  setAddrErr('')
+
   const itemLines = cart.map(item => {
     const p     = item.products || {}
     const price = item.product_variants?.price ?? p.sale_price ?? p.price ?? 0
@@ -135,10 +153,9 @@ async function updateQty(productId, qty) {
 
   setCartOpen(false)
 
-  // Create order — cart is NOT cleared by the server anymore
   let orderId
   try {
-    const orderData = await storeApi.createOrder({ shippingAddress: null })
+    const orderData = await storeApi.createOrder({ shippingAddress: address }) // ← was null
     orderId = orderData.order?.id || orderData.id
   } catch (err) {
     alert('Could not create order: ' + (err.message || 'Please try again.'))
@@ -153,22 +170,17 @@ async function updateQty(productId, qty) {
     itemLines,
     couponEnabled:   true,
     allowedGateways: ['esewa', 'khalti', 'fonepay', 'stripe', 'bank_transfer', 'cash'],
-    metadata: {
-      order_id:   orderId,
-      item_count: cartCount,
-      category:   'order',
-    },
+    metadata: { order_id: orderId, item_count: cartCount, category: 'order' },
   })
 
   if (result.success) {
-    // Payment confirmed — now clear cart on server AND in state
     try { await storeApi.clearCart() } catch {}
     setCart([])
+    setAddress({ full_name:'', phone:'', address_line:'', city:'', landmark:'', notes:'' })
     navigate('/portal')
   } else if (!result.cancelled) {
     alert('Payment was not completed. Your order is saved — you can complete payment from your portal.')
   }
-  // If cancelled, cart stays intact so user can try again
 }
 
   const cartCount = cart.reduce((s,i) => s + (i.quantity || 1), 0)
@@ -337,22 +349,49 @@ async function updateQty(productId, qty) {
                 )
               })}
             </div>
-            {cart.length > 0 && (
-              <div style={{ padding:'1.5rem', borderTop:'1px solid var(--earth-cream)' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'1rem' }}>
-                  <span style={{ fontWeight:600, color:'var(--text-mid)' }}>Total</span>
-                  <span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {cartTotal.toLocaleString()}</span>
-                </div>
-                {/* Single button — opens centralized payment modal */}
-                <button onClick={handleCheckout}
-                  style={{ width:'100%', padding:'0.9rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:10, fontWeight:700, fontSize:'0.95rem', cursor:'pointer' }}>
-                  Choose Payment Method →
-                </button>
-                <p style={{ fontFamily:'var(--font-body)', fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.5rem' }}>
-                  eSewa · Khalti · QR · Card · Bank Transfer · Cash on Delivery
-                </p>
-              </div>
-            )}
+        {cart.length > 0 && (
+  <div style={{ padding:'1.5rem', borderTop:'1px solid var(--earth-cream)' }}>
+
+    {/* ── Delivery address form ── */}
+    <div style={{ marginBottom:'1rem' }}>
+      <h3 style={{ fontSize:'0.82rem', fontWeight:700, color:'var(--green-deep)', marginBottom:'0.6rem' }}>
+        Delivery Address
+      </h3>
+      <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
+        <input placeholder="Full name *" value={address.full_name} onChange={updateAddr('full_name')}
+          style={{ padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem' }} />
+        <input placeholder="Phone number *" value={address.phone} onChange={updateAddr('phone')}
+          style={{ padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem' }} />
+        <input placeholder="Street / area address *" value={address.address_line} onChange={updateAddr('address_line')}
+          style={{ padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem' }} />
+        <div style={{ display:'flex', gap:'0.5rem' }}>
+          <input placeholder="City *" value={address.city} onChange={updateAddr('city')}
+            style={{ flex:1, padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem' }} />
+          <input placeholder="Landmark (optional)" value={address.landmark} onChange={updateAddr('landmark')}
+            style={{ flex:1, padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem' }} />
+        </div>
+        <textarea placeholder="Delivery notes (optional)" value={address.notes} onChange={updateAddr('notes')} rows={2}
+          style={{ padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem', resize:'vertical' }} />
+      </div>
+      {addrErr && <p style={{ color:'#ef4444', fontSize:'0.75rem', marginTop:'0.4rem', fontWeight:600 }}>{addrErr}</p>}
+    </div>
+
+    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'1rem' }}>
+      <span style={{ fontWeight:600, color:'var(--text-mid)' }}>Total</span>
+      <span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', fontWeight:700, color:'var(--green-deep)' }}>
+        NPR {cartTotal.toLocaleString()}
+      </span>
+    </div>
+
+    <button onClick={handleCheckout}
+      style={{ width:'100%', padding:'0.9rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:10, fontWeight:700, fontSize:'0.95rem', cursor:'pointer' }}>
+      Choose Payment Method →
+    </button>
+    <p style={{ fontFamily:'var(--font-body)', fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.5rem' }}>
+      eSewa · Khalti · QR · Card · Bank Transfer · Cash on Delivery
+    </p>
+  </div>
+)}
           </div>
         </div>
       )}

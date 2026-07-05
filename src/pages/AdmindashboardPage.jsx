@@ -2551,9 +2551,9 @@ await REFRESH_MAP[modal.type]?.()
                 <thead>
                   <tr>
                     {/* ← CHANGED: added 'Delivery Status' + 'Delivery Rider' cols */}
-                    {['Order #','Client','Amount','Order Status','Delivery Status','Delivery Rider','Date','Update'].map(h =>
-                      <th key={h}>{h}</th>
-                    )}
+                    {['Order #','Client','Amount','Order Status','Delivery Status','Delivery Rider','Address','Date','Update'].map(h =>
+  <th key={h}>{h}</th>
+)}
                   </tr>
                 </thead>
                 <tbody>
@@ -2655,6 +2655,19 @@ await REFRESH_MAP[modal.type]?.()
                                     </div>
                                   )
                                 }
+                              </td>
+
+                              <td style={{ maxWidth: 220, fontSize: '.74rem' }}>
+                                {o.shipping_address ? (
+                                  <div>
+                                    <div style={{ fontWeight: 600 }}>{o.shipping_address.full_name}</div>
+                                    <div style={{ color: 'var(--text-muted)' }}>{o.shipping_address.phone}</div>
+                                    <div style={{ color: 'var(--text-muted)' }}>
+                                      {o.shipping_address.address_line}, {o.shipping_address.city}
+                                      {o.shipping_address.landmark ? ` (${o.shipping_address.landmark})` : ''}
+                                    </div>
+                                  </div>
+                                ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
                               </td>
 
                               {/* Date */}
