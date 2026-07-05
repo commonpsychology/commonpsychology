@@ -388,8 +388,8 @@ export default function DeliveryDashboardPage() {
                           )
                           : orders.map(o => {
                               const ds  = DS[o.delivery_status] || DS.unassigned
-                              const pay = PAY_MAP[o.payment_status] || { bg: '#f1f5f9', c: '#475569', t: o.payment_status || '—' }
-                              return (
+const pay = PAY_MAP[o.payment_status] || { bg: '#ecfdf5', c: '#065f46', t: '✓ Paid' }         
+                     return (
                                 <tr key={o.id} style={{ cursor: 'pointer' }} onClick={() => setDetailRow(o)}>
 
                                   {/* Order # */}
@@ -453,15 +453,16 @@ export default function DeliveryDashboardPage() {
                                     )}
                                   </td>
 
-                                  {/* Actions */}
-                                  <td onClick={e => e.stopPropagation()}>
-                                    <div style={{ display: 'flex', gap: '.3rem' }}>
-                                      <button className="btn btn-ghost btn-sm" onClick={() => setDetailRow(o)} title="View details">👁</button>
+                                 {/* Actions */}
+                                  <td onClick={e => e.stopPropagation()} style={{ minWidth: 90 }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '.3rem', alignItems: 'flex-start' }}>
+                                      <button className="btn btn-ghost btn-sm" onClick={() => setDetailRow(o)} title="View details" style={{ width: '100%', justifyContent: 'center' }}>👁</button>
                                       {/* Rider can update if not already delivered/returned */}
                                       {!['delivered','returned'].includes(o.delivery_status) && (
                                         <button className="btn btn-primary btn-sm"
                                           disabled={busy[o.id]}
-                                          onClick={() => openUpdate(o)}>
+                                          onClick={() => openUpdate(o)}
+                                          style={{ width: '100%', justifyContent: 'center' }}>
                                           Update
                                         </button>
                                       )}
