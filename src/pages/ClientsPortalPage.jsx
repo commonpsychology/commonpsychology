@@ -190,7 +190,9 @@ function packageInfo(durationHours) {
 }
 
 function paymentStatusBadge(paymentStatus, paymentMethod) {
-  if (paymentStatus === 'completed') return { label:'✓ Paid',                                   bg:'#d1fae5', color:'#065f46' }
+  if (paymentStatus === 'paid')      return { label:'✓ Paid',                                   bg:'#d1fae5', color:'#065f46' }
+  if (paymentStatus === 'refunded')  return { label:'↩ Refunded',                                bg:'#f5f3ff', color:'#5b21b6' }
+  if (paymentStatus === 'failed')    return { label:'✗ Failed',                                  bg:'#fee2e2', color:'#991b1b' }
   if (paymentMethod)                 return { label:`⏳ ${paymentMethod.toUpperCase()} Pending`, bg:'#fef3c7', color:'#92400e' }
   return                                    { label:'💳 Payment Due',                            bg:'#fee2e2', color:'#991b1b' }
 }
