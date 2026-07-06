@@ -755,9 +755,25 @@ export default function OurPlacePage() {
           <div onClick={() => setLightbox(imgIdx)} style={{ position:'absolute', inset:0, zIndex:2, cursor:'zoom-in' }}/>
           <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'55%', background:'linear-gradient(to top,rgba(0,0,0,0.78) 0%,transparent 100%)', zIndex:3, pointerEvents:'none' }}/>
           <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'clamp(1rem,3vw,2rem) clamp(1rem,3vw,2.5rem)', zIndex:4, pointerEvents:'none' }}>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, padding:'0.25rem 0.85rem', marginBottom:'0.5rem' }}>
-              <span style={{ fontFamily:'inherit', fontSize:'0.68rem', fontWeight:700, color:'rgba(255,255,255,0.9)', textTransform:'uppercase', letterSpacing:'0.1em' }}>📍 {PLACE.caption}</span>
-            </div>
+           <div style={{ display:'flex', alignItems:'center', gap:'0.6rem', flexWrap:'wrap', marginBottom:'0.5rem' }}>
+  <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, padding:'0.25rem 0.85rem' }}>
+    <span style={{ fontFamily:'inherit', fontSize:'0.68rem', fontWeight:700, color:'rgba(255,255,255,0.9)', textTransform:'uppercase', letterSpacing:'0.1em' }}>📍 {PLACE.caption}</span>
+  </div>
+  <button
+    onClick={() => navigate('/my-bookings')}
+    style={{
+      pointerEvents:'auto', display:'inline-flex', alignItems:'center', gap:'0.4rem',
+      background:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)',
+      border:'1px solid rgba(255,255,255,0.3)', borderRadius:100,
+      padding:'0.25rem 0.9rem', fontFamily:'inherit', fontSize:'0.7rem', fontWeight:700,
+      color:'#fff', cursor:'pointer', letterSpacing:'0.02em', transition:'all 0.2s',
+    }}
+    onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.28)' }}
+    onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.15)' }}
+  >
+    📖 My Bookings
+  </button>
+</div>
             <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.5rem,4vw,2.8rem)', color:WHITE, margin:0, lineHeight:1.1, textShadow:'0 2px 12px rgba(0,0,0,0.4)' }}>{PLACE.name}</h1>
             <p style={{ fontFamily:'inherit', fontSize:'clamp(0.82rem,1.8vw,1rem)', color:'rgba(255,255,255,0.82)', marginTop:'0.3rem', textShadow:'0 1px 6px rgba(0,0,0,0.4)' }}>{PLACE.tagline}</p>
           </div>

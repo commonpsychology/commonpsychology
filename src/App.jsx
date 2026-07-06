@@ -57,6 +57,7 @@ import GalleryPage         from './pages/GalleryPage'
 import VolunteerPage       from './pages/VolunteerPage'
 import PaymentPage         from './pages/Paymentpage'
 import StaffLoginPage      from './pages/StaffloginPage'
+import MyBookings     from './pages/MyBookings'
 import AdminDashboard      from './pages/AdmindashboardPage'
 import TherapistDashboard  from './pages/TherapistdashboardPage'
 import EsewaSuccessPage from './pages/EsewaSuccessPage'
@@ -85,6 +86,7 @@ const ROUTES = {
   '/mental-fitness':     MentalFitness,
   '/my-orders':          MyOrdersPage,
   '/our-news':           OurNews,
+  '/my-bookings':        MyBookings,
   '/staff-detail':      StaffPage,
   '/forgot-password':     ForgotPasswordPage, 
 '/payment/esewa/success': EsewaSuccessPage,
