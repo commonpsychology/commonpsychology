@@ -651,13 +651,16 @@ export default function OurPlacePage() {
     if (!roomId) { setBookErr('Could not load room details. Please refresh and try again.'); return }
     if (timeConflict) { setBookErr('Selected time conflicts with an existing booking. Please choose another slot.'); return }
 
-    let bookingId = null
-    try {
-      bookingId = await saveRoomBooking({ roomId, bookedDate:bookDate, startTime:bookTime, endTime, notes:notes||null, paymentMethod:null })
-    } catch (err) {
-      setBookErr(err.message || 'Could not create booking. Please try again.')
-      return
-    }
+ // Fire the booking-save request in the background — do NOT await it here.
+    // The payment modal should open instantly; this resolves long before
+    // the user finishes the payment flow.
+    let bookingErrorMsg = null
+    const bookingPromise = saveRoomBooking({
+      roomId, bookedDate:bookDate, startTime:bookTime, endTime, notes:notes||null, paymentMethod:null
+    }).catch(err => {
+      bookingErrorMsg = err.message || 'Could not create booking. Please try again.'
+      return null
+    })
 
     const result = await openPayment({
       type:        'room_booking',
@@ -668,8 +671,6 @@ export default function OurPlacePage() {
       couponEnabled: true,
       allowedGateways: ['esewa','khalti','fonepay','stripe','bank_transfer','cash'],
       metadata: {
-        booking_id:      bookingId,
-        room_booking_id: bookingId,
         category:        'room_booking',
         package_id:      pkg.id,
         package_name:    pkg.name,
@@ -681,8 +682,19 @@ export default function OurPlacePage() {
       },
     })
 
+    // Almost always already resolved by now — safe to await.
+    const bookingId = await bookingPromise
+
+    if (!bookingId) {
+      setBookErr(
+        bookingErrorMsg ||
+        `Payment went through but we couldn't save the booking record. Please contact support${result?.transactionId ? ` with reference ${result.transactionId}` : ''}.`
+      )
+      return
+    }
+
     if (result.success) {
-      if (bookingId && result.paymentId) {
+      if (result.paymentId) {
         fetch(`${API_BASE}/room-bookings/${bookingId}/attach-payment`, {
           method:  'POST',
           headers: { 'Content-Type':'application/json', Authorization:`Bearer ${localStorage.getItem('accessToken')}` },
