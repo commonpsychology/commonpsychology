@@ -644,24 +644,13 @@ export default function OurPlacePage() {
     setScreen('pay')
     setTimeout(() => payEl.current?.scrollIntoView({ behavior:'smooth', block:'start' }), 80)
   }
-
-  async function handleConfirmBooking() {
+async function handleConfirmBooking() {
     if (!formOK || !pkg) return
     setBookErr('')
     if (!roomId) { setBookErr('Could not load room details. Please refresh and try again.'); return }
     if (timeConflict) { setBookErr('Selected time conflicts with an existing booking. Please choose another slot.'); return }
 
- // Fire the booking-save request in the background — do NOT await it here.
-    // The payment modal should open instantly; this resolves long before
-    // the user finishes the payment flow.
-    let bookingErrorMsg = null
-    const bookingPromise = saveRoomBooking({
-      roomId, bookedDate:bookDate, startTime:bookTime, endTime, notes:notes||null, paymentMethod:null
-    }).catch(err => {
-      bookingErrorMsg = err.message || 'Could not create booking. Please try again.'
-      return null
-    })
-
+    // Do NOT create the booking until payment actually succeeds.
     const result = await openPayment({
       type:        'room_booking',
       amount:      pkg.price,
@@ -682,29 +671,43 @@ export default function OurPlacePage() {
       },
     })
 
-    // Almost always already resolved by now — safe to await.
-    const bookingId = await bookingPromise
+    // Payment was cancelled, closed, or failed — no booking should exist.
+    if (!result || !result.success) {
+      if (result?.error) setBookErr(result.error)
+      return
+    }
+
+    // Payment succeeded — now, and only now, create the booking.
+    let bookingId = null
+    let saveErr = null
+    try {
+      bookingId = await saveRoomBooking({
+        roomId, bookedDate:bookDate, startTime:bookTime, endTime, notes:notes||null,
+        paymentMethod: result.method || null,
+      })
+    } catch (err) {
+      saveErr = err.message || 'Could not create booking.'
+    }
 
     if (!bookingId) {
       setBookErr(
-        bookingErrorMsg ||
-        `Payment went through but we couldn't save the booking record. Please contact support${result?.transactionId ? ` with reference ${result.transactionId}` : ''}.`
+        `Payment succeeded but we couldn't save the booking record${saveErr ? `: ${saveErr}` : ''}. ` +
+        `Please contact support${result.transactionId ? ` with reference ${result.transactionId}` : ''}.`
       )
       return
     }
 
-    if (result.success) {
-      if (result.paymentId) {
-        fetch(`${API_BASE}/room-bookings/${bookingId}/attach-payment`, {
-          method:  'POST',
-          headers: { 'Content-Type':'application/json', Authorization:`Bearer ${localStorage.getItem('accessToken')}` },
-          body: JSON.stringify({ paymentId:result.paymentId, transactionId:result.transactionId }),
-        }).catch(() => {})
-      }
-      setDoneData({ pkg, bookDate, bookTime, endTime, clientName, clientPhone, method:result.method, txnId:result.transactionId })
-      setScreen('done')
-      window.scrollTo({ top:0, behavior:'smooth' })
+    if (result.paymentId) {
+      fetch(`${API_BASE}/room-bookings/${bookingId}/attach-payment`, {
+        method:  'POST',
+        headers: { 'Content-Type':'application/json', Authorization:`Bearer ${localStorage.getItem('accessToken')}` },
+        body: JSON.stringify({ paymentId:result.paymentId, transactionId:result.transactionId }),
+      }).catch(() => {})
     }
+
+    setDoneData({ pkg, bookDate, bookTime, endTime, clientName, clientPhone, method:result.method, txnId:result.transactionId })
+    setScreen('done')
+    window.scrollTo({ top:0, behavior:'smooth' })
   }
 
   const minDate = new Date().toISOString().split('T')[0]
