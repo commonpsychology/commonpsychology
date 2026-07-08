@@ -79,20 +79,24 @@ export default function ResearchDetailPage() {
   // The proxy URL — browser talks to YOUR backend, no CORS or CSP issues
 const proxyPdfUrl = `${BACKEND_ROOT}/api/research/${id}/pdf`
 
- async function handleDownload() {
+async function handleDownload() {
     if (!paper?.pdf_url || dlState === 'loading') return
     setDlState('loading')
 
-    // Await the counter and use the SERVER's real count — no more optimistic guessing
-    let confirmedCount = null
+    // Await the counter and use the SERVER's real count — never fake an increment
     try {
       const dlRes = await fetch(`${BACKEND_ROOT}/api/research/${id}/download`, { method: 'POST' })
       const dlJson = await dlRes.json().catch(() => null)
-      if (dlJson?.ok && typeof dlJson.downloads === 'number') {
-        confirmedCount = dlJson.downloads
+      const rawCount = dlJson?.downloads
+      const numericCount = typeof rawCount === 'string' ? parseInt(rawCount, 10) : rawCount
+
+      if (dlJson?.ok && typeof numericCount === 'number' && !Number.isNaN(numericCount)) {
+        setDlCount(numericCount)
+      } else {
+        console.error('Download counter did not persist:', dlJson?.message || dlRes.status, dlJson)
       }
-    } catch {
-      // counter failed — fall through, still let the download happen
+    } catch (e) {
+      console.error('Download counter request failed:', e)
     }
 
     try {
@@ -108,12 +112,10 @@ const proxyPdfUrl = `${BACKEND_ROOT}/api/research/${id}/pdf`
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
-      setDlCount(confirmedCount ?? (c => (c ?? 0) + 1))
       setDlState('done')
       setTimeout(() => setDlState('idle'), 2500)
     } catch {
       window.open(proxyPdfUrl, '_blank')
-      setDlCount(confirmedCount ?? (c => (c ?? 0) + 1))
       setDlState('done')
       setTimeout(() => setDlState('idle'), 2500)
     }
