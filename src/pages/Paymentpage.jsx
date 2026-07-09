@@ -3,7 +3,7 @@
 // Calls payments.initiate() to create payment record in DB
 // Calls payments.verify() to mark payment completed
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { payments as paymentsApi } from '../services/api'
 
@@ -77,7 +77,7 @@ export default function PaymentPage() {
     }
   })()
 
-  const [method,    setMethod]    = useState('qr')
+ const [method,    setMethod]    = useState('qr')
   const [copied,    setCopied]    = useState('')
   const [saving,    setSaving]    = useState(false)
   const [done,      setDone]      = useState(false)
@@ -86,8 +86,24 @@ export default function PaymentPage() {
   const [orderRef]                = useState(generateRef)
   const confirmed                 = useRef(false)
 
-  const selected = METHODS.find(m => m.id === method)
-  const feeStr   = `NPR ${Number(booking.fee || 0).toLocaleString()}`
+  // ── Loyalty discount (every 10th completed payment → 20% off the next) ──
+  const [loyalty, setLoyalty]           = useState(null)  // preview from server before paying
+  const [chargedAmount, setChargedAmount] = useState(null) // actual amount server charged, after confirm
+
+  useEffect(() => {
+    const API   = import.meta.env?.VITE_API_URL || ''
+    const token = localStorage.getItem('accessToken')
+    fetch(`${API}/payments/loyalty-status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(r => r.json()).then(d => d.success && setLoyalty(d)).catch(() => {})
+  }, [])
+
+const selected = METHODS.find(m => m.id === method)
+
+  const loyaltyDiscountAmount = loyalty?.isEligible ? Math.round(Number(booking.fee || 0) * 0.20) : 0
+  const estimatedFee = Math.max(0, Number(booking.fee || 0) - loyaltyDiscountAmount)
+  const displayFee    = chargedAmount !== null ? chargedAmount : estimatedFee
+  const feeStr        = `NPR ${Number(displayFee).toLocaleString()}`
 
   function copy(text, key) {
     navigator.clipboard.writeText(text).catch(()=>{})
@@ -119,8 +135,15 @@ export default function PaymentPage() {
         },
       })
 
-      const newPaymentId = initiateData?.payment?.id || initiateData?.id
+    const newPaymentId = initiateData?.payment?.id || initiateData?.id
       setPaymentId(newPaymentId)
+
+      // Capture what the server actually charged (it applies the loyalty discount)
+      const serverFinalAmount = initiateData?.finalAmount ?? initiateData?.payment?.amount
+      if (serverFinalAmount != null) setChargedAmount(Number(serverFinalAmount))
+      if (initiateData?.loyaltyDiscountApplied) {
+        setLoyalty(prev => ({ ...(prev || {}), isEligible: true, upcomingPaymentNumber: initiateData.loyaltyPaymentNumber }))
+      }
 
       // ── STEP 2: For non-COD, mark as "pending verification"
       // For COD, mark as completed straight away
@@ -182,12 +205,17 @@ export default function PaymentPage() {
                 <div style={{ fontFamily:'var(--font-display)', fontSize:'1.4rem', color:C.skyDeep, fontWeight:700, letterSpacing:'0.06em' }}>{orderRef}</div>
                 <div style={{ fontFamily:'var(--font-body)', fontSize:'0.7rem', color:C.textLight, marginTop:'0.2rem' }}>Save this for your records · Screenshot this page</div>
               </div>
-
-              <div style={{ background:C.white, border:`1px solid ${C.borderFaint}`, borderRadius:12, padding:'1rem', marginBottom:'1.75rem', textAlign:'left' }}>
+<div style={{ background:C.white, border:`1px solid ${C.borderFaint}`, borderRadius:12, padding:'1rem', marginBottom:'1.75rem', textAlign:'left' }}>
                 {[
                   ['Therapist',    booking.therapistName],
                   ['Session Type', booking.type],
                   ['Date & Time',  `${booking.date} at ${booking.time}`],
+                  ...(chargedAmount !== null && chargedAmount < Number(booking.fee || 0)
+                    ? [
+                        ['Original Amount', `NPR ${Number(booking.fee || 0).toLocaleString()}`],
+                        ['🎉 Loyalty Discount (20%)', `– NPR ${(Number(booking.fee || 0) - chargedAmount).toLocaleString()}`],
+                      ]
+                    : []),
                   ['Amount',       feeStr],
                   ['Payment via',  METHODS.find(m => m.id === method)?.label || method],
                 ].map(([k,v]) => (
@@ -368,8 +396,20 @@ export default function PaymentPage() {
             <div style={{ background:C.white, borderRadius:20, border:`1px solid ${C.borderFaint}`, overflow:'hidden', boxShadow:`0 6px 32px rgba(0,191,255,0.1)` }}>
               <div style={{ background:heroGrad, padding:'1.6rem', textAlign:'center', position:'relative', overflow:'hidden' }}>
                 <div style={{ position:'absolute', top:-30, right:-30, width:120, height:120, borderRadius:'50%', background:'rgba(255,255,255,0.07)', pointerEvents:'none' }} />
-                <div style={{ fontFamily:'var(--font-body)', fontSize:'0.65rem', fontWeight:700, color:'rgba(255,255,255,0.7)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.35rem' }}>Total Due</div>
+               <div style={{ fontFamily:'var(--font-body)', fontSize:'0.65rem', fontWeight:700, color:'rgba(255,255,255,0.7)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.35rem' }}>Total Due</div>
+                {loyaltyDiscountAmount > 0 && chargedAmount === null && (
+                  <div style={{ fontFamily:'var(--font-body)', fontSize:'0.75rem', color:'rgba(255,255,255,0.6)', textDecoration:'line-through', marginBottom:'0.1rem' }}>
+                    NPR {Number(booking.fee || 0).toLocaleString()}
+                  </div>
+                )}
                 <div style={{ fontFamily:'var(--font-display)', fontSize:'2.2rem', color:'white', fontWeight:800, lineHeight:1 }}>{feeStr}</div>
+                {loyaltyDiscountAmount > 0 && chargedAmount === null && (
+                  <div style={{ display:'inline-block', marginTop:'0.45rem', background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:100, padding:'0.22rem 0.7rem' }}>
+                    <span style={{ fontFamily:'var(--font-body)', fontSize:'0.68rem', fontWeight:700, color:'white' }}>
+                      🎉 20% loyalty discount — you save NPR {loyaltyDiscountAmount.toLocaleString()}
+                    </span>
+                  </div>
+                )}
                 <div style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', color:'rgba(255,255,255,0.7)', marginTop:'0.4rem' }}>Session #{booking.sessionNo}</div>
               </div>
               <div style={{ padding:'1.25rem' }}>
