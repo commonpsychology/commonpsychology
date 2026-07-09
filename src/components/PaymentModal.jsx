@@ -431,8 +431,15 @@ function PaymentModal({ config, onClose, onResult }) {
   const [cardCvc,       setCardCvc]       = useState('')
   const [cardName,      setCardName]      = useState('')
 
-  const token = () => localStorage.getItem('accessToken')
+ const token = () => localStorage.getItem('accessToken')
   const API   = import.meta.env?.VITE_API_URL || ''
+
+  const [loyalty, setLoyalty] = useState(null)
+  useEffect(() => {
+    fetch(`${API}/payments/loyalty-status`, {
+      headers: { Authorization: `Bearer ${token()}` },
+    }).then(r => r.json()).then(d => d.success && setLoyalty(d)).catch(() => {})
+  }, [])
 
   const baseAmount = Math.round(Math.max(0, Number(config.amount) || 0))
 
@@ -440,12 +447,15 @@ function PaymentModal({ config, onClose, onResult }) {
     ? GATEWAYS.filter(g => config.allowedGateways.includes(g.id))
     : GATEWAYS
 
-  const finalAmount = couponApplied
+const afterCoupon = couponApplied
     ? Math.max(0, baseAmount - (couponApplied.type === 'percentage'
         ? Math.round(baseAmount * couponApplied.value / 100)
         : couponApplied.value))
     : baseAmount
-  const discount = baseAmount - finalAmount
+
+  const loyaltyDiscount = loyalty?.isEligible ? Math.round(afterCoupon * 0.20) : 0
+  const finalAmount     = Math.max(0, afterCoupon - loyaltyDiscount)
+  const discount        = baseAmount - finalAmount
 
   async function applyCoupon() {
     setCouponError('')
@@ -712,7 +722,8 @@ if (safeMethod === 'esewa') {
                   {(config.itemLines || []).map((item, i) => (
                     <div className="psm-summary-row" key={i}><span>{item.label}</span><span>NPR {Number(item.amount).toLocaleString()}</span></div>
                   ))}
-                  {couponApplied && <div className="psm-summary-row" style={{ color:'var(--psm-green)' }}><span>🎫 Coupon ({couponApplied.code})</span><span>– NPR {discount.toLocaleString()}</span></div>}
+      {couponApplied && <div className="psm-summary-row" style={{ color:'var(--psm-green)' }}><span>🎫 Coupon ({couponApplied.code})</span><span>– NPR {(afterCoupon !== baseAmount ? baseAmount - afterCoupon : 0).toLocaleString()}</span></div>}
+                  {loyalty?.isEligible && <div className="psm-summary-row" style={{ color:'var(--psm-green)' }}><span>🎉 Loyalty reward (payment #{loyalty.upcomingPaymentNumber})</span><span>– NPR {loyaltyDiscount.toLocaleString()}</span></div>}
                   <div className="psm-summary-row total"><span>Total</span><span>NPR {finalAmount.toLocaleString()}</span></div>
                   {config.couponEnabled !== false && !couponApplied && (
                     <>
