@@ -504,8 +504,7 @@ body                  { top: 0 !important; position: static !important; }
 .btn-lg { padding: 0.85rem 2rem; font-size: 1rem; border-radius: var(--radius-md); }
 
 .btn-primary  { background: var(--sky);          color: var(--white);      border-color: var(--sky); }
-.btn-primary:hover  { background: var(--sky-dark); border-color: var(--sky-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,191,255,0.35); }
-
+.btn-primary:hover  { background: var(--sky); border-color: var(--sky); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,191,255,0.35); }
 .btn-outline  { background: transparent;          color: var(--sky);        border-color: var(--sky); }
 .btn-outline:hover  { background: var(--sky); color: var(--white); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,191,255,0.25); }
 
@@ -516,8 +515,7 @@ body                  { top: 0 !important; position: static !important; }
 .btn-earth:hover    { background: var(--earth-mid); border-color: var(--earth-mid); transform: translateY(-1px); }
 
 .btn-sky      { background: var(--sky);            color: var(--white);      border-color: var(--sky); }
-.btn-sky:hover      { background: var(--sky-dark); border-color: var(--sky-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,191,255,0.35); }
-
+.btn-sky:hover      { background: var(--sky); border-color: var(--sky); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,191,255,0.35); }
 .btn-sky-outline { background: transparent; color: var(--sky); border-color: var(--sky); }
 .btn-sky-outline:hover { background: var(--sky); color: var(--white); transform: translateY(-1px); }
 
