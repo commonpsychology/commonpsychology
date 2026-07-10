@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { isLoggedIn } from '../services/api'
+import { supabase } from '../services/supabaseClient' // adjust path if your Supabase client lives elsewhere
 
 // ─────────────────────────────────────────────────────────────
 // FULL ASSESSMENT DEFINITIONS (embedded — no API needed)
@@ -254,6 +255,41 @@ function computeResult(assessment, answers) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// EMAIL HELPER
+// ─────────────────────────────────────────────────────────────
+// Fire-and-forget: sends the just-computed result to the backend, which
+// resolves the recipient address itself from the user's Supabase session
+// (never trusts a client-supplied email). Failure here should never block
+// the results screen from showing.
+async function emailAssessmentResult(assessment, result) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return // not logged in — nothing to email
+
+    const API_BASE_URL = import.meta.env.VITE_API_URL || ''
+
+    const res = await fetch(`${API_BASE_URL}/api/assessments/email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        assessmentId: assessment.id,
+        assessmentTitle: assessment.title,
+        result,
+      }),
+    })
+
+    if (!res.ok) throw new Error(`Email request failed (${res.status})`)
+    return true
+  } catch (err) {
+    console.error('Failed to email assessment result:', err)
+    return false
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
 // SEVERITY BADGE
 // ─────────────────────────────────────────────────────────────
 function SeverityBadge({ label, color, bg }) {
@@ -286,7 +322,7 @@ function ScoreBar({ value, max, color }) {
 // ─────────────────────────────────────────────────────────────
 // RESULTS: simple (PHQ-9, GAD-7)
 // ─────────────────────────────────────────────────────────────
-function SimpleResult({ assessment, result, navigate }) {
+function SimpleResult({ assessment, result, navigate, answers, emailStatus }) {
   const { total, match } = result
   const pct = Math.round((total / assessment.maxScore) * 100)
   return (
@@ -355,7 +391,7 @@ function SimpleResult({ assessment, result, navigate }) {
       )}
 
       {/* Disclaimer */}
-      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '1rem 1.25rem', marginBottom: '2rem', textAlign: 'left' }}>
+      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '1rem 1.25rem', marginBottom: '1.5rem', textAlign: 'left' }}>
         <p style={{ fontSize: '0.78rem', color: '#92400e', margin: 0, lineHeight: 1.6 }}>
           <strong>⚠ Clinical Note:</strong> This screening tool is not a diagnosis. Results can be influenced by comorbid conditions and situational factors. Please consult a qualified mental health professional for a comprehensive evaluation.
         </p>
@@ -366,7 +402,23 @@ function SimpleResult({ assessment, result, navigate }) {
 
       {!isLoggedIn() && (
         <p style={{ fontSize: '0.82rem', color: 'var(--text-light)', marginBottom: '1.5rem', background: 'var(--earth-cream)', padding: '0.75rem 1rem', borderRadius: 8 }}>
-          💡 <strong>Sign in</strong> to save your results and track your progress over time.
+          💡 <strong>Sign in</strong> to save your results, email a copy to yourself, and track your progress over time.
+        </p>
+      )}
+
+      {isLoggedIn() && emailStatus === 'sending' && (
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginBottom: '1rem' }}>
+          ✉️ Emailing your results to you…
+        </p>
+      )}
+      {isLoggedIn() && emailStatus === 'sent' && (
+        <p style={{ fontSize: '0.78rem', color: '#16a34a', marginBottom: '1rem' }}>
+          ✅ Your results have been emailed to you.
+        </p>
+      )}
+      {isLoggedIn() && emailStatus === 'failed' && (
+        <p style={{ fontSize: '0.78rem', color: '#9ca3af', marginBottom: '1rem' }}>
+          Couldn't email your results right now — they're still shown below.
         </p>
       )}
 
@@ -413,7 +465,7 @@ const DASS_OVERALL = (subscales) => {
   return { label: 'Within Normal Range', color: '#16a34a', bg: '#dcfce7' }
 }
 
-function SubscaleResult({ assessment, result, navigate }) {
+function SubscaleResult({ assessment, result, navigate, emailStatus }) {
   const { subscales } = result
   const isDASS     = assessment.id === 'dass21'
   const overall    = isDASS ? DASS_OVERALL(subscales) : BURNOUT_OVERALL(subscales)
@@ -498,7 +550,23 @@ function SubscaleResult({ assessment, result, navigate }) {
 
       {!isLoggedIn() && (
         <p style={{ fontSize: '0.82rem', color: 'var(--text-light)', marginBottom: '1.5rem', background: 'var(--earth-cream)', padding: '0.75rem 1rem', borderRadius: 8 }}>
-          💡 <strong>Sign in</strong> to save your results and track your progress over time.
+          💡 <strong>Sign in</strong> to save your results, email a copy to yourself, and track your progress over time.
+        </p>
+      )}
+
+      {isLoggedIn() && emailStatus === 'sending' && (
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginBottom: '1rem' }}>
+          ✉️ Emailing your results to you…
+        </p>
+      )}
+      {isLoggedIn() && emailStatus === 'sent' && (
+        <p style={{ fontSize: '0.78rem', color: '#16a34a', marginBottom: '1rem' }}>
+          ✅ Your results have been emailed to you.
+        </p>
+      )}
+      {isLoggedIn() && emailStatus === 'failed' && (
+        <p style={{ fontSize: '0.78rem', color: '#9ca3af', marginBottom: '1rem' }}>
+          Couldn't email your results right now — they're still shown below.
         </p>
       )}
 
@@ -514,7 +582,6 @@ function SubscaleResult({ assessment, result, navigate }) {
 // ─────────────────────────────────────────────────────────────
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────
-let answers // lifted for Q9 note access in SimpleResult — we'll pass it down
 export default function AssessmentTakePage() {
   const { params, navigate }        = useRouter()
   const assessmentId                = params?.assessmentId || 'phq9'
@@ -524,6 +591,7 @@ export default function AssessmentTakePage() {
   const [result, setResult]         = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState('')
+  const [emailStatus, setEmailStatus] = useState('idle') // idle | sending | sent | failed
 
   // Reset when assessment changes
   useEffect(() => {
@@ -531,6 +599,7 @@ export default function AssessmentTakePage() {
     setSubmitted(false)
     setResult(null)
     setError('')
+    setEmailStatus('idle')
   }, [assessmentId])
 
   const questions = assessment.questions
@@ -546,6 +615,14 @@ export default function AssessmentTakePage() {
       const res = computeResult(assessment, localAnswers)
       setResult(res)
       setSubmitted(true)
+
+      // Email the results to the logged-in user's address (non-blocking).
+      if (isLoggedIn()) {
+        setEmailStatus('sending')
+        emailAssessmentResult(assessment, res).then(ok => {
+          setEmailStatus(ok ? 'sent' : 'failed')
+        })
+      }
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {
@@ -558,8 +635,8 @@ export default function AssessmentTakePage() {
     <div className="page-wrapper">
       <div className="section" style={{ background: 'var(--off-white)', minHeight: '80vh', paddingTop: '4rem', paddingBottom: '4rem' }}>
         {result.type === 'simple'
-          ? <SimpleResult assessment={assessment} result={result} navigate={navigate} answers={localAnswers} />
-          : <SubscaleResult assessment={assessment} result={result} navigate={navigate} />
+          ? <SimpleResult assessment={assessment} result={result} navigate={navigate} answers={localAnswers} emailStatus={emailStatus} />
+          : <SubscaleResult assessment={assessment} result={result} navigate={navigate} emailStatus={emailStatus} />
         }
       </div>
     </div>
@@ -685,6 +762,7 @@ export default function AssessmentTakePage() {
 
           <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '0.75rem' }}>
             Estimated time: {assessment.estTime} · Results shown immediately
+            {isLoggedIn() ? ' · Emailed to you on submit' : ''}
           </p>
         </div>
       </div>
