@@ -5,14 +5,14 @@ const TRUST_ITEMS = [
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <path d="M14 3L5 7v7c0 5.25 3.85 10.15 9 11.35C19.15 24.15 23 19.25 23 14V7l-9-4z"
-          fill="rgba(16,185,129,0.18)" stroke="#10b981" strokeWidth="1.6" strokeLinejoin="round"/>
-        <path d="M10 14l3 3 5-5" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          fill="rgba(14,165,233,0.18)" stroke="#0ea5e9" strokeWidth="1.6" strokeLinejoin="round"/>
+        <path d="M10 14l3 3 5-5" stroke="#0369a1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
     label: 'Licensed & Verified',
     desc: 'NPC-certified therapists',
-    accent: '#10b981',
-    lightBg: 'rgba(16,185,129,0.06)',
+    accent: '#0ea5e9',
+    lightBg: 'rgba(14,165,233,0.06)',
     num: '01',
   },
   {
@@ -24,36 +24,36 @@ const TRUST_ITEMS = [
     ),
     label: '24 / 7 Support',
     desc: 'Always here when you need us',
-    accent: '#0ea5e9',
-    lightBg: 'rgba(14,165,233,0.06)',
+    accent: '#0284c7',
+    lightBg: 'rgba(2,132,199,0.06)',
     num: '02',
   },
   {
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <rect x="4" y="6" width="20" height="16" rx="4" fill="rgba(45,212,191,0.14)" stroke="#2dd4bf" strokeWidth="1.6"/>
-        <path d="M9 13h10M9 17h6" stroke="#0d9488" strokeWidth="2" strokeLinecap="round"/>
-        <circle cx="9" cy="9.5" r="1.5" fill="#2dd4bf"/>
+        <rect x="4" y="6" width="20" height="16" rx="4" fill="rgba(59,130,246,0.14)" stroke="#3b82f6" strokeWidth="1.6"/>
+        <path d="M9 13h10M9 17h6" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round"/>
+        <circle cx="9" cy="9.5" r="1.5" fill="#3b82f6"/>
       </svg>
     ),
     label: 'Ethical Practice',
     desc: 'Confidentiality & consent',
-    accent: '#2dd4bf',
-    lightBg: 'rgba(45,212,191,0.06)',
+    accent: '#3b82f6',
+    lightBg: 'rgba(59,130,246,0.06)',
     num: '03',
   },
   {
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="10" r="5" fill="rgba(16,185,129,0.14)" stroke="#10b981" strokeWidth="1.6"/>
-        <path d="M6 23c0-4.42 3.58-8 8-8s8 3.58 8 8" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round"/>
+        <circle cx="14" cy="10" r="5" fill="rgba(14,165,233,0.14)" stroke="#0ea5e9" strokeWidth="1.6"/>
+        <path d="M6 23c0-4.42 3.58-8 8-8s8 3.58 8 8" stroke="#0ea5e9" strokeWidth="1.6" strokeLinecap="round"/>
         <path d="M20 13l2 2 4-4" stroke="#38bdf8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
     label: 'Personalised Care',
     desc: 'Tailored to your unique needs',
-    accent: '#6ee7b7',
-    lightBg: 'rgba(110,231,183,0.07)',
+    accent: '#7dd3fc',
+    lightBg: 'rgba(125,211,252,0.08)',
     num: '04',
   },
   {
@@ -114,15 +114,14 @@ function TrustCard({ item, index }) {
         overflow: 'hidden',
       }}
     >
-      {/* Faint number watermark — set in a quiet serif italic rather than
-          mono, so it reads as a page-folio number, not a code artifact */}
+      {/* Faint number watermark, set in the rounded display face so it
+          reads as a soft page marker rather than a code artifact */}
       <div style={{
         position: 'absolute',
         top: 4, right: 11,
-        fontFamily: "'Fraunces', serif",
-        fontStyle: 'italic',
+        fontFamily: "'Baloo 2', sans-serif",
+        fontWeight: 600,
         fontSize: '0.95rem',
-        fontWeight: 500,
         color: hovered ? item.accent : 'rgba(148,163,184,0.38)',
         letterSpacing: '0.01em',
         transition: 'color 0.2s',
@@ -158,7 +157,7 @@ function TrustCard({ item, index }) {
       {/* Text */}
       <div>
         <div style={{
-          fontFamily: "'Fraunces', serif",
+          fontFamily: "'Baloo 2', sans-serif",
           fontSize: '0.92rem',
           fontWeight: 600,
           letterSpacing: '-0.01em',
@@ -170,9 +169,9 @@ function TrustCard({ item, index }) {
           {item.label}
         </div>
         <div style={{
-          fontFamily: "'Inter', sans-serif",
-          fontSize: '0.68rem',
-          fontWeight: 400,
+          fontFamily: "'Quicksand', sans-serif",
+          fontSize: '0.7rem',
+          fontWeight: 500,
           letterSpacing: '0.005em',
           color: hovered ? '#0369a1' : '#64748b',
           lineHeight: 1.45,
@@ -189,14 +188,14 @@ export default function TrustBar() {
   return (
     <div style={{
       padding: '12px 3px',
-      background: 'linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 50%, #f0f9ff 100%)',
+      background: 'linear-gradient(135deg, #f0f9ff 0%, #f0f9ff 50%, #f0f9ff 100%)',
       borderTop: '1px solid rgba(186,230,253,0.4)',
       borderBottom: '1px solid rgba(186,230,253,0.4)',
       boxSizing: 'border-box',
     }}>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap');
       `}</style>
 
       {/* Outer card shell */}
@@ -212,10 +211,10 @@ export default function TrustBar() {
         boxSizing: 'border-box',
       }}>
 
-        {/* Top rainbow stripe */}
+        {/* Top stripe — blues only */}
         <div style={{
           height: 3,
-          background: 'linear-gradient(90deg, #10b981 0%, #0ea5e9 35%, #2dd4bf 65%, #10b981 100%)',
+          background: 'linear-gradient(90deg, #0ea5e9 0%, #38bdf8 35%, #7dd3fc 65%, #0ea5e9 100%)',
           backgroundSize: '200% 100%',
         }} />
 
@@ -231,14 +230,13 @@ export default function TrustBar() {
             <span style={{
               display: 'inline-block',
               width: 7, height: 7, borderRadius: '50%',
-              background: '#10b981',
-              boxShadow: '0 0 0 3px rgba(16,185,129,0.18)',
+              background: '#0ea5e9',
+              boxShadow: '0 0 0 3px rgba(14,165,233,0.18)',
             }} />
             <span style={{
-              fontFamily: "'Fraunces', serif",
-              fontStyle: 'italic',
+              fontFamily: "'Baloo 2', sans-serif",
+              fontWeight: 600,
               fontSize: '0.82rem',
-              fontWeight: 500,
               letterSpacing: '0.01em',
               color: '#0c4a6e',
             }}>
@@ -246,9 +244,9 @@ export default function TrustBar() {
             </span>
           </div>
           <div style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: '0.58rem',
-            fontWeight: 500,
+            fontFamily: "'Quicksand', sans-serif",
+            fontSize: '0.6rem',
+            fontWeight: 700,
             color: 'rgba(100,116,139,0.75)',
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
