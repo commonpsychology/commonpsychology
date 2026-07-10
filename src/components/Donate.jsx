@@ -400,18 +400,15 @@ export default function WellspringFlask() {
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
 
         .wf-root {
-          background: linear-gradient(180deg, ${TOKENS.bgFrom} 0%, ${TOKENS.bgVia} 55%, ${TOKENS.bgTo} 100%);
+          background: transparent;
           font-family: 'Inter', sans-serif;
           position: relative;
           width: 100%;
           max-width: clamp(900px, 80vw, 1600px);
           margin: clamp(96px, 10vw, 160px) auto;
-          border-radius: 28px;
           padding: 160px 16px 60px 16px;
           box-sizing: border-box;
-          overflow: hidden;
-          box-shadow: 0 20px 60px rgba(7,30,43,0.12);
-          border: 1px solid rgba(20,107,134,0.10);
+          overflow: visible;
         }
 
         .wf-top-wave {
