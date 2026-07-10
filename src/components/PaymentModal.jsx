@@ -453,8 +453,8 @@ const afterCoupon = couponApplied
         : couponApplied.value))
     : baseAmount
 
-  const loyaltyDiscount = loyalty?.isEligible ? Math.round(afterCoupon * 0.20) : 0
-  const finalAmount     = Math.max(0, afterCoupon - loyaltyDiscount)
+const loyaltyDiscount = loyalty?.isEligible ? Math.round(afterCoupon * 0.50) : 0  
+const finalAmount     = Math.max(0, afterCoupon - loyaltyDiscount)
   const discount        = baseAmount - finalAmount
 
   async function applyCoupon() {

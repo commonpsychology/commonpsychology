@@ -100,7 +100,7 @@ export default function PaymentPage() {
 
 const selected = METHODS.find(m => m.id === method)
 
-  const loyaltyDiscountAmount = loyalty?.isEligible ? Math.round(Number(booking.fee || 0) * 0.20) : 0
+const loyaltyDiscountAmount = loyalty?.isEligible ? Math.round(Number(booking.fee || 0) * 0.50) : 0
   const estimatedFee = Math.max(0, Number(booking.fee || 0) - loyaltyDiscountAmount)
   const displayFee    = chargedAmount !== null ? chargedAmount : estimatedFee
   const feeStr        = `NPR ${Number(displayFee).toLocaleString()}`
@@ -213,8 +213,7 @@ const selected = METHODS.find(m => m.id === method)
                   ...(chargedAmount !== null && chargedAmount < Number(booking.fee || 0)
                     ? [
                         ['Original Amount', `NPR ${Number(booking.fee || 0).toLocaleString()}`],
-                        ['🎉 Loyalty Discount (20%)', `– NPR ${(Number(booking.fee || 0) - chargedAmount).toLocaleString()}`],
-                      ]
+['🎉 Loyalty Discount (50%)', `– NPR ${(Number(booking.fee || 0) - chargedAmount).toLocaleString()}`],                      ]
                     : []),
                   ['Amount',       feeStr],
                   ['Payment via',  METHODS.find(m => m.id === method)?.label || method],
@@ -406,8 +405,7 @@ const selected = METHODS.find(m => m.id === method)
                 {loyaltyDiscountAmount > 0 && chargedAmount === null && (
                   <div style={{ display:'inline-block', marginTop:'0.45rem', background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:100, padding:'0.22rem 0.7rem' }}>
                     <span style={{ fontFamily:'var(--font-body)', fontSize:'0.68rem', fontWeight:700, color:'white' }}>
-                      🎉 20% loyalty discount — you save NPR {loyaltyDiscountAmount.toLocaleString()}
-                    </span>
+🎉 50% loyalty discount — you save NPR {loyaltyDiscountAmount.toLocaleString()}                    </span>
                   </div>
                 )}
                 <div style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', color:'rgba(255,255,255,0.7)', marginTop:'0.4rem' }}>Session #{booking.sessionNo}</div>

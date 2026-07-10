@@ -429,16 +429,18 @@ export default function ClientPortalPage() {
   const [savingEntry, setSavingEntry] = useState(false)
   const [openEntry,   setOpenEntry]   = useState(null)
 
-  const [notifs,      setNotifs]      = useState([])
+const [notifs,      setNotifs]      = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifFilter, setNotifFilter] = useState('all')
   const [notifShown,  setNotifShown]  = useState(8)
 
-  useEffect(() => { injectCSS('portal-css', PORTAL_CSS) }, [])
+  const [loyaltyStatus, setLoyaltyStatus] = useState(null) // { completedCount, upcomingPaymentNumber, isEligible }
 
-  useEffect(() => {
+  useEffect(() => { injectCSS('portal-css', PORTAL_CSS) }, [])
+useEffect(() => {
     if (!user) { navigate('/signin'); return }
     loadOverview()
+    loadLoyaltyStatus()
   }, [user])
 
   useEffect(() => {
@@ -504,8 +506,17 @@ setPast(pastAppts)
     } finally { setLoadingAppts(false) }
   }
 
-  async function loadRoomBookings() {
-    setLoadingRoomBookings(true)
+async function loadLoyaltyStatus() {
+    try {
+      const token = localStorage.getItem('accessToken')
+      if (!token) return
+      const res  = await fetch(`${API_BASE}/payments/loyalty-status`, { headers: { Authorization:`Bearer ${token}` } })
+      const data = await res.json()
+      if (data.success) setLoyaltyStatus(data)
+    } catch {}
+  }
+
+  async function loadRoomBookings() {    setLoadingRoomBookings(true)
     try {
       const token = localStorage.getItem('accessToken')
       if (!token) return
@@ -785,6 +796,65 @@ setPast(pastAppts)
                 </div>
               ))}
             </div>
+
+            {loyaltyStatus && (() => {
+              const completed     = loyaltyStatus.completedCount || 0
+              const nextMilestone = Math.ceil((completed + 1) / 10) * 10 + 1 // e.g. 11, 21, 31...
+              const inCycleCount  = completed % 10                            // 0..9 payments since last reward
+              const progressPct   = Math.min(100, (inCycleCount / 10) * 100)
+              const paymentsToGo  = 10 - inCycleCount
+
+              return (
+                <div style={{
+                  background: loyaltyStatus.isEligible
+                    ? 'linear-gradient(135deg,#fff7e6,#fffbeb)'
+                    : 'var(--white)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '1.75rem 2rem',
+                  border: `1.5px solid ${loyaltyStatus.isEligible ? '#fbbf24' : 'var(--blue-pale)'}`,
+                  marginBottom: '1.5rem',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:'0.75rem', marginBottom:'0.9rem' }}>
+                    <div>
+                      <div style={{ fontFamily:'var(--font-display)', fontSize:'1.05rem', color:'var(--blue-deep)', display:'flex', alignItems:'center', gap:'0.5rem' }}>
+                        💳 Payments Made
+                      </div>
+                      <div style={{ fontSize:'0.78rem', color:'var(--text-light)', marginTop:'0.15rem' }}>
+                        Every 10th payment unlocks a reward
+                      </div>
+                    </div>
+                    <div style={{ fontFamily:'var(--font-display)', fontSize:'2rem', fontWeight:800, color:'var(--blue-deep)', lineHeight:1 }}>
+                      {completed}
+                    </div>
+                  </div>
+
+                  {loyaltyStatus.isEligible ? (
+                    <div style={{ display:'flex', alignItems:'center', gap:'0.6rem', background:'#fbbf24', borderRadius:12, padding:'0.75rem 1rem', boxShadow:'0 4px 14px rgba(251,191,36,0.35)' }}>
+                      <span style={{ fontSize:'1.3rem' }}>🎉</span>
+                      <div>
+                        <div style={{ fontWeight:800, color:'#3a2400', fontSize:'0.9rem' }}>
+                          50% off unlocked for your {loyaltyStatus.upcomingPaymentNumber}th payment!
+                        </div>
+                        <div style={{ fontSize:'0.75rem', color:'#5c3d00' }}>
+                          It'll be applied automatically at checkout.
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ height:8, background:'var(--blue-pale)', borderRadius:99, overflow:'hidden', marginBottom:'0.6rem' }}>
+                        <div style={{ height:'100%', width:`${progressPct}%`, background:'linear-gradient(90deg,#0369a1,#0ea5e9)', borderRadius:99, transition:'width 0.6s ease' }} />
+                      </div>
+                      <div style={{ fontSize:'0.82rem', color:'var(--text-mid)' }}>
+                        <strong style={{ color:'var(--blue-deep)' }}>{paymentsToGo} more payment{paymentsToGo !== 1 ? 's' : ''}</strong> to get <strong style={{ color:'var(--blue-deep)' }}>50% off</strong> on your {nextMilestone}th payment.
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
+            })()}
 
             <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)', marginBottom:'1.5rem' }}>
               <div style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--blue-deep)', marginBottom:'1rem' }}>How are you feeling today?</div>
