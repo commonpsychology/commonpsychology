@@ -21,7 +21,7 @@ const RESOURCE_LINKS = [
   ['Books & Workbooks', '/store'],
 ]
 const COMPANY_LINKS = [
-  ['About Us',           '/contact'],
+  ['About Us',           '/our-values'],
   ['Our Therapists',     '/therapists'],
   ['Become a Therapist', '/contact'],
   ['Policies',     '/payment-info'],
