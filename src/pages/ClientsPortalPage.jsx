@@ -201,8 +201,20 @@ function paymentStatusBadge(paymentStatus, paymentMethod) {
 
 // ✅ NEW — badge for regular therapy appointments (uses a.payment_status
 // values: 'unpaid' | 'pending' | 'pending_cod' | 'paid' | 'failed')
-function apptPaymentBadge(status) {
-  if (status === 'paid')                                  return { label:'✓ Paid',            bg:'#d1fae5', color:'#065f46' }
+// An appointment is only "stale" if it's been unpaid for more than this many
+// minutes — gives the client time to finish the payment modal without their
+// own booking vanishing mid-checkout.
+const UNPAID_GRACE_MINUTES = 20
+
+function isStaleUnpaid(appt) {
+  const unpaidStates = ['unpaid', 'pending', undefined, null]
+  if (!unpaidStates.includes(appt.payment_status)) return false
+  const createdAt = new Date(appt.created_at || appt.scheduled_at).getTime()
+  const ageMinutes = (Date.now() - createdAt) / 60000
+  return ageMinutes > UNPAID_GRACE_MINUTES
+}
+
+function apptPaymentBadge(status) {  if (status === 'paid')                                  return { label:'✓ Paid',            bg:'#d1fae5', color:'#065f46' }
   if (status === 'pending' || status === 'pending_cod')    return { label:'⏳ Payment Pending', bg:'#fef3c7', color:'#92400e' }
   if (status === 'failed')                                 return { label:'⚠️ Payment Issue',  bg:'#fee2e2', color:'#991b1b' }
   return                                                        { label:'💳 Payment Due',      bg:'#fee2e2', color:'#991b1b' }
@@ -461,10 +473,11 @@ useEffect(() => {
       // both count toward "you have a session coming up".
       // Show pending/confirmed regardless of payment stage —
       // a brand-new booking starts as unpaid until gateway callback fires.
-      const upcoming = all
+ const upcoming = all
         .filter(a =>
           ['pending', 'confirmed'].includes(a.status) &&
-          new Date(a.scheduled_at) >= new Date()
+          new Date(a.scheduled_at) >= new Date() &&
+          !isStaleUnpaid(a)
         )
         .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))
 
@@ -488,10 +501,11 @@ useEffect(() => {
       console.log('[DEBUG] appointment count:', all.length, all)
       // Always show pending/confirmed — new bookings are 'unpaid' until
       // the payment gateway callback fires, so don't gate on payment_status here.
-     const now = new Date()
+ const now = new Date()
 const upcomingAppts = all.filter(a => {
   if (a.status === 'cancelled') return false
   if (a.status === 'completed') return false
+  if (isStaleUnpaid(a)) return false   // hide abandoned unpaid holds
   return new Date(a.scheduled_at) >= now
 })
 const pastAppts = all.filter(a => {

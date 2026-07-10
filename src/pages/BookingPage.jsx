@@ -222,6 +222,20 @@ async function handleConfirm() {
       const therapistName = selected.therapist.full_name || 'Therapist'
       const sessionLabel = SESSION_TYPES.find(t => t.value === selected.type)?.label || selected.type
 
+  // Best-effort cleanup if the person closes/reloads the tab while the
+      // payment modal is open — sendBeacon can fire during unload when normal
+      // fetch calls would be aborted.
+      const releaseOnUnload = () => {
+        try {
+          const token = localStorage.getItem('accessToken')
+          navigator.sendBeacon?.(
+            `${API_BASE}/appointments/${appointmentId}/cancel`,
+            new Blob([JSON.stringify({ reason:'abandoned_checkout' })], { type:'application/json' })
+          )
+        } catch {}
+      }
+      window.addEventListener('pagehide', releaseOnUnload)
+
       const result = await openPayment({
         type:'appointment', amount:fee,
         title:`Session with ${therapistName}`,
@@ -231,6 +245,8 @@ async function handleConfirm() {
         allowedGateways:['esewa','khalti','fonepay','stripe','bank_transfer'],
         metadata:{ appointment_id:appointmentId, therapist_id:therapistId, therapist_name:therapistName, session_type:selected.type, scheduled_at:dateTime, client_name:user.fullName||user.full_name||user.name||'', client_email:user.email||'', category:'appointment' },
       })
+
+      window.removeEventListener('pagehide', releaseOnUnload)
 
       if (result.success) {
         navigate('/portal')

@@ -2715,9 +2715,18 @@ await REFRESH_MAP[modal.type]?.()
             </div>
           )}
 
-          {/* ═══ APPOINTMENTS ═══ */}
+     {/* ═══ APPOINTMENTS ═══ */}
           {tab === 'appointments' && (
             <div>
+              {appts.some(a => {
+                const unpaid = ['unpaid', 'pending', undefined, null].includes(a.payment_status)
+                const ageMin = (Date.now() - new Date(a.created_at || a.scheduled_at).getTime()) / 60000
+                return unpaid && ageMin > 20 && !['cancelled','completed'].includes(a.status)
+              }) && (
+                <div className="alert alert-warn" style={{ marginBottom:'.85rem' }}>
+                  ⚠️ Some appointments on this page have been <strong>unpaid for over 20 minutes</strong> — likely abandoned checkouts. They won't appear in Payments until a payment record exists. Consider cancelling them to free the time slot.
+                </div>
+              )}
               <SectionHeader title="Appointments" count={aTotal}>
                 <select className="inp" value={aStatus} onChange={e=>{setAStatus(e.target.value);setAPage(1)}}>
                   <option value="">All statuses</option>
@@ -2725,17 +2734,28 @@ await REFRESH_MAP[modal.type]?.()
                 </select>
                 <button className="btn btn-ghost" onClick={fetchAppts}>↺</button>
               </SectionHeader>
-              <Table loading={busy.appts} cols={['Client','Therapist','Date & Time','Type','Status','Update']}
-                rows={appts.map(a=>(
-                  <tr key={a.id}>
-                    <td><strong style={{fontSize:'.82rem'}}>{resolveClientName(a)}</strong></td>
-                    <td style={{fontSize:'.79rem'}}>{resolveTherapistName(a)}</td>
-                    <td style={{fontSize:'.74rem',color:'var(--text-muted)',whiteSpace:'nowrap'}}>{fmtT(a.scheduled_at)}</td>
-                    <td><span style={{fontSize:'.7rem',background:'var(--surface-2)',padding:'.15rem .4rem',borderRadius:4}}>{a.type}</span></td>
-                    <td><Badge s={a.status} /></td>
-                    <td><select className="inp" value={a.status} onChange={e=>doApptStatus(a.id,e.target.value)} style={{padding:'.18rem .42rem',fontSize:'.72rem'}}>{['pending','confirmed','completed','cancelled','no_show'].map(s=><option key={s} value={s}>{s}</option>)}</select></td>
-                  </tr>
-                ))}
+         <Table loading={busy.appts} cols={['Client','Therapist','Date & Time','Type','Payment','Status','Update']}
+                rows={appts.map(a=>{
+                  const unpaid = ['unpaid', 'pending', undefined, null].includes(a.payment_status)
+                  const ageMin = (Date.now() - new Date(a.created_at || a.scheduled_at).getTime()) / 60000
+                  const stale  = unpaid && ageMin > 20 && !['cancelled','completed'].includes(a.status)
+                  return (
+                    <tr key={a.id} style={stale ? { background:'#fffbeb' } : undefined}>
+                      <td><strong style={{fontSize:'.82rem'}}>{resolveClientName(a)}</strong></td>
+                      <td style={{fontSize:'.79rem'}}>{resolveTherapistName(a)}</td>
+                      <td style={{fontSize:'.74rem',color:'var(--text-muted)',whiteSpace:'nowrap'}}>{fmtT(a.scheduled_at)}</td>
+                      <td><span style={{fontSize:'.7rem',background:'var(--surface-2)',padding:'.15rem .4rem',borderRadius:4}}>{a.type}</span></td>
+                      <td>
+                        {stale
+                          ? <span className="pay-badge" style={{ background:'#fef3c7', color:'#92400e' }}>⚠️ Abandoned?</span>
+                          : <span className="pay-badge" style={{ background:a.payment_status==='paid'?'#ecfdf5':'#f1f5f9', color:a.payment_status==='paid'?'#065f46':'#475569' }}>{a.payment_status||'—'}</span>
+                        }
+                      </td>
+                      <td><Badge s={a.status} /></td>
+                      <td><select className="inp" value={a.status} onChange={e=>doApptStatus(a.id,e.target.value)} style={{padding:'.18rem .42rem',fontSize:'.72rem'}}>{['pending','confirmed','completed','cancelled','no_show'].map(s=><option key={s} value={s}>{s}</option>)}</select></td>
+                    </tr>
+                  )
+                })}
               />
               <Pager page={aPage} set={setAPage} total={aTotal} />
             </div>
