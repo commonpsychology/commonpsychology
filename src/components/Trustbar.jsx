@@ -114,15 +114,17 @@ function TrustCard({ item, index }) {
         overflow: 'hidden',
       }}
     >
-      {/* Faint number watermark */}
+      {/* Faint number watermark — set in a quiet serif italic rather than
+          mono, so it reads as a page-folio number, not a code artifact */}
       <div style={{
         position: 'absolute',
-        top: 6, right: 10,
-        fontFamily: "'DM Mono', monospace",
-        fontSize: '0.6rem',
-        fontWeight: 700,
-        color: hovered ? item.accent : 'rgba(148,163,184,0.4)',
-        letterSpacing: '0.05em',
+        top: 4, right: 11,
+        fontFamily: "'Fraunces', serif",
+        fontStyle: 'italic',
+        fontSize: '0.95rem',
+        fontWeight: 500,
+        color: hovered ? item.accent : 'rgba(148,163,184,0.38)',
+        letterSpacing: '0.01em',
         transition: 'color 0.2s',
         userSelect: 'none',
       }}>
@@ -156,21 +158,24 @@ function TrustCard({ item, index }) {
       {/* Text */}
       <div>
         <div style={{
-          fontFamily: "'Outfit', sans-serif",
-          fontSize: '0.8rem',
-          fontWeight: 700,
-          color: hovered ? '#0c4a6e' : '#1e3a5f',
+          fontFamily: "'Fraunces', serif",
+          fontSize: '0.92rem',
+          fontWeight: 600,
+          letterSpacing: '-0.01em',
+          color: hovered ? item.accent : '#16324a',
           lineHeight: 1.25,
-          marginBottom: '0.18rem',
+          marginBottom: '0.24rem',
           transition: 'color 0.18s',
         }}>
           {item.label}
         </div>
         <div style={{
-          fontFamily: "'Outfit', sans-serif",
-          fontSize: '0.67rem',
+          fontFamily: "'Inter', sans-serif",
+          fontSize: '0.68rem',
+          fontWeight: 400,
+          letterSpacing: '0.005em',
           color: hovered ? '#0369a1' : '#64748b',
-          lineHeight: 1.4,
+          lineHeight: 1.45,
           transition: 'color 0.18s',
         }}>
           {item.desc}
@@ -189,6 +194,10 @@ export default function TrustBar() {
       borderBottom: '1px solid rgba(186,230,253,0.4)',
       boxSizing: 'border-box',
     }}>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap');
+      `}</style>
 
       {/* Outer card shell */}
       <div style={{
@@ -215,10 +224,10 @@ export default function TrustBar() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0.7rem 1.1rem 0.5rem',
+          padding: '0.75rem 1.15rem 0.55rem',
           borderBottom: '1px solid rgba(186,230,253,0.35)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
             <span style={{
               display: 'inline-block',
               width: 7, height: 7, borderRadius: '50%',
@@ -226,21 +235,23 @@ export default function TrustBar() {
               boxShadow: '0 0 0 3px rgba(16,185,129,0.18)',
             }} />
             <span style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: '0.6rem',
-              fontWeight: 700,
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              color: '#0369a1',
+              fontFamily: "'Fraunces', serif",
+              fontStyle: 'italic',
+              fontSize: '0.82rem',
+              fontWeight: 500,
+              letterSpacing: '0.01em',
+              color: '#0c4a6e',
             }}>
-              YOUR TRUST, OUR COMMITMENT
+              Your trust, our commitment
             </span>
           </div>
           <div style={{
-            fontFamily: "'DM Mono', monospace",
+            fontFamily: "'JetBrains Mono', monospace",
             fontSize: '0.58rem',
-            color: 'rgba(148,163,184,0.7)',
-            letterSpacing: '0.08em',
+            fontWeight: 500,
+            color: 'rgba(100,116,139,0.75)',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
           }}>
             6 pillars of care
           </div>
