@@ -2,10 +2,15 @@ import React, { useState, useEffect, useCallback } from "react";
 
 /**
  * WELLSPRING — flask widget
- * Transparent-background, 3D-glass flask that fills with falling
- * oceanic-blue droplets, then pours a real stream out of an open spout
+ * Transparent-background, glass flask that fills with falling
+ * teal droplets, then pours a real stream out of an open spout
  * hole, splitting to a family, a school, and a village. Tapping the
  * flask or the drop-shaped CTA opens a QR code to give.
+ *
+ * Palette: a deep indigo-teal "night water" ground with a single warm
+ * sun-gold accent reserved for the call to action and the moment of
+ * giving — everything else stays quiet so that accent reads as a choice,
+ * not a decoration.
  *
  * NOTE: layout is done with plain scoped CSS (see <style> block below)
  * instead of Tailwind utility classes, so it renders correctly
@@ -14,21 +19,29 @@ import React, { useState, useEffect, useCallback } from "react";
  */
 
 const TOKENS = {
-  oceanDeep: "#012A3F",
-  oceanMid: "#023E5C",
-  ocean: "#0B6E8C",
-  oceanBright: "#1EC3D6",
-  oceanLight: "#8FEAE0",
-  glass: "rgba(255,255,255,0.06)",
-  glassBorder: "rgba(255,255,255,0.35)",
-  ink: "#043249",
-  mist: "#F2FBFA",
-  dim: "#4C7387",
-  bgFrom: "#F5FAFD",
-  bgTo: "#E6F0F6",
-  waveA: "#012A3F",
-  waveB: "#0B6E8C",
-  waveC: "#1EC3D6",
+  // Ocean — the water itself, and everything else: one consistent
+  // sky-blue → white family used throughout, no second accent palette.
+  oceanInk: "#003850",
+  oceanDeep: "#005580",
+  oceanCore: "#007BA8",
+  oceanBright: "#00BFFF",
+  oceanPale: "#F0FBFF",
+
+  // Accent — kept in the same family, just the lightest/brightest step,
+  // reserved for the giving moment (CTA, modal highlight).
+  sun: "#00BFFF",
+  sunLight: "#F0FBFF",
+  sunDeep: "#005580",
+
+  // Neutrals
+  ink: "#003850",
+  dim: "#4d7c94",
+  mist: "#F4FAF9",
+  bgFrom: "#F6FAFA",
+  bgVia: "#EAF3F2",
+  bgTo: "#F6FAFA",
+
+  glassBorder: "rgba(255,255,255,0.4)",
 };
 
 const DONATE_URL = "https://wellspring.org/give?src=hero-flask";
@@ -139,20 +152,22 @@ function DonateModal({ open, onClose }) {
           ✕
         </button>
 
+        <span className="wf-modal-eyebrow">Every drop counted</span>
         <h3 className="wf-modal-title">Give a drop</h3>
+        <p className="wf-modal-sub">Scan to send directly — no account needed.</p>
 
         <div className="wf-qr-card">
           <img
             src="/bank-qr.png"
-            width={220}
-            height={220}
+            width={210}
+            height={210}
             alt="QR code linking to the Wellspring donation page"
             className="wf-qr-img"
           />
         </div>
 
         <button onClick={copyLink} className="wf-copy-btn">
-          {copied ? "Copied ✓" : "Copy link"}
+          {copied ? "Copied ✓" : "Copy link instead"}
         </button>
       </div>
     </div>
@@ -164,14 +179,13 @@ function DropButton({ onClick }) {
     <button onClick={onClick} aria-label="Give a drop" className="wf-drop-btn">
       <svg width="136" height="172" viewBox="0 0 136 172">
         <defs>
-          <radialGradient id="dropBtnGrad" cx="38%" cy="28%" r="78%">
-            <stop offset="0%" stopColor={TOKENS.oceanLight} />
-            <stop offset="42%" stopColor={TOKENS.oceanBright} />
-            <stop offset="78%" stopColor={TOKENS.ocean} />
-            <stop offset="100%" stopColor={TOKENS.oceanMid} />
+          <radialGradient id="dropBtnGrad" cx="36%" cy="26%" r="80%">
+            <stop offset="0%" stopColor="#F0FBFF" />
+            <stop offset="45%" stopColor="#00BFFF" />
+            <stop offset="100%" stopColor="#007BA8" />
           </radialGradient>
           <filter id="dropBtnShadow" x="-40%" y="-20%" width="180%" height="170%">
-            <feDropShadow dx="0" dy="10" stdDeviation="10" floodColor={TOKENS.oceanDeep} floodOpacity="0.4" />
+            <feDropShadow dx="0" dy="10" stdDeviation="12" floodColor="#005580" floodOpacity="0.38" />
           </filter>
         </defs>
         <g filter="url(#dropBtnShadow)" className="wf-drop-btn-inner">
@@ -179,12 +193,12 @@ function DropButton({ onClick }) {
             d="M68 6 C102 56 124 86 124 112 A56 56 0 1 1 12 112 C12 86 34 56 68 6 Z"
             fill="url(#dropBtnGrad)"
           />
-          <ellipse cx="47" cy="78" rx="15" ry="24" fill="#FFFFFF" opacity="0.35" />
+          <ellipse cx="47" cy="78" rx="15" ry="24" fill="#FFFFFF" opacity="0.4" />
         </g>
-        <text x="68" y="120" textAnchor="middle" fill="#FFFFFF" style={{ font: "600 14px 'Inter', sans-serif" }}>
+        <text x="68" y="120" textAnchor="middle" fill="#003850" style={{ font: "600 14px 'Fraunces', serif" }}>
           Give a
         </text>
-        <text x="68" y="138" textAnchor="middle" fill="#FFFFFF" style={{ font: "600 14px 'Inter', sans-serif" }}>
+        <text x="68" y="138" textAnchor="middle" fill="#003850" style={{ font: "600 14px 'Fraunces', serif" }}>
           drop
         </text>
       </svg>
@@ -192,7 +206,9 @@ function DropButton({ onClick }) {
   );
 }
 
-/** Decorative gradient wave band across the top of the section. */
+/** Quiet horizon band across the top of the section — a single still
+    gradient rather than two competing wave layers, so the drama stays
+    with the flask. */
 function TopWave() {
   return (
     <svg
@@ -202,27 +218,16 @@ function TopWave() {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="waveGradA" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={TOKENS.waveA} />
-          <stop offset="55%" stopColor={TOKENS.waveB} />
-          <stop offset="100%" stopColor={TOKENS.waveC} />
-        </linearGradient>
-        <linearGradient id="waveGradB" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor={TOKENS.waveB} stopOpacity="0.55" />
-          <stop offset="100%" stopColor={TOKENS.waveC} stopOpacity="0.55" />
+        <linearGradient id="waveGradA" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#007BA8" />
+          <stop offset="55%" stopColor="#00BFFF" />
+          <stop offset="100%" stopColor="#F0FBFF" />
         </linearGradient>
       </defs>
-      {/* back wave */}
       <path
         className="wf-wave-layer wf-wave-back"
-        d="M0,90 C 220,150 420,40 720,90 C 1020,140 1240,40 1440,90 L1440,0 L0,0 Z"
+        d="M0,100 C 240,150 440,55 720,100 C 1000,145 1220,55 1440,100 L1440,0 L0,0 Z"
         fill="url(#waveGradA)"
-      />
-      {/* front wave, slightly offset for parallax depth */}
-      <path
-        className="wf-wave-layer wf-wave-front"
-        d="M0,130 C 260,80 460,180 760,130 C 1040,84 1260,170 1440,130 L1440,0 L0,0 Z"
-        fill="url(#waveGradB)"
       />
     </svg>
   );
@@ -250,27 +255,27 @@ function FlaskVisual({ onGive }) {
       <svg viewBox="0 0 400 560" width="400" height="560" className="wf-flask-svg">
         <defs>
           <linearGradient id="waterFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={TOKENS.oceanLight} />
-            <stop offset="45%" stopColor={TOKENS.oceanBright} />
-            <stop offset="80%" stopColor={TOKENS.ocean} />
-            <stop offset="100%" stopColor={TOKENS.oceanMid} />
+            <stop offset="0%" stopColor={TOKENS.oceanPale} />
+            <stop offset="42%" stopColor={TOKENS.oceanBright} />
+            <stop offset="78%" stopColor={TOKENS.oceanCore} />
+            <stop offset="100%" stopColor={TOKENS.oceanDeep} />
           </linearGradient>
           <linearGradient id="glassBody" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#aecaf2" stopOpacity="0.16" />
-            <stop offset="45%" stopColor="#aecaf2" stopOpacity="0.03" />
-            <stop offset="100%" stopColor="#aecaf2" stopOpacity="0.10" />
+            <stop offset="0%" stopColor="#DCEFEE" stopOpacity="0.20" />
+            <stop offset="45%" stopColor="#DCEFEE" stopOpacity="0.04" />
+            <stop offset="100%" stopColor="#DCEFEE" stopOpacity="0.12" />
           </linearGradient>
           <linearGradient id="streamGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={TOKENS.oceanBright} stopOpacity="0.9" />
-            <stop offset="100%" stopColor={TOKENS.ocean} stopOpacity="0.35" />
+            <stop offset="0%" stopColor={TOKENS.oceanBright} stopOpacity="0.92" />
+            <stop offset="100%" stopColor={TOKENS.oceanCore} stopOpacity="0.4" />
           </linearGradient>
           <radialGradient id="spoutHole" cx="50%" cy="45%" r="65%">
-            <stop offset="0%" stopColor={TOKENS.oceanDeep} />
-            <stop offset="70%" stopColor={TOKENS.oceanMid} />
-            <stop offset="100%" stopColor={TOKENS.ocean} />
+            <stop offset="0%" stopColor={TOKENS.oceanInk} />
+            <stop offset="70%" stopColor={TOKENS.oceanDeep} />
+            <stop offset="100%" stopColor={TOKENS.oceanCore} />
           </radialGradient>
           <filter id="flaskShadow" x="-30%" y="-10%" width="160%" height="140%">
-            <feDropShadow dx="0" dy="14" stdDeviation="16" floodColor={TOKENS.oceanDeep} floodOpacity="0.35" />
+            <feDropShadow dx="0" dy="14" stdDeviation="18" floodColor={TOKENS.oceanInk} floodOpacity="0.30" />
           </filter>
           <clipPath id="flaskClip">
             <path d="M170 108 C150 148 92 174 84 258 C76 344 136 428 200 428 C264 428 324 344 316 258 C308 174 250 148 230 108 Z" />
@@ -303,8 +308,8 @@ function FlaskVisual({ onGive }) {
           />
           <g clipPath="url(#flaskClip)">
             <rect x="60" y="260" width="290" height="200" fill="url(#waterFill)" />
-            <path className="wf-wave-drift" d="M60 260 Q100 250 140 260 T220 260 T300 260 T380 260 V266 H60 Z" fill={TOKENS.oceanLight} opacity="0.5" />
-            <path className="wf-wave-drift wf-wave-drift-2" d="M60 266 Q105 258 150 266 T240 266 T330 266 T420 266 V272 H60 Z" fill={TOKENS.oceanBright} opacity="0.6" />
+            <path className="wf-wave-drift" d="M60 260 Q100 250 140 260 T220 260 T300 260 T380 260 V266 H60 Z" fill={TOKENS.oceanPale} opacity="0.5" />
+            <path className="wf-wave-drift wf-wave-drift-2" d="M60 266 Q105 258 150 266 T240 266 T330 266 T420 266 V272 H60 Z" fill={TOKENS.oceanBright} opacity="0.55" />
             <ellipse cx="140" cy="330" rx="18" ry="70" fill="#FFFFFF" opacity="0.12" />
           </g>
           <path
@@ -344,7 +349,7 @@ function FlaskVisual({ onGive }) {
               stroke="url(#streamGrad)"
               strokeWidth={i === 1 ? 7 : 5}
               strokeLinecap="round"
-              opacity="0.75"
+              opacity="0.8"
             />
           ))}
         </g>
@@ -356,11 +361,11 @@ function FlaskVisual({ onGive }) {
             </circle>
             <path
               d={`M${c.lx} ${c.ly - 24} C ${c.lx + 9} ${c.ly - 10} ${c.lx + 9} ${c.ly} ${c.lx} ${c.ly} C ${c.lx - 9} ${c.ly} ${c.lx - 9} ${c.ly - 10} ${c.lx} ${c.ly - 24} Z`}
-              fill={TOKENS.ocean}
-              opacity="0.85"
+              fill={TOKENS.oceanCore}
+              opacity="0.9"
             />
             <ellipse cx={c.lx - 2.5} cy={c.ly - 14} rx="2.5" ry="4" fill="#FFFFFF" opacity="0.5" />
-            <text x={c.lx} y={c.ly + 16} textAnchor="middle" fill={TOKENS.dim} style={{ font: "10px 'Inter', sans-serif" }}>
+            <text x={c.lx} y={c.ly + 16} textAnchor="middle" fill={TOKENS.dim} style={{ font: "600 10px 'Inter', sans-serif", letterSpacing: "0.02em" }}>
               {c.label}
             </text>
           </g>
@@ -392,20 +397,21 @@ export default function WellspringFlask() {
       <TopWave />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
 
         .wf-root {
-          background: linear-gradient(180deg, ${TOKENS.bgFrom} 0%, ${TOKENS.bgTo} 55%, ${TOKENS.bgFrom} 100%);
+          background: linear-gradient(180deg, ${TOKENS.bgFrom} 0%, ${TOKENS.bgVia} 55%, ${TOKENS.bgTo} 100%);
           font-family: 'Inter', sans-serif;
           position: relative;
           width: 100%;
           max-width: clamp(900px, 80vw, 1600px);
           margin: clamp(96px, 10vw, 160px) auto;
           border-radius: 28px;
-          padding: 160px 16px 56px 16px;
+          padding: 160px 16px 60px 16px;
           box-sizing: border-box;
           overflow: hidden;
-          box-shadow: 0 12px 40px rgba(3,60,90,0.10);
+          box-shadow: 0 20px 60px rgba(7,30,43,0.12);
+          border: 1px solid rgba(20,107,134,0.10);
         }
 
         .wf-top-wave {
@@ -417,14 +423,13 @@ export default function WellspringFlask() {
           display: block;
         }
         .wf-wave-layer { transform-origin: center; }
-        .wf-wave-back { animation: wfWaveSway 9s ease-in-out infinite; }
-        .wf-wave-front { animation: wfWaveSway 7s ease-in-out infinite reverse; }
+        .wf-wave-back { animation: wfWaveSway 10s ease-in-out infinite; }
         @keyframes wfWaveSway {
           0%, 100% { transform: translateY(0px); }
-          50%      { transform: translateY(6px); }
+          50%      { transform: translateY(5px); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .wf-wave-back, .wf-wave-front { animation: none; }
+          .wf-wave-back { animation: none; }
         }
 
         .wf-inner {
@@ -444,7 +449,6 @@ export default function WellspringFlask() {
           cursor: pointer;
           padding: 0;
           display: block;
-          width: 100%;
         }
         .wf-flask-svg {
           width: 100%;
@@ -459,51 +463,67 @@ export default function WellspringFlask() {
           flex-direction: row;
           justify-content: center;
           align-items: stretch;
-          gap: 14px;
-          margin-top: 24px;
-          margin-bottom: 32px;
+          gap: 12px;
+          margin-top: 20px;
+          margin-bottom: 34px;
           flex-wrap: wrap;
         }
         .wf-stat {
-          text-align: center;
-          background: rgba(255,255,255,0.65);
-          border: 1px solid rgba(3,60,90,0.12);
-          border-radius: 16px;
-          padding: 16px 20px;
-          min-width: 108px;
-          box-shadow: 0 2px 10px rgba(3,60,90,0.06);
+          position: relative;
+          text-align: left;
+          background: rgba(255,255,255,0.72);
+          border: 1px solid rgba(20,107,134,0.14);
+          border-radius: 14px;
+          padding: 16px 20px 16px 18px;
+          min-width: 128px;
+          box-shadow: 0 3px 14px rgba(7,30,43,0.06);
           cursor: default;
           transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
         }
+        .wf-stat::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 12px;
+          bottom: 12px;
+          width: 3px;
+          border-radius: 2px;
+          background: ${TOKENS.oceanBright};
+          opacity: 0.55;
+          transition: opacity 0.22s ease, background 0.22s ease;
+        }
         .wf-stat:hover,
         .wf-stat:focus-visible {
-          transform: translateY(-4px);
-          background: rgba(255,255,255,0.95);
-          border-color: rgba(3,60,90,0.28);
-          box-shadow: 0 12px 26px rgba(3,60,90,0.14);
+          transform: translateY(-3px);
+          background: rgba(255,255,255,1);
+          border-color: rgba(20,107,134,0.30);
+          box-shadow: 0 14px 30px rgba(7,30,43,0.12);
         }
+        .wf-stat:hover::before { background: ${TOKENS.sun}; opacity: 1; }
         .wf-stat-num {
-          color: ${TOKENS.oceanMid};
+          color: ${TOKENS.oceanDeep};
           font-family: 'Fraunces', serif;
-          font-size: 24px;
+          font-size: 23px;
           font-weight: 600;
+          line-height: 1.1;
           transition: color 0.22s ease;
         }
-        .wf-stat:hover .wf-stat-num { color: ${TOKENS.oceanBright}; }
+        .wf-stat:hover .wf-stat-num { color: ${TOKENS.oceanInk}; }
         .wf-stat-label {
           color: ${TOKENS.dim};
-          font-size: 10px;
+          font-size: 10.5px;
+          font-weight: 500;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-top: 6px;
+          letter-spacing: 0.06em;
+          margin-top: 5px;
           line-height: 1.3;
         }
         .wf-stats-error {
           text-align: center;
           color: ${TOKENS.dim};
           font-size: 11px;
-          margin-top: -20px;
-          margin-bottom: 24px;
+          margin-top: -22px;
+          margin-bottom: 26px;
         }
 
         .wf-drop-btn {
@@ -516,12 +536,12 @@ export default function WellspringFlask() {
         .wf-drop-btn-inner { transition: transform 0.2s ease; }
         .wf-drop-btn:hover .wf-drop-btn-inner,
         .wf-drop-btn:focus-visible .wf-drop-btn-inner { transform: translateY(-4px); }
-        .wf-drop-btn:focus-visible { outline: 2px solid ${TOKENS.oceanBright}; outline-offset: 3px; border-radius: 999px; }
+        .wf-drop-btn:focus-visible { outline: 2px solid #00BFFF; outline-offset: 3px; border-radius: 999px; }
 
         .wf-modal-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(1, 20, 30, 0.6);
+          background: rgba(7, 22, 31, 0.62);
           backdrop-filter: blur(6px);
           z-index: 50;
           display: flex;
@@ -532,13 +552,13 @@ export default function WellspringFlask() {
         }
         .wf-modal {
           position: relative;
-          background: linear-gradient(165deg, ${TOKENS.oceanDeep} 0%, #01161F 100%);
-          border: 1px solid ${TOKENS.glassBorder};
+          background: linear-gradient(165deg, ${TOKENS.oceanInk} 0%, #001824 100%);
+          border: 1px solid rgba(0,191,255,0.28);
           border-radius: 22px;
           max-width: 360px;
           width: 100%;
           box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-          padding: 28px;
+          padding: 30px 28px 28px;
           text-align: center;
           box-sizing: border-box;
         }
@@ -552,23 +572,39 @@ export default function WellspringFlask() {
           align-items: center;
           justify-content: center;
           border-radius: 999px;
-          color: ${TOKENS.oceanLight};
+          color: ${TOKENS.oceanPale};
           background: transparent;
           border: none;
           cursor: pointer;
         }
         .wf-modal-close:hover { color: #fff; }
+        .wf-modal-eyebrow {
+          display: block;
+          font-size: 10.5px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: ${TOKENS.sunLight};
+          margin-bottom: 8px;
+        }
         .wf-modal-title {
           color: ${TOKENS.mist};
           font-family: 'Fraunces', serif;
-          font-size: 20px;
-          margin: 0 0 16px 0;
+          font-size: 22px;
+          font-weight: 600;
+          margin: 0 0 6px 0;
+        }
+        .wf-modal-sub {
+          color: rgba(244,250,249,0.6);
+          font-size: 13px;
+          margin: 0 0 18px 0;
         }
         .wf-qr-card {
           background: ${TOKENS.mist};
           border-radius: 16px;
           padding: 14px;
           display: inline-block;
+          box-shadow: 0 0 0 1px rgba(0,191,255,0.25);
         }
         .wf-qr-img { display: block; border-radius: 6px; }
         .wf-copy-btn {
@@ -576,17 +612,17 @@ export default function WellspringFlask() {
           width: 100%;
           padding: 12px 16px;
           border-radius: 999px;
-          border: 1px solid ${TOKENS.glassBorder};
-          color: ${TOKENS.mist};
-          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(0,191,255,0.45);
+          color: ${TOKENS.sunLight};
+          background: rgba(0,191,255,0.12);
           font-family: 'Inter', sans-serif;
           font-size: 14px;
-          font-weight: 500;
+          font-weight: 600;
           cursor: pointer;
-          transition: background-color 0.2s ease;
+          transition: background-color 0.2s ease, border-color 0.2s ease;
           box-sizing: border-box;
         }
-        .wf-copy-btn:hover { background: rgba(255,255,255,0.1); }
+        .wf-copy-btn:hover { background: rgba(0,191,255,0.22); border-color: rgba(0,191,255,0.7); }
 
         @keyframes wfDropFall {
           0%   { transform: translateY(-18px); opacity: 0; }
@@ -611,6 +647,11 @@ export default function WellspringFlask() {
 
         @media (prefers-reduced-motion: reduce) {
           .wf-wave-drift, .wf-wave-drift-2 { animation: none !important; }
+        }
+
+        @media (max-width: 480px) {
+          .wf-stat { min-width: 104px; padding: 14px 14px 14px 16px; }
+          .wf-stat-num { font-size: 20px; }
         }
       `}</style>
 
