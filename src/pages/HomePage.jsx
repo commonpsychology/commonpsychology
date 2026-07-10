@@ -10,6 +10,7 @@ import VideoReviews     from '../components/Videoreviews'
 import Resources        from '../components/Resources'
 import FAQ              from '../components/Faq'
 import Umbrella         from '../components/Umbrella'
+import EleventhPaymentPromo from '../components/EleventhPaymentPromo'
 import NewsSection      from '../components/Newssection'
 import Testimonials     from '../components/Testimonials'
 import PsychologicalEye from '../components/PsychologicalEye'
@@ -80,6 +81,7 @@ export default function HomePage() {
 
       {/* Page sections */}
       <HeroEmotional />
+      <EleventhPaymentPromo />
       <TrustBar />
       <Umbrella />
       <Services />

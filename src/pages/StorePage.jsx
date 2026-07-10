@@ -8,6 +8,7 @@ import { useRouter }  from '../context/RouterContext'
 import { useAuth }    from '../context/AuthContext'
 import { usePayment } from '../components/PaymentModal'
 import { store as storeApi } from '../services/api'
+import EleventhPaymentPromo from '../components/EleventhPaymentPromo'
 
 export default function StorePage() {
   const { navigate }    = useRouter()
@@ -212,8 +213,12 @@ async function updateQty(productId, qty) {
   <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto' }}>
     <span className="section-tag" style={{ color:'#6ee7b7', background:'rgba(110,231,183,0.15)', border:'1px solid rgba(110,231,183,0.3)' }}>Wellness Store</span>
     <h1 className="section-title" style={{ color:'#fff' }}>Mental Wellness <em style={{ color:'#6ee7b7', fontStyle:'normal' }}>Products</em></h1>
-    <p className="section-desc" style={{ color:'rgba(255,255,255,0.72)', maxWidth:400, margin:'0 auto' }}>Books, workbooks, digital tools, and more — curated for your healing journey.</p>
+  <p className="section-desc" style={{ color:'rgba(255,255,255,0.72)', maxWidth:400, margin:'0 auto' }}>Books, workbooks, digital tools, and more — curated for your healing journey.</p>
   </div>
+</div>
+
+<div style={{ padding: '0 1rem' }}>
+  <EleventhPaymentPromo />
 </div>
 
      <div style={{ background:'var(--white)', padding:'0.75rem 1rem', borderBottom:'1px solid var(--earth-cream)', position:'sticky', top:0, zIndex:10 }}>
