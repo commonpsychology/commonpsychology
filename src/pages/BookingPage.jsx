@@ -163,9 +163,10 @@ export default function BookingPage() {
   const [bookedSlots,  setBookedSlots]  = useState([])
   const [userSlots,    setUserSlots]    = useState([])
   const [loadingSlots, setLoadingSlots] = useState(false)
-  const [submitting,   setSubmitting]   = useState(false)
+const [submitting,   setSubmitting]   = useState(false)
   const [error,        setError]        = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
+  const [dayTaken,     setDayTaken]     = useState(false)
 
   const allSpecializations = ['All', ...Array.from(new Set(therapists.flatMap(t => t.specializations || []))).sort()]
   const filteredTherapists = activeFilter === 'All' ? therapists : therapists.filter(t => (t.specializations||[]).includes(activeFilter))
@@ -195,8 +196,20 @@ export default function BookingPage() {
     finally { setLoadingSlots(false) }
   }, [selected.therapist, selected.date, user])
 
-  useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist?.id, selected.date])
+useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist?.id, selected.date])
 
+  useEffect(() => {
+    if (!selected.date || !user) { setDayTaken(false); return }
+    let cancelled = false
+    const token = localStorage.getItem('accessToken')
+    fetch(`${API_BASE}/bookings/check-day?date=${selected.date}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(d => { if (!cancelled) setDayTaken(!!d.hasBooking) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [selected.date, user])
   function getSlotStatus(label) {
     const norm = s => s.replace(/\s+/g,'').toUpperCase()
     const nl = norm(label)
@@ -428,9 +441,14 @@ async function handleConfirm() {
                   }}
                   style={{ padding:'0.75rem 1rem', border:`1.5px solid ${C.borderFaint}`, borderRadius:10, fontSize:'0.9rem', color:C.textDark, outline:'none', width:'100%', boxSizing:'border-box' }}
                 />
-                <div style={{ fontSize:'0.75rem', color:C.textLight, marginTop:'0.35rem' }}>
+              <div style={{ fontSize:'0.75rem', color:C.textLight, marginTop:'0.35rem' }}>
                   📅 Saturdays are unavailable — please select any other day.
                 </div>
+                {dayTaken && (
+                  <div style={{ background:C.amberFaint, border:'1.5px solid #f5d87a', borderRadius:10, padding:'0.75rem 1rem', marginTop:'0.5rem', fontSize:'0.85rem', color:C.amber }}>
+                    ⚠️ You already have a booking (appointment or room) on this date. You can only book one per day — please choose a different date.
+                  </div>
+                )}
               </div>
 
               {selected.date && (
@@ -473,9 +491,9 @@ async function handleConfirm() {
               </div>
               <div style={{ display:'flex', gap:'1rem' }}>
                 <button className="btn btn-outline" onClick={() => setStep(2)}>← Back</button>
-                <button className="btn btn-primary btn-lg"
-                  disabled={!selected.date || !selected.time || loadingSlots || availableSlotsForDay.length === 0}
-                  style={{ opacity:selected.date&&selected.time&&!loadingSlots&&availableSlotsForDay.length>0?1:0.5 }}
+           <button className="btn btn-primary btn-lg"
+                  disabled={!selected.date || !selected.time || loadingSlots || availableSlotsForDay.length === 0 || dayTaken}
+                  style={{ opacity:selected.date&&selected.time&&!loadingSlots&&availableSlotsForDay.length>0&&!dayTaken?1:0.5 }}
                   onClick={() => setStep(4)}>
                   Continue →
                 </button>
