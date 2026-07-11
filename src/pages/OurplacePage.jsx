@@ -729,8 +729,6 @@ async function handleConfirmBooking() {
     if (crossesMidnight(bookTime, pkg.durationHours)) { setBookErr(`A ${pkg.durationHours}h session starting at ${fmtTime(bookTime)} would run past midnight. Please choose an earlier start time.`); return }
 
     // ── Final one-booking-per-day check, BEFORE opening payment ──
-    // Prevents the exact bug of paying first and finding out about the
-    // conflict only when the DB trigger rejects the insert afterward.
     try {
       const token = localStorage.getItem('accessToken')
       const res = await fetch(`${API_BASE}/bookings/check-day?date=${bookDate}`, {
@@ -780,14 +778,14 @@ async function handleConfirmBooking() {
     let bookingId = null
     let saveErr = null
     try {
-   bookingId = await saveRoomBooking({
+bookingId = await saveRoomBooking({
         roomId, bookedDate:bookDate, startTime:bookTime, endTime, notes:notes||null,
         paymentMethod: result.method || null,
         amount: pkg.price,
       })
     } catch (err) {
       saveErr = err.message === 'ONE_BOOKING_PER_DAY'
-        ? 'A conflicting booking was made on another device just now. Your payment succeeded but this slot could not be saved — please contact support for a refund or rebooking.'
+        ? 'A conflicting booking was made on another device just now. Your payment succeeded but this slot could not be saved — please contact support.'
         : (err.message || 'Could not create booking.')
     }
 

@@ -42,6 +42,16 @@ const DAY_ALIASES = {
 }
 const normDay = s => DAY_ALIASES[String(s || '').trim().toLowerCase()] || null
 
+const KATHMANDU_OFFSET_MIN = 5 * 60 + 45 // UTC+5:45 — must match DB's Asia/Kathmandu
+
+const DAY_ALIASES = {
+  mon:'Monday', monday:'Monday', tue:'Tuesday', tues:'Tuesday', tuesday:'Tuesday',
+  wed:'Wednesday', wednesday:'Wednesday', thu:'Thursday', thur:'Thursday', thurs:'Thursday',
+  thursday:'Thursday', fri:'Friday', friday:'Friday', sat:'Saturday', saturday:'Saturday',
+  sun:'Sunday', sunday:'Sunday',
+}
+const normDay = s => DAY_ALIASES[String(s || '').trim().toLowerCase()] || null
+
 function getAvailableSlots(therapist, dateStr) {
   if (!therapist || !dateStr) return ALL_TIME_SLOTS
   let hours = therapist.available_hours
@@ -58,10 +68,9 @@ function getAvailableSlots(therapist, dateStr) {
   return ALL_TIME_SLOTS.filter(s => s.hour >= startH && s.hour < endH)
 }
 
-// Builds the exact UTC instant for `slot.hour`:00 Kathmandu time on dateStr —
-// independent of the browser's own local timezone. This MUST stay in sync
-// with the DB's `(scheduled_at AT TIME ZONE 'Asia/Kathmandu')::date` logic,
-// or the one-booking-per-day trigger can disagree with what the UI showed.
+// Builds the UTC instant for `slot.hour`:00 Kathmandu time on dateStr,
+// independent of the browser's own timezone — must stay in sync with the
+// DB's `(scheduled_at AT TIME ZONE 'Asia/Kathmandu')::date` generated column.
 function slotToISO(dateStr, timeLabel) {
   const slot = ALL_TIME_SLOTS.find(s => s.label === timeLabel)
   if (!slot || !dateStr) return null
