@@ -991,20 +991,50 @@ function PaymentsSection() {
 
   useEffect(() => { load() }, [load])
 
-  const confirm = async id => {
+ const confirm = async id => {
     setBusy(b => ({ ...b, [id]:true }))
     try { await apiFetch(`/admin/payments/${id}`, { method:'PUT', body:JSON.stringify({ status:'completed' }) }); setConfirming(null); load() }
     catch (e) { alert(e.message) }
     finally { setBusy(b => ({ ...b, [id]:false })) }
   }
+
+  // Rejecting/refunding a payment must also free the slot it was holding —
+  // otherwise the appointment/room stays 'pending' forever, permanently
+  // locking that date+time even though no money ever cleared for it.
+  const releaseBookingForPayment = async id => {
+    const pay = pays.find(p => p.id === id)
+    if (!pay) return
+    try {
+      if (pay.appointment_id) {
+        await adminApi.updateAppointmentStatus(pay.appointment_id, 'cancelled')
+      }
+      if (pay.room_booking_id) {
+        await apiFetch(`/admin/room-bookings/${pay.room_booking_id}/status`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'cancelled', reason: 'Payment rejected/refunded by admin' }),
+        })
+      }
+    } catch (e) {
+      console.error('releaseBookingForPayment:', e.message)
+    }
+  }
+
   const reject = async id => {
     setBusy(b => ({ ...b, [id]:true }))
-    try { await apiFetch(`/admin/payments/${id}`, { method:'PUT', body:JSON.stringify({ status:'failed' }) }); load() }
+    try {
+      await apiFetch(`/admin/payments/${id}`, { method:'PUT', body:JSON.stringify({ status:'failed' }) })
+      await releaseBookingForPayment(id)
+      load()
+    }
     catch (e) { alert(e.message) }
     finally { setBusy(b => ({ ...b, [id]:false })) }
   }
   const refund = async id => {
-    try { await apiFetch(`/admin/payments/${id}`, { method:'PUT', body:JSON.stringify({ status:'refunded' }) }); load() }
+    try {
+      await apiFetch(`/admin/payments/${id}`, { method:'PUT', body:JSON.stringify({ status:'refunded' }) })
+      await releaseBookingForPayment(id)
+      load()
+    }
     catch (e) { alert(e.message) }
   }
 
