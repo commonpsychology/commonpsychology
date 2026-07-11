@@ -5,6 +5,7 @@ import { useAuth }      from '../context/AuthContext'
 import { usePayment }   from '../components/PaymentModal'
 import { useTherapists } from '../context/TherapistsContext'
 import { appointments } from '../services/api'
+import SmartDatePicker from '../components/SmartDatePicker'
 
 const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
@@ -31,6 +32,16 @@ const ALL_TIME_SLOTS = [
   { label:'5:00 PM',  hour:17 },
 ]
 
+const KATHMANDU_OFFSET_MIN = 5 * 60 + 45 // UTC+5:45 — must match DB's Asia/Kathmandu
+
+const DAY_ALIASES = {
+  mon:'Monday', monday:'Monday', tue:'Tuesday', tues:'Tuesday', tuesday:'Tuesday',
+  wed:'Wednesday', wednesday:'Wednesday', thu:'Thursday', thur:'Thursday', thurs:'Thursday',
+  thursday:'Thursday', fri:'Friday', friday:'Friday', sat:'Saturday', saturday:'Saturday',
+  sun:'Sunday', sunday:'Sunday',
+}
+const normDay = s => DAY_ALIASES[String(s || '').trim().toLowerCase()] || null
+
 function getAvailableSlots(therapist, dateStr) {
   if (!therapist || !dateStr) return ALL_TIME_SLOTS
   let hours = therapist.available_hours
@@ -40,19 +51,23 @@ function getAvailableSlots(therapist, dateStr) {
   if (!hours || !Array.isArray(hours) || hours.length === 0) return ALL_TIME_SLOTS
   const d = new Date(dateStr + 'T00:00')
   const dayName = d.toLocaleDateString('en-US', { weekday: 'long' })
-  const rule = hours.find(h => h.day === dayName)
-  if (!rule) return []
+  const rule = hours.find(h => normDay(h.day) === dayName)
+  if (!rule || !rule.start || !rule.end) return []
   const [startH] = rule.start.split(':').map(Number)
   const [endH]   = rule.end.split(':').map(Number)
   return ALL_TIME_SLOTS.filter(s => s.hour >= startH && s.hour < endH)
 }
 
+// Builds the exact UTC instant for `slot.hour`:00 Kathmandu time on dateStr —
+// independent of the browser's own local timezone. This MUST stay in sync
+// with the DB's `(scheduled_at AT TIME ZONE 'Asia/Kathmandu')::date` logic,
+// or the one-booking-per-day trigger can disagree with what the UI showed.
 function slotToISO(dateStr, timeLabel) {
   const slot = ALL_TIME_SLOTS.find(s => s.label === timeLabel)
   if (!slot || !dateStr) return null
-  const d = new Date(dateStr + 'T00:00')
-  d.setHours(slot.hour, 0, 0, 0)
-  return d.toISOString()
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const utcMs = Date.UTC(y, m - 1, d, slot.hour, 0, 0) - KATHMANDU_OFFSET_MIN * 60000
+  return new Date(utcMs).toISOString()
 }
 
 // ── StepBar: desktop = horizontal row, mobile = 2-per-row grid ──────────────
@@ -474,17 +489,11 @@ async function handleConfirm() {
               <h2 style={{ fontFamily:'var(--font-display)', color:C.textDark, marginBottom:'1.5rem' }}>Pick a Date &amp; Time</h2>
               <div style={{ marginBottom:'1.5rem' }}>
                 <label style={{ display:'block', fontSize:'0.82rem', fontWeight:700, color:C.textLight, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>Date</label>
-                <input
-                  type="date" min={minDate} value={selected.date}
-                  onChange={e => {
-                    const val = e.target.value
-                    if (val) {
-                      const day = new Date(val + 'T00:00').getDay()
-                      if (day === 6) return
-                    }
-                    setSelected(s => ({ ...s, date: val, time: '' }))
-                  }}
-                  style={{ padding:'0.75rem 1rem', border:`1.5px solid ${C.borderFaint}`, borderRadius:10, fontSize:'0.9rem', color:C.textDark, outline:'none', width:'100%', boxSizing:'border-box' }}
+             <SmartDatePicker
+                  value={selected.date}
+                  minDate={minDate}
+                  disabledDay={d => d.getDay() === 6}
+                  onChange={val => setSelected(s => ({ ...s, date: val, time: '' }))}
                 />
               <div style={{ fontSize:'0.75rem', color:C.textLight, marginTop:'0.35rem' }}>
                   📅 Saturdays are unavailable — please select any other day.

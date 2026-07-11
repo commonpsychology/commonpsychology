@@ -7,6 +7,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter }  from '../context/RouterContext'
 import { usePayment } from '../components/PaymentModal'
+import SmartDatePicker from '../components/SmartDatePicker'
 
 const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
@@ -581,13 +582,12 @@ if (slotPast) {
   )
 }
 
-// ── API ───────────────────────────────────────────────────────────────────────
-async function saveRoomBooking({ roomId, bookedDate, startTime, endTime, notes, paymentMethod }) {
+async function saveRoomBooking({ roomId, bookedDate, startTime, endTime, notes, paymentMethod, amount }) {
   const token = localStorage.getItem('accessToken')
   const res = await fetch(`${API_BASE}/room-bookings`, {
     method:  'POST',
     headers: { 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) },
-    body: JSON.stringify({ roomId, bookedDate, startTime, endTime, notes:notes||null, paymentMethod:paymentMethod||null }),
+    body: JSON.stringify({ roomId, bookedDate, startTime, endTime, notes:notes||null, paymentMethod:paymentMethod||null, amount }),
   })
   const data = await res.json()
   if (!res.ok) throw new Error(data.message || `Booking failed (${res.status})`)
@@ -724,9 +724,28 @@ async function handleConfirmBooking() {
     if (!formOK || !pkg) return
     setBookErr('')
     if (!roomId) { setBookErr('Could not load room details. Please refresh and try again.'); return }
-if (timeConflict) { setBookErr('Selected time conflicts with an existing booking. Please choose another slot.'); return }
+    if (timeConflict) { setBookErr('Selected time conflicts with an existing booking. Please choose another slot.'); return }
     if (timeInPast) { setBookErr('That time has already passed today. Please choose an upcoming time.'); return }
     if (crossesMidnight(bookTime, pkg.durationHours)) { setBookErr(`A ${pkg.durationHours}h session starting at ${fmtTime(bookTime)} would run past midnight. Please choose an earlier start time.`); return }
+
+    // ── Final one-booking-per-day check, BEFORE opening payment ──
+    // Prevents the exact bug of paying first and finding out about the
+    // conflict only when the DB trigger rejects the insert afterward.
+    try {
+      const token = localStorage.getItem('accessToken')
+      const res = await fetch(`${API_BASE}/bookings/check-day?date=${bookDate}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const d = await res.json()
+      if (d.hasBooking) {
+        setDayTaken(true)
+        setBookErr('You already have a booking (appointment or room) on this date. Please choose a different date.')
+        return
+      }
+    } catch {
+      setBookErr('Could not verify date availability. Please try again.')
+      return
+    }
 
     // Do NOT create the booking until payment actually succeeds.
     const result = await openPayment({
@@ -761,12 +780,15 @@ if (timeConflict) { setBookErr('Selected time conflicts with an existing booking
     let bookingId = null
     let saveErr = null
     try {
-      bookingId = await saveRoomBooking({
+   bookingId = await saveRoomBooking({
         roomId, bookedDate:bookDate, startTime:bookTime, endTime, notes:notes||null,
         paymentMethod: result.method || null,
+        amount: pkg.price,
       })
     } catch (err) {
-      saveErr = err.message || 'Could not create booking.'
+      saveErr = err.message === 'ONE_BOOKING_PER_DAY'
+        ? 'A conflicting booking was made on another device just now. Your payment succeeded but this slot could not be saved — please contact support for a refund or rebooking.'
+        : (err.message || 'Could not create booking.')
     }
 
     if (!bookingId) {
@@ -1033,8 +1055,7 @@ const tomorrow = new Date()
              {/* Date picker */}
                 <div>
                   <label style={{ display:'block', fontFamily:'inherit', fontSize:'0.68rem', fontWeight:800, color:SLATE_L, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.35rem' }}>Date *</label>
-                  <FocusInput type="date" value={bookDate} onChange={e => { setBookDate(e.target.value); setBookTime('') }} min={minDate}/>
-                </div>
+<SmartDatePicker value={bookDate} minDate={minDate} onChange={val => { setBookDate(val); setBookTime('') }} />                </div>
 
                 {bookDate && dayTaken && (
                   <div style={{ background:AMBER_L, border:`1.5px solid ${AMBER}`, borderRadius:10, padding:'0.75rem 0.9rem', display:'flex', gap:'0.6rem', alignItems:'flex-start' }}>
