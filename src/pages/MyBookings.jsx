@@ -215,12 +215,12 @@ export default function MyBookings() {
         </div>
 
         <div style={{ position:'relative', zIndex:1, display:'flex', gap:'0.6rem', flexWrap:'wrap' }}>
-       <button onClick={() => navigate('/ourplace')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'1.5px solid rgba(255,255,255,0.25)', background:'rgba(255,255,255,0.08)', backdropFilter:'blur(6px)', fontSize:'0.85rem', fontWeight:600, color:'#fff', cursor:'pointer', transition:'all 0.2s' }}
+       <button onClick={() => navigate('/ashram')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'1.5px solid rgba(255,255,255,0.25)', background:'rgba(255,255,255,0.08)', backdropFilter:'blur(6px)', fontSize:'0.85rem', fontWeight:600, color:'#fff', cursor:'pointer', transition:'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.18)' }}
             onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.08)' }}>
             ← Book a Room
           </button>
-          <button onClick={() => navigate('/ourplace')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'none', background:'linear-gradient(135deg,#ffd166,#ffb74d)', fontSize:'0.85rem', fontWeight:700, color:'#3a2400', cursor:'pointer', boxShadow:'0 4px 16px rgba(255,183,77,0.35)' }}>
+          <button onClick={() => navigate('/ashram')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'none', background:'linear-gradient(135deg,#ffd166,#ffb74d)', fontSize:'0.85rem', fontWeight:700, color:'#3a2400', cursor:'pointer', boxShadow:'0 4px 16px rgba(255,183,77,0.35)' }}>
             + New Booking
           </button>
         </div>
@@ -248,7 +248,7 @@ export default function MyBookings() {
             <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:SLATE, marginBottom:'0.5rem' }}>No bookings yet</div>
             <p style={{ fontSize:'0.88rem', color:SLATE_M, maxWidth:360, margin:'0 auto 1.5rem', lineHeight:1.65 }}>
 Reserve one of our private rooms — from 1:1 therapy spaces to sound-proofed group and wellness rooms.            </p>
-            <button onClick={() => navigate('/ourplace')} style={{ padding:'0.85rem 2.25rem', borderRadius:14, border:'none', background:'linear-gradient(135deg,#0369a1,#0ea5e9)', color:WHITE, fontFamily:'inherit', fontWeight:700, fontSize:'0.92rem', cursor:'pointer', boxShadow:'0 6px 22px rgba(14,165,233,0.35)' }}>
+            <button onClick={() => navigate('/ashram')} style={{ padding:'0.85rem 2.25rem', borderRadius:14, border:'none', background:'linear-gradient(135deg,#0369a1,#0ea5e9)', color:WHITE, fontFamily:'inherit', fontWeight:700, fontSize:'0.92rem', cursor:'pointer', boxShadow:'0 6px 22px rgba(14,165,233,0.35)' }}>
               Explore &amp; Book →
             </button>
           </div>
@@ -265,7 +265,7 @@ Reserve one of our private rooms — from 1:1 therapy spaces to sound-proofed gr
             ) : (
               <div style={{ background:WHITE, borderRadius:16, border:`1px solid ${BORDER}`, padding:'2rem', textAlign:'center', marginBottom:'2rem' }}>
                 <p style={{ color:SLATE_M, fontSize:'0.88rem', marginBottom:'1rem' }}>No upcoming bookings right now.</p>
-                <button onClick={() => navigate('/ourplace')} style={{ padding:'0.65rem 1.5rem', borderRadius:10, border:'none', background:'linear-gradient(135deg,#0369a1,#0ea5e9)', color:WHITE, fontWeight:700, cursor:'pointer' }}>+ Book a Room</button>
+                <button onClick={() => navigate('/ashram')} style={{ padding:'0.65rem 1.5rem', borderRadius:10, border:'none', background:'linear-gradient(135deg,#0369a1,#0ea5e9)', color:WHITE, fontWeight:700, cursor:'pointer' }}>+ Book a Room</button>
               </div>
             )}
 
