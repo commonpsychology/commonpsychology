@@ -104,18 +104,35 @@ function MyBookingsSidebar({ apiBase }) {
   )
 }
 
-// ── Generate time slots from 07:00 to 20:00 in 30-min increments ─────────────
+// ── Generate time slots covering the full 24 hours in 30-min increments ──────
 function generateTimeSlots() {
   const slots = []
-  for (let h = 7; h <= 20; h++) {
+  for (let h = 0; h < 24; h++) {
     for (let m = 0; m < 60; m += 30) {
-      if (h === 20 && m > 0) break
       slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)
     }
   }
   return slots
 }
 const ALL_SLOTS = generateTimeSlots()
+
+// Today's date as YYYY-MM-DD
+function todayStr() {
+  return new Date().toISOString().split('T')[0]
+}
+
+// Current time as HH:MM (rounded down to the nearest slot boundary is not
+// required — plain string comparison against "HH:MM" slots works fine)
+function nowHM() {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+}
+
+// Is this slot in the past? Only relevant when the booking date is today.
+function isSlotPast(slot, bookDate) {
+  if (!bookDate || bookDate !== todayStr()) return false
+  return slot <= nowHM()
+}
 
 // Is a slot overlapping with any booked range?
 function isSlotBooked(slotTime, bookedSlots) {
@@ -162,6 +179,16 @@ const PLACE = {
     { src:'https://images.unsplash.com/photo-1552508744-1696d4464960?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1552508744-1696d4464960?auto=format&fit=crop&w=200&q=70', alt:'Tea station & anteroom', label:'Anteroom & Tea' },
   ],
 }
+
+const ROOMS = [
+  { key:'therapy-a', name:'Therapy Room A',    type:'Private Therapy',    emoji:'🛋️', capacity:'Up to 2',  desc:'Intimate 1:1 counseling space' },
+  { key:'therapy-b', name:'Therapy Room B',    type:'Private Therapy',    emoji:'🪑', capacity:'Up to 2',  desc:'Quiet individual session room' },
+  { key:'serenity',  name:'The Serenity Room', type:'Group & Wellness',   emoji:'🌿', capacity:'Up to 12', desc:'Sound-proofed group & workshop space' },
+  { key:'mindful',   name:'Mindfulness Studio',type:'Yoga & Meditation',  emoji:'🧘', capacity:'Up to 10', desc:'Open floor for movement & breathwork' },
+  { key:'conference',name:'Conference Room',   type:'Meetings & Training',emoji:'💼', capacity:'Up to 8',  desc:'Professional training & case discussions' },
+  { key:'family',    name:'Family Room',       type:'Family Therapy',    emoji:'👨‍👩‍👧', capacity:'Up to 6', desc:'Warm space for family sessions' },
+  { key:'kids',      name:'Kids Play Room',    type:'Child Therapy',     emoji:'🧸', capacity:'Up to 4',  desc:'Playful, child-friendly therapy room' },
+]
 
 const PACKAGES = [
   {
@@ -281,7 +308,7 @@ function Lightbox({ images, startIdx, onClose }) {
 }
 
 // ── Availability Timeline ─────────────────────────────────────────────────────
-function AvailabilityTimeline({ bookedSlots, selectedStart, selectedEnd, durationHours, loading }) {
+function AvailabilityTimeline({ bookedSlots, selectedStart, selectedEnd, durationHours, loading, bookDate }) {
   if (loading) return (
     <div style={{ padding:'1rem', background:BG, borderRadius:12, border:`1px solid ${BORDER}`, textAlign:'center' }}>
       <div style={{ display:'inline-flex', alignItems:'center', gap:'0.5rem', color:SLATE_L, fontSize:'0.8rem' }}>
@@ -292,12 +319,13 @@ function AvailabilityTimeline({ bookedSlots, selectedStart, selectedEnd, duratio
     </div>
   )
 
-  // Build 30-min visual blocks from 07:00–20:00
+  // Build 30-min visual blocks across the full 24-hour day
   const blocks = ALL_SLOTS.map(slot => {
+    const past     = isSlotPast(slot, bookDate)
     const booked   = isSlotBooked(slot, bookedSlots)
     const inSelect = selectedStart && selectedEnd && slot >= selectedStart && slot < selectedEnd
     const conflict = inSelect && booked
-    return { slot, booked, inSelect, conflict }
+    return { slot, booked, inSelect, conflict, past }
   })
 
   const hasBusy = bookedSlots.length > 0
@@ -307,14 +335,15 @@ function AvailabilityTimeline({ bookedSlots, selectedStart, selectedEnd, duratio
       {/* Legend */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.7rem', flexWrap:'wrap', gap:'0.4rem' }}>
         <span style={{ fontFamily:'inherit', fontSize:'0.67rem', fontWeight:800, color:SLATE_L, textTransform:'uppercase', letterSpacing:'0.08em' }}>
-          Today's Availability
+          24h Availability
         </span>
         <div style={{ display:'flex', gap:'0.85rem', flexWrap:'wrap' }}>
           {[
-            { color:MINT,  label:'Available' },
-            { color:RED,   label:'Booked' },
-            { color:SKY,   label:'Your selection' },
-            { color:AMBER, label:'Conflict ⚠️' },
+            { color:MINT,    label:'Available' },
+            { color:RED,     label:'Booked' },
+            { color:SKY,     label:'Your selection' },
+            { color:AMBER,   label:'Conflict ⚠️' },
+            { color:SLATE_L, label:'Past' },
           ].map(l => (
             <div key={l.label} style={{ display:'flex', alignItems:'center', gap:'0.3rem' }}>
               <div style={{ width:10, height:10, borderRadius:3, background:l.color, flexShrink:0 }}/>
@@ -326,8 +355,11 @@ function AvailabilityTimeline({ bookedSlots, selectedStart, selectedEnd, duratio
 
       {/* Timeline grid */}
       <div style={{ display:'flex', flexWrap:'wrap', gap:'2px' }}>
-        {blocks.map(({ slot, booked, inSelect, conflict }) => {
+        {blocks.map(({ slot, booked, inSelect, conflict, past }) => {
           let bg = MINT_L, border = `1px solid #a7f3d0`, title = `${fmtTime(slot)} — Available`
+          if (past) {
+            bg = BORDER; border = `1px solid ${BORDER}`; title = `${fmtTime(slot)} — Past`
+          }
           if (booked && !inSelect) {
             bg = RED_L; border = `1px solid #fca5a5`; title = `${fmtTime(slot)} — Already Booked`
           }
@@ -350,11 +382,12 @@ function AvailabilityTimeline({ bookedSlots, selectedStart, selectedEnd, duratio
                 background: bg, border, borderRadius:5,
                 display:'flex', alignItems:'center', justifyContent:'center',
                 cursor:'default', flexShrink:0,
+                opacity: past ? 0.6 : 1,
                 transition:'all 0.15s',
               }}
             >
               {isHour && (
-                <span style={{ fontFamily:'inherit', fontSize:'0.52rem', fontWeight:700, color: booked ? RED_D : conflict ? '#92400e' : SKY_D, lineHeight:1 }}>
+                <span style={{ fontFamily:'inherit', fontSize:'0.52rem', fontWeight:700, color: past ? SLATE_L : booked ? RED_D : conflict ? '#92400e' : SKY_D, lineHeight:1 }}>
                   {Number(slot.split(':')[0]) % 12 || 12}{Number(slot.split(':')[0]) >= 12 ? 'p' : 'a'}
                 </span>
               )}
@@ -391,7 +424,7 @@ function AvailabilityTimeline({ bookedSlots, selectedStart, selectedEnd, duratio
 
 // ── Time Picker with booked-slot awareness ────────────────────────────────────
 // Uses position:fixed so the dropdown escapes any overflow:hidden/scroll parent
-function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label }) {
+function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label, bookDate }) {
   const [open,    setOpen]    = useState(false)
   const [dropPos, setDropPos] = useState({ top:0, left:0, width:200 })
   const btnRef  = useRef(null)
@@ -472,7 +505,9 @@ function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label })
             Select start time
           </div>
           {ALL_SLOTS.map(slot => {
-            const slotBooked = isSlotBooked(slot, bookedSlots)
+            const slotPast    = isSlotPast(slot, bookDate)
+            const slotBooked  = isSlotBooked(slot, bookedSlots)
+            const slotDisabled = slotPast || slotBooked
             const endIfSelected = addHours(slot, durationHours || 1)
             const wouldConflict = durationHours
               ? hasConflict(slot, durationHours, bookedSlots)
@@ -482,7 +517,10 @@ function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label })
             let bg = WHITE, color = SLATE, borderLeft = '3px solid transparent'
             let statusIcon = null, statusTip = ''
 
-            if (slotBooked) {
+            if (slotPast) {
+              bg = BG; color = SLATE_L; borderLeft = `3px solid ${BORDER}`
+              statusIcon = '🕒'; statusTip = 'This time has already passed today'
+            } else if (slotBooked) {
               bg = RED_L; color = '#b91c1c'; borderLeft = `3px solid ${RED}`
               statusIcon = '🚫'; statusTip = 'This slot is booked'
             } else if (wouldConflict) {
@@ -500,23 +538,24 @@ function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label })
             return (
               <div
                 key={slot}
-                onClick={() => { if (!slotBooked) { onChange(slot); setOpen(false) } }}
+                onClick={() => { if (!slotDisabled) { onChange(slot); setOpen(false) } }}
                 title={statusTip}
                 style={{
                   display:'flex', alignItems:'center', justifyContent:'space-between',
                   padding:'0.55rem 0.85rem',
                   background: bg, color,
                   borderLeft,
-                  cursor: slotBooked ? 'not-allowed' : 'pointer',
+                  cursor: slotDisabled ? 'not-allowed' : 'pointer',
+                  opacity: slotPast ? 0.65 : 1,
                   fontFamily:'inherit', fontSize:'0.84rem', fontWeight: isSelected ? 700 : 400,
                   transition:'background 0.1s',
                 }}
-                onMouseEnter={e => { if (!slotBooked && !isSelected) e.currentTarget.style.background = SKY_L }}
-                onMouseLeave={e => { if (!slotBooked && !isSelected) e.currentTarget.style.background = bg }}
+                onMouseEnter={e => { if (!slotDisabled && !isSelected) e.currentTarget.style.background = SKY_L }}
+                onMouseLeave={e => { if (!slotDisabled && !isSelected) e.currentTarget.style.background = bg }}
               >
                 <span>{fmtTime(slot)}</span>
                 <span style={{ display:'flex', alignItems:'center', gap:'0.4rem', fontSize:'0.73rem' }}>
-                  {wouldConflict && !slotBooked && durationHours && (
+                  {wouldConflict && !slotBooked && !slotPast && durationHours && (
                     <span style={{ fontSize:'0.68rem', color:'#92400e' }}>ends {fmtTime(endIfSelected)} overlaps</span>
                   )}
                   <span style={{ opacity:0.7 }}>{statusIcon}</span>
@@ -562,6 +601,8 @@ export default function OurPlacePage() {
   const [doneData,    setDoneData]    = useState(null)
   const [bookErr,     setBookErr]     = useState('')
   const [roomId,      setRoomId]      = useState(null)
+  const [apiRooms,    setApiRooms]    = useState([])
+  const [selectedRoomKey, setSelectedRoomKey] = useState(ROOMS[2].key) // default: The Serenity Room
 
   // ── Availability state ──────────────────────────────────────────────────
   const [bookedSlots,   setBookedSlots]   = useState([])  // [{start,end}]
@@ -578,17 +619,24 @@ export default function OurPlacePage() {
     return () => clearInterval(id)
   }, [])
 
-  // Resolve room UUID
+  // Fetch the full rooms list from the API
   useEffect(() => {
     fetch(`${API_BASE}/room-bookings/rooms`)
       .then(r => r.json())
-      .then(data => {
-        const rooms = data.rooms || []
-        const room  = rooms.find(r => r.name === DEFAULT_ROOM_NAME) || rooms[0]
-        if (room) setRoomId(room.id)
-      })
+      .then(data => setApiRooms(data.rooms || []))
       .catch(() => {})
   }, [])
+
+  const selectedRoomMeta = ROOMS.find(r => r.key === selectedRoomKey) || ROOMS[0]
+
+  // Resolve the real room UUID that matches the currently selected room card.
+  // Falls back to the first backend room if there's no exact name match yet
+  // (keeps things working even before all 7 rooms exist in the database).
+  useEffect(() => {
+    if (!apiRooms.length) return
+    const match = apiRooms.find(r => r.name === selectedRoomMeta.name) || apiRooms[0]
+    setRoomId(match ? match.id : null)
+  }, [apiRooms, selectedRoomKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fetch availability whenever date or roomId changes ──────────────────
   const fetchAvailability = useCallback(async (date, rid) => {
@@ -616,13 +664,13 @@ export default function OurPlacePage() {
     }
   }, [screen, bookDate, roomId, fetchAvailability])
 
-  // Also re-fetch when date changes while on pay screen
+  // Also re-fetch when date or room selection changes while on pay screen
   useEffect(() => {
     if (screen === 'pay' && bookDate && roomId) {
       setAvailFetched('')  // force re-fetch
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookDate])
+  }, [bookDate, selectedRoomKey])
 
   const pkg    = PACKAGES.find(p => p.id === selPkg)
   const endTime = bookTime && pkg ? addHours(bookTime, pkg.durationHours) : ''
@@ -632,7 +680,10 @@ export default function OurPlacePage() {
     ? hasConflict(bookTime, pkg.durationHours, bookedSlots)
     : false
 
-  const formOK = bookDate && bookTime && clientName.trim() && clientPhone.trim().length >= 7 && !timeConflict
+  // Can't select a start time that has already passed today
+  const timeInPast = bookTime ? isSlotPast(bookTime, bookDate) : false
+
+  const formOK = bookDate && bookTime && clientName.trim() && clientPhone.trim().length >= 7 && !timeConflict && !timeInPast
 
   function goBook() {
     setScreen('book')
@@ -649,18 +700,21 @@ async function handleConfirmBooking() {
     setBookErr('')
     if (!roomId) { setBookErr('Could not load room details. Please refresh and try again.'); return }
     if (timeConflict) { setBookErr('Selected time conflicts with an existing booking. Please choose another slot.'); return }
+    if (timeInPast) { setBookErr('That time has already passed today. Please choose an upcoming time.'); return }
 
     // Do NOT create the booking until payment actually succeeds.
     const result = await openPayment({
       type:        'room_booking',
       amount:      pkg.price,
-      title:       `The Serenity Room — ${pkg.name}`,
+      title:       `${selectedRoomMeta.name} — ${pkg.name}`,
       description: `${bookDate} · ${bookTime}–${endTime} · ${pkg.period}`,
       itemLines:   [{ label:`${pkg.name} (${pkg.period})`, amount:pkg.price }],
       couponEnabled: true,
       allowedGateways: ['esewa','khalti','fonepay','stripe','bank_transfer','cash'],
       metadata: {
         category:        'room_booking',
+        room_id:         roomId,
+        room_name:       selectedRoomMeta.name,
         package_id:      pkg.id,
         package_name:    pkg.name,
         book_date:       bookDate,
@@ -705,7 +759,7 @@ async function handleConfirmBooking() {
       }).catch(() => {})
     }
 
-    setDoneData({ pkg, bookDate, bookTime, endTime, clientName, clientPhone, method:result.method, txnId:result.transactionId })
+    setDoneData({ pkg, room:selectedRoomMeta, bookDate, bookTime, endTime, clientName, clientPhone, method:result.method, txnId:result.transactionId })
     setScreen('done')
     window.scrollTo({ top:0, behavior:'smooth' })
   }
@@ -729,6 +783,7 @@ async function handleConfirmBooking() {
             </p>
             <div style={{ background:WHITE, border:`1px solid ${BORDER}`, borderRadius:12, padding:'0.9rem 1.1rem', marginBottom:'1.75rem', textAlign:'left' }}>
               {[
+                ['Room',    `${doneData.room?.emoji||'🏛️'} ${doneData.room?.name||'—'}`],
                 ['Package', `${doneData.pkg?.emoji} ${doneData.pkg?.name}`],
                 ['Date',    doneData.bookDate],
                 ['Time',    `${doneData.bookTime} – ${doneData.endTime}`],
@@ -744,7 +799,7 @@ async function handleConfirmBooking() {
             </div>
             <div style={{ display:'flex', gap:'0.75rem', justifyContent:'center', flexWrap:'wrap' }}>
               <button onClick={() => navigate('/')} style={{ padding:'0.75rem 2rem', borderRadius:12, border:'none', background:btnGrad, color:WHITE, fontFamily:'inherit', fontWeight:700, fontSize:'0.9rem', cursor:'pointer', boxShadow:'0 4px 16px rgba(14,165,233,0.28)' }}>🏠 Back to Home</button>
-              <button onClick={() => { setScreen('place'); setDoneData(null) }} style={{ padding:'0.75rem 1.5rem', borderRadius:12, border:`1.5px solid ${BORDER}`, background:WHITE, color:SLATE_M, fontFamily:'inherit', fontWeight:600, fontSize:'0.9rem', cursor:'pointer' }}>View Space</button>
+              <button onClick={() => navigate('/my-bookings')} style={{ padding:'0.75rem 1.5rem', borderRadius:12, border:`1.5px solid ${BORDER}`, background:WHITE, color:SLATE_M, fontFamily:'inherit', fontWeight:600, fontSize:'0.9rem', cursor:'pointer' }}>View Space</button>
             </div>
           </div>
         </div>
@@ -907,6 +962,41 @@ async function handleConfirmBooking() {
 
           <div style={{ maxWidth:640, margin:'0 auto', padding:'clamp(1.5rem,4vw,2.5rem) clamp(1rem,4vw,1.5rem) 5rem' }}>
 
+            {/* ── Room selection card ─── */}
+            <div style={{ background:WHITE, borderRadius:18, border:`1px solid ${BORDER}`, overflow:'hidden', boxShadow:'0 4px 20px rgba(14,165,233,0.06)', marginBottom:'1rem' }}>
+              <div style={{ padding:'0.85rem 1.4rem', background:`linear-gradient(135deg,${SKY_L},${MINT_L})`, borderBottom:`1px solid ${BORDER}` }}>
+                <span style={{ fontFamily:'var(--font-display)', fontSize:'0.9rem', color:SLATE }}>🏛️ Choose Your Room</span>
+              </div>
+              <div style={{ padding:'1.1rem 1.4rem', display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:'0.65rem' }}>
+                {ROOMS.map(r => {
+                  const isSel = selectedRoomKey === r.key
+                  return (
+                    <button
+                      key={r.key}
+                      type="button"
+                      onClick={() => setSelectedRoomKey(r.key)}
+                      style={{
+                        display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'0.3rem',
+                        padding:'0.75rem 0.85rem', borderRadius:12, textAlign:'left', cursor:'pointer',
+                        border:`1.5px solid ${isSel ? SKY : BORDER}`,
+                        background: isSel ? SKY_L : WHITE,
+                        boxShadow: isSel ? `0 0 0 3px ${SKY_L}` : 'none',
+                        transition:'all 0.15s',
+                      }}
+                    >
+                      <div style={{ display:'flex', alignItems:'center', gap:'0.4rem' }}>
+                        <span style={{ fontSize:'1.05rem' }}>{r.emoji}</span>
+                        <span style={{ fontFamily:'inherit', fontSize:'0.82rem', fontWeight:700, color:SLATE }}>{r.name}</span>
+                      </div>
+                      <span style={{ fontFamily:'inherit', fontSize:'0.68rem', fontWeight:700, color:SKY_D, textTransform:'uppercase', letterSpacing:'0.04em' }}>{r.type}</span>
+                      <span style={{ fontFamily:'inherit', fontSize:'0.72rem', color:SLATE_M, lineHeight:1.4 }}>{r.desc}</span>
+                      <span style={{ fontFamily:'inherit', fontSize:'0.68rem', color:SLATE_L, fontWeight:600 }}>👥 {r.capacity}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* ── Date + Time card ─── */}
             <div style={{ background:WHITE, borderRadius:18, border:`1px solid ${BORDER}`, overflow:'hidden', boxShadow:'0 4px 20px rgba(14,165,233,0.06)', marginBottom:'1rem' }}>
               <div style={{ padding:'0.85rem 1.4rem', background:`linear-gradient(135deg,${SKY_L},${MINT_L})`, borderBottom:`1px solid ${BORDER}`, display:'flex', alignItems:'center', gap:'0.5rem' }}>
@@ -934,6 +1024,7 @@ async function handleConfirmBooking() {
                       selectedEnd={endTime}
                       durationHours={pkg.durationHours}
                       loading={availLoading}
+                      bookDate={bookDate}
                     />
                   </div>
                 )}
@@ -944,16 +1035,28 @@ async function handleConfirmBooking() {
                   onChange={setBookTime}
                   bookedSlots={bookedSlots}
                   durationHours={pkg.durationHours}
-                  label={`Start Time * (${pkg.durationHours}h slot)`}
+                  label={`Start Time * (${pkg.durationHours}h slot · 24hr, day or night)`}
+                  bookDate={bookDate}
                 />
 
-                {/* Session summary or conflict warning */}
-                {bookTime && !timeConflict && (
+                {/* Session summary, past-time warning, or conflict warning */}
+                {bookTime && !timeConflict && !timeInPast && (
                   <div style={{ background:SKY_L, borderRadius:10, padding:'0.65rem 0.9rem', fontSize:'0.82rem', color:SKY_D, fontWeight:600, display:'flex', alignItems:'center', gap:'0.5rem' }}>
                     ✅ <span>Session: <strong>{fmtTime(bookTime)}</strong> – <strong>{fmtTime(endTime)}</strong> &nbsp;·&nbsp; {pkg.durationHours}h &nbsp;·&nbsp; {bookDate}</span>
                   </div>
                 )}
-                {bookTime && timeConflict && (
+                {bookTime && timeInPast && (
+                  <div style={{ background:'#f1f5f9', border:`1.5px solid ${SLATE_L}`, borderRadius:10, padding:'0.75rem 0.9rem', display:'flex', gap:'0.6rem', alignItems:'flex-start' }}>
+                    <span style={{ fontSize:'1.1rem', flexShrink:0 }}>🕒</span>
+                    <div>
+                      <div style={{ fontFamily:'inherit', fontSize:'0.84rem', fontWeight:700, color:SLATE, marginBottom:'0.2rem' }}>Time Already Passed</div>
+                      <div style={{ fontFamily:'inherit', fontSize:'0.78rem', color:SLATE_M, lineHeight:1.5 }}>
+                        <strong>{fmtTime(bookTime)}</strong> today has already passed. Please pick an upcoming time today, or choose a different date.
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {bookTime && !timeInPast && timeConflict && (
                   <div style={{ background:RED_L, border:`1.5px solid ${RED}`, borderRadius:10, padding:'0.75rem 0.9rem', display:'flex', gap:'0.6rem', alignItems:'flex-start' }}>
                     <span style={{ fontSize:'1.1rem', flexShrink:0 }}>🚫</span>
                     <div>
@@ -1016,13 +1119,15 @@ async function handleConfirmBooking() {
                 onClick={handleConfirmBooking}
                 disabled={!formOK}
                 style={{ flex:1, padding:'0.9rem', borderRadius:12, border:'none', background:formOK?pkg.grad:BORDER, color:formOK?WHITE:SLATE_L, fontFamily:'inherit', fontWeight:700, fontSize:'0.9rem', cursor:formOK?'pointer':'not-allowed', boxShadow:formOK?`0 6px 22px ${pkg.color}44`:'none', transition:'all 0.2s' }}>
-                {timeConflict
-                  ? '🚫 Choose a different time'
-                  : !bookDate || !bookTime
-                    ? 'Pick a date & time first'
-                    : !clientName.trim() || clientPhone.trim().length < 7
-                      ? 'Fill in your name & phone'
-                      : `Choose Payment — NPR ${pkg.price.toLocaleString()} →`
+                {timeInPast
+                  ? '🕒 That time has passed'
+                  : timeConflict
+                    ? '🚫 Choose a different time'
+                    : !bookDate || !bookTime
+                      ? 'Pick a date & time first'
+                      : !clientName.trim() || clientPhone.trim().length < 7
+                        ? 'Fill in your name & phone'
+                        : `Choose Payment — NPR ${pkg.price.toLocaleString()} →`
                 }
               </button>
             </div>
