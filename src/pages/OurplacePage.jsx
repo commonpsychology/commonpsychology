@@ -219,6 +219,15 @@ function addHours(timeStr, hours) {
   return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`
 }
 
+// A session that would run past midnight can't be saved (booked_date is a single
+// date and the backend rejects startTime >= endTime). Block these at selection
+// time rather than letting the user pay first and hit a save failure.
+function crossesMidnight(timeStr, hours) {
+  if (!timeStr || !hours) return false
+  const [h, m] = timeStr.split(':').map(Number)
+  return (h * 60 + m + Math.round(hours * 60)) >= 24 * 60
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function FocusInput({ type, value, onChange, placeholder, min }) {
@@ -505,9 +514,10 @@ function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label, b
             Select start time
           </div>
           {ALL_SLOTS.map(slot => {
-            const slotPast    = isSlotPast(slot, bookDate)
-            const slotBooked  = isSlotBooked(slot, bookedSlots)
-            const slotDisabled = slotPast || slotBooked
+       const slotPast      = isSlotPast(slot, bookDate)
+            const slotBooked    = isSlotBooked(slot, bookedSlots)
+            const slotOvernight = crossesMidnight(slot, durationHours)
+            const slotDisabled  = slotPast || slotBooked || slotOvernight
             const endIfSelected = addHours(slot, durationHours || 1)
             const wouldConflict = durationHours
               ? hasConflict(slot, durationHours, bookedSlots)
@@ -516,10 +526,12 @@ function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label, b
 
             let bg = WHITE, color = SLATE, borderLeft = '3px solid transparent'
             let statusIcon = null, statusTip = ''
-
-            if (slotPast) {
+if (slotPast) {
               bg = BG; color = SLATE_L; borderLeft = `3px solid ${BORDER}`
               statusIcon = '🕒'; statusTip = 'This time has already passed today'
+            } else if (slotOvernight) {
+              bg = BG; color = SLATE_L; borderLeft = `3px solid ${BORDER}`
+              statusIcon = '🌙'; statusTip = `A ${durationHours}h session starting here would run past midnight — pick an earlier start`
             } else if (slotBooked) {
               bg = RED_L; color = '#b91c1c'; borderLeft = `3px solid ${RED}`
               statusIcon = '🚫'; statusTip = 'This slot is booked'
@@ -699,8 +711,9 @@ async function handleConfirmBooking() {
     if (!formOK || !pkg) return
     setBookErr('')
     if (!roomId) { setBookErr('Could not load room details. Please refresh and try again.'); return }
-    if (timeConflict) { setBookErr('Selected time conflicts with an existing booking. Please choose another slot.'); return }
+if (timeConflict) { setBookErr('Selected time conflicts with an existing booking. Please choose another slot.'); return }
     if (timeInPast) { setBookErr('That time has already passed today. Please choose an upcoming time.'); return }
+    if (crossesMidnight(bookTime, pkg.durationHours)) { setBookErr(`A ${pkg.durationHours}h session starting at ${fmtTime(bookTime)} would run past midnight. Please choose an earlier start time.`); return }
 
     // Do NOT create the booking until payment actually succeeds.
     const result = await openPayment({
@@ -764,8 +777,9 @@ async function handleConfirmBooking() {
     window.scrollTo({ top:0, behavior:'smooth' })
   }
 
-  const minDate = new Date().toISOString().split('T')[0]
-
+const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const minDate = tomorrow.toISOString().split('T')[0]
   // ── SUCCESS ───────────────────────────────────────────────────────────────
   if (screen === 'done' && doneData) return (
     <div className="page-wrapper" style={{ background:BG }}>
@@ -799,8 +813,7 @@ async function handleConfirmBooking() {
             </div>
             <div style={{ display:'flex', gap:'0.75rem', justifyContent:'center', flexWrap:'wrap' }}>
               <button onClick={() => navigate('/')} style={{ padding:'0.75rem 2rem', borderRadius:12, border:'none', background:btnGrad, color:WHITE, fontFamily:'inherit', fontWeight:700, fontSize:'0.9rem', cursor:'pointer', boxShadow:'0 4px 16px rgba(14,165,233,0.28)' }}>🏠 Back to Home</button>
-              <button onClick={() => navigate('/my-bookings')} style={{ padding:'0.75rem 1.5rem', borderRadius:12, border:`1.5px solid ${BORDER}`, background:WHITE, color:SLATE_M, fontFamily:'inherit', fontWeight:600, fontSize:'0.9rem', cursor:'pointer' }}>View Space</button>
-            </div>
+<button onClick={() => navigate('/room-bookings')} style={{ padding:'0.75rem 1.5rem', borderRadius:12, border:`1.5px solid ${BORDER}`, background:WHITE, color:SLATE_M, fontFamily:'inherit', fontWeight:600, fontSize:'0.9rem', cursor:'pointer' }}>View Space</button>            </div>
           </div>
         </div>
       </div>

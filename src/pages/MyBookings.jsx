@@ -36,8 +36,20 @@ function isDue(bookedDate, endTime) {
   return new Date() >= new Date(`${bookedDate}T${endTime}`)
 }
 
-function packageInfo(durationHours) {
-  if (durationHours >= 8) return { name:'Full Day',    emoji:'☀️',  color:'#d97706', faint:'#fef3c7', grad:'linear-gradient(135deg,#92400e,#d97706,#fbbf24)' }
+const ROOM_EMOJI = {
+  'Therapy Room A':     '🛋️',
+  'Therapy Room B':     '🪑',
+  'The Serenity Room':  '🌿',
+  'Mindfulness Studio': '🧘',
+  'Conference Room':    '💼',
+  'Family Room':        '👨‍👩‍👧',
+  'Kids Play Room':     '🧸',
+}
+function roomEmoji(name) {
+  return ROOM_EMOJI[name] || '🏛️'
+}
+
+function packageInfo(durationHours) {  if (durationHours >= 8) return { name:'Full Day',    emoji:'☀️',  color:'#d97706', faint:'#fef3c7', grad:'linear-gradient(135deg,#92400e,#d97706,#fbbf24)' }
   if (durationHours >= 4) return { name:'Half-Day',    emoji:'🌤️', color:MINT,      faint:MINT_L,     grad:'linear-gradient(135deg,#059669,#10b981)' }
   return                         { name:'Single Hour', emoji:'⏱️', color:SKY_D,     faint:SKY_L,      grad:'linear-gradient(135deg,#0369a1,#0ea5e9)' }
 }
@@ -59,8 +71,10 @@ function SerenityBookingCard({ booking }) {
 
   const past      = isDue(booking.booked_date, booking.end_time)
   const countdown = past ? null : getCountdown(booking.booked_date, booking.start_time)
-  const pkg       = packageInfo(Number(booking.duration_hours))
+ const pkg       = packageInfo(Number(booking.duration_hours))
   const pymtBadge = paymentStatusBadge(booking.payment_status, booking.payment_method)
+  const roomName  = booking.room?.name || 'Room'
+  const rEmoji    = roomEmoji(roomName)
 
   const dateObj  = new Date(`${booking.booked_date}T${booking.start_time}`)
   const dayName  = dateObj.toLocaleDateString('en-US', { weekday:'long' })
@@ -80,15 +94,13 @@ function SerenityBookingCard({ booking }) {
       <div style={{ padding:'1.25rem 1.5rem' }}>
         <div style={{ display:'flex', gap:'1rem', alignItems:'flex-start', flexWrap:'wrap' }}>
           <div style={{ flexShrink:0, width:72, minHeight:72, borderRadius:16, background:past?'#f1f5f9':pkg.faint, border:`1.5px solid ${past?BORDER:pkg.color+'33'}`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2 }}>
-            <span style={{ fontSize:'1.6rem' }}>{past?'🏛️':pkg.emoji}</span>
-            <span style={{ fontSize:'0.62rem', fontWeight:800, color:past?SLATE_L:pkg.color, textTransform:'uppercase', letterSpacing:'0.04em', textAlign:'center', lineHeight:1.2, padding:'0 4px' }}>
+<span style={{ fontSize:'1.6rem' }}>{past?rEmoji:pkg.emoji}</span>            <span style={{ fontSize:'0.62rem', fontWeight:800, color:past?SLATE_L:pkg.color, textTransform:'uppercase', letterSpacing:'0.04em', textAlign:'center', lineHeight:1.2, padding:'0 4px' }}>
               {dateObj.toLocaleDateString('en-US',{month:'short'})}<br/><span style={{ fontSize:'1rem', fontWeight:900 }}>{dateObj.getDate()}</span>
             </span>
           </div>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexWrap:'wrap', marginBottom:'0.3rem' }}>
-              <span style={{ fontFamily:'var(--font-display)', fontSize:'1rem', fontWeight:700, color:past?SLATE_M:SLATE }}>The Serenity Room</span>
-              <span style={{ fontSize:'0.68rem', fontWeight:700, background:past?'#f1f5f9':pkg.faint, color:past?SLATE_L:pkg.color, borderRadius:100, padding:'0.15rem 0.6rem', border:`1px solid ${past?BORDER:pkg.color+'44'}` }}>{pkg.name}</span>
+<span style={{ fontFamily:'var(--font-display)', fontSize:'1rem', fontWeight:700, color:past?SLATE_M:SLATE }}>{rEmoji} {roomName}</span>              <span style={{ fontSize:'0.68rem', fontWeight:700, background:past?'#f1f5f9':pkg.faint, color:past?SLATE_L:pkg.color, borderRadius:100, padding:'0.15rem 0.6rem', border:`1px solid ${past?BORDER:pkg.color+'44'}` }}>{pkg.name}</span>
             </div>
             <div style={{ fontSize:'0.8rem', color:SLATE_M, marginBottom:'0.5rem', fontWeight:500 }}>📅 {dayName}, {monthDay}</div>
             <div style={{ display:'inline-flex', alignItems:'center', gap:'0.35rem', background:past?'#f8fafc':'#f0f9ff', border:`1px solid ${past?BORDER:'#bae6fd'}`, borderRadius:10, padding:'0.45rem 0.85rem', marginBottom:'0.65rem' }}>
@@ -199,17 +211,16 @@ export default function MyBookings() {
           <div style={{ width:52, height:52, borderRadius:14, background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.6rem', flexShrink:0, backdropFilter:'blur(6px)' }}>🏛️</div>
           <div>
             <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.3rem,4vw,1.9rem)', color:'rgba(255,255,255,0.95)', margin:0 }}>My Bookings</h1>
-            <p style={{ fontFamily:'inherit', fontSize:'0.82rem', color:'rgba(255,255,255,0.65)', margin:'0.2rem 0 0' }}>Your Serenity Room reservations, all in one place</p>
-          </div>
+<p style={{ fontFamily:'inherit', fontSize:'0.82rem', color:'rgba(255,255,255,0.65)', margin:'0.2rem 0 0' }}>Your room reservations, all in one place</p>          </div>
         </div>
 
         <div style={{ position:'relative', zIndex:1, display:'flex', gap:'0.6rem', flexWrap:'wrap' }}>
-          <button onClick={() => navigate('/ourplace')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'1.5px solid rgba(255,255,255,0.25)', background:'rgba(255,255,255,0.08)', backdropFilter:'blur(6px)', fontSize:'0.85rem', fontWeight:600, color:'#fff', cursor:'pointer', transition:'all 0.2s' }}
+       <button onClick={() => navigate('/ourplace')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'1.5px solid rgba(255,255,255,0.25)', background:'rgba(255,255,255,0.08)', backdropFilter:'blur(6px)', fontSize:'0.85rem', fontWeight:600, color:'#fff', cursor:'pointer', transition:'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.18)' }}
             onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.08)' }}>
-            ← The Serenity Room
+            ← Book a Room
           </button>
-          <button onClick={() => navigate('/ashram')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'none', background:'linear-gradient(135deg,#ffd166,#ffb74d)', fontSize:'0.85rem', fontWeight:700, color:'#3a2400', cursor:'pointer', boxShadow:'0 4px 16px rgba(255,183,77,0.35)' }}>
+          <button onClick={() => navigate('/ourplace')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'none', background:'linear-gradient(135deg,#ffd166,#ffb74d)', fontSize:'0.85rem', fontWeight:700, color:'#3a2400', cursor:'pointer', boxShadow:'0 4px 16px rgba(255,183,77,0.35)' }}>
             + New Booking
           </button>
         </div>
@@ -236,9 +247,8 @@ export default function MyBookings() {
             <div style={{ fontSize:'3rem', marginBottom:'1rem' }}>🏛️</div>
             <div style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:SLATE, marginBottom:'0.5rem' }}>No bookings yet</div>
             <p style={{ fontSize:'0.88rem', color:SLATE_M, maxWidth:360, margin:'0 auto 1.5rem', lineHeight:1.65 }}>
-              Reserve The Serenity Room — a private, sound-proofed wellness space for sessions, workshops, or individual reflection.
-            </p>
-            <button onClick={() => navigate('/ashram')} style={{ padding:'0.85rem 2.25rem', borderRadius:14, border:'none', background:'linear-gradient(135deg,#0369a1,#0ea5e9)', color:WHITE, fontFamily:'inherit', fontWeight:700, fontSize:'0.92rem', cursor:'pointer', boxShadow:'0 6px 22px rgba(14,165,233,0.35)' }}>
+Reserve one of our private rooms — from 1:1 therapy spaces to sound-proofed group and wellness rooms.            </p>
+            <button onClick={() => navigate('/ourplace')} style={{ padding:'0.85rem 2.25rem', borderRadius:14, border:'none', background:'linear-gradient(135deg,#0369a1,#0ea5e9)', color:WHITE, fontFamily:'inherit', fontWeight:700, fontSize:'0.92rem', cursor:'pointer', boxShadow:'0 6px 22px rgba(14,165,233,0.35)' }}>
               Explore &amp; Book →
             </button>
           </div>
@@ -255,7 +265,7 @@ export default function MyBookings() {
             ) : (
               <div style={{ background:WHITE, borderRadius:16, border:`1px solid ${BORDER}`, padding:'2rem', textAlign:'center', marginBottom:'2rem' }}>
                 <p style={{ color:SLATE_M, fontSize:'0.88rem', marginBottom:'1rem' }}>No upcoming bookings right now.</p>
-                <button onClick={() => navigate('/ashram')} style={{ padding:'0.65rem 1.5rem', borderRadius:10, border:'none', background:'linear-gradient(135deg,#0369a1,#0ea5e9)', color:WHITE, fontWeight:700, cursor:'pointer' }}>+ Book a Session</button>
+                <button onClick={() => navigate('/ourplace')} style={{ padding:'0.65rem 1.5rem', borderRadius:10, border:'none', background:'linear-gradient(135deg,#0369a1,#0ea5e9)', color:WHITE, fontWeight:700, cursor:'pointer' }}>+ Book a Room</button>
               </div>
             )}
 
