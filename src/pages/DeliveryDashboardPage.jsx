@@ -5,7 +5,7 @@
 // Matches the admin dark sidebar aesthetic but with delivery accent.
 // ═══════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from '../context/RouterContext'
 
 const API = (import.meta.env.VITE_API_URL || '').replace(/\/api$/, '')
@@ -154,6 +154,36 @@ function injectCSS() {
   document.head.appendChild(s)
 }
 
+// ── Leaflet loader (map tiles + JS, no API key needed) ────────
+let leafletLoading = null
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L)
+  if (leafletLoading) return leafletLoading
+
+  leafletLoading = new Promise((resolve, reject) => {
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link')
+      link.id = 'leaflet-css'
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      document.head.appendChild(link)
+    }
+    if (document.getElementById('leaflet-js')) {
+      const check = setInterval(() => {
+        if (window.L) { clearInterval(check); resolve(window.L) }
+      }, 50)
+      return
+    }
+    const script = document.createElement('script')
+    script.id = 'leaflet-js'
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    script.onload = () => resolve(window.L)
+    script.onerror = reject
+    document.head.appendChild(script)
+  })
+  return leafletLoading
+}
+
 // ─────────────────────────────────────────────────────────────
 export default function DeliveryDashboardPage() {
   useEffect(() => { injectCSS() }, [])
@@ -178,9 +208,16 @@ export default function DeliveryDashboardPage() {
   const [toast,     setToast]     = useState(null)
   const [detailRow, setDetailRow] = useState(null)
   const [updateModal, setUpdateModal] = useState(null)  // { order }
-  const [newStatus, setNewStatus] = useState('')
+const [newStatus, setNewStatus] = useState('')
   const [newNote,   setNewNote]   = useState('')
   const [saving,    setSaving]    = useState(false)
+
+  const [mapReady, setMapReady]   = useState(false)
+  const mapDivRef       = useRef(null)
+  const mapInstRef      = useRef(null)
+  const riderMarkerRef  = useRef(null)
+  const orderMarkersRef = useRef([])
+  const watchIdRef      = useRef(null)
 
   const LIMIT = 15
 
@@ -206,8 +243,114 @@ export default function DeliveryDashboardPage() {
       setError(e.message)
     } finally { setLoading(false) }
   }, [page, filterDS])
+useEffect(() => { load() }, [load])
 
-  useEffect(() => { load() }, [load])
+  // ── Live map: init on tab open, track rider position in real time ──
+  useEffect(() => {
+    if (tab !== 'map') {
+      if (watchIdRef.current != null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+        watchIdRef.current = null
+      }
+      if (mapInstRef.current) {
+        mapInstRef.current.remove()
+        mapInstRef.current = null
+      }
+      setMapReady(false)
+      return
+    }
+
+    let cancelled = false
+
+    loadLeaflet().then(L => {
+      if (cancelled || !mapDivRef.current) return
+
+      const defaultCenter = [27.7172, 85.3240] // Kathmandu — adjust to your service area
+      const map = L.map(mapDivRef.current).setView(defaultCenter, 13)
+      mapInstRef.current = map
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map)
+
+      const riderIcon = L.divIcon({
+        className: '',
+        html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;
+                border:3px solid #fff;box-shadow:0 0 0 4px rgba(59,130,246,.3);"></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+      })
+
+      if (navigator.geolocation) {
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords
+            if (!mapInstRef.current) return
+            if (!riderMarkerRef.current) {
+              riderMarkerRef.current = L.marker([latitude, longitude], { icon: riderIcon, zIndexOffset: 1000 })
+                .addTo(mapInstRef.current)
+                .bindPopup('You are here')
+              mapInstRef.current.setView([latitude, longitude], 14)
+            } else {
+              riderMarkerRef.current.setLatLng([latitude, longitude])
+            }
+          },
+          (err) => console.warn('Geolocation error:', err.message),
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+        )
+      }
+
+      setMapReady(true)
+    })
+
+    return () => { cancelled = true }
+  }, [tab])
+
+  // ── Plot order delivery pins whenever orders or map readiness changes ──
+  useEffect(() => {
+    if (!mapReady || !mapInstRef.current || !window.L) return
+    const L = window.L
+    const map = mapInstRef.current
+
+    orderMarkersRef.current.forEach(m => map.removeLayer(m))
+    orderMarkersRef.current = []
+
+    const pinColor = (status) => DS[status]?.dot || '#94a3b8'
+    const bounds = []
+
+    orders.forEach(o => {
+      const lat = o.shipping_address?.lat ?? o.shipping_address?.latitude
+      const lng = o.shipping_address?.lng ?? o.shipping_address?.longitude
+      if (lat == null || lng == null) return
+
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+                background:${pinColor(o.delivery_status)};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 14],
+      })
+
+      const marker = L.marker([lat, lng], { icon }).addTo(map)
+      marker.bindPopup(`
+        <div style="font-family:Sora,sans-serif;font-size:12px;min-width:150px">
+          <strong>${o.order_number || o.id?.slice(0,8)}</strong><br/>
+          ${o.client_name || '—'}<br/>
+          <span style="color:${pinColor(o.delivery_status)};font-weight:700">${DS[o.delivery_status]?.label || o.delivery_status}</span><br/>
+          ${o.shipping_address?.address_line || o.shipping_address?.address || ''}
+        </div>
+      `)
+      marker.on('click', () => setDetailRow(o))
+
+      orderMarkersRef.current.push(marker)
+      bounds.push([lat, lng])
+    })
+
+    if (bounds.length) {
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 })
+    }
+  }, [mapReady, orders])
 
   function handleLogout() {
     localStorage.removeItem('deliveryToken')
@@ -286,8 +429,9 @@ export default function DeliveryDashboardPage() {
         {/* Sidebar */}
         <div className="dlv-side">
           <div className="sb-group">Delivery</div>
-          {[
+      {[
             { id: 'orders', icon: '📦', label: 'My Orders' },
+            { id: 'map',    icon: '🗺️', label: 'Live Map' },
             { id: 'profile', icon: '👤', label: 'My Profile' },
           ].map(t => (
             <button key={t.id} className={`sb-btn${tab === t.id ? ' active' : ''}`} onClick={() => setTab(t.id)}>
@@ -482,6 +626,43 @@ const pay = PAY_MAP[o.payment_status] || { bg: '#ecfdf5', c: '#065f46', t: '✓ 
                   <button className="btn btn-ghost btn-sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>Next →</button>
                 </div>
               )}
+            </div>
+          )}
+
+ {/* ── MAP TAB ── */}
+          {tab === 'map' && (
+            <div>
+              <div className="sec-head">
+                <div>
+                  <h1 className="sec-title">Live Delivery Map</h1>
+                  <p className="sec-sub">Your location and active delivery pins update in real time</p>
+                </div>
+                <div className="sec-actions">
+                  <button className="btn btn-ghost" onClick={load}>↺ Refresh Orders</button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '.9rem', flexWrap: 'wrap', marginBottom: '.85rem' }}>
+                {Object.entries(DS).filter(([k]) => k !== 'unassigned').map(([k, v]) => (
+                  <div key={k} style={{ display: 'flex', alignItems: 'center', gap: '.3rem', fontSize: '.72rem', color: 'var(--muted)' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: v.dot, display: 'inline-block' }} />
+                    {v.label}
+                  </div>
+                ))}
+              </div>
+
+              <div
+                ref={mapDivRef}
+                style={{
+                  width: '100%',
+                  height: 'calc(100vh - 260px)',
+                  minHeight: 420,
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--border)',
+                  boxShadow: 'var(--shadow-sm)',
+                  overflow: 'hidden',
+                }}
+              />
             </div>
           )}
 
