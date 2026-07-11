@@ -166,8 +166,9 @@ export default function BookingPage() {
 const [submitting,   setSubmitting]   = useState(false)
   const [error,        setError]        = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
-  const [dayTaken,     setDayTaken]     = useState(false)
-
+const [dayTaken,      setDayTaken]      = useState(false)
+  const [slotCheckErr,  setSlotCheckErr]  = useState('')
+  const [checkingSlot,  setCheckingSlot]  = useState(false)
   const allSpecializations = ['All', ...Array.from(new Set(therapists.flatMap(t => t.specializations || []))).sort()]
   const filteredTherapists = activeFilter === 'All' ? therapists : therapists.filter(t => (t.specializations||[]).includes(activeFilter))
 
@@ -216,6 +217,34 @@ useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist
     if (bookedSlots.some(b => norm(b) === nl)) return 'therapist_booked'
     if (userSlots.some(b => norm(b) === nl))   return 'user_booked'
     return 'available'
+  }
+
+  async function handleContinueFromStep3() {
+    setSlotCheckErr('')
+    if (!selected.therapist || !selected.date || !selected.time) return
+    setCheckingSlot(true)
+    try {
+      const token = localStorage.getItem('accessToken')
+      const scheduledAt = slotToISO(selected.date, selected.time)
+      const res = await fetch(
+        `${API_BASE}/appointments/can-book?therapistId=${selected.therapist.id}&scheduledAt=${encodeURIComponent(scheduledAt)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      const data = await res.json()
+      if (!data.ok) {
+        setSlotCheckErr(data.message || 'That slot is no longer available.')
+        await loadBookedSlots() // refresh the red/booked slots so the UI matches reality
+        if (data.reason === 'slot_taken' || data.reason === 'own_double_booking') {
+          setSelected(s => ({ ...s, time: '' })) // force re-pick
+        }
+        return
+      }
+      setStep(4)
+    } catch (err) {
+      setSlotCheckErr('Could not verify slot availability. Please try again.')
+    } finally {
+      setCheckingSlot(false)
+    }
   }
 async function handleConfirm() {
     if (!user) { navigate('/signin'); return }
@@ -278,9 +307,12 @@ async function handleConfirm() {
           : 'Payment was not completed. The time slot has been released — please book again when ready.'
       )
       await loadBookedSlots()
-    } catch (err) {
-      if (err.status === 409 || err.message?.includes('conflict')) {
-        setError('This slot was just taken. Please choose a different time.')
+  } catch (err) {
+      if (err.code === 'ONE_BOOKING_PER_DAY') {
+        setError(err.message || 'You already have a booking on this day.')
+        setStep(3)
+      } else if (err.status === 409) {
+        setError(err.message || 'This slot was just taken. Please choose a different time.')
         await loadBookedSlots(); setStep(3)
       } else {
         setError(err.message || 'Booking failed. Please try again.')
@@ -489,13 +521,18 @@ async function handleConfirm() {
                 <textarea value={selected.notes} onChange={e => setSelected(s => ({ ...s, notes:e.target.value }))} placeholder="Share anything relevant…" rows={3}
                   style={{ width:'100%', padding:'0.75rem 1rem', border:`1.5px solid ${C.borderFaint}`, borderRadius:10, fontSize:'0.88rem', color:C.textDark, outline:'none', resize:'vertical', boxSizing:'border-box' }}/>
               </div>
+           {slotCheckErr && (
+                <div style={{ background:C.redFaint, border:'1.5px solid #f5a0a0', borderRadius:8, padding:'0.75rem 1rem', marginBottom:'1rem', color:C.red, fontSize:'0.875rem' }}>
+                  ⚠️ {slotCheckErr}
+                </div>
+              )}
               <div style={{ display:'flex', gap:'1rem' }}>
                 <button className="btn btn-outline" onClick={() => setStep(2)}>← Back</button>
-           <button className="btn btn-primary btn-lg"
-                  disabled={!selected.date || !selected.time || loadingSlots || availableSlotsForDay.length === 0 || dayTaken}
-                  style={{ opacity:selected.date&&selected.time&&!loadingSlots&&availableSlotsForDay.length>0&&!dayTaken?1:0.5 }}
-                  onClick={() => setStep(4)}>
-                  Continue →
+                <button className="btn btn-primary btn-lg"
+                  disabled={!selected.date || !selected.time || loadingSlots || availableSlotsForDay.length === 0 || dayTaken || checkingSlot}
+                  style={{ opacity:selected.date&&selected.time&&!loadingSlots&&availableSlotsForDay.length>0&&!dayTaken&&!checkingSlot?1:0.5 }}
+                  onClick={handleContinueFromStep3}>
+                  {checkingSlot ? 'Checking availability…' : 'Continue →'}
                 </button>
               </div>
             </div>

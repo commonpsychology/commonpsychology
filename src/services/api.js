@@ -67,10 +67,11 @@ async function request(path, options = {}, retry = true) {
 
   const data = await res.json()
 
-  if (!res.ok) {
+if (!res.ok) {
     const err = new Error(data.message || 'Request failed')
     err.status = res.status
     err.errors = data.errors
+    err.code = data.code // e.g. 'ONE_BOOKING_PER_DAY' — lets callers branch on the real reason, not just HTTP status
     throw err
   }
 
@@ -158,11 +159,13 @@ export const therapists = {
 // APPOINTMENTS
 // =============================================================================
 export const appointments = {
-  book:       (therapistId, scheduledAt, type, notes) => post('/appointments', { therapistId, scheduledAt, type, notes }),
-  list:       (params = {}) => { const q = new URLSearchParams(params).toString(); return get(`/appointments${q ? `?${q}` : ''}`) },
-  getById:    (id)          => get(`/appointments/${id}`),
-  cancel:     (id, reason)  => patch(`/appointments/${id}/cancel`, { reason }),
-  reschedule: (id, at)      => patch(`/appointments/${id}/reschedule`, { scheduledAt: at }),
+  book:          (therapistId, scheduledAt, type, notes) => post('/appointments', { therapistId, scheduledAt, type, notes }),
+  list:          (params = {}) => { const q = new URLSearchParams(params).toString(); return get(`/appointments${q ? `?${q}` : ''}`) },
+  getById:       (id)          => get(`/appointments/${id}`),
+  cancel:        (id, reason)  => patch(`/appointments/${id}/cancel`, { reason }),
+  reschedule:    (id, at)      => patch(`/appointments/${id}/reschedule`, { scheduledAt: at }),
+  attachPayment: (id, paymentId, transactionId) => patch(`/appointments/${id}/attach-payment`, { paymentId, transactionId }),
+  canBook:       (therapistId, scheduledAt) => get(`/appointments/can-book?therapistId=${therapistId}&scheduledAt=${encodeURIComponent(scheduledAt)}`),
 }
 
 // =============================================================================
