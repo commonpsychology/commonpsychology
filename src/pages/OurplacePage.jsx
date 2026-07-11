@@ -611,8 +611,9 @@ export default function OurPlacePage() {
   const [clientEmail, setClientEmail] = useState('')
   const [notes,       setNotes]       = useState('')
   const [doneData,    setDoneData]    = useState(null)
-  const [bookErr,     setBookErr]     = useState('')
+const [bookErr,     setBookErr]     = useState('')
   const [roomId,      setRoomId]      = useState(null)
+  const [dayTaken,    setDayTaken]    = useState(false)
   const [apiRooms,    setApiRooms]    = useState([])
   const [selectedRoomKey, setSelectedRoomKey] = useState(ROOMS[2].key) // default: The Serenity Room
 
@@ -676,13 +677,26 @@ export default function OurPlacePage() {
     }
   }, [screen, bookDate, roomId, fetchAvailability])
 
-  // Also re-fetch when date or room selection changes while on pay screen
-  useEffect(() => {
+useEffect(() => {
     if (screen === 'pay' && bookDate && roomId) {
       setAvailFetched('')  // force re-fetch
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookDate, selectedRoomKey])
+
+  useEffect(() => {
+    if (!bookDate) { setDayTaken(false); return }
+    const token = localStorage.getItem('accessToken')
+    if (!token) { setDayTaken(false); return }
+    let cancelled = false
+    fetch(`${API_BASE}/bookings/check-day?date=${bookDate}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(d => { if (!cancelled) setDayTaken(!!d.hasBooking) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [bookDate])
 
   const pkg    = PACKAGES.find(p => p.id === selPkg)
   const endTime = bookTime && pkg ? addHours(bookTime, pkg.durationHours) : ''
@@ -695,8 +709,7 @@ export default function OurPlacePage() {
   // Can't select a start time that has already passed today
   const timeInPast = bookTime ? isSlotPast(bookTime, bookDate) : false
 
-  const formOK = bookDate && bookTime && clientName.trim() && clientPhone.trim().length >= 7 && !timeConflict && !timeInPast
-
+const formOK = bookDate && bookTime && clientName.trim() && clientPhone.trim().length >= 7 && !timeConflict && !timeInPast && !dayTaken
   function goBook() {
     setScreen('book')
     setTimeout(() => bookEl.current?.scrollIntoView({ behavior:'smooth', block:'start' }), 80)
@@ -1017,12 +1030,23 @@ const tomorrow = new Date()
               </div>
               <div style={{ padding:'1.25rem 1.4rem', display:'flex', flexDirection:'column', gap:'1rem' }}>
 
-                {/* Date picker */}
+             {/* Date picker */}
                 <div>
                   <label style={{ display:'block', fontFamily:'inherit', fontSize:'0.68rem', fontWeight:800, color:SLATE_L, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.35rem' }}>Date *</label>
                   <FocusInput type="date" value={bookDate} onChange={e => { setBookDate(e.target.value); setBookTime('') }} min={minDate}/>
                 </div>
 
+                {bookDate && dayTaken && (
+                  <div style={{ background:AMBER_L, border:`1.5px solid ${AMBER}`, borderRadius:10, padding:'0.75rem 0.9rem', display:'flex', gap:'0.6rem', alignItems:'flex-start' }}>
+                    <span style={{ fontSize:'1.1rem', flexShrink:0 }}>⚠️</span>
+                    <div>
+                      <div style={{ fontFamily:'inherit', fontSize:'0.84rem', fontWeight:700, color:'#92400e', marginBottom:'0.2rem' }}>One Booking Per Day</div>
+                      <div style={{ fontFamily:'inherit', fontSize:'0.78rem', color:'#92400e', lineHeight:1.5 }}>
+                        You already have a booking (appointment or room) on {bookDate}. Please pick a different date.
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Availability timeline — shows when date is selected */}
                 {bookDate && (
                   <div>
@@ -1132,15 +1156,17 @@ const tomorrow = new Date()
                 onClick={handleConfirmBooking}
                 disabled={!formOK}
                 style={{ flex:1, padding:'0.9rem', borderRadius:12, border:'none', background:formOK?pkg.grad:BORDER, color:formOK?WHITE:SLATE_L, fontFamily:'inherit', fontWeight:700, fontSize:'0.9rem', cursor:formOK?'pointer':'not-allowed', boxShadow:formOK?`0 6px 22px ${pkg.color}44`:'none', transition:'all 0.2s' }}>
-                {timeInPast
-                  ? '🕒 That time has passed'
-                  : timeConflict
-                    ? '🚫 Choose a different time'
-                    : !bookDate || !bookTime
-                      ? 'Pick a date & time first'
-                      : !clientName.trim() || clientPhone.trim().length < 7
-                        ? 'Fill in your name & phone'
-                        : `Choose Payment — NPR ${pkg.price.toLocaleString()} →`
+          {dayTaken
+                  ? '📅 Already booked that day'
+                  : timeInPast
+                    ? '🕒 That time has passed'
+                    : timeConflict
+                      ? '🚫 Choose a different time'
+                      : !bookDate || !bookTime
+                        ? 'Pick a date & time first'
+                        : !clientName.trim() || clientPhone.trim().length < 7
+                          ? 'Fill in your name & phone'
+                          : `Choose Payment — NPR ${pkg.price.toLocaleString()} →`
                 }
               </button>
             </div>
