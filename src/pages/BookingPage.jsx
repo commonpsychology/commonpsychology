@@ -288,9 +288,22 @@ async function handleConfirm() {
         metadata:{ appointment_id:appointmentId, therapist_id:therapistId, therapist_name:therapistName, session_type:selected.type, scheduled_at:dateTime, client_name:user.fullName||user.full_name||user.name||'', client_email:user.email||'', category:'appointment' },
       })
 
-      window.removeEventListener('pagehide', releaseOnUnload)
+ window.removeEventListener('pagehide', releaseOnUnload)
 
       if (result.success) {
+        try {
+          await appointments.attachPayment(appointmentId, result.paymentId, result.transactionId)
+        } catch (linkErr) {
+          // Payment succeeded but we couldn't record it against the appointment —
+          // don't silently navigate away and hide that from the user.
+          setError(
+            `Payment succeeded but we couldn't update your appointment record` +
+            (result.transactionId ? ` (reference ${result.transactionId})` : '') +
+            `. Please contact support so we can confirm it manually.`
+          )
+          setSubmitting(false)
+          return
+        }
         navigate('/portal')
         return
       }
