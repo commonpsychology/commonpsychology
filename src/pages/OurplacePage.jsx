@@ -813,7 +813,7 @@ const tomorrow = new Date()
             </div>
             <div style={{ display:'flex', gap:'0.75rem', justifyContent:'center', flexWrap:'wrap' }}>
               <button onClick={() => navigate('/')} style={{ padding:'0.75rem 2rem', borderRadius:12, border:'none', background:btnGrad, color:WHITE, fontFamily:'inherit', fontWeight:700, fontSize:'0.9rem', cursor:'pointer', boxShadow:'0 4px 16px rgba(14,165,233,0.28)' }}>🏠 Back to Home</button>
-<button onClick={() => navigate('/room-bookings')} style={{ padding:'0.75rem 1.5rem', borderRadius:12, border:`1.5px solid ${BORDER}`, background:WHITE, color:SLATE_M, fontFamily:'inherit', fontWeight:600, fontSize:'0.9rem', cursor:'pointer' }}>View Space</button>            </div>
+<button onClick={() => navigate('/my-bookings')} style={{ padding:'0.75rem 1.5rem', borderRadius:12, border:`1.5px solid ${BORDER}`, background:WHITE, color:SLATE_M, fontFamily:'inherit', fontWeight:600, fontSize:'0.9rem', cursor:'pointer' }}>View Space</button>            </div>
           </div>
         </div>
       </div>
