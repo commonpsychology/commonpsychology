@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { isLoggedIn } from '../services/api'
-import { supabase } from '../services/supabaseClient' // adjust path if your Supabase client lives elsewhere
-
+import { wellness } from '../services/api'
 // ─────────────────────────────────────────────────────────────
 // FULL ASSESSMENT DEFINITIONS (embedded — no API needed)
 // ─────────────────────────────────────────────────────────────
