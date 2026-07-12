@@ -4,9 +4,10 @@
 // Rider sees only THEIR assigned orders. Can update delivery_status only.
 // Matches the admin dark sidebar aesthetic but with delivery accent.
 // ═══════════════════════════════════════════════════════════════
-
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from '../context/RouterContext'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const API = (import.meta.env.VITE_API_URL || '').replace(/\/api$/, '')
 
@@ -155,34 +156,6 @@ function injectCSS() {
 }
 
 // ── Leaflet loader (map tiles + JS, no API key needed) ────────
-let leafletLoading = null
-function loadLeaflet() {
-  if (window.L) return Promise.resolve(window.L)
-  if (leafletLoading) return leafletLoading
-
-  leafletLoading = new Promise((resolve, reject) => {
-    if (!document.getElementById('leaflet-css')) {
-      const link = document.createElement('link')
-      link.id = 'leaflet-css'
-      link.rel = 'stylesheet'
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-      document.head.appendChild(link)
-    }
-    if (document.getElementById('leaflet-js')) {
-      const check = setInterval(() => {
-        if (window.L) { clearInterval(check); resolve(window.L) }
-      }, 50)
-      return
-    }
-    const script = document.createElement('script')
-    script.id = 'leaflet-js'
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-    script.onload = () => resolve(window.L)
-    script.onerror = reject
-    document.head.appendChild(script)
-  })
-  return leafletLoading
-}
 
 // ─────────────────────────────────────────────────────────────
 export default function DeliveryDashboardPage() {
@@ -260,57 +233,49 @@ useEffect(() => { load() }, [load])
       return
     }
 
-    let cancelled = false
+    if (!mapDivRef.current) return
 
-    loadLeaflet().then(L => {
-      if (cancelled || !mapDivRef.current) return
+    const defaultCenter = [27.7172, 85.3240] // Kathmandu — adjust to your service area
+    const map = L.map(mapDivRef.current).setView(defaultCenter, 13)
+    mapInstRef.current = map
 
-      const defaultCenter = [27.7172, 85.3240] // Kathmandu — adjust to your service area
-      const map = L.map(mapDivRef.current).setView(defaultCenter, 13)
-      mapInstRef.current = map
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map)
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19,
-      }).addTo(map)
-
-      const riderIcon = L.divIcon({
-        className: '',
-        html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;
-                border:3px solid #fff;box-shadow:0 0 0 4px rgba(59,130,246,.3);"></div>`,
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
-      })
-
-      if (navigator.geolocation) {
-        watchIdRef.current = navigator.geolocation.watchPosition(
-          (pos) => {
-            const { latitude, longitude } = pos.coords
-            if (!mapInstRef.current) return
-            if (!riderMarkerRef.current) {
-              riderMarkerRef.current = L.marker([latitude, longitude], { icon: riderIcon, zIndexOffset: 1000 })
-                .addTo(mapInstRef.current)
-                .bindPopup('You are here')
-              mapInstRef.current.setView([latitude, longitude], 14)
-            } else {
-              riderMarkerRef.current.setLatLng([latitude, longitude])
-            }
-          },
-          (err) => console.warn('Geolocation error:', err.message),
-          { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
-        )
-      }
-
-      setMapReady(true)
+    const riderIcon = L.divIcon({
+      className: '',
+      html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;
+              border:3px solid #fff;box-shadow:0 0 0 4px rgba(59,130,246,.3);"></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
     })
 
-    return () => { cancelled = true }
-  }, [tab])
+    if (navigator.geolocation) {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords
+          if (!mapInstRef.current) return
+          if (!riderMarkerRef.current) {
+            riderMarkerRef.current = L.marker([latitude, longitude], { icon: riderIcon, zIndexOffset: 1000 })
+              .addTo(mapInstRef.current)
+              .bindPopup('You are here')
+            mapInstRef.current.setView([latitude, longitude], 14)
+          } else {
+            riderMarkerRef.current.setLatLng([latitude, longitude])
+          }
+        },
+        (err) => console.warn('Geolocation error:', err.message),
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+      )
+    }
 
+    setMapReady(true)
+  }, [tab])
   // ── Plot order delivery pins whenever orders or map readiness changes ──
   useEffect(() => {
-    if (!mapReady || !mapInstRef.current || !window.L) return
-    const L = window.L
+   if (!mapReady || !mapInstRef.current) return
     const map = mapInstRef.current
 
     orderMarkersRef.current.forEach(m => map.removeLayer(m))
