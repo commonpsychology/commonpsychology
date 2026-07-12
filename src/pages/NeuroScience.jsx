@@ -389,7 +389,8 @@ export default function NeuroscienceLab() {
   return (
     <div style={{
       fontFamily: "'Georgia', 'Times New Roman', serif",
-      background: "linear-gradient(155deg, #E6F1FB 0%, #f5faff 45%, #E1F5EE 100%)",
+      // pure bluish-white gradient (previously faded toward teal at the bottom)
+      background: "linear-gradient(160deg, #eaf4ff 0%, #f7fbff 40%, #ffffff 72%, #eef6ff 100%)",
       minHeight: "100vh", padding: "70px 0 48px",
     }}>
       {/* Header */}
