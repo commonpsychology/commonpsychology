@@ -190,6 +190,8 @@ const ROOMS = [
   { key:'kids',      name:'Kids Play Room',    type:'Child Therapy',     emoji:'🧸', capacity:'Up to 4',  desc:'Playful, child-friendly therapy room' },
 ]
 
+
+
 const PACKAGES = [
   {
     id:'hour',    name:'Single Hour', emoji:'⏱️', price:1500, period:'per hour',
