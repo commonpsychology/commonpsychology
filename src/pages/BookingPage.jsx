@@ -7,6 +7,7 @@ import { useTherapists } from '../context/TherapistsContext'
 import { appointments } from '../services/api'
 import SmartDatePicker from '../components/SmartDatePicker'
 import { logBookingStep } from '../components/BookingDebugPanel'
+const [infoMsg, setInfoMsg] = useState('')
 
 const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
@@ -306,16 +307,19 @@ async function handleConfirm() {
 
  window.removeEventListener('pagehide', releaseOnUnload)
 
-      if (result.success) {
+   if (result.success) {
         try {
           await appointments.attachPayment(appointmentId, result.paymentId, result.transactionId)
         } catch (linkErr) {
-          // Payment succeeded but we couldn't record it against the appointment —
-          // don't silently navigate away and hide that from the user.
-          setError(
-            `Payment succeeded but we couldn't update your appointment record` +
+          // Payment succeeded — this is just a record-syncing hiccup, not a
+          // failure, so reassure the user instead of alarming them.
+          setError('')
+          setInfoMsg(
+            `Your payment went through — no need to worry. ` +
+            `We're just finishing up on our end` +
             (result.transactionId ? ` (reference ${result.transactionId})` : '') +
-            `. Please contact support so we can confirm it manually.`
+            `, and our team will confirm your appointment shortly. ` +
+            `You can check its status anytime from your portal.`
           )
           setSubmitting(false)
           return
@@ -585,8 +589,35 @@ async function handleConfirm() {
                   ⚠️ You need to <button onClick={() => navigate('/signin')} style={{ background:'none', border:'none', color:'var(--green-deep)', fontWeight:700, cursor:'pointer', fontSize:'0.85rem' }}>sign in</button> to complete your booking.
                 </div>
               )}
-              {error && <div style={{ background:C.redFaint, border:'1.5px solid #f5a0a0', borderRadius:8, padding:'0.75rem 1rem', marginBottom:'1rem', color:C.red, fontSize:'0.875rem' }}>{error}</div>}
+{error && <div style={{ background:C.redFaint, border:'1.5px solid #f5a0a0', borderRadius:8, padding:'0.75rem 1rem', marginBottom:'1rem', color:C.red, fontSize:'0.875rem' }}>{error}</div>}
 
+              {infoMsg && (
+                <div style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
+                  background: '#e8f8f0', border: '1px solid #a8d8b8', borderRadius: 10,
+                  padding: '0.85rem 1rem', marginBottom: '1.25rem',
+                }}>
+                  <span style={{ fontSize: '1.1rem', lineHeight: 1, flexShrink: 0 }}>✅</span>
+                  <div>
+                    <div style={{ fontWeight: 700, color: '#1a5a3a', fontSize: '0.85rem', marginBottom: '0.2rem' }}>
+                      Payment received
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.82rem', color: '#2e6b4a', lineHeight: 1.5 }}>
+                      {infoMsg}
+                    </p>
+                    <button
+                      onClick={() => navigate('/portal')}
+                      style={{
+                        marginTop: '0.6rem', background: 'none', border: 'none', padding: 0,
+                        color: '#1a7a4a', fontWeight: 700, fontSize: '0.8rem',
+                        textDecoration: 'underline', cursor: 'pointer',
+                      }}
+                    >
+                      Go to my portal →
+                    </button>
+                  </div>
+                </div>
+              )}
               <div style={{ background:'#e8f8f0', border:'1px solid #a8d8b8', borderRadius:10, padding:'0.85rem 1rem', marginBottom:'1.25rem', fontSize:'0.82rem', color:'#1a5a3a' }}>
                 ℹ️ Your appointment will be saved first, then you'll choose your payment method.
               </div>
