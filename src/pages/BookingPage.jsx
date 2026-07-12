@@ -130,7 +130,7 @@ function StepBar({ step }) {
 
   return (
     <div className="stepbar-wrap">
-{STEPS.map((label, i) => {
+      {STEPS.map((label, i) => {
         const num    = i + 1
         const done   = step > num
         const active = step === num
@@ -157,9 +157,9 @@ function StepBar({ step }) {
               }}>{label}</span>
             </div>
             {i < STEPS.length - 1 && (
-              <div key={`c${i}`} className={`stepbar-connector${done ? ' done' : ''}`} />
+              <div className={`stepbar-connector${done ? ' done' : ''}`} />
             )}
-          </>
+          </div>
         )
       })}
     </div>
