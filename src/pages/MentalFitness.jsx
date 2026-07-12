@@ -1,17 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLang } from '../context/LanguageContext'
 
 /* ─────────────────────────────────────────────────────────────
    MENTAL FITNESS SCORE — landing page + interactive check-in
-   Visual language matched to Navbar.jsx:
-     fonts   var(--font-display) / var(--font-body)
-     colors  var(--sky) var(--sky-light) var(--green-deep)
-             var(--green-mist) var(--blue-pale) var(--blue-mist)
-             var(--text-dark) var(--text-mid) var(--text-light)
-             var(--white) var(--off-white)
-     shape   var(--radius-md) var(--radius-lg), pill buttons,
-             icon-in-rounded-square swatches, soft drop shadows
+   v2: sky-blue → white gradient backdrop (explicit hex, not the
+   theme's grey/purple off-white token) + animated quiz/results flow.
 ───────────────────────────────────────────────────────────── */
+
+// Explicit sky-blue/white palette used for backgrounds & motion accents —
+// intentionally hard-coded so this page reads "sky blue" regardless of
+// what --off-white / --sky-light resolve to elsewhere in the app.
+const BG = {
+  pageTop:    '#eaf6ff',
+  pageMid:    '#ffffff',
+  pageBot:    '#f2fbff',
+  heroTop:    '#d8eeff',
+  heroBot:    '#ffffff',
+  glow1:      'rgba(56,150,231,0.16)',
+  glow2:      'rgba(56,150,231,0.10)',
+  cardBorder: '#dceefc',
+}
 
 const PILLARS = [
   {
@@ -153,13 +161,43 @@ function scoreColor(pct) {
   return { fg: '#c0533f', bg: '#fde8e3' }
 }
 
+// One-time keyframe injection for the quiz/results motion. Scoped with an
+// "mfs-" prefix so it can't collide with anything else on the page.
+function injectMotionCSS() {
+  if (typeof document === 'undefined' || document.getElementById('mfs-motion-css')) return
+  const s = document.createElement('style')
+  s.id = 'mfs-motion-css'
+  s.textContent = `
+    @keyframes mfsStepIn { from { opacity:0; transform:translateX(18px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes mfsStepOutLeft { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(-18px); } }
+    @keyframes mfsPopIn { from { opacity:0; transform:translateY(14px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes mfsRingIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+    @keyframes mfsFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes mfsFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-10px); } }
+    @keyframes mfsShimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+    .mfs-step-anim { animation: mfsStepIn 0.32s cubic-bezier(.22,1,.36,1); }
+    .mfs-pop-anim { animation: mfsPopIn 0.4s cubic-bezier(.22,1,.36,1); }
+    .mfs-ring-anim { animation: mfsRingIn 0.5s cubic-bezier(.22,1,.36,1) both; }
+    .mfs-fade-up { animation: mfsFadeUp 0.42s cubic-bezier(.22,1,.36,1) both; }
+    .mfs-glow-a { animation: mfsFloat 7s ease-in-out infinite; }
+    .mfs-glow-b { animation: mfsFloat 9s ease-in-out infinite 1.2s; }
+    .mfs-level-btn { transition: border-color .15s ease, background .15s ease, transform .12s ease; }
+    .mfs-level-btn:hover { transform: translateX(3px); }
+    .mfs-level-btn:active { transform: translateX(1px) scale(0.99); }
+  `
+  document.head.appendChild(s)
+}
+
 export default function MentalFitnessScore({ onNavigate }) {
   const { lang } = useLang ? useLang() : { lang: 'EN' }
 
-  // quiz state: null = not started, number = current pillar index, 'results' = done
-  const [stage, setStage] = useState(null) // null | 'quiz' | 'results'
+  // quiz state: null = not started, 'quiz' = in progress, 'results' = done
+  const [stage, setStage] = useState(null)
   const [stepIndex, setStepIndex] = useState(0)
   const [answers, setAnswers] = useState({}) // { pillarKey: levelIndex }
+  const [animKey, setAnimKey] = useState(0)  // bumps to re-trigger the step-in animation
+
+  useEffect(() => { injectMotionCSS() }, [])
 
   function go(path) {
     if (onNavigate) onNavigate(path)
@@ -168,6 +206,7 @@ export default function MentalFitnessScore({ onNavigate }) {
   function startQuiz() {
     setAnswers({})
     setStepIndex(0)
+    setAnimKey(k => k + 1)
     setStage('quiz')
   }
 
@@ -176,18 +215,23 @@ export default function MentalFitnessScore({ onNavigate }) {
     setAnswers(next)
     if (stepIndex < PILLARS.length - 1) {
       setStepIndex(stepIndex + 1)
+      setAnimKey(k => k + 1)
     } else {
       setStage('results')
     }
   }
 
   function goBackStep() {
-    if (stepIndex > 0) setStepIndex(stepIndex - 1)
+    if (stepIndex > 0) {
+      setStepIndex(stepIndex - 1)
+      setAnimKey(k => k + 1)
+    }
   }
 
   function retake() {
     setAnswers({})
     setStepIndex(0)
+    setAnimKey(k => k + 1)
     setStage('quiz')
   }
 
@@ -209,18 +253,23 @@ export default function MentalFitnessScore({ onNavigate }) {
       : { en: 'Under real strain', np: 'वास्तविक तनावमा' }
 
   return (
-    <div style={{ background:'var(--off-white)' }}>
+    <div style={{ background: `linear-gradient(180deg, ${BG.pageTop} 0%, ${BG.pageMid} 45%, ${BG.pageBot} 100%)` }}>
 
       {/* ───────────── HERO / QUIZ ───────────── */}
       <section style={{
         padding: stage === null ? '4.5rem 1.5rem 4rem' : '3.25rem 1.5rem 3.5rem',
-        background:'linear-gradient(180deg, var(--sky-light) 0%, var(--off-white) 100%)',
-        borderBottom:'1px solid var(--blue-pale)',
+        background: `linear-gradient(180deg, ${BG.heroTop} 0%, ${BG.heroBot} 100%)`,
+        borderBottom: '1px solid var(--blue-pale)',
+        position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ maxWidth:920, margin:'0 auto', textAlign:'center' }}>
+        {/* soft floating sky-blue glows for a bit of life behind the content */}
+        <div className="mfs-glow-a" style={{ position:'absolute', top:-60, left:'8%', width:220, height:220, borderRadius:'50%', background:BG.glow1, filter:'blur(46px)', pointerEvents:'none' }} />
+        <div className="mfs-glow-b" style={{ position:'absolute', bottom:-70, right:'6%', width:260, height:260, borderRadius:'50%', background:BG.glow2, filter:'blur(52px)', pointerEvents:'none' }} />
+
+        <div style={{ maxWidth:920, margin:'0 auto', textAlign:'center', position:'relative' }}>
 
           {stage === null && (
-            <div style={{
+            <div className="mfs-fade-up" style={{
               display:'inline-flex', alignItems:'center', gap:'0.45rem',
               padding:'0.35rem 0.9rem', borderRadius:100,
               background:'var(--white)', border:'1.5px solid var(--blue-pale)',
@@ -234,39 +283,38 @@ export default function MentalFitnessScore({ onNavigate }) {
 
           {stage === null && (
             <>
-              <h1 style={{
+              <h1 className="mfs-fade-up" style={{
                 fontFamily:'var(--font-display)', fontWeight:800,
                 fontSize:'clamp(2.1rem, 5vw, 3.4rem)', lineHeight:1.08,
                 color:'var(--text-dark)', margin:'0 0 1.1rem',
-                letterSpacing:'-0.01em',
+                letterSpacing:'-0.01em', animationDelay:'60ms',
               }}>
                 {lang==='NP' ? 'तपाईंको मानसिक फिटनेस स्कोर' : 'Your Mental Fitness Score'}
               </h1>
 
-              <p style={{
+              <p className="mfs-fade-up" style={{
                 fontFamily:'var(--font-body)', fontSize:'1.08rem',
                 color:'var(--text-mid)', maxWidth:600, margin:'0 auto 2.25rem',
-                lineHeight:1.6,
+                lineHeight:1.6, animationDelay:'120ms',
               }}>
                 {lang==='NP'
                   ? 'यो कुनै चिकित्सा निदान होइन। यो तपाईंको दैनिक भावनात्मक स्वास्थ्यको सरल, सौम्य झलक हो — समयसँगै तपाईं कस्तो महसुस गर्दै हुनुहुन्छ भन्ने प्रवृत्ति।'
                   : 'Not a medical score. Just a simple, honest read on how you\u2019re really doing — your psychological wellness trend, over time.'}
               </p>
 
-              <div style={{ display:'flex', gap:'0.85rem', justifyContent:'center', flexWrap:'wrap' }}>
+              <div className="mfs-fade-up" style={{ display:'flex', gap:'0.85rem', justifyContent:'center', flexWrap:'wrap', animationDelay:'180ms' }}>
                 <button className="btn btn-primary" onClick={startQuiz}>
                   {lang==='NP' ? 'आफ्नो स्कोर हेर्नुहोस्' : 'Check My Score'} →
                 </button>
-                
               </div>
             </>
           )}
 
-          {/* ───────── QUIZ: one pillar at a time ───────── */}
+          {/* ───────── QUIZ: one pillar at a time, animated between steps ───────── */}
           {stage === 'quiz' && (() => {
             const pillar = PILLARS[stepIndex]
             return (
-              <div style={{ textAlign:'left', maxWidth:560, margin:'0 auto' }}>
+              <div key={animKey} className="mfs-step-anim" style={{ textAlign:'left', maxWidth:560, margin:'0 auto' }}>
 
                 {/* progress strip */}
                 <div style={{ display:'flex', gap:'0.4rem', marginBottom:'2rem' }}>
@@ -277,7 +325,7 @@ export default function MentalFitnessScore({ onNavigate }) {
                         : i === stepIndex ? 'var(--sky)'
                         : 'var(--blue-pale)',
                       opacity: i === stepIndex ? 1 : i < stepIndex ? 0.55 : 1,
-                      transition:'background 0.2s ease',
+                      transition:'background 0.25s ease, opacity 0.25s ease',
                     }} />
                   ))}
                 </div>
@@ -313,6 +361,7 @@ export default function MentalFitnessScore({ onNavigate }) {
                   {pillar.levels.map((lvl, idx) => (
                     <button
                       key={idx}
+                      className="mfs-level-btn mfs-fade-up"
                       onClick={() => selectLevel(pillar.key, idx)}
                       style={{
                         display:'flex', alignItems:'center', gap:'0.85rem',
@@ -323,7 +372,7 @@ export default function MentalFitnessScore({ onNavigate }) {
                         background: answers[pillar.key] === idx ? pillar.tint : 'var(--white)',
                         fontFamily:'var(--font-body)', fontSize:'0.94rem', fontWeight:600,
                         color:'var(--text-dark)', cursor:'pointer',
-                        transition:'border-color 0.15s ease, background 0.15s ease',
+                        animationDelay: `${idx * 45}ms`,
                       }}
                     >
                       <span style={{
@@ -369,9 +418,9 @@ export default function MentalFitnessScore({ onNavigate }) {
             )
           })()}
 
-          {/* ───────── RESULTS ───────── */}
+          {/* ───────── RESULTS — pops in, ring draws in, cards stagger up ───────── */}
           {stage === 'results' && (
-            <div>
+            <div className="mfs-pop-anim">
               <div style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', fontWeight:700,
                 color:'var(--sky)', letterSpacing:'0.06em', textTransform:'uppercase',
                 marginBottom:'1.1rem' }}>
@@ -382,17 +431,17 @@ export default function MentalFitnessScore({ onNavigate }) {
                 display:'inline-flex', alignItems:'center', gap:'1.75rem',
                 background:'var(--white)', border:'1px solid var(--blue-pale)',
                 borderRadius:'var(--radius-lg)', padding:'1.4rem 2rem',
-                boxShadow:'0 20px 56px rgba(15,52,96,0.08)',
+                boxShadow:'0 20px 56px rgba(15,52,96,0.1)',
                 flexWrap:'wrap', justifyContent:'center', marginBottom:'2rem',
               }}>
-                <div style={{ position:'relative', width:108, height:108, flexShrink:0 }}>
+                <div className="mfs-ring-anim" style={{ position:'relative', width:108, height:108, flexShrink:0 }}>
                   <svg viewBox="0 0 100 100" width="108" height="108">
                     <circle cx="50" cy="50" r="42" fill="none" stroke="var(--blue-pale)" strokeWidth="10" />
                     <circle cx="50" cy="50" r="42" fill="none" stroke={overallColor.fg} strokeWidth="10"
                       strokeLinecap="round"
                       strokeDasharray={`${2*Math.PI*42*(overallPct/100)} ${2*Math.PI*42}`}
                       transform="rotate(-90 50 50)"
-                      style={{ transition:'stroke-dasharray 0.4s ease' }} />
+                      style={{ transition:'stroke-dasharray 0.9s cubic-bezier(.22,1,.36,1)' }} />
                   </svg>
                   <div style={{
                     position:'absolute', inset:0, display:'flex', flexDirection:'column',
@@ -422,19 +471,20 @@ export default function MentalFitnessScore({ onNavigate }) {
                 </div>
               </div>
 
-              {/* per-pillar breakdown */}
+              {/* per-pillar breakdown — staggers up one card at a time */}
               <div style={{
                 display:'grid', gap:'0.7rem',
                 gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))',
                 textAlign:'left', marginBottom:'2rem',
               }}>
-                {pillarScores.map(p => {
+                {pillarScores.map((p, i) => {
                   const c = scoreColor(p.pct ?? 0)
                   return (
-                    <div key={p.key} style={{
+                    <div key={p.key} className="mfs-fade-up" style={{
                       background:'var(--white)', border:'1px solid var(--blue-pale)',
                       borderRadius:'var(--radius-md)', padding:'0.9rem 1rem',
                       display:'flex', alignItems:'center', gap:'0.75rem',
+                      animationDelay: `${140 + i * 70}ms`,
                     }}>
                       <div style={{
                         width:36, height:36, borderRadius:10, background:p.tint,
@@ -454,7 +504,8 @@ export default function MentalFitnessScore({ onNavigate }) {
                         }}>
                           <div style={{
                             height:'100%', width:`${p.pct}%`, background:c.fg,
-                            borderRadius:100, transition:'width 0.4s ease',
+                            borderRadius:100, transition:'width 0.7s cubic-bezier(.22,1,.36,1)',
+                            transitionDelay: `${140 + i * 70}ms`,
                           }} />
                         </div>
                       </div>
@@ -467,7 +518,7 @@ export default function MentalFitnessScore({ onNavigate }) {
                 })}
               </div>
 
-              <div style={{ display:'flex', gap:'0.85rem', justifyContent:'center', flexWrap:'wrap' }}>
+              <div className="mfs-fade-up" style={{ display:'flex', gap:'0.85rem', justifyContent:'center', flexWrap:'wrap', animationDelay:'620ms' }}>
                 <button className="btn btn-primary" onClick={() => go('/resources')}>
                   {lang==='NP' ? 'सुझावहरू हेर्नुहोस्' : 'See suggestions'} →
                 </button>
