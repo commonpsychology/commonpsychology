@@ -191,7 +191,6 @@ const ROOMS = [
 ]
 
 
-
 const PACKAGES = [
   {
     id:'hour',    name:'Single Hour', emoji:'⏱️', price:1500, period:'per hour',
