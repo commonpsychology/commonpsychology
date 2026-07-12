@@ -647,7 +647,7 @@ async function loadLoyaltyStatus() {
           position: 'relative',
           overflow: 'hidden',
          background: `
-            linear-gradient(180deg, #1a94d6 0%, #22a0cf 20%, #2eacbe 40%, #3dbb9e 58%, #4fca85 76%, #5fd68f 100%)
+            linear-gradient(180deg, #00BFFF   0%, #00BFF6   20%, #2eacbe 40%, #3dbb9e 58%, #4fca85 76%, #5fd68f 100%)
           `,
           padding: 'clamp(1.5rem,4vw,2.25rem) clamp(1rem,4vw,2rem)',
           display: 'flex',
