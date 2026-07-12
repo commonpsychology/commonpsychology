@@ -389,8 +389,8 @@ export default function NeuroscienceLab() {
   return (
     <div style={{
       fontFamily: "'Georgia', 'Times New Roman', serif",
-      // pure bluish-white gradient (previously faded toward teal at the bottom)
-      background: "linear-gradient(160deg, #eaf4ff 0%, #f7fbff 40%, #ffffff 72%, #eef6ff 100%)",
+      // sky blue → white gradient
+      background: "linear-gradient(160deg, #cdeaff 0%, #e6f4ff 35%, #ffffff 68%, #eaf6ff 100%)",
       minHeight: "100vh", padding: "70px 0 48px",
     }}>
       {/* Header */}
@@ -399,9 +399,9 @@ export default function NeuroscienceLab() {
   padding: "32px 24px 28px",
   borderRadius: "0 0 40% 40% / 0 0 20px 20px",
   background: `
-    radial-gradient(ellipse 72% 58% at 10% 28%, rgba(12,68,124,0.13) 0%, transparent 62%),
-    radial-gradient(ellipse 55% 62% at 88% 10%, rgba(24,95,165,0.1) 0%, transparent 58%),
-    linear-gradient(158deg, #ffffff 0%, #eef5fc 42%, #e2eff9 100%)
+    radial-gradient(ellipse 72% 58% at 10% 28%, rgba(55,138,221,0.16) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 62% at 88% 10%, rgba(24,95,165,0.12) 0%, transparent 58%),
+    linear-gradient(158deg, #cdeaff 0%, #eaf5ff 45%, #ffffff 100%)
   `,
 }}>
   <div style={{ position:"absolute", width:180, height:180, borderRadius:"50%", background:"rgba(12,68,124,0.06)", filter:"blur(32px)", top:-40, right:"3%", pointerEvents:"none" }} />
