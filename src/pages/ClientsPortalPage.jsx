@@ -646,9 +646,8 @@ async function loadLoyaltyStatus() {
         style={{
           position: 'relative',
           overflow: 'hidden',
-          background: `
-            radial-gradient(ellipse 70% 55% at 20% 8%, rgba(255,255,255,0.16) 0%, transparent 60%),
-            linear-gradient(180deg, #5fb3d9 0%, #6dbfc8 32%, #5cad9a 62%, #4a9678 85%, #3f8468 100%)
+         background: `
+            linear-gradient(180deg, #1a94d6 0%, #22a0cf 20%, #2eacbe 40%, #3dbb9e 58%, #4fca85 76%, #5fd68f 100%)
           `,
           padding: 'clamp(1.5rem,4vw,2.25rem) clamp(1rem,4vw,2rem)',
           display: 'flex',
@@ -658,15 +657,14 @@ async function loadLoyaltyStatus() {
           gap: '1rem',
         }}
       >
-        {/* decorative glow blobs */}
-        <div style={{
+      <div style={{
           position: 'absolute', width: 280, height: 280, borderRadius: '50%',
-          background: 'rgba(122,201,224,0.28)', filter: 'blur(52px)',
+          background: 'rgba(0,191,255,0.34)', filter: 'blur(52px)',
           top: -140, right: '10%', pointerEvents: 'none',
         }} />
         <div style={{
           position: 'absolute', width: 220, height: 220, borderRadius: '50%',
-          background: 'rgba(110,197,167,0.3)', filter: 'blur(50px)',
+          background: 'rgba(93,214,143,0.4)', filter: 'blur(50px)',
           bottom: -100, left: '10%', pointerEvents: 'none',
         }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
