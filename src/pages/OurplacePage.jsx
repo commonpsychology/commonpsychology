@@ -176,7 +176,7 @@ const PLACE = {
 },    { src:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=200&q=70', alt:'Natural light & living wall', label:'Natural Light' },
     { src:'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=200&q=70', alt:'Mindfulness & meditation corner', label:'Meditation Corner' },
     { src:'https://i.postimg.cc/tJBWfNmW/roomgroup.png', thumb:'https://i.postimg.cc/tJBWfNmW/roomgroup.png', alt:'Group session space', label:'Group Space' },
-    { src:'https://postimg.cc/MvK4w5zd', thumb:'https://postimg.cc/MvK4w5zds', alt:'Wellness & yoga area', label:'Therapy Room' },
+    { src:'https://i.postimg.cc/vHWdW2kF/0e29b61e-1bae-4ff2-9e8a-93709386308d.png', thumb:'https://i.postimg.cc/vHWdW2kF/0e29b61e-1bae-4ff2-9e8a-93709386308d.png', alt:'Wellness & yoga area', label:'Therapy Room' },
     { src:'https://images.unsplash.com/photo-1552508744-1696d4464960?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1552508744-1696d4464960?auto=format&fit=crop&w=200&q=70', alt:'Tea station & anteroom', label:'Anteroom & Tea' },
   ],
 }
