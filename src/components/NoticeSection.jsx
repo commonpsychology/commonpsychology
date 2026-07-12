@@ -19,7 +19,7 @@ const CLAUSES = [
     tone: 'open',
     icon: '💳',
     np: 'तिर्न सक्नुहुन्छ भने, हामी हाम्रो सामान्य शुल्क मात्र लिन्छौं।',
-    en: 'Can you pay for care? We charge our normal rates — nothing more.',
+    en: 'Can you pay for care? We charge our normal rates — nothing more. If you cannot, we can discuss a sliding scale or referral to free services.',
   },
   {
     tone: 'open',
