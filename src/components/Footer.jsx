@@ -31,7 +31,7 @@ const COMPANY_LINKS = [
 const SOCIALS = [
   {
     label: 'Facebook',
-    href: 'https://facebook.com',
+    href: 'https://facebook.com/commonpsychology',
     hoverBg: 'rgba(24,119,242,0.18)',
     hoverBorder: 'rgba(24,119,242,0.45)',
     icon: (
@@ -44,7 +44,7 @@ const SOCIALS = [
   },
   {
     label: 'Instagram',
-    href: 'https://instagram.com',
+    href: 'https://instagram.com/commonpsychology',
     hoverBg: 'rgba(225,48,108,0.18)',
     hoverBorder: 'rgba(225,48,108,0.45)',
     icon: (
@@ -59,7 +59,7 @@ const SOCIALS = [
   },
   {
     label: 'YouTube',
-    href: 'https://youtube.com',
+    href: 'https://youtube.com/commonpsychology',
     hoverBg: 'rgba(255,0,0,0.15)',
     hoverBorder: 'rgba(255,0,0,0.38)',
     icon: (
