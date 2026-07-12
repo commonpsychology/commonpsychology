@@ -296,7 +296,7 @@ export default function NoticeSection() {
                   onClick={() => go('/book')}
                   style={{
                     padding: '0.85rem 1.5rem', border: 'none', borderRadius: 100,
-                    background: 'linear-gradient(135deg, #0f3460 0%, #2980b9 100%)', color: 'var(--white)',
+                    background: 'linear-gradient(135deg, #2980b9 0%, #2980b9 100%)', color: 'var(--white)',
                     fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.9rem',
                     cursor: 'pointer', whiteSpace: 'nowrap',
                     boxShadow: '0 8px 20px rgba(15,52,96,0.28)',
