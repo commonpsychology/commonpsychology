@@ -18,14 +18,14 @@ const CLAUSES = [
   {
     tone: 'open',
     icon: '💳',
-    np: 'तिर्न सक्नुहुन्छ भने, हामी हाम्रो सामान्य शुल्क मात्र लिन्छौं।',
-    en: 'Can you pay for care? We charge our normal rates — nothing more.',
+    np: 'तिर्न सक्नुहुन्छ भने, हामी हाम्रो सामान्य शुल्क मात्र लिन्छौं। थप केही होइन। यदि सक्नुहुन्न भने, हामी स्लाइडिङ स्केल वा प्रो बोनो व्यवस्था छलफल गर्न सक्छौं।',
+    en: 'Can you pay for care? We charge our normal rates — nothing more. If you cannot, we can discuss a sliding scale or pro bono arrangement.',
   },
   {
     tone: 'open',
     icon: '🌱',
     np: 'हामी बढ्न योग्य छौं भन्ने लाग्छ भने, दान गरेर, सिफारिस गरेर, वा नियमित ग्राहक बनेर सघाउनुहोस्।',
-    en: 'Believe this work deserves to grow? Donate, refer us, or return as a regular — support us however you can.',
+    en: 'Believe this work deserves to grow? Donate, refer us, or return as a regular member — support us however you can.',
   },
   {
     tone: 'muted',
@@ -296,7 +296,7 @@ export default function NoticeSection() {
                   onClick={() => go('/book')}
                   style={{
                     padding: '0.85rem 1.5rem', border: 'none', borderRadius: 100,
-                    background: '#2980b9', color: 'var(--white)',
+                    background: '#0ea3fa', color: 'var(--white)',
                     fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.9rem',
                     cursor: 'pointer', whiteSpace: 'nowrap',
                     boxShadow: '0 8px 20px rgba(15,52,96,0.28)',
