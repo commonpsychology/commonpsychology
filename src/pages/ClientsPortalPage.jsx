@@ -754,23 +754,26 @@ async function loadLoyaltyStatus() {
             gap: '0.5rem',
             padding: '0.6rem 1.2rem',
             borderRadius: 12,
-            border: '1.5px solid rgba(255,255,255,0.25)',
-            background: 'rgba(255,255,255,0.08)',
+            border: '1.5px solid rgba(255,255,255,0.55)',
+            background: 'linear-gradient(135deg, rgba(255,138,128,0.9), rgba(255,112,99,0.9))',
             backdropFilter: 'blur(6px)',
             fontSize: '0.85rem',
-            fontWeight: 600,
+            fontWeight: 700,
             color: '#fff',
             cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(255,112,99,0.35)',
             transition: 'all 0.2s ease',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.18)'
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,112,99,1), rgba(255,87,74,1))'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.75)'
+            e.currentTarget.style.boxShadow = '0 6px 22px rgba(255,112,99,0.5)'
             e.currentTarget.style.transform = 'translateY(-1px)'
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,138,128,0.9), rgba(255,112,99,0.9))'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.55)'
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(255,112,99,0.35)'
             e.currentTarget.style.transform = 'none'
           }}
         >
