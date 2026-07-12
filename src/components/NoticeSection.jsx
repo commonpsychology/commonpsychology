@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useLang } from '../context/LanguageContext'
 
@@ -39,6 +39,8 @@ export default function NoticeSection() {
   const { lang }      = useLang()
   const { navigate }  = useRouter()
   const [hovered, setHovered] = useState(null)
+  const [bannerVisible, setBannerVisible] = useState(false)
+  const bannerRef = useRef(null)
 
   const isNP = lang === 'NP'
 
@@ -46,6 +48,17 @@ export default function NoticeSection() {
     navigate(path)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  useEffect(() => {
+    const el = bannerRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setBannerVisible(true); io.disconnect() } },
+      { threshold: 0.35 }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   return (
     <section className="cp-notice">
@@ -79,10 +92,90 @@ export default function NoticeSection() {
           gap: 0.75rem;
           flex-wrap: wrap;
         }
+
+        /* ── Spotlight banner ── */
+        .cp-notice-spotlight {
+          position: relative;
+          margin-bottom: 2.4rem;
+        }
+        .cp-notice-glow {
+          position: absolute;
+          inset: -40px;
+          border-radius: 32px;
+          background: radial-gradient(ellipse 70% 90% at 50% 40%, rgba(41,128,185,0.35), transparent 72%);
+          filter: blur(18px);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 1.1s ease;
+        }
+        .cp-notice-spotlight.is-visible .cp-notice-glow {
+          opacity: 1;
+          animation: cp-pulse-glow 3.6s ease-in-out infinite;
+        }
+        @keyframes cp-pulse-glow {
+          0%, 100% { opacity: 0.65; transform: scale(1); }
+          50%      { opacity: 1;    transform: scale(1.04); }
+        }
+        .cp-notice-banner {
+          position: relative;
+          border-radius: var(--radius-lg);
+          padding: 2.6rem 2.4rem;
+          background: linear-gradient(135deg, #0f3460 0%, #1c5a96 45%, #2980b9 100%);
+          border: 1.5px solid rgba(255,255,255,0.18);
+          opacity: 0;
+          transform: translateY(18px) scale(0.985);
+          transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
+          overflow: hidden;
+        }
+        .cp-notice-spotlight.is-visible .cp-notice-banner {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        .cp-notice-banner::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.14) 38%, transparent 56%);
+          background-size: 220% 220%;
+          background-position: -60% -60%;
+          pointer-events: none;
+        }
+        .cp-notice-spotlight.is-visible .cp-notice-banner::before {
+          animation: cp-sheen 3.2s ease-in-out 0.9s;
+        }
+        @keyframes cp-sheen {
+          0%   { background-position: -60% -60%; }
+          100% { background-position: 160% 160%; }
+        }
+        .cp-notice-eyebrow {
+          display: inline-flex; align-items: center; gap: '0.4rem';
+          font-family: var(--font-body);
+          font-size: 0.72rem; font-weight: 700;
+          letter-spacing: 0.1em; text-transform: uppercase;
+          color: rgba(255,255,255,0.75);
+          margin-bottom: 0.9rem;
+        }
+        .cp-notice-quote-mark {
+          position: absolute;
+          top: 0.6rem; left: 1.6rem;
+          font-family: var(--font-display);
+          font-size: 5rem;
+          line-height: 1;
+          color: rgba(255,255,255,0.14);
+          user-select: none;
+          pointer-events: none;
+        }
+
         @media (max-width: 760px) {
           .cp-notice { padding: 3.5rem 1.25rem; }
           .cp-notice-grid { grid-template-columns: 1fr; }
           .cp-notice-closing { flex-direction: column; align-items: flex-start; }
+          .cp-notice-banner { padding: 2rem 1.5rem; }
+          .cp-notice-quote-mark { font-size: 3.6rem; top: 0.3rem; left: 1rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cp-notice-banner, .cp-notice-glow { transition: opacity 0.4s ease; animation: none !important; }
+          .cp-notice-banner::before { animation: none !important; }
         }
       `}</style>
 
@@ -171,36 +264,45 @@ export default function NoticeSection() {
           })}
         </div>
 
-        {/* closing banner */}
-        <div style={{
-          borderRadius: 'var(--radius-lg)', padding: '2.2rem 2rem',
-          background: 'linear-gradient(135deg, #0f3460 0%, #2980b9 100%)',
-        }}>
-          <div className="cp-notice-closing">
-            <p style={{
-              margin: 0, flex: '1 1 380px',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic',
-              fontSize: 'clamp(1.05rem, 2.4vw, 1.35rem)', lineHeight: 1.55,
-              color: 'var(--white)',
-            }}>
-              {isNP
-                ? 'इच्छा वा आवश्यकताले आउनुहोस् — हठात् मनले होइन, चर्चा वा दावीले तानिएर होइन।'
-                : "Come out of want, or out of need — never on a whim, and never because we're being talked about."}
-            </p>
+        {/* ── spotlighted closing banner — the line we most want read ── */}
+        <div
+          ref={bannerRef}
+          className={`cp-notice-spotlight${bannerVisible ? ' is-visible' : ''}`}
+        >
+          <div className="cp-notice-glow" />
+          <div className="cp-notice-banner">
+            <span className="cp-notice-quote-mark" aria-hidden="true">"</span>
+            <div className="cp-notice-closing" style={{ position: 'relative' }}>
+              <div style={{ flex: '1 1 380px' }}>
+                <div className="cp-notice-eyebrow">
+                  ✦ {isNP ? 'सबैभन्दा महत्त्वपूर्ण कुरा' : 'The One Thing to Remember'}
+                </div>
+                <p style={{
+                  margin: 0,
+                  fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic',
+                  fontSize: 'clamp(1.15rem, 2.7vw, 1.55rem)', lineHeight: 1.55,
+                  color: 'var(--white)',
+                }}>
+                  {isNP
+                    ? 'इच्छा वा आवश्यकताले आउनुहोस् — हठात् मनले होइन, चर्चा वा दावीले तानिएर होइन।'
+                    : "Come out of want, or out of need — never on a whim, and never because we're being talked about."}
+                </p>
+              </div>
 
-            <div className="cp-notice-cta">
-              <button
-                onClick={() => go('/book')}
-                style={{
-                  padding: '0.85rem 1.5rem', border: 'none', borderRadius: 100,
-                  background: 'var(--white)', color: '#0f3460',
-                  fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.9rem',
-                  cursor: 'pointer', whiteSpace: 'nowrap',
-                }}
-              >
-                {isNP ? 'सत्र बुक गर्नुहोस् →' : 'Book a Session →'}
-              </button>
-             
+              <div className="cp-notice-cta">
+                <button
+                  onClick={() => go('/book')}
+                  style={{
+                    padding: '0.85rem 1.5rem', border: 'none', borderRadius: 100,
+                    background: 'var(--white)', color: '#0f3460',
+                    fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.9rem',
+                    cursor: 'pointer', whiteSpace: 'nowrap',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                  }}
+                >
+                  {isNP ? 'सत्र बुक गर्नुहोस् →' : 'Book a Session →'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
