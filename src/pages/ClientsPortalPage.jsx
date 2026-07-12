@@ -754,32 +754,38 @@ async function loadLoyaltyStatus() {
             gap: '0.5rem',
             padding: '0.6rem 1.2rem',
             borderRadius: 12,
-            border: '1.5px solid rgba(255,255,255,0.55)',
-            background: 'linear-gradient(135deg, rgba(255,138,128,0.9), rgba(255,112,99,0.9))',
-            backdropFilter: 'blur(6px)',
+            border: '1.5px solid rgba(255,255,255,0.35)',
+            background: 'rgba(255,255,255,0.14)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
             fontSize: '0.85rem',
             fontWeight: 700,
             color: '#fff',
             cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(255,112,99,0.35)',
-            transition: 'all 0.2s ease',
+            boxShadow: '0 4px 18px rgba(15,52,96,0.18), inset 0 1px 0 rgba(255,255,255,0.25)',
+            transition: 'all 0.22s ease',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,112,99,1), rgba(255,87,74,1))'
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.75)'
-            e.currentTarget.style.boxShadow = '0 6px 22px rgba(255,112,99,0.5)'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.24)'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.55)'
+            e.currentTarget.style.boxShadow = '0 6px 22px rgba(15,52,96,0.24), inset 0 1px 0 rgba(255,255,255,0.35)'
             e.currentTarget.style.transform = 'translateY(-1px)'
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,138,128,0.9), rgba(255,112,99,0.9))'
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.55)'
-            e.currentTarget.style.boxShadow = '0 4px 16px rgba(255,112,99,0.35)'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.14)'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'
+            e.currentTarget.style.boxShadow = '0 4px 18px rgba(15,52,96,0.18), inset 0 1px 0 rgba(255,255,255,0.25)'
             e.currentTarget.style.transform = 'none'
           }}
         >
-          🚪 Log Out
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Log Out
         </button>
-      </div>
+              </div>
 
       <style>{`
         @keyframes shine {
