@@ -641,12 +641,16 @@ async function loadLoyaltyStatus() {
 
       <JournalModal entry={openEntry} onClose={() => setOpenEntry(null)} />
 
-     {/* ── Header ── */}
-      <div
+ <div
         style={{
           position: 'relative',
           overflow: 'hidden',
-          background: 'linear-gradient(135deg, #0f3a4a 0%, #0e5f73 45%, #0d8a7a 100%)',
+          background: `
+            radial-gradient(ellipse 75% 60% at 12% 22%, rgba(16,185,129,0.32) 0%, transparent 65%),
+            radial-gradient(ellipse 65% 65% at 90% 12%, rgba(0,191,255,0.3) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 55% at 55% 100%, rgba(255,255,255,0.14) 0%, transparent 55%),
+            linear-gradient(135deg, #065f46 0%, #0e7a5f 32%, #007BA8 68%, #00BFFF 100%)
+          `,
           padding: 'clamp(1.5rem,4vw,2.25rem) clamp(1rem,4vw,2rem)',
           display: 'flex',
           alignItems: 'center',
@@ -658,13 +662,18 @@ async function loadLoyaltyStatus() {
         {/* decorative glow blobs */}
         <div style={{
           position: 'absolute', width: 260, height: 260, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.08)', filter: 'blur(40px)',
+          background: 'rgba(255,255,255,0.1)', filter: 'blur(40px)',
           top: -120, right: '8%', pointerEvents: 'none',
         }} />
         <div style={{
           position: 'absolute', width: 180, height: 180, borderRadius: '50%',
-          background: 'rgba(16,185,129,0.18)', filter: 'blur(36px)',
+          background: 'rgba(16,185,129,0.22)', filter: 'blur(36px)',
           bottom: -90, left: '12%', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', width: 200, height: 200, borderRadius: '50%',
+          background: 'rgba(0,191,255,0.18)', filter: 'blur(38px)',
+          top: '30%', right: '28%', pointerEvents: 'none',
         }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
