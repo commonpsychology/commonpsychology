@@ -5,29 +5,39 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 const WEEKDAYS = ['S','M','T','W','T','F','S']
 
 // ---- Design tokens -------------------------------------------------------
-// A quiet "desk ledger" palette: cool paper, ink-navy text, a deep teal for
-// commitments (selected dates), and a small stamp-red dot for "today" —
-// like a rubber date-stamp in a physical planner.
+// Small, cute, colorful: white → sky-blue gradient, playful pastel accents,
+// a tiled "CP" watermark ghosted into the background of the panel.
 const T = {
-  paper:      '#FAFAF8',
-  paperLine:  '#E7E4DA',
-  ink:        '#1C2431',
-  inkSoft:    '#6B7280',
-  inkFaint:   '#A9A79C',
-  accent:     '#0E6F63',
-  accentDeep: '#0B5850',
-  accentTint: '#E4F1EE',
-  stamp:      '#B23F29',
-  disabled:   '#D2D0C6',
-  shadow:     '0 18px 40px -12px rgba(28,36,49,0.22), 0 2px 8px rgba(28,36,49,0.06)',
+  grad1:      '#ffffff',
+  grad2:      '#dbeeff',
+  grad3:      '#eef4ff',
+  border:     '#c9e2fb',
+  ink:        '#1f2a44',
+  inkSoft:    '#6b7fa3',
+  blue:       '#4f9cf9',
+  blueDeep:   '#2f7fe0',
+  purple:     '#a78bfa',
+  pink:       '#fb7fb0',
+  mint:       '#7fe0c9',
+  hoverTint:  '#eaf4ff',
+  disabled:   '#c7d2e6',
+  shadow:     '0 14px 30px -10px rgba(79,156,249,0.35), 0 2px 8px rgba(31,42,68,0.08)',
 }
 
-const SERIF = '"Source Serif Pro","Iowan Old Style","Palatino Linotype",Georgia,serif'
-const MONO  = '"IBM Plex Mono","SF Mono",Menlo,Consolas,monospace'
-const SANS  = '-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif'
+const SANS = '"Nunito","Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif'
+const ROUND = '"Baloo 2","Nunito",sans-serif'
 
 function toISO(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
+// tiny tiled "CP" watermark as a data-URI SVG pattern
+function watermarkBg(color = '#4f9cf9', opacity = 0.07) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='90' height='60'>
+    <text x='0' y='22' font-family='sans-serif' font-weight='800' font-size='16' fill='${color}' fill-opacity='${opacity}' transform='rotate(-18 45 30)'>CP</text>
+    <text x='45' y='52' font-family='sans-serif' font-weight='800' font-size='16' fill='${color}' fill-opacity='${opacity}' transform='rotate(-18 45 30)'>CP</text>
+  </svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
 }
 
 export default function SmartDatePicker({ value, onChange, minDate, disabledDay, placeholder = 'YYYY-MM-DD' }) {
@@ -35,7 +45,7 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
   const [text, setText] = useState(value || '')
   const [viewYear, setViewYear] = useState(value ? +value.slice(0, 4) : new Date().getFullYear())
   const [viewMonth, setViewMonth] = useState(value ? +value.slice(5, 7) - 1 : new Date().getMonth())
-  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 300 })
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 240 })
   const [focused, setFocused] = useState(false)
   const inputRef = useRef(null)
   const dropRef = useRef(null)
@@ -43,17 +53,15 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
 
   useEffect(() => setText(value || ''), [value])
 
-  // Fixed positioning computed from the input's real screen position —
-  // this is what escapes any ancestor's overflow:hidden, unlike position:absolute.
   useEffect(() => {
     if (!open) return
     function calcPos() {
       if (!inputRef.current) return
       const r = inputRef.current.getBoundingClientRect()
-      const dropH = 336
+      const dropH = 260
       const spaceBelow = window.innerHeight - r.bottom
-      const top = spaceBelow >= dropH + 10 ? r.bottom + 8 : Math.max(8, r.top - dropH - 8)
-      setDropPos({ top, left: r.left, width: Math.max(300, r.width) })
+      const top = spaceBelow >= dropH + 8 ? r.bottom + 6 : Math.max(8, r.top - dropH - 6)
+      setDropPos({ top, left: r.left, width: Math.max(240, r.width) })
     }
     calcPos()
     window.addEventListener('scroll', calcPos, true)
@@ -128,25 +136,24 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
   return (
     <div className={scopeId} style={{ fontFamily: SANS }}>
       <style>{`
-        .${scopeId} .sdp-input:hover { border-color: ${T.inkFaint} !important; }
-        .${scopeId} .sdp-navbtn { background: transparent; border: none; cursor: pointer; color: ${T.inkSoft}; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background .15s, color .15s; }
-        .${scopeId} .sdp-navbtn:hover { background: ${T.accentTint}; color: ${T.accentDeep}; }
-        .${scopeId} select.sdp-sel { appearance: none; -webkit-appearance: none; background: transparent; border: none; cursor: pointer; color: ${T.ink}; font-family: ${SERIF}; font-style: italic; font-size: 1.02rem; padding: 2px 20px 2px 4px; border-radius: 6px; }
-        .${scopeId} select.sdp-sel:hover { background: ${T.accentTint}; }
-        .${scopeId} select.sdp-year { font-style: normal; font-family: ${MONO}; font-size: 0.82rem; color: ${T.inkSoft}; }
-        .${scopeId} .sdp-day { position: relative; border: none; cursor: pointer; font-family: ${SERIF}; font-size: 0.86rem; width: 100%; aspect-ratio: 1; border-radius: 9px; display: flex; align-items: center; justify-content: center; transition: background .12s, color .12s, transform .1s; background: transparent; color: ${T.ink}; }
-        .${scopeId} .sdp-day:hover:not(:disabled) { background: ${T.accentTint}; }
-        .${scopeId} .sdp-day:active:not(:disabled) { transform: scale(0.92); }
+        .${scopeId} .sdp-input:hover { border-color: ${T.blue} !important; }
+        .${scopeId} .sdp-navbtn { background: #fff; border: 1.5px solid ${T.border}; cursor: pointer; color: ${T.blueDeep}; width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; transition: transform .12s, background .15s; }
+        .${scopeId} .sdp-navbtn:hover { background: ${T.hoverTint}; transform: scale(1.12); }
+        .${scopeId} select.sdp-sel { appearance: none; -webkit-appearance: none; background: transparent; border: none; cursor: pointer; color: ${T.ink}; font-family: ${ROUND}; font-weight: 800; font-size: 0.8rem; padding: 2px 14px 2px 3px; border-radius: 6px; }
+        .${scopeId} select.sdp-sel:hover { background: ${T.hoverTint}; }
+        .${scopeId} select.sdp-year { font-weight: 700; font-size: 0.72rem; color: ${T.inkSoft}; }
+        .${scopeId} .sdp-day { position: relative; border: none; cursor: pointer; font-family: ${SANS}; font-weight: 700; font-size: 0.68rem; width: 100%; aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background .12s, color .12s, transform .1s; background: transparent; color: ${T.ink}; }
+        .${scopeId} .sdp-day:hover:not(:disabled) { background: ${T.hoverTint}; }
+        .${scopeId} .sdp-day:active:not(:disabled) { transform: scale(0.88); }
         .${scopeId} .sdp-day:disabled { color: ${T.disabled}; cursor: not-allowed; }
-        .${scopeId} .sdp-day.selected { background: ${T.accent}; color: #fff; }
-        .${scopeId} .sdp-day.selected:hover { background: ${T.accentDeep}; }
-        .${scopeId} .sdp-today-dot { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: ${T.stamp}; }
+        .${scopeId} .sdp-day.selected { background: linear-gradient(135deg, ${T.blue}, ${T.purple}); color: #fff; box-shadow: 0 3px 8px -2px rgba(79,156,249,0.6); }
+        .${scopeId} .sdp-today-dot { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 3.5px; height: 3.5px; border-radius: 50%; background: ${T.pink}; }
         .${scopeId} .sdp-day.selected .sdp-today-dot { background: #fff; }
         .${scopeId} .sdp-grid { animation: sdp-fade-${scopeId} .16s ease; }
-        .${scopeId} .sdp-jump { background: transparent; border: none; cursor: pointer; font-family: ${MONO}; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: ${T.accentDeep}; padding: 5px 9px; border-radius: 7px; transition: background .15s; }
-        .${scopeId} .sdp-jump:hover { background: ${T.accentTint}; }
+        .${scopeId} .sdp-jump { background: linear-gradient(135deg, ${T.blue}, ${T.purple}); border: none; cursor: pointer; font-family: ${ROUND}; font-weight: 800; font-size: 0.62rem; letter-spacing: 0.02em; color: #fff; padding: 4px 10px; border-radius: 999px; transition: transform .12s, box-shadow .12s; box-shadow: 0 3px 8px -2px rgba(79,156,249,0.5); }
+        .${scopeId} .sdp-jump:hover { transform: translateY(-1px) scale(1.04); }
         @keyframes sdp-fade-${scopeId} { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes sdp-pop-${scopeId} { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes sdp-pop-${scopeId} { from { opacity: 0; transform: translateY(-6px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
       `}</style>
 
       <input
@@ -158,18 +165,19 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
         onFocus={() => { setOpen(true); setFocused(true) }}
         onBlur={() => setFocused(false)}
         style={{
-          padding: '0.72rem 0.95rem',
-          border: `1.5px solid ${focused ? T.accent : T.paperLine}`,
-          borderRadius: 10,
+          padding: '0.5rem 0.7rem',
+          border: `1.5px solid ${focused ? T.blue : T.border}`,
+          borderRadius: 12,
           width: '100%',
+          maxWidth: 190,
           boxSizing: 'border-box',
-          fontSize: '0.88rem',
-          fontFamily: MONO,
-          letterSpacing: '0.01em',
+          fontSize: '0.78rem',
+          fontFamily: SANS,
+          fontWeight: 700,
           color: T.ink,
-          background: T.paper,
+          background: `linear-gradient(135deg, ${T.grad1}, ${T.grad3})`,
           outline: 'none',
-          boxShadow: focused ? `0 0 0 3px ${T.accentTint}` : 'none',
+          boxShadow: focused ? `0 0 0 3px ${T.hoverTint}` : '0 2px 6px -2px rgba(79,156,249,0.25)',
           transition: 'border-color .15s, box-shadow .15s',
         }}
       />
@@ -180,57 +188,46 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
           style={{
             position: 'fixed', zIndex: 99999,
             top: dropPos.top, left: dropPos.left, width: dropPos.width,
-            background: T.paper,
-            border: `1px solid ${T.paperLine}`,
-            borderLeft: `3px solid ${T.accent}`,
-            borderRadius: 14,
+            maxWidth: 240,
+            background: `linear-gradient(160deg, ${T.grad1} 0%, ${T.grad2} 100%), ${watermarkBg(T.blue, 0.09)}`,
+            backgroundBlendMode: 'normal',
+            border: `1.5px solid ${T.border}`,
+            borderRadius: 18,
             boxShadow: T.shadow,
-            padding: '0.95rem 1rem 0.85rem',
+            padding: '0.6rem 0.65rem 0.55rem',
             animation: `sdp-pop-${scopeId} .14s ease`,
+            overflow: 'hidden',
           }}
         >
           {/* header: month/year + nav */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
             <button type="button" className="sdp-navbtn" onClick={() => stepMonth(-1)} aria-label="Previous month">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
-              <select
-                className="sdp-sel"
-                value={viewMonth}
-                onChange={e => setViewMonth(+e.target.value)}
-                aria-label="Month"
-              >
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.15rem' }}>
+              <select className="sdp-sel" value={viewMonth} onChange={e => setViewMonth(+e.target.value)} aria-label="Month">
                 {MONTHS.map((m, i) => <option key={m} value={i}>{m}</option>)}
               </select>
-              <select
-                className="sdp-sel sdp-year"
-                value={viewYear}
-                onChange={e => setViewYear(+e.target.value)}
-                aria-label="Year"
-              >
+              <select className="sdp-sel sdp-year" value={viewYear} onChange={e => setViewYear(+e.target.value)} aria-label="Year">
                 {years.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
 
             <button type="button" className="sdp-navbtn" onClick={() => stepMonth(1)} aria-label="Next month">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
           </div>
 
-          {/* hairline rule */}
-          <div style={{ height: 1, background: T.paperLine, margin: '0 -2px 0.6rem' }} />
-
           {/* weekday header */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 4 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 2 }}>
             {WEEKDAYS.map((d, i) => (
-              <div key={i} style={{ textAlign: 'center', fontFamily: MONO, fontSize: '0.62rem', letterSpacing: '0.08em', color: T.inkFaint, textTransform: 'uppercase', padding: '2px 0' }}>{d}</div>
+              <div key={i} style={{ textAlign: 'center', fontFamily: ROUND, fontWeight: 800, fontSize: '0.55rem', color: [T.blue, T.purple, T.pink, T.blueDeep, T.mint, T.purple, T.pink][i], padding: '1px 0' }}>{d}</div>
             ))}
           </div>
 
           {/* day grid */}
-          <div className="sdp-grid" key={monthKey} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2 }}>
+          <div className="sdp-grid" key={monthKey} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1 }}>
             {cells.map((day, i) => {
               if (!day) return <div key={i} />
               const iso = toISO(viewYear, viewMonth, day)
@@ -251,9 +248,9 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
           </div>
 
           {/* footer */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.7rem', paddingTop: '0.6rem', borderTop: `1px solid ${T.paperLine}` }}>
-            <span style={{ fontFamily: MONO, fontSize: '0.66rem', color: T.inkFaint, letterSpacing: '0.03em' }}>
-              {value ? value : 'no date set'}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem' }}>
+            <span style={{ fontFamily: ROUND, fontWeight: 700, fontSize: '0.55rem', color: T.inkSoft }}>
+              {value ? value : 'pick a date 🩵'}
             </span>
             <button type="button" className="sdp-jump" onClick={goToday}>Today</button>
           </div>

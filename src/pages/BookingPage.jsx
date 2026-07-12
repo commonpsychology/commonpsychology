@@ -6,6 +6,7 @@ import { usePayment }   from '../components/PaymentModal'
 import { useTherapists } from '../context/TherapistsContext'
 import { appointments } from '../services/api'
 import SmartDatePicker from '../components/SmartDatePicker'
+import { logBookingStep } from '../components/BookingDebugPanel'
 
 const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
@@ -217,12 +218,13 @@ useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist
     if (!selected.date || !user) { setDayTaken(false); return }
     let cancelled = false
     const token = localStorage.getItem('accessToken')
+ logBookingStep('check-day request', { date: selected.date })
     fetch(`${API_BASE}/bookings/check-day?date=${selected.date}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
-      .then(r => r.json())
+      .then(r => { logBookingStep('check-day response', { status: r.status }); return r.json() })
       .then(d => { if (!cancelled) setDayTaken(!!d.hasBooking) })
-      .catch(() => {})
+      .catch(e => logBookingStep('check-day ERROR', { message: e.message }))
     return () => { cancelled = true }
   }, [selected.date, user])
   function getSlotStatus(label) {
@@ -240,11 +242,11 @@ useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist
     try {
       const token = localStorage.getItem('accessToken')
       const scheduledAt = slotToISO(selected.date, selected.time)
-      const res = await fetch(
-        `${API_BASE}/appointments/can-book?therapistId=${selected.therapist.id}&scheduledAt=${encodeURIComponent(scheduledAt)}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+     const url = `${API_BASE}/appointments/can-book?therapistId=${selected.therapist.id}&scheduledAt=${encodeURIComponent(scheduledAt)}`
+      logBookingStep('can-book request', { url })
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       const data = await res.json()
+      logBookingStep('can-book response', { status: res.status, body: data })
       if (!data.ok) {
         setSlotCheckErr(data.message || 'That slot is no longer available.')
         await loadBookedSlots() // refresh the red/booked slots so the UI matches reality
