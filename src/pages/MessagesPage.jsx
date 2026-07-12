@@ -272,7 +272,7 @@ const PAGE_CSS = `
   .mp-value-card:hover .mp-value-card-accent { opacity: 1; }
   .mp-value-icon-wrap { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 1.4rem; position: relative; z-index: 1; flex-shrink: 0; transition: transform 0.3s ease; }
   .mp-value-card:hover .mp-value-icon-wrap { transform: scale(1.1) rotate(-4deg); }
-  .mp-value-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 0.65rem; line-height: 1.2; position: relative; z-index: 1; }
+  .mp-value-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 0.65rem; line-height: 1.2; }
   .mp-value-desc { font-family: 'Lora', serif; font-size: 0.88rem; line-height: 1.82; color: rgba(255,255,255,0.58); position: relative; z-index: 1; margin-bottom: 1.1rem; }
   .mp-value-quote { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.82rem; line-height: 1.65; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.9rem; position: relative; z-index: 1; transition: color 0.3s; }
   .mp-value-card:hover .mp-value-quote { color: rgba(255,255,255,0.82); }
@@ -540,7 +540,9 @@ const MESSAGES = [
     emoji: '🧑‍💼',
     message: `When I founded this Company, I carried a single conviction: that mental health is not a luxury, but a birthright. In Nepal, too many families suffer in silence — not because they lack strength, but because no one told them that asking for help is the bravest thing a person can do.
 
-Our center exists to change that. Every session we hold, every family we walk alongside, is a quiet act of revolution. We are building a Nepal where the mind is treated with the same urgency as the body — with compassion, skill, and unwavering dignity. Saying all this, one value we keep close to our heart is, 'It's Your Choice'. If you feel we can help and can connect with you then only seek our help and follow. Our Common Goal: "Changing others by changing ownself, We are noone, We know nothing.".`,
+Our center exists to change that. Every session we hold, every family we walk alongside, is a quiet act of revolution. We are building a Nepal where the mind is treated with the same urgency as the body — with compassion, skill, and unwavering dignity. Saying all this, one value we keep close to our heart is, 'It's Your Choice'. If you feel we can help and can connect with you then only seek our help and follow. Our Common Goal: "Changing others by changing ownself, We are noone, We know nothing.".
+
+A closing word, spoken plainly: come to us only if you carry real time, real passion, and real need — not curiosity, and not because we are spoken of or trending. We hold to honest, standard fees, and where genuine hardship exists, we work with families to find a way through. If what we do here moves you — if you feel we deserve to grow and that this work should reach further — we welcome your support in whatever form you are able to give: as a donor, an advocate, someone who tells others about us, or simply a returning member of this community. But if none of that stirs you, then we are, gently, not the place for you, and that is alright — you do not need us either. Come because you need to, or because you choose to walk beside someone who does — not on a whim, not for our name. And when you come, come without the weight of expectation, comparison, status, prejudice, past achievement, or borrowed belief. Leave all of that at the door. Bring only yourself.`,
     sign: 'Sanjeev Neupane, Executive Director',
   },
   {
