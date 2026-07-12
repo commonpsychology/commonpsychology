@@ -130,13 +130,13 @@ function StepBar({ step }) {
 
   return (
     <div className="stepbar-wrap">
-      {STEPS.map((label, i) => {
+{STEPS.map((label, i) => {
         const num    = i + 1
         const done   = step > num
         const active = step === num
         return (
-          <>
-            <div key={i} className="stepbar-item">
+          <div key={i} style={{ display: 'contents' }}>
+            <div className="stepbar-item">
               <div style={{
                 width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                 background:  done || active ? btnGrad : 'rgba(255,255,255,0.18)',
