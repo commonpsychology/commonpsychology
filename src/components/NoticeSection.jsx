@@ -102,7 +102,7 @@ export default function NoticeSection() {
           position: absolute;
           inset: -40px;
           border-radius: 32px;
-          background: radial-gradient(ellipse 70% 90% at 50% 40%, rgba(41,128,185,0.35), transparent 72%);
+          background: radial-gradient(ellipse 70% 90% at 50% 40%, rgba(41,128,185,0.22), transparent 72%);
           filter: blur(18px);
           opacity: 0;
           pointer-events: none;
@@ -113,15 +113,16 @@ export default function NoticeSection() {
           animation: cp-pulse-glow 3.6s ease-in-out infinite;
         }
         @keyframes cp-pulse-glow {
-          0%, 100% { opacity: 0.65; transform: scale(1); }
-          50%      { opacity: 1;    transform: scale(1.04); }
+          0%, 100% { opacity: 0.55; transform: scale(1); }
+          50%      { opacity: 0.9;  transform: scale(1.04); }
         }
         .cp-notice-banner {
           position: relative;
           border-radius: var(--radius-lg);
           padding: 2.6rem 2.4rem;
-          background: linear-gradient(135deg, #0f3460 0%, #1c5a96 45%, #2980b9 100%);
-          border: 1.5px solid rgba(255,255,255,0.18);
+          background: linear-gradient(135deg, #ffffff 0%, #eef8ff 40%, #d7f0fd 75%, #bfe6fb 100%);
+          border: 1.5px solid var(--blue-pale);
+          box-shadow: 0 12px 34px rgba(15,52,96,0.1);
           opacity: 0;
           transform: translateY(18px) scale(0.985);
           transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
@@ -135,7 +136,7 @@ export default function NoticeSection() {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.14) 38%, transparent 56%);
+          background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.65) 38%, transparent 56%);
           background-size: 220% 220%;
           background-position: -60% -60%;
           pointer-events: none;
@@ -152,7 +153,8 @@ export default function NoticeSection() {
           font-family: var(--font-body);
           font-size: 0.72rem; font-weight: 700;
           letter-spacing: 0.1em; text-transform: uppercase;
-          color: rgba(255,255,255,0.75);
+          color: #0f3460;
+          opacity: 0.72;
           margin-bottom: 0.9rem;
         }
         .cp-notice-quote-mark {
@@ -161,7 +163,7 @@ export default function NoticeSection() {
           font-family: var(--font-display);
           font-size: 5rem;
           line-height: 1;
-          color: rgba(255,255,255,0.14);
+          color: rgba(41,128,185,0.14);
           user-select: none;
           pointer-events: none;
         }
@@ -281,7 +283,7 @@ export default function NoticeSection() {
                   margin: 0,
                   fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic',
                   fontSize: 'clamp(1.15rem, 2.7vw, 1.55rem)', lineHeight: 1.55,
-                  color: 'var(--white)',
+                  color: '#0f3460',
                 }}>
                   {isNP
                     ? 'इच्छा वा आवश्यकताले आउनुहोस् — हठात् मनले होइन, चर्चा वा दावीले तानिएर होइन।'
@@ -294,10 +296,10 @@ export default function NoticeSection() {
                   onClick={() => go('/book')}
                   style={{
                     padding: '0.85rem 1.5rem', border: 'none', borderRadius: 100,
-                    background: 'var(--white)', color: '#0f3460',
+                    background: 'linear-gradient(135deg, #0f3460 0%, #2980b9 100%)', color: 'var(--white)',
                     fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.9rem',
                     cursor: 'pointer', whiteSpace: 'nowrap',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                    boxShadow: '0 8px 20px rgba(15,52,96,0.28)',
                   }}
                 >
                   {isNP ? 'सत्र बुक गर्नुहोस् →' : 'Book a Session →'}
