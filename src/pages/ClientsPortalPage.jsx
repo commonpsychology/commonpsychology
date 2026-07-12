@@ -806,7 +806,7 @@ async function loadLoyaltyStatus() {
 
       <div style={{ padding:'clamp(1rem,4vw,2rem)', maxWidth:1100, margin:'0 auto' }}>
 
-        {/* ══ OVERVIEW ══ */}
+       
         {tab === 'Overview' && (
           <div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'1rem', marginBottom:'2rem' }}>
