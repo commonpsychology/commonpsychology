@@ -180,7 +180,6 @@ const PLACE = {
     { src:'https://images.unsplash.com/photo-1552508744-1696d4464960?auto=format&fit=crop&w=1400&q=80', thumb:'https://images.unsplash.com/photo-1552508744-1696d4464960?auto=format&fit=crop&w=200&q=70', alt:'Tea station & anteroom', label:'Anteroom & Tea' },
   ],
 }
-
 const ROOMS = [
   { key:'therapy-a', name:'Therapy Room A',    type:'Private Therapy',    emoji:'🛋️', capacity:'Up to 2',  desc:'Intimate 1:1 counseling space' },
   { key:'therapy-b', name:'Therapy Room B',    type:'Private Therapy',    emoji:'🪑', capacity:'Up to 2',  desc:'Quiet individual session room' },
