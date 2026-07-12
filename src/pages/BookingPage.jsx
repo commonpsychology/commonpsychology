@@ -42,16 +42,6 @@ const DAY_ALIASES = {
 }
 const normDay = s => DAY_ALIASES[String(s || '').trim().toLowerCase()] || null
 
-const KATHMANDU_OFFSET_MIN = 5 * 60 + 45 // UTC+5:45 — must match DB's Asia/Kathmandu
-
-const DAY_ALIASES = {
-  mon:'Monday', monday:'Monday', tue:'Tuesday', tues:'Tuesday', tuesday:'Tuesday',
-  wed:'Wednesday', wednesday:'Wednesday', thu:'Thursday', thur:'Thursday', thurs:'Thursday',
-  thursday:'Thursday', fri:'Friday', friday:'Friday', sat:'Saturday', saturday:'Saturday',
-  sun:'Sunday', sunday:'Sunday',
-}
-const normDay = s => DAY_ALIASES[String(s || '').trim().toLowerCase()] || null
-
 function getAvailableSlots(therapist, dateStr) {
   if (!therapist || !dateStr) return ALL_TIME_SLOTS
   let hours = therapist.available_hours

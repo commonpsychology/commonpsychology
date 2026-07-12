@@ -1,3 +1,4 @@
+// src/components/SmartDatePicker.jsx
 import { useState, useRef, useEffect } from 'react'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -7,12 +8,40 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
   const [text, setText] = useState(value || '')
   const [viewYear, setViewYear] = useState(value ? +value.slice(0,4) : new Date().getFullYear())
   const [viewMonth, setViewMonth] = useState(value ? +value.slice(5,7)-1 : new Date().getMonth())
-  const ref = useRef(null)
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 280 })
+  const inputRef = useRef(null)
+  const dropRef  = useRef(null)
 
   useEffect(() => setText(value || ''), [value])
 
+  // Fixed positioning computed from the input's real screen position —
+  // this is what escapes any ancestor's overflow:hidden, unlike position:absolute.
   useEffect(() => {
-    function onDown(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    if (!open) return
+    function calcPos() {
+      if (!inputRef.current) return
+      const r = inputRef.current.getBoundingClientRect()
+      const dropH = 300
+      const spaceBelow = window.innerHeight - r.bottom
+      const top = spaceBelow >= dropH + 8 ? r.bottom + 6 : Math.max(8, r.top - dropH - 6)
+      setDropPos({ top, left: r.left, width: Math.max(280, r.width) })
+    }
+    calcPos()
+    window.addEventListener('scroll', calcPos, true)
+    window.addEventListener('resize', calcPos)
+    return () => {
+      window.removeEventListener('scroll', calcPos, true)
+      window.removeEventListener('resize', calcPos)
+    }
+  }, [open])
+
+  useEffect(() => {
+    function onDown(e) {
+      if (
+        inputRef.current && !inputRef.current.contains(e.target) &&
+        dropRef.current  && !dropRef.current.contains(e.target)
+      ) setOpen(false)
+    }
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
   }, [])
@@ -35,8 +64,9 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
   const years = Array.from({ length: 12 }, (_, i) => new Date().getFullYear() + i - 1)
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <>
       <input
+        ref={inputRef}
         value={text}
         placeholder={placeholder}
         onChange={e => { setText(e.target.value); commitText(e.target.value) }}
@@ -44,7 +74,15 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
         style={{ padding:'0.72rem 1rem', border:'1.5px solid #e2e8f0', borderRadius:12, width:'100%', boxSizing:'border-box', fontSize:'0.88rem', fontFamily:'inherit' }}
       />
       {open && (
-        <div style={{ position:'absolute', zIndex:50, top:'calc(100% + 6px)', left:0, background:'#fff', border:'1px solid #e2e8f0', borderRadius:14, boxShadow:'0 12px 40px rgba(0,0,0,0.15)', padding:'0.85rem', width:280 }}>
+        <div
+          ref={dropRef}
+          style={{
+            position:'fixed', zIndex:99999,
+            top: dropPos.top, left: dropPos.left, width: dropPos.width,
+            background:'#fff', border:'1px solid #e2e8f0', borderRadius:14,
+            boxShadow:'0 12px 40px rgba(0,0,0,0.15)', padding:'0.85rem',
+          }}
+        >
           <div style={{ display:'flex', gap:'0.5rem', marginBottom:'0.6rem' }}>
             <select value={viewMonth} onChange={e => setViewMonth(+e.target.value)} style={{ flex:1, padding:'0.35rem' }}>
               {MONTHS.map((m,i) => <option key={m} value={i}>{m}</option>)}
@@ -76,6 +114,6 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
