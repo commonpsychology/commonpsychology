@@ -179,8 +179,7 @@ export default function BookingPage() {
   const [userSlots,    setUserSlots]    = useState([])
   const [loadingSlots, setLoadingSlots] = useState(false)
 const [submitting,   setSubmitting]   = useState(false)
- const [error,        setError]        = useState('')
-  const [infoMsg,       setInfoMsg]      = useState('')
+  const [error,        setError]        = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
 const [dayTaken,      setDayTaken]      = useState(false)
   const [slotCheckErr,  setSlotCheckErr]  = useState('')
@@ -307,19 +306,16 @@ async function handleConfirm() {
 
  window.removeEventListener('pagehide', releaseOnUnload)
 
-   if (result.success) {
+      if (result.success) {
         try {
           await appointments.attachPayment(appointmentId, result.paymentId, result.transactionId)
         } catch (linkErr) {
-          // Payment succeeded — this is just a record-syncing hiccup, not a
-          // failure, so reassure the user instead of alarming them.
-          setError('')
-          setInfoMsg(
-            `Your payment went through — no need to worry. ` +
-            `We're just finishing up on our end` +
+          // Payment succeeded but we couldn't record it against the appointment —
+          // don't silently navigate away and hide that from the user.
+          setError(
+            `Payment succeeded but we couldn't update your appointment record` +
             (result.transactionId ? ` (reference ${result.transactionId})` : '') +
-            `, and our team will confirm your appointment shortly. ` +
-            `You can check its status anytime from your portal.`
+            `. Please contact support so we can confirm it manually.`
           )
           setSubmitting(false)
           return
@@ -365,14 +361,14 @@ async function handleConfirm() {
   color: 'white',
   borderRadius: '0 0 50% 50% / 0 0 32px 32px',
   background: `
-    radial-gradient(ellipse 80% 60% at 15% 30%, rgba(76,175,80,0.3) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 70% at 85% 10%, rgba(0,191,255,0.25) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 60% 90%, rgba(165,214,167,0.2) 0%, transparent 55%),
-    linear-gradient(150deg, #0d4f4a 0%, #0e7a5f 38%, #00799a 70%, ${C.skyDeep} 100%)
+    radial-gradient(ellipse 80% 60% at 15% 30%, rgba(0,191,255,0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 70% at 85% 10%, rgba(0,191,255,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 60% 90%, rgba(0,140,200,0.25) 0%, transparent 55%),
+    linear-gradient(150deg, #004f72 0%, #006a9a 40%, ${C.skyDeep} 100%)
   `,
 }}>
-  <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(165,214,167,0.18)', filter:'blur(30px)', top:-40, right:'5%', pointerEvents:'none' }} />
-  <div style={{ position:'absolute', width:130, height:130, borderRadius:'50%', background:'rgba(0,191,255,0.15)', filter:'blur(24px)', bottom:-20, left:'8%', pointerEvents:'none' }} />        <div style={{ maxWidth:800, margin:'0 auto' }}>
+  <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(0,191,255,0.15)', filter:'blur(30px)', top:-40, right:'5%', pointerEvents:'none' }} />
+  <div style={{ position:'absolute', width:130, height:130, borderRadius:'50%', background:'rgba(0,150,220,0.12)', filter:'blur(24px)', bottom:-20, left:'8%', pointerEvents:'none' }} />        <div style={{ maxWidth:800, margin:'0 auto' }}>
           <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.12em', textTransform:'uppercase', opacity:0.7 }}>Book a Session</span>
           <h1 style={{ fontFamily:'var(--font-display)', fontSize:'2rem', margin:'0.5rem 0' }}>Schedule Your Therapy</h1>
           <StepBar step={step}/>
@@ -589,35 +585,8 @@ async function handleConfirm() {
                   ⚠️ You need to <button onClick={() => navigate('/signin')} style={{ background:'none', border:'none', color:'var(--green-deep)', fontWeight:700, cursor:'pointer', fontSize:'0.85rem' }}>sign in</button> to complete your booking.
                 </div>
               )}
-{error && <div style={{ background:C.redFaint, border:'1.5px solid #f5a0a0', borderRadius:8, padding:'0.75rem 1rem', marginBottom:'1rem', color:C.red, fontSize:'0.875rem' }}>{error}</div>}
+              {error && <div style={{ background:C.redFaint, border:'1.5px solid #f5a0a0', borderRadius:8, padding:'0.75rem 1rem', marginBottom:'1rem', color:C.red, fontSize:'0.875rem' }}>{error}</div>}
 
-              {infoMsg && (
-                <div style={{
-                  display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
-                  background: '#e8f8f0', border: '1px solid #a8d8b8', borderRadius: 10,
-                  padding: '0.85rem 1rem', marginBottom: '1.25rem',
-                }}>
-                  <span style={{ fontSize: '1.1rem', lineHeight: 1, flexShrink: 0 }}>✅</span>
-                  <div>
-                    <div style={{ fontWeight: 700, color: '#1a5a3a', fontSize: '0.85rem', marginBottom: '0.2rem' }}>
-                      Payment received
-                    </div>
-                    <p style={{ margin: 0, fontSize: '0.82rem', color: '#2e6b4a', lineHeight: 1.5 }}>
-                      {infoMsg}
-                    </p>
-                    <button
-                      onClick={() => navigate('/portal')}
-                      style={{
-                        marginTop: '0.6rem', background: 'none', border: 'none', padding: 0,
-                        color: '#1a7a4a', fontWeight: 700, fontSize: '0.8rem',
-                        textDecoration: 'underline', cursor: 'pointer',
-                      }}
-                    >
-                      Go to my portal →
-                    </button>
-                  </div>
-                </div>
-              )}
               <div style={{ background:'#e8f8f0', border:'1px solid #a8d8b8', borderRadius:10, padding:'0.85rem 1rem', marginBottom:'1.25rem', fontSize:'0.82rem', color:'#1a5a3a' }}>
                 ℹ️ Your appointment will be saved first, then you'll choose your payment method.
               </div>
