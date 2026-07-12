@@ -34,6 +34,8 @@ import OnlineCourses      from './pages/OnlineCourses'
 import MessagesPage        from './pages/MessagesPage'
 import PrivacyPage         from './pages/PrivacyPage'
 import OurPlacePage        from './pages/OurplacePage'
+import BookingDebugPanel from './components/BookingDebugPanel'
+
 import Storepage     from './pages/StorePage'
 import NoticePage    from './pages/NoticePage'
 import StaffportalPage      from './pages/StaffportalPage'
@@ -176,7 +178,10 @@ export default function App() {
         <LanguageProvider>
           <PaymentProvider>
             <TherapistsProvider>
-              <div className="app"><AppRoutes /></div>
+              <div className="app">
+                <AppRoutes />
+                <BookingDebugPanel />
+              </div>
             </TherapistsProvider>
           </PaymentProvider>
         </LanguageProvider>
