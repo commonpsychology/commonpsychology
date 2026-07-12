@@ -296,20 +296,8 @@ export default function NoticeSection() {
                 </p>
               </div>
 
-              <div className="cp-notice-cta">
-                <button
-                  onClick={() => go('/book')}
-                  style={{
-                    padding: '0.85rem 1.5rem', border: 'none', borderRadius: 100,
-                    background: '#00BFFF', color: 'var(--white)',
-                    fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.9rem',
-                    cursor: 'pointer', whiteSpace: 'nowrap',
-                    boxShadow: '0 8px 20px rgba(15,52,96,0.28)',
-                  }}
-                >
-                  {isNP ? 'सत्र बुक गर्नुहोस् →' : 'Book a Session →'}
-                </button>
-              </div>
+            
+            
             
 
               <div className="cp-notice-cta">
