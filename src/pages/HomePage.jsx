@@ -22,6 +22,7 @@ import NamasteLoader    from '../components/NamasteLoader'
 import PollPopup        from '../components/Pollpopup'
 import DailyReturnHook  from '../components/DailyReturnHook'
 import ImageSlider from '../components/ImageSlider'
+import NoticeSection from '../components/NoticeSection'
 import FloatingActions  from '../components/FloatingActions'
 
 const API = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
@@ -83,6 +84,7 @@ export default function HomePage() {
       <HeroEmotional />
       <EleventhPaymentPromoHome />
       <TrustBar />
+      <NoticeSection />
       <Umbrella />
       <Services />
       <Balance />
