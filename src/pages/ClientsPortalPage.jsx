@@ -645,11 +645,11 @@ async function loadLoyaltyStatus() {
         style={{
           position: 'relative',
           overflow: 'hidden',
-          background: `
-            radial-gradient(ellipse 75% 60% at 12% 22%, rgba(16,185,129,0.32) 0%, transparent 65%),
-            radial-gradient(ellipse 65% 65% at 90% 12%, rgba(0,191,255,0.3) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 55% at 55% 100%, rgba(255,255,255,0.14) 0%, transparent 55%),
-            linear-gradient(135deg, #065f46 0%, #0e7a5f 32%, #007BA8 68%, #00BFFF 100%)
+      background: `
+            radial-gradient(ellipse 78% 62% at 12% 20%, rgba(110,197,167,0.28) 0%, transparent 68%),
+            radial-gradient(ellipse 70% 68% at 92% 10%, rgba(122,201,224,0.26) 0%, transparent 65%),
+            radial-gradient(ellipse 65% 58% at 50% 105%, rgba(255,255,255,0.16) 0%, transparent 58%),
+            linear-gradient(135deg, #3a7d6a 0%, #2f8a91 35%, #3690ac 68%, #4fb6d6 100%)
           `,
           padding: 'clamp(1.5rem,4vw,2.25rem) clamp(1rem,4vw,2rem)',
           display: 'flex',
@@ -660,20 +660,20 @@ async function loadLoyaltyStatus() {
         }}
       >
         {/* decorative glow blobs */}
-        <div style={{
-          position: 'absolute', width: 260, height: 260, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.1)', filter: 'blur(40px)',
-          top: -120, right: '8%', pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', width: 180, height: 180, borderRadius: '50%',
-          background: 'rgba(16,185,129,0.22)', filter: 'blur(36px)',
-          bottom: -90, left: '12%', pointerEvents: 'none',
+     <div style={{
+          position: 'absolute', width: 280, height: 280, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.12)', filter: 'blur(52px)',
+          top: -130, right: '8%', pointerEvents: 'none',
         }} />
         <div style={{
           position: 'absolute', width: 200, height: 200, borderRadius: '50%',
-          background: 'rgba(0,191,255,0.18)', filter: 'blur(38px)',
-          top: '30%', right: '28%', pointerEvents: 'none',
+          background: 'rgba(110,197,167,0.18)', filter: 'blur(48px)',
+          bottom: -95, left: '12%', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', width: 220, height: 220, borderRadius: '50%',
+          background: 'rgba(122,201,224,0.16)', filter: 'blur(50px)',
+          top: '28%', right: '28%', pointerEvents: 'none',
         }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
