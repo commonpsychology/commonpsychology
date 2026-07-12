@@ -272,7 +272,12 @@ export default function NoticeSection() {
           className={`cp-notice-spotlight${bannerVisible ? ' is-visible' : ''}`}
         >
           <div className="cp-notice-glow" />
-          <div className="cp-notice-banner">
+          <div
+            className="cp-notice-banner"
+            style={{
+              background: 'linear-gradient(135deg, #00BFFF 0%, #4fc9f2 20%, #a9dff5 45%, #d7f0fd 65%, #f0f8f4 85%, #f8fcfa 100%)',
+            }}
+          >
             <span className="cp-notice-quote-mark" aria-hidden="true">"</span>
             <div className="cp-notice-closing" style={{ position: 'relative' }}>
               <div style={{ flex: '1 1 380px' }}>
@@ -296,7 +301,23 @@ export default function NoticeSection() {
                   onClick={() => go('/book')}
                   style={{
                     padding: '0.85rem 1.5rem', border: 'none', borderRadius: 100,
-                    background: '#0ea3fa', color: 'var(--white)',
+                    background: '#00BFFF', color: 'var(--white)',
+                    fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.9rem',
+                    cursor: 'pointer', whiteSpace: 'nowrap',
+                    boxShadow: '0 8px 20px rgba(15,52,96,0.28)',
+                  }}
+                >
+                  {isNP ? 'सत्र बुक गर्नुहोस् →' : 'Book a Session →'}
+                </button>
+              </div>
+            
+
+              <div className="cp-notice-cta">
+                <button
+                  onClick={() => go('/book')}
+                  style={{
+                    padding: '0.85rem 1.5rem', border: 'none', borderRadius: 100,
+                    background: '#00BFFF', color: 'var(--white)',
                     fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.9rem',
                     cursor: 'pointer', whiteSpace: 'nowrap',
                     boxShadow: '0 8px 20px rgba(15,52,96,0.28)',
