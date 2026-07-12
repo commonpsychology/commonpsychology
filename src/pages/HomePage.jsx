@@ -16,6 +16,7 @@ import Testimonials     from '../components/Testimonials'
 import PsychologicalEye from '../components/PsychologicalEye'
 import Crisis           from '../components/Crisis'
 import Donate           from '../components/Donate'
+import NoticeSection     from '../components/NoticeSection'
 import Balance          from '../components/Balance'
 import NoticePopup      from '../components/NoticePopup'
 import NamasteLoader    from '../components/NamasteLoader'
@@ -83,6 +84,7 @@ export default function HomePage() {
       <HeroEmotional />
       <EleventhPaymentPromoHome />
       <TrustBar />
+      <NoticeSection />
       <Umbrella />
       <Services />
       <Balance />
