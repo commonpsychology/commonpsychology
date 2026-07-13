@@ -129,7 +129,7 @@ export default function NewsDetailPage() {
       <p style={{ fontFamily:"'Nunito',sans-serif", color:T.textLight, fontSize:'1.05rem', textAlign:'center' }}>
         Article not found.
       </p>
-      <button onClick={() => navigate('/news')}
+      <button onClick={() => navigate('/our-news')}
         style={{ padding:'0.65rem 1.5rem', borderRadius:10, background:btnGrad,
           color:'white', border:'none', cursor:'pointer',
           fontFamily:"'Nunito',sans-serif", fontWeight:700 }}>
@@ -208,7 +208,7 @@ export default function NewsDetailPage() {
           ))}
 
           <div className="news-hero-inner">
-            <button onClick={() => navigate('/news')}
+            <button onClick={() => navigate('/our-news')}
               style={{ background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.3)',
                 color:'white', borderRadius:100, padding:'0.3rem 1.1rem',
                 fontFamily:"'Nunito',sans-serif", fontSize:'0.78rem', fontWeight:600,
