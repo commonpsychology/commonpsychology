@@ -17,14 +17,12 @@ export default function ImageSlider() {
   const [images, setImages]     = useState([])
   const [current, setCurrent]   = useState(0)
   const [loading, setLoading]   = useState(true)
-  const [progress, setProgress] = useState(0)
   const [paused, setPaused]     = useState(false)
   const [thumb, setThumb]       = useState(0)
   const autoRef  = useRef(null)
-  const progRef  = useRef(null)
   const trackRef = useRef(null)
   const startX   = useRef(null)
-  const totalRef = useRef(0)  // ← stores images.length without stale closure
+  const totalRef = useRef(0)
 
   // ── Fetch images ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -33,7 +31,6 @@ export default function ImageSlider() {
         const res  = await fetch(`${API_BASE}/gallery?approved=true&limit=20`)
         const data = await res.json()
         const raw  = data?.images || data?.data || []
-        // filter out items with no actual image URL
         const imgs = raw.filter(im => im?.image_url || im?.url)
         if (imgs.length) {
           totalRef.current = imgs.length
@@ -49,58 +46,41 @@ export default function ImageSlider() {
     load()
   }, [])
 
-  // ── goTo — uses ref so never stale ─────────────────────────────────────────
+  // ── goTo ─────────────────────────────────────────────────────────────────
   const goTo = useCallback((idx) => {
     const n = totalRef.current
     if (!n) return
     setCurrent((idx + n) % n)
-    setProgress(0)
   }, [])
 
-  // ── Auto-advance + progress bar ─────────────────────────────────────────────
+  // ── Auto-advance ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!images.length || paused) return
     clearInterval(autoRef.current)
-    clearInterval(progRef.current)
-    setProgress(0)
-
-    progRef.current = setInterval(() => {
-      setProgress(p => p >= 100 ? 100 : p + (100 / (AUTO_MS / 60)))
-    }, 60)
-
     autoRef.current = setInterval(() => {
-      setCurrent(prev => {
-        const next = (prev + 1) % totalRef.current
-        setProgress(0)
-        return next
-      })
+      setCurrent(prev => (prev + 1) % totalRef.current)
     }, AUTO_MS)
+    return () => clearInterval(autoRef.current)
+  }, [images.length, paused])
 
-    return () => {
-      clearInterval(autoRef.current)
-      clearInterval(progRef.current)
-    }
-  }, [images.length, paused]) // ← removed `current` and `goTo` from deps
-
-  // ── Sync thumbnail strip ────────────────────────────────────────────────────
+  // ── Sync thumbnail strip ────────────────────────────────────────────────
   useEffect(() => {
-  if (!trackRef.current || !images.length) return
-  // manually scroll the thumbnail strip horizontally only — no page jump
-  const strip = trackRef.current
-  const btn   = strip.children[current]
-  if (btn) {
-    const btnLeft    = btn.offsetLeft
-    const btnWidth   = btn.offsetWidth
-    const stripWidth = strip.offsetWidth
-    strip.scrollTo({
-      left: btnLeft - (stripWidth / 2) + (btnWidth / 2),
-      behavior: 'smooth'
-    })
-  }
-  setThumb(current)
-}, [current, images.length])
+    if (!trackRef.current || !images.length) return
+    const strip = trackRef.current
+    const btn   = strip.children[current]
+    if (btn) {
+      const btnLeft    = btn.offsetLeft
+      const btnWidth   = btn.offsetWidth
+      const stripWidth = strip.offsetWidth
+      strip.scrollTo({
+        left: btnLeft - (stripWidth / 2) + (btnWidth / 2),
+        behavior: 'smooth'
+      })
+    }
+    setThumb(current)
+  }, [current, images.length])
 
-  // ── Swipe ───────────────────────────────────────────────────────────────────
+  // ── Swipe ───────────────────────────────────────────────────────────────
   function onTouchStart(e) { startX.current = e.touches[0].clientX }
   function onTouchEnd(e) {
     if (startX.current === null) return
@@ -109,10 +89,9 @@ export default function ImageSlider() {
     startX.current = null
   }
 
-  // ── Loading spinner ─────────────────────────────────────────────────────────
   if (loading) return (
     <section style={{ display:'flex', alignItems:'center', justifyContent:'center',
-      padding:'5rem 0', background:'var(--off-white)' }}>
+      padding:'5rem 0', background:'linear-gradient(180deg, #EAF6FF 0%, #F6FBFF 100%)' }}>
       <div style={{ width:40, height:40, border:'3px solid var(--blue-pale)',
         borderTopColor:'var(--sky)', borderRadius:'50%',
         animation:'spin 0.8s linear infinite' }} />
@@ -122,16 +101,35 @@ export default function ImageSlider() {
 
   if (!images.length) return null
 
-  const img = images[current]
-  const src = img?.image_url || img?.url
+  const n = images.length
+  const prevIdx = (current - 1 + n) % n
+  const nextIdx = (current + 1) % n
+  const getSrc = (im) => im?.image_url || im?.url
 
   return (
-    <section style={{ background:'var(--off-white)', padding:'0 0 3rem' }}>
+    <section style={{
+      position: 'relative',
+      overflow: 'hidden',
+      background: 'linear-gradient(180deg, #E3F5FF 0%, #F2FAFF 45%, #FFFFFF 100%)',
+      padding: '0 0 3rem',
+    }}>
+      {/* ambient bluish blobs for depth */}
+      <div style={{
+        position:'absolute', width:420, height:420, top:-180, left:-140,
+        borderRadius:'50%', filter:'blur(70px)', pointerEvents:'none',
+        background:'radial-gradient(circle, rgba(0,191,255,0.16), transparent 70%)',
+      }} />
+      <div style={{
+        position:'absolute', width:360, height:360, bottom:-160, right:-120,
+        borderRadius:'50%', filter:'blur(70px)', pointerEvents:'none',
+        background:'radial-gradient(circle, rgba(41,128,185,0.14), transparent 70%)',
+      }} />
 
       {/* Header */}
-      <div style={{ textAlign:'center', padding:'3rem 1rem 2rem' }}>
+      <div style={{ position:'relative', textAlign:'center', padding:'3rem 1rem 2.5rem', zIndex:1 }}>
         <span style={{ display:'inline-block', padding:'4px 16px', borderRadius:100,
-          background:'var(--green-mist)', color:'var(--green-deep)',
+          background:'var(--white)', color:'#005580',
+          border:'1.5px solid var(--blue-pale)',
           fontSize:'0.7rem', fontWeight:700, letterSpacing:'0.08em',
           textTransform:'uppercase', marginBottom:'0.65rem' }}>
           📸 Our moments
@@ -145,89 +143,53 @@ export default function ImageSlider() {
         </p>
       </div>
 
-      {/* Slider */}
-      <div style={{ position:'relative', maxWidth:860, margin:'0 auto', padding:'0 1rem' }}>
+      {/* Coverflow slider */}
+      <div
+        style={{ position:'relative', zIndex:1, maxWidth:960, margin:'0 auto', padding:'0 1rem' }}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        <div style={{
+          display:'flex', alignItems:'center', justifyContent:'center',
+          gap:'clamp(-20px, -2vw, 0px)', minHeight:'min(420px, 62vw)',
+        }}>
+          {/* LEFT — smaller, peeking */}
+          <SlideCard
+            im={images[prevIdx]} getSrc={getSrc}
+            size="min(190px, 30vw)"
+            onClick={() => goTo(prevIdx)}
+            style={{ opacity:0.6, transform:'translateX(6%) scale(0.92) rotateY(8deg)', zIndex:1 }}
+          />
 
-        {/* Decorative rings */}
-        {[640, 580].map((sz, ri) => (
-          <div key={ri} style={{ position:'absolute', top:'50%', left:'50%',
-            transform:'translate(-50%,-50%)',
-            width:`min(${sz}px, ${ri === 0 ? 90 : 82}vw)`,
-            height:`min(${sz}px, ${ri === 0 ? 90 : 82}vw)`,
-            borderRadius:'50%', pointerEvents:'none', zIndex:0,
-            border: ri === 0
-              ? '1px solid rgba(41,128,185,0.12)'
-              : '1px dashed rgba(41,128,185,0.18)' }} />
-        ))}
+          {/* CENTER — large, active */}
+          <SlideCard
+            im={images[current]} getSrc={getSrc}
+            size="min(340px, 56vw)"
+            active
+            style={{ zIndex:3 }}
+          />
 
-        {/* Circle frame */}
-        <div
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          style={{ position:'relative', zIndex:1,
-            width:'min(480px, 85vw)', height:'min(480px, 85vw)',
-            borderRadius:'50%', overflow:'hidden', margin:'0 auto',
-            border:'4px solid var(--white)',
-            outline:'2px solid rgba(41,128,185,0.25)',
-            boxShadow:'0 8px 40px rgba(15,52,96,0.18)', cursor:'grab' }}
-        >
-          {images.map((im, i) => {
-            const imSrc = im?.image_url || im?.url
-            return (
-              <img key={im.id || i} src={imSrc} alt={im.title || `Slide ${i + 1}`}
-                style={{ position:'absolute', inset:0, width:'100%', height:'100%',
-                  objectFit:'cover',
-                  opacity: i === current ? 1 : 0,
-                  transform: i === current ? 'scale(1)' : 'scale(1.04)',
-                  transition:'opacity 0.6s ease, transform 0.6s ease' }} />
-            )
-          })}
-
-          {/* Progress arc */}
-          <svg viewBox="0 0 200 200"
-            style={{ position:'absolute', inset:0, width:'100%', height:'100%',
-              pointerEvents:'none', zIndex:2 }}>
-            <circle cx="100" cy="100" r="96" fill="none"
-              stroke="rgba(41,128,185,0.55)" strokeWidth="4"
-              strokeDasharray={`${progress * 6.032} 603.2`}
-              strokeLinecap="round" transform="rotate(-90 100 100)"
-              style={{ transition:'stroke-dasharray 0.1s linear' }} />
-          </svg>
-
-          {/* Caption */}
-          {img?.title && (
-            <div style={{ position:'absolute', bottom:0, left:0, right:0,
-              background:'linear-gradient(to top, rgba(15,52,96,0.82) 0%, transparent 100%)',
-              padding:'2rem 1.5rem 1.25rem',
-              display:'flex', flexDirection:'column', alignItems:'center', zIndex:3 }}>
-              {img.category && (
-                <span style={{ padding:'2px 10px', borderRadius:100,
-                  background:'rgba(41,128,185,0.45)', color:'#e8f4fd',
-                  fontSize:'0.65rem', fontWeight:700, letterSpacing:'0.08em',
-                  textTransform:'uppercase', marginBottom:6 }}>
-                  {img.category}
-                </span>
-              )}
-              <span style={{ color:'#fff', fontSize:'0.95rem', fontWeight:700,
-                fontFamily:'var(--font-display)', textAlign:'center',
-                textShadow:'0 1px 4px rgba(0,0,0,0.4)' }}>
-                {img.title}
-              </span>
-            </div>
-          )}
+          {/* RIGHT — smaller, peeking */}
+          <SlideCard
+            im={images[nextIdx]} getSrc={getSrc}
+            size="min(190px, 30vw)"
+            onClick={() => goTo(nextIdx)}
+            style={{ opacity:0.6, transform:'translateX(-6%) scale(0.92) rotateY(-8deg)', zIndex:1 }}
+          />
         </div>
 
         {/* Prev / Next */}
         {[{ dir:-1, label:'←', side:'left' }, { dir:1, label:'→', side:'right' }].map(({ dir, label, side }) => (
           <button key={side} onClick={() => goTo(current + dir)} aria-label={dir === -1 ? 'Previous' : 'Next'}
-            style={{ position:'absolute', top:'50%', [side]:0,
+            style={{ position:'absolute', top:'50%', [side]:'clamp(-6px, 0vw, 10px)',
               transform:'translateY(-50%)', width:44, height:44,
               borderRadius:'50%', border:'2px solid var(--blue-pale)',
               background:'var(--white)', cursor:'pointer',
               display:'flex', alignItems:'center', justifyContent:'center',
               color:'var(--sky)', fontSize:'1.1rem',
+              boxShadow:'0 6px 16px rgba(15,52,96,0.14)',
               transition:'border-color 0.2s, background 0.2s', zIndex:4 }}
             onMouseEnter={e => { e.currentTarget.style.borderColor='var(--sky)'; e.currentTarget.style.background='var(--sky-light)' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor='var(--blue-pale)'; e.currentTarget.style.background='var(--white)' }}>
@@ -235,33 +197,52 @@ export default function ImageSlider() {
           </button>
         ))}
 
+        {/* Caption for active image */}
+        {images[current]?.title && (
+          <div style={{ textAlign:'center', marginTop:'1.4rem' }}>
+            {images[current].category && (
+              <span style={{ display:'inline-block', padding:'2px 12px', borderRadius:100,
+                background:'#DFF3FF', color:'#005580',
+                fontSize:'0.65rem', fontWeight:700, letterSpacing:'0.08em',
+                textTransform:'uppercase', marginBottom:6 }}>
+                {images[current].category}
+              </span>
+            )}
+            <div style={{ color:'var(--text-dark)', fontSize:'1rem', fontWeight:700,
+              fontFamily:'var(--font-display)' }}>
+              {images[current].title}
+            </div>
+          </div>
+        )}
+
         {/* Counter */}
-        <div style={{ textAlign:'center', marginTop:'1rem',
+        <div style={{ textAlign:'center', marginTop:'0.5rem',
           fontSize:'0.78rem', color:'var(--text-light)',
           fontWeight:600, letterSpacing:'0.05em' }}>
-          {images.length > 0 ? `${current + 1} / ${images.length}` : ''}
+          {current + 1} / {n}
         </div>
       </div>
 
       {/* Thumbnail strip */}
-      <div style={{ maxWidth:860, margin:'1.5rem auto 0', padding:'0 1rem' }}>
+      <div style={{ position:'relative', zIndex:1, maxWidth:860, margin:'1.5rem auto 0', padding:'0 1rem' }}>
         <div ref={trackRef} style={{ display:'flex', gap:10, overflowX:'auto',
           paddingBottom:6, scrollbarWidth:'none', WebkitOverflowScrolling:'touch' }}>
           {images.map((im, i) => {
-            const imSrc = im?.image_url || im?.url
+            const imSrc = getSrc(im)
             return (
               <button key={im.id || i} onClick={() => goTo(i)}
                 aria-label={im.title || `Go to image ${i + 1}`}
                 style={{ flexShrink:0,
-                  width: i === thumb ? 80 : 60,
-                  height: i === thumb ? 80 : 60,
-                  borderRadius:'50%', overflow:'hidden',
+                  width: i === thumb ? 72 : 54,
+                  height: i === thumb ? 72 : 54,
+                  borderRadius: 14, overflow:'hidden',
                   border: i === thumb ? '3px solid var(--sky)' : '2px solid var(--blue-pale)',
                   cursor:'pointer', padding:0,
                   opacity: i === thumb ? 1 : 0.6,
-                  transition:'all 0.3s ease',
-                  outline: i === thumb ? '2px solid rgba(41,128,185,0.25)' : 'none',
-                  outlineOffset:2 }}>
+                  boxShadow: i === thumb
+                    ? '0 8px 18px rgba(0,123,168,0.25)'
+                    : '0 2px 8px rgba(15,52,96,0.08)',
+                  transition:'all 0.3s ease' }}>
                 <img src={imSrc} alt={im.title || `Thumb ${i + 1}`}
                   style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
               </button>
@@ -272,5 +253,43 @@ export default function ImageSlider() {
 
       <style>{`div::-webkit-scrollbar{display:none}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </section>
+  )
+}
+
+/* ── Reusable slide card — bevelled, 3D-shadowed image tile ── */
+function SlideCard({ im, getSrc, size, active, onClick, style }) {
+  const src = getSrc(im)
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        position:'relative',
+        width: size, height: size,
+        borderRadius: active ? 28 : 22,
+        overflow:'hidden',
+        cursor: onClick ? 'pointer' : 'default',
+        flexShrink: 0,
+        transition:'transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.5s ease',
+        /* bevelled 3D look: layered shadow + inner highlight ring */
+        boxShadow: active
+          ? '0 22px 46px rgba(15,52,96,0.28), 0 4px 12px rgba(15,52,96,0.16), inset 0 2px 0 rgba(255,255,255,0.5)'
+          : '0 10px 24px rgba(15,52,96,0.18), inset 0 2px 0 rgba(255,255,255,0.35)',
+        border: '3px solid var(--white)',
+        outline: active ? '2px solid rgba(0,191,255,0.35)' : '1px solid rgba(41,128,185,0.15)',
+        outlineOffset: active ? 3 : 2,
+        ...style,
+      }}
+    >
+      <img
+        src={src}
+        alt={im?.title || 'Gallery image'}
+        style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}
+      />
+      {/* subtle top-light sheen for the bevelled/glossy feel */}
+      <div style={{
+        position:'absolute', inset:0, pointerEvents:'none',
+        background:'linear-gradient(160deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 30%, rgba(0,20,40,0.12) 100%)',
+      }} />
+    </div>
   )
 }
