@@ -11,7 +11,7 @@ const GAP = 20
 
 function getVisible(w) {
   if (w < 640)  return 1
-  if (w < 1024) return 2
+  if (w < 1280) return 2
   return 3
 }
 
@@ -123,8 +123,9 @@ function VideoThumbnail({ v }) {
 function VideoCard({ v, cardW }) {
   return (
     <div
-      style={{
+ style={{
         width: cardW, minWidth: cardW, flexShrink: 0,
+        boxSizing: 'border-box',
         background: 'var(--white)',
         borderRadius: 'var(--radius-lg)', overflow: 'hidden',
         border: '1px solid var(--blue-pale)',
@@ -477,8 +478,10 @@ export default function VideoReviews() {
     return () => ro.disconnect()
   }, [])
 
-  const visible  = getVisible(width)
-  const cardW    = Math.floor((width - GAP * (visible - 1)) / visible)
+const visible  = getVisible(width)
+  // small safety margin so borders/rounding never push the last card
+  // past the clipped edge of the carousel
+  const cardW    = Math.floor((width - GAP * (visible - 1) - 2) / visible)
   const maxIndex = Math.max(0, videos.length - visible)
   const pageCount  = Math.ceil(videos.length / visible)
   const activePage = Math.floor(index / visible)
