@@ -42,6 +42,10 @@ const btnGrad  = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyBright} 100%)`
 const heroGrad = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyMid} 45%,${C.skyBright} 85%,#22d3ee 100%)`
 const secGrad  = `linear-gradient(135deg,${C.skyFainter} 0%,${C.mint} 60%,${C.skyFaint} 100%)`
 
+// How long after the scheduled time a still-pending/confirmed session is
+// auto-marked as a no-show. Gives the therapist a window to act first.
+const NO_SHOW_GRACE_MS = 2 * 60 * 60 * 1000 // 2 hours
+
 const CSS = `
   .th-layout { min-height:100vh; background:${C.skyFainter}; display:flex; flex-direction:column; }
   .th-topbar { background:${heroGrad}; padding:0.85rem clamp(1rem,3vw,2rem); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,0.15); }
@@ -64,6 +68,7 @@ const CSS = `
   .th-toast.error   { background:#fff0f0; border:1.5px solid #fca5a5; color:#c0392b; }
   .th-toast.success { background:#e8f8f0; border:1.5px solid #86efac; color:#1a7a4a; }
   @keyframes thSlideIn { from { transform:translateY(12px); opacity:0 } to { transform:translateY(0); opacity:1 } }
+  @keyframes thPopIn { from { transform:scale(0.92) translateY(8px); opacity:0 } to { transform:scale(1) translateY(0); opacity:1 } }
   @media(max-width:900px){ .th-stats{grid-template-columns:repeat(2,1fr);} }
   @media(max-width:600px){ .th-stats{grid-template-columns:1fr 1fr;gap:0.75rem;} .th-content{padding:0.85rem;} .th-topbar{padding:0.65rem 1rem;} .th-client-grid{grid-template-columns:1fr;} }
   @media(max-width:420px){ .th-stats{grid-template-columns:1fr;gap:0.6rem;} }
@@ -100,6 +105,50 @@ function Toast({ toast }) {
   return (
     <div className={`th-toast ${toast.type}`}>
       {toast.type === 'error' ? '⚠ ' : '✓ '}{toast.message}
+    </div>
+  )
+}
+
+// ── Mark-done confirmation dialog ────────────────────────────────
+function MarkDoneModal({ appt, busy, onConfirm, onCancel, fmtFull }) {
+  if (!appt) return null
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(10,32,45,0.48)', zIndex:2000,
+      display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem',
+      backdropFilter:'blur(2px)' }}
+      onClick={busy ? undefined : onCancel}>
+      <div style={{ background:C.white, borderRadius:20, padding:'2.25rem 2rem', maxWidth:420,
+        width:'100%', boxShadow:'0 24px 64px rgba(0,60,90,0.28)', position:'relative',
+        textAlign:'center', animation:'thPopIn 0.2s ease' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ width:56, height:56, borderRadius:'50%', background:'#e8f8f0',
+          display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.6rem',
+          margin:'0 auto 1.1rem', border:'1.5px solid #bdf0d4' }}>✅</div>
+        <h3 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:C.textDark,
+          marginBottom:'0.6rem' }}>Mark session as done?</h3>
+        <p style={{ fontFamily:'var(--font-body)', fontSize:'0.86rem', color:C.textMid,
+          lineHeight:1.72, marginBottom:'1.9rem' }}>
+          Confirm that the session with{' '}
+          <strong style={{ color:C.textDark }}>{appt.clients?.full_name || 'this client'}</strong>{' '}
+          on <strong style={{ color:C.textDark }}>{fmtFull(appt.scheduled_at)}</strong> has been
+          completed. This updates the client's record right away.
+        </p>
+        <div style={{ display:'flex', gap:'0.75rem' }}>
+          <button onClick={onCancel} disabled={busy} style={{ flex:1, padding:'0.75rem',
+            borderRadius:12, border:`1.5px solid ${C.border}`, background:C.white, color:C.textMid,
+            fontFamily:'var(--font-body)', fontWeight:600, fontSize:'0.88rem',
+            cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+            Cancel
+          </button>
+          <button onClick={onConfirm} disabled={busy} style={{ flex:1, padding:'0.75rem',
+            borderRadius:12, border:'none', background:'linear-gradient(135deg,#1a7a4a,#22c55e)',
+            color:'white', fontFamily:'var(--font-body)', fontWeight:700, fontSize:'0.88rem',
+            cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.75 : 1,
+            boxShadow:'0 4px 16px rgba(34,197,94,0.32)' }}>
+            {busy ? 'Saving…' : 'Yes, mark done'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -255,6 +304,8 @@ export default function TherapistDashboard() {
   // ── Toast for status update feedback ──
   const [toast, setToast]                      = useState(null)
   const toastTimer                             = useRef(null)
+  // ── Pending "mark done" confirmation ──
+  const [confirmAppt, setConfirmAppt]          = useState(null)
 
   const hasLoaded = useRef(false)
 
@@ -271,12 +322,46 @@ export default function TherapistDashboard() {
     toastTimer.current = setTimeout(() => setToast(null), 4000)
   }
 
+  // ── Auto-flip stale pending/confirmed sessions to "no_show" ──────────
+  // Runs after every load: anything still pending/confirmed more than
+  // NO_SHOW_GRACE_MS past its scheduled time gets marked no_show, since
+  // neither the client showed up nor the therapist updated it in time.
+  async function autoMarkNoShows(list) {
+    const now = Date.now()
+    const stale = list.filter(a =>
+      ['pending', 'confirmed'].includes(a.status) &&
+      new Date(a.scheduled_at).getTime() + NO_SHOW_GRACE_MS < now
+    )
+    if (stale.length === 0) return list
+
+    const updatedIds = []
+    for (const a of stale) {
+      try {
+        await apiFetch(`/therapist-portal/appointments/${a.id}/status`, {
+          method: 'PATCH',
+          body:   JSON.stringify({ status: 'no_show' }),
+        })
+        updatedIds.push(a.id)
+      } catch {
+        // Leave it as-is; it'll be picked up again on the next load.
+      }
+    }
+    if (updatedIds.length) {
+      showToast(
+        `${updatedIds.length} past session${updatedIds.length > 1 ? 's' : ''} auto-marked as no-show`,
+        'success'
+      )
+    }
+    return list.map(a => updatedIds.includes(a.id) ? { ...a, status: 'no_show' } : a)
+  }
+
   async function loadAppointments() {
     setLoading(true); setError(''); setNoTherapistRecord(false)
     try {
       const data = await apiFetch('/therapist-portal/appointments?limit=100')
       if (data.warning) { setNoTherapistRecord(true); setAppointments([]); return }
-      setAppointments(data.appointments || [])
+      const withNoShows = await autoMarkNoShows(data.appointments || [])
+      setAppointments(withNoShows)
     } catch (err) {
       if (err.message !== 'Session expired. Please log in again.') {
         setError(err.message || 'Failed to load appointments.')
@@ -312,6 +397,18 @@ export default function TherapistDashboard() {
     }
   }
 
+  // ── "Mark done" now routes through a confirmation dialog first ──────
+  function requestMarkDone(appt) {
+    if (updatingIds.has(appt.id)) return
+    setConfirmAppt(appt)
+  }
+
+  async function confirmMarkDone() {
+    if (!confirmAppt) return
+    await updateStatus(confirmAppt.id, 'completed')
+    setConfirmAppt(null)
+  }
+
   async function handleLogout() { await logout(); navigate('/staff') }
 
   const upcoming = appointments.filter(a => ['pending','confirmed'].includes(a.status))
@@ -330,6 +427,13 @@ export default function TherapistDashboard() {
   return (
     <div className="th-layout">
       <Toast toast={toast} />
+      <MarkDoneModal
+        appt={confirmAppt}
+        busy={confirmAppt ? updatingIds.has(confirmAppt.id) : false}
+        onConfirm={confirmMarkDone}
+        onCancel={() => setConfirmAppt(null)}
+        fmtFull={fmtFull}
+      />
 
       {/* ── Top bar ── */}
       <div className="th-topbar">
@@ -470,7 +574,7 @@ export default function TherapistDashboard() {
                           <button
                             className="th-action-btn"
                             disabled={isUpdating}
-                            onClick={() => updateStatus(a.id, 'completed')}
+                            onClick={() => requestMarkDone(a)}
                             style={{ border:`1px solid #22c55e`, background:'#e8f8f0', color:'#1a7a4a' }}>
                             {isUpdating ? 'Saving…' : 'Mark Done'}
                           </button>
@@ -541,13 +645,15 @@ export default function TherapistDashboard() {
   })()} */}
 </td>
                             <td>
-                              {/* ── The select now calls updateStatus which uses the correct route ── */}
+                              {/* ── The select now calls updateStatus which uses the correct route ──
+                                  Picking "completed" routes through the same confirmation dialog. ── */}
                               <select
                                 value={a.status}
                                 disabled={isUpdating}
                                 onChange={async e => {
                                   const newStatus = e.target.value
                                   if (newStatus === a.status) return
+                                  if (newStatus === 'completed') { requestMarkDone(a); return }
                                   await updateStatus(a.id, newStatus)
                                 }}
                                 style={{ padding:'0.3rem 0.5rem', border:`1px solid ${C.borderFaint}`,
