@@ -211,25 +211,47 @@ function DropButton({ onClick }) {
     with the flask. */
 function TopWave() {
   return (
-    <svg
-      className="wf-top-wave"
-      viewBox="0 0 1440 220"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="waveGradA" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#007BA8" />
-          <stop offset="55%" stopColor="#00BFFF" />
-          <stop offset="100%" stopColor="#F0FBFF" />
-        </linearGradient>
-      </defs>
-      <path
-        className="wf-wave-layer wf-wave-back"
-        d="M0,100 C 240,150 440,55 720,100 C 1000,145 1220,55 1440,100 L1440,0 L0,0 Z"
-        fill="url(#waveGradA)"
-      />
-    </svg>
+    <div className="wf-top-wave-bleed" aria-hidden="true">
+      <svg
+        className="wf-top-wave"
+        viewBox="0 0 1440 240"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id="waveGradA" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#007BA8" />
+            <stop offset="55%" stopColor="#00BFFF" />
+            <stop offset="100%" stopColor="#F0FBFF" />
+          </linearGradient>
+        </defs>
+
+        <path
+          className="wf-wave-layer wf-wave-back"
+          d="M0,110 C 240,165 440,60 720,110 C 1000,160 1220,60 1440,110 L1440,0 L0,0 Z"
+          fill="url(#waveGradA)"
+        />
+
+        <g className="wf-cloud wf-cloud-1" opacity="0.85">
+          <ellipse cx="180" cy="55" rx="70" ry="22" fill="#FFFFFF" />
+          <ellipse cx="230" cy="45" rx="50" ry="26" fill="#FFFFFF" />
+          <ellipse cx="130" cy="48" rx="45" ry="20" fill="#FFFFFF" />
+        </g>
+        <g className="wf-cloud wf-cloud-2" opacity="0.7">
+          <ellipse cx="620" cy="40" rx="60" ry="18" fill="#FFFFFF" />
+          <ellipse cx="660" cy="32" rx="42" ry="20" fill="#FFFFFF" />
+          <ellipse cx="580" cy="35" rx="38" ry="16" fill="#FFFFFF" />
+        </g>
+        <g className="wf-cloud wf-cloud-3" opacity="0.6">
+          <ellipse cx="1050" cy="62" rx="80" ry="24" fill="#FFFFFF" />
+          <ellipse cx="1110" cy="52" rx="55" ry="26" fill="#FFFFFF" />
+          <ellipse cx="990" cy="56" rx="50" ry="20" fill="#FFFFFF" />
+        </g>
+        <g className="wf-cloud wf-cloud-4" opacity="0.5">
+          <ellipse cx="1320" cy="35" rx="55" ry="16" fill="#FFFFFF" />
+          <ellipse cx="1360" cy="28" rx="35" ry="18" fill="#FFFFFF" />
+        </g>
+      </svg>
+    </div>
   );
 }
 
@@ -410,13 +432,19 @@ export default function WellspringFlask() {
           box-sizing: border-box;
           overflow: visible;
         }
-
-        .wf-top-wave {
+.wf-top-wave-bleed {
           position: absolute;
           top: 0;
-          left: 0;
+          left: 50%;
+          width: 100vw;
+          transform: translateX(-50%);
+          height: 240px;
+          overflow: hidden;
+          pointer-events: none;
+        }
+        .wf-top-wave {
           width: 100%;
-          height: 190px;
+          height: 100%;
           display: block;
         }
         .wf-wave-layer { transform-origin: center; }
@@ -425,8 +453,21 @@ export default function WellspringFlask() {
           0%, 100% { transform: translateY(0px); }
           50%      { transform: translateY(5px); }
         }
+        .wf-cloud {
+          transform-box: fill-box;
+          transform-origin: center;
+        }
+        .wf-cloud-1 { animation: wfCloudDrift 38s ease-in-out infinite; }
+        .wf-cloud-2 { animation: wfCloudDrift 52s ease-in-out infinite reverse; }
+        .wf-cloud-3 { animation: wfCloudDrift 46s ease-in-out infinite; }
+        .wf-cloud-4 { animation: wfCloudDrift 60s ease-in-out infinite reverse; }
+        @keyframes wfCloudDrift {
+          0%, 100% { transform: translateX(-24px); }
+          50%      { transform: translateX(24px); }
+        }
         @media (prefers-reduced-motion: reduce) {
           .wf-wave-back { animation: none; }
+          .wf-cloud { animation: none !important; }
         }
 
         .wf-inner {
