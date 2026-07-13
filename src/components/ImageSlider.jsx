@@ -326,3 +326,4 @@ function SlideCard({ im, getSrc, size, active, onClick, style }) {
     </div>
   )
 }
+
