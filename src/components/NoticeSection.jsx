@@ -19,7 +19,7 @@ const CLAUSES = [
     tone: 'open',
     icon: '💳',
     np: 'तिर्न सक्नुहुन्छ भने, हामी हाम्रो सामान्य शुल्क मात्र लिन्छौं। थप केही होइन। यदि सक्नुहुन्न भने, हामी स्लाइडिङ स्केल वा प्रो बोनो व्यवस्था छलफल गर्न सक्छौं।',
-    en: 'Can you pay for care? We charge our normal rates — nothing more. If you cannot, we can discuss a sliding scale or pro bono arrangement.',
+    en: 'Can you pay for care? We charge our normal rates — nothing more. If you cannot, we can discuss a sliding scale or referral services.',
   },
   {
     tone: 'open',
