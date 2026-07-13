@@ -217,16 +217,25 @@ function TopWave() {
         viewBox="0 0 1440 240"
         preserveAspectRatio="none"
       >
-        <defs>
-        <linearGradient id="waveGradA" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#007BA8" />
-          <stop offset="40%" stopColor="#00BFFF" />
-          <stop offset="75%" stopColor="#F0FBFF" />
-          <stop offset="100%" stopColor="#F6FAFA" stopOpacity="0" />
-        </linearGradient>
+      <defs>
+          <linearGradient id="waveGradA" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#007BA8" />
+            <stop offset="40%" stopColor="#00BFFF" />
+            <stop offset="75%" stopColor="#F0FBFF" />
+            <stop offset="100%" stopColor="#F6FAFA" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="skyBg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#DCF2FF" />
+            <stop offset="100%" stopColor="#F0FBFF" />
+          </linearGradient>
         </defs>
 
-   <path
+        {/* soft bluish-white sky fill so the white clouds have contrast
+            to sit against, instead of the page's plain white showing
+            through the transparent area above the horizon curve */}
+        <rect x="0" y="0" width="1440" height="240" fill="url(#skyBg)" />
+
+        <path
           className="wf-wave-layer wf-wave-back"
           d="M0,70 Q 720,190 1440,70 L1440,240 L0,240 Z"
           fill="url(#waveGradA)"
