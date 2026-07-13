@@ -451,6 +451,10 @@ export default function WellspringFlask() {
           height: 240px;
           overflow: hidden;
           pointer-events: none;
+          /* curves the TOP edge of the whole sky band into a wide
+             concave arc — dips down at the outer edges, bulging
+             upward through the center, instead of a flat rectangle top */
+          clip-path: ellipse(65% 100% at 50% 0%);
         }
         .wf-top-wave {
           width: 100%;
