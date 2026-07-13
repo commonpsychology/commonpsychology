@@ -504,26 +504,50 @@ export default function VideoReviews() {
     return card.getBoundingClientRect().width + GAP
   }, [])
 
+  // While true, the onScroll listener ignores events — set during
+  // button-driven smooth scrolls so it can't recompute scrollIndex out
+  // from under the click that just set it, then cleared once the
+  // animation has actually settled.
+  const programmaticScrollRef = useRef(false)
+  const settleTimerRef = useRef(null)
+
   const scrollToPage = useCallback((page) => {
     const wrap = wrapRef.current
     const step = getStep()
     if (!wrap || !step) return
     const clamped = Math.min(pageCount - 1, Math.max(0, page))
+
+    // Trust the click, not the animation-in-progress scroll events.
+    setScrollIndex(clamped)
+    programmaticScrollRef.current = true
+    if (settleTimerRef.current) clearTimeout(settleTimerRef.current)
+
     wrap.scrollTo({ left: Math.round(clamped * visible * step), behavior: 'smooth' })
+
+    // Smooth scrolls don't reliably fire a single "done" event across
+    // browsers, so release the guard shortly after the animation should
+    // have finished. Scroll listener resumes for touch-swipe tracking.
+    settleTimerRef.current = setTimeout(() => {
+      programmaticScrollRef.current = false
+    }, 500)
   }, [getStep, pageCount, visible])
 
   function prev() { scrollToPage(scrollIndex - 1) }
   function next() { scrollToPage(scrollIndex + 1) }
 
-  // Keep the dots/arrows in sync with native scrolling (including touch swipes)
+  // Keep the dots/arrows in sync with native scrolling (including touch swipes).
+  // Ignored while a button-triggered smooth scroll is still animating, so the
+  // two mechanisms never fight over what scrollIndex should be.
   useEffect(() => {
     const wrap = wrapRef.current
     if (!wrap) return
     let raf = null
     function onScroll() {
+      if (programmaticScrollRef.current) return
       if (raf) return
       raf = requestAnimationFrame(() => {
         raf = null
+        if (programmaticScrollRef.current) return
         const step = getStep()
         if (step > 0) {
           const page = Math.round(wrap.scrollLeft / (step * visible))
