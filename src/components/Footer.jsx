@@ -59,7 +59,7 @@ const SOCIALS = [
   },
   {
     label: 'YouTube',
-    href: 'https://youtube.com/commonpsychology',
+    href: 'https://youtube.com/@CommonPsychology',
     hoverBg: 'rgba(255,0,0,0.15)',
     hoverBorder: 'rgba(255,0,0,0.38)',
     icon: (
