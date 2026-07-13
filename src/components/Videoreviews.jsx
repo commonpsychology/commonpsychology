@@ -7,7 +7,7 @@ import { useRouter } from '../context/RouterContext'
 import { useAuth } from '../context/AuthContext'
 
 const API_BASE = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
+  ? `${import.meta.env.VITE_API_URL}`
   : '/api'
 const GAP = 20
 
@@ -705,4 +705,4 @@ export default function VideoReviews() {
       `}</style>
     </>
   )
-}
+}s
