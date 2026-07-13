@@ -224,9 +224,9 @@ function TopWave() {
             <stop offset="75%" stopColor="#F0FBFF" />
             <stop offset="100%" stopColor="#F6FAFA" stopOpacity="0" />
           </linearGradient>
-          <linearGradient id="skyBg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#DCF2FF" />
-            <stop offset="100%" stopColor="#F0FBFF" />
+        <linearGradient id="skyBg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#A6E3FF" />
+            <stop offset="100%" stopColor="#D6F0FF" />
           </linearGradient>
         </defs>
 
