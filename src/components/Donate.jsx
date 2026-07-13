@@ -218,16 +218,17 @@ function TopWave() {
         preserveAspectRatio="none"
       >
         <defs>
-          <linearGradient id="waveGradA" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#007BA8" />
-            <stop offset="55%" stopColor="#00BFFF" />
-            <stop offset="100%" stopColor="#F0FBFF" />
-          </linearGradient>
+        <linearGradient id="waveGradA" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#007BA8" />
+          <stop offset="40%" stopColor="#00BFFF" />
+          <stop offset="75%" stopColor="#F0FBFF" />
+          <stop offset="100%" stopColor="#F6FAFA" stopOpacity="0" />
+        </linearGradient>
         </defs>
 
-        <path
+   <path
           className="wf-wave-layer wf-wave-back"
-          d="M0,110 C 240,165 440,60 720,110 C 1000,160 1220,60 1440,110 L1440,0 L0,0 Z"
+          d="M0,70 Q 720,190 1440,70 L1440,240 L0,240 Z"
           fill="url(#waveGradA)"
         />
 
