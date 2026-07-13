@@ -6,7 +6,9 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useAuth } from '../context/AuthContext'
 
-const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api'
 const GAP = 20
 
 function getVisible(w) {
@@ -119,13 +121,19 @@ function VideoThumbnail({ v }) {
   )
 }
 
-/* ── VIDEO CARD ── */
-function VideoCard({ v, cardW }) {
+/* ── VIDEO CARD ──
+   `basis` is a CSS calc() string, e.g. "calc((100% - 40px) / 3)".
+   Letting the browser compute the width (instead of a JS-floored pixel
+   number) is what prevents the 3rd card from ever being clipped: calc()
+   handles fractional/subpixel widths exactly, so N cards + (N-1) gaps
+   always adds up to precisely 100% of the track, no matter the screen size. */
+function VideoCard({ v, basis }) {
   return (
     <div
- style={{
-        width: cardW, minWidth: cardW, flexShrink: 0,
+      style={{
+        flex: `0 0 ${basis}`,
         boxSizing: 'border-box',
+        scrollSnapAlign: 'start',
         background: 'var(--white)',
         borderRadius: 'var(--radius-lg)', overflow: 'hidden',
         border: '1px solid var(--blue-pale)',
@@ -448,9 +456,10 @@ export default function VideoReviews() {
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [index, setIndex] = useState(0)
   const [width, setWidth] = useState(960)
-  const wrapRef = useRef(null)
+  const [scrollIndex, setScrollIndex] = useState(0) // active "page" of the carousel
+  const wrapRef = useRef(null)   // the scrollable element
+  const trackRef = useRef(null)  // the flex row of cards (used only to measure a real card)
 
   const fetchVideos = useCallback(async () => {
     try {
@@ -478,28 +487,55 @@ export default function VideoReviews() {
     return () => ro.disconnect()
   }, [])
 
-const visible  = getVisible(width)
-  // small safety margin so borders/rounding never push the last card
-  // past the clipped edge of the carousel
-  const cardW    = Math.floor((width - GAP * (visible - 1) - 2) / visible)
-  const maxIndex = Math.max(0, videos.length - visible)
-  const pageCount  = Math.ceil(videos.length / visible)
-  const activePage = Math.floor(index / visible)
+  const visible = getVisible(width)
+  // CSS calc() does the sizing now — the browser handles fractional pixels
+  // exactly, so `visible` cards + (visible-1) gaps always add up to exactly
+  // 100% of the track. No more JS-floored pixel widths, no more drift, no
+  // more clipped 3rd card.
+  const basis = `calc((100% - ${GAP * (visible - 1)}px) / ${visible})`
+  const pageCount = Math.max(1, Math.ceil(videos.length / visible))
 
-  useEffect(() => { setIndex(i => Math.min(i, maxIndex)) }, [maxIndex])
+  // Measure the width of one real, rendered card (+ gap) to know how far
+  // to scroll. This reads the actual DOM, so it can never disagree with
+  // what's on screen.
+  const getStep = useCallback(() => {
+    const card = trackRef.current?.firstElementChild
+    if (!card) return 0
+    return card.getBoundingClientRect().width + GAP
+  }, [])
 
-  function prev() { setIndex(i => Math.max(0, i - visible)) }
-  function next() { setIndex(i => Math.min(maxIndex, i + visible)) }
+  const scrollToPage = useCallback((page) => {
+    const wrap = wrapRef.current
+    const step = getStep()
+    if (!wrap || !step) return
+    const clamped = Math.min(pageCount - 1, Math.max(0, page))
+    wrap.scrollTo({ left: Math.round(clamped * visible * step), behavior: 'smooth' })
+  }, [getStep, pageCount, visible])
 
-  const touchX = useRef(null)
-  function onTouchStart(e) { touchX.current = e.touches[0].clientX }
-  function onTouchEnd(e) {
-    if (touchX.current === null) return
-    const dx = touchX.current - e.changedTouches[0].clientX
-    if (dx > 40) next()
-    if (dx < -40) prev()
-    touchX.current = null
-  }
+  function prev() { scrollToPage(scrollIndex - 1) }
+  function next() { scrollToPage(scrollIndex + 1) }
+
+  // Keep the dots/arrows in sync with native scrolling (including touch swipes)
+  useEffect(() => {
+    const wrap = wrapRef.current
+    if (!wrap) return
+    let raf = null
+    function onScroll() {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = null
+        const step = getStep()
+        if (step > 0) {
+          const page = Math.round(wrap.scrollLeft / (step * visible))
+          setScrollIndex(Math.min(pageCount - 1, Math.max(0, page)))
+        }
+      })
+    }
+    wrap.addEventListener('scroll', onScroll, { passive: true })
+    return () => wrap.removeEventListener('scroll', onScroll)
+  }, [getStep, pageCount, visible])
+
+  useEffect(() => { setScrollIndex(i => Math.min(i, pageCount - 1)) }, [pageCount])
 
   return (
     <>
@@ -533,32 +569,32 @@ const visible  = getVisible(width)
             </button>
 
             {/* Carousel nav */}
-            {videos.length > visible && (
+            {pageCount > 1 && (
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
-                  onClick={prev} disabled={index === 0}
+                  onClick={prev} disabled={scrollIndex === 0}
                   aria-label="Previous"
                   style={{
                     width: 40, height: 40, borderRadius: '50%',
                     border: '2px solid var(--blue-pale)', background: 'var(--white)',
-                    cursor: index > 0 ? 'pointer' : 'default',
+                    cursor: scrollIndex > 0 ? 'pointer' : 'default',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '1.2rem', color: 'var(--blue-deep)',
-                    opacity: index > 0 ? 1 : 0.3, transition: 'all 0.2s',
+                    opacity: scrollIndex > 0 ? 1 : 0.3, transition: 'all 0.2s',
                   }}
                 >‹</button>
                 <button
-                  onClick={next} disabled={index >= maxIndex}
+                  onClick={next} disabled={scrollIndex >= pageCount - 1}
                   aria-label="Next"
                   style={{
                     width: 40, height: 40, borderRadius: '50%',
                     border: '2px solid var(--blue-pale)',
-                    background: index < maxIndex ? 'var(--sky)' : 'var(--white)',
-                    cursor: index < maxIndex ? 'pointer' : 'default',
+                    background: scrollIndex < pageCount - 1 ? 'var(--sky)' : 'var(--white)',
+                    cursor: scrollIndex < pageCount - 1 ? 'pointer' : 'default',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '1.2rem',
-                    color: index < maxIndex ? 'white' : 'var(--blue-deep)',
-                    opacity: index < maxIndex ? 1 : 0.3, transition: 'all 0.2s',
+                    color: scrollIndex < pageCount - 1 ? 'white' : 'var(--blue-deep)',
+                    opacity: scrollIndex < pageCount - 1 ? 1 : 0.3, transition: 'all 0.2s',
                   }}
                 >›</button>
               </div>
@@ -604,18 +640,19 @@ const visible  = getVisible(width)
           <>
             <div
               ref={wrapRef}
-              style={{ overflow: 'hidden', width: '100%' }}
-              onTouchStart={onTouchStart}
-              onTouchEnd={onTouchEnd}
+              className="video-carousel-wrap"
+              style={{
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                width: '100%',
+                scrollSnapType: 'x mandatory',
+                scrollBehavior: 'smooth',
+                WebkitOverflowScrolling: 'touch',
+              }}
             >
-              <div style={{
-                display: 'flex', gap: GAP,
-                transition: 'transform 0.44s cubic-bezier(0.4,0,0.2,1)',
-                transform: `translateX(${-index * (cardW + GAP)}px)`,
-                willChange: 'transform',
-              }}>
+              <div ref={trackRef} style={{ display: 'flex', gap: GAP }}>
                 {videos.map((v, i) => (
-                  <VideoCard key={v.id || i} v={v} cardW={cardW} />
+                  <VideoCard key={v.id || i} v={v} basis={basis} />
                 ))}
               </div>
             </div>
@@ -626,11 +663,11 @@ const visible  = getVisible(width)
                 {Array.from({ length: pageCount }).map((_, p) => (
                   <button
                     key={p}
-                    onClick={() => setIndex(Math.min(p * visible, maxIndex))}
+                    onClick={() => scrollToPage(p)}
                     style={{
-                      width: p === activePage ? 24 : 8, height: 8,
+                      width: p === scrollIndex ? 24 : 8, height: 8,
                       borderRadius: 4, border: 'none',
-                      background: p === activePage ? 'var(--sky)' : 'var(--blue-pale)',
+                      background: p === scrollIndex ? 'var(--sky)' : 'var(--blue-pale)',
                       cursor: 'pointer', transition: 'all 0.25s', padding: 0,
                     }}
                   />
@@ -655,6 +692,15 @@ const visible  = getVisible(width)
         @keyframes shimmer {
           0% { background-position: 200% 0; }
           100% { background-position: -200% 0; }
+        }
+        /* Hide the native scrollbar on the carousel track — navigation is
+           via the arrow buttons / dots / touch swipe, scrollbar is just noise */
+        .video-carousel-wrap {
+          scrollbar-width: none;       /* Firefox */
+          -ms-overflow-style: none;    /* old Edge/IE */
+        }
+        .video-carousel-wrap::-webkit-scrollbar {
+          display: none;               /* Chrome/Safari */
         }
       `}</style>
     </>
