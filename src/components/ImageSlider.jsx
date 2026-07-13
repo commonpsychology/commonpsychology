@@ -127,6 +127,39 @@ export default function ImageSlider() {
 
       {/* Header */}
       <div style={{ position:'relative', textAlign:'center', padding:'3rem 1rem 2.5rem', zIndex:1 }}>
+        <a
+          href="/gallery"
+          style={{
+            position: 'absolute',
+            top: '1.25rem',
+            right: '1.25rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '9px 18px',
+            borderRadius: 100,
+            background: 'linear-gradient(135deg, #2ECC71 0%, #16A085 100%)',
+            color: '#fff',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            letterSpacing: '0.03em',
+            textDecoration: 'none',
+            boxShadow: '0 8px 20px rgba(22,160,133,0.35), 0 2px 6px rgba(22,160,133,0.25)',
+            border: '1.5px solid rgba(255,255,255,0.4)',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            zIndex: 2,
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'translateY(-2px)'
+            e.currentTarget.style.boxShadow = '0 12px 26px rgba(22,160,133,0.42), 0 4px 10px rgba(22,160,133,0.3)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = '0 8px 20px rgba(22,160,133,0.35), 0 2px 6px rgba(22,160,133,0.25)'
+          }}
+        >
+          View Gallery →
+        </a>
         <span style={{ display:'inline-block', padding:'4px 16px', borderRadius:100,
           background:'var(--white)', color:'#005580',
           border:'1.5px solid var(--blue-pale)',
