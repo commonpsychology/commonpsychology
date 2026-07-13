@@ -705,4 +705,4 @@ export default function VideoReviews() {
       `}</style>
     </>
   )
-}s
+}
