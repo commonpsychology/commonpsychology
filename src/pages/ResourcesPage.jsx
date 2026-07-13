@@ -8,8 +8,84 @@ const C = {
   skyFaint:'#E0F7FF', skyFainter:'#F0FBFF', white:'#ffffff', mint:'#e8f3ee',
   textDark:'#1a3a4a', textMid:'#2e6080', textLight:'#7a9aaa',
   border:'#b0d4e8', borderFaint:'#daeef8',
+  // soft additions for the hero / page background
+  skyGhost:'#F8FCFF', skyPale:'#DCF1FB', skyPaler:'#EAF7FD', honeyLine:'#BEE4F5',
 }
 const btnGrad = `linear-gradient(135deg,#007BA8 0%,#00BFFF 100%)`
+
+/* Soft layered blobs + a faint honeycomb lattice, all in muted sky-blue/white tones.
+   Everything sits behind the hero copy at low opacity so it reads as texture, not noise. */
+function HeroBackdrop() {
+  const hexId = 'resourcesHoneycomb'
+  return (
+    <svg
+      viewBox="0 0 1200 460"
+      preserveAspectRatio="xMidYMid slice"
+      style={{ position:'absolute', inset:0, width:'100%', height:'100%', zIndex:0 }}
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="heroBase" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={C.white} />
+          <stop offset="55%" stopColor={C.skyGhost} />
+          <stop offset="100%" stopColor={C.skyPaler} />
+        </linearGradient>
+        <radialGradient id="blobA" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={C.skyBright} stopOpacity="0.30" />
+          <stop offset="100%" stopColor={C.skyBright} stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="blobB" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={C.skyMid} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={C.skyMid} stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="blobC" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </radialGradient>
+        <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="38" />
+        </filter>
+        <pattern id={hexId} width="64" height="110.8" patternUnits="userSpaceOnUse" patternTransform="translate(0,0)">
+          <path
+            d="M32 0 64 18.5 64 55.4 32 73.9 0 55.4 0 18.5 Z"
+            fill="none" stroke={C.honeyLine} strokeWidth="1"
+          />
+          <path
+            d="M32 73.9 64 92.3 64 110.8 32 110.8 0 110.8 0 92.3 Z"
+            fill="none" stroke={C.honeyLine} strokeWidth="1"
+          />
+        </pattern>
+      </defs>
+
+      {/* base wash */}
+      <rect width="1200" height="460" fill="url(#heroBase)" />
+
+      {/* honeycomb lattice, very faint */}
+      <rect width="1200" height="460" fill={`url(#${hexId})`} opacity="0.35" />
+
+      {/* soft blurred blobs, organic and asymmetric */}
+      <g filter="url(#softBlur)">
+        <ellipse cx="980" cy="70" rx="340" ry="230" fill="url(#blobA)" />
+        <ellipse cx="120" cy="380" rx="300" ry="220" fill="url(#blobB)" />
+        <ellipse cx="640" cy="420" rx="260" ry="150" fill="url(#blobC)" />
+        <ellipse cx="220" cy="40" rx="180" ry="130" fill="url(#blobC)" />
+      </g>
+
+      {/* a few crisp honeycomb cells picked out to anchor the pattern, top right */}
+      <g opacity="0.5">
+        <path d="M1050 40 1082 58.5 1082 95.4 1050 113.9 1018 95.4 1018 58.5 Z"
+          fill={C.skyFaint} stroke={C.skyBright} strokeOpacity="0.35" strokeWidth="1.5" />
+        <path d="M1114 40 1146 58.5 1146 95.4 1114 113.9 1082 95.4 1082 58.5 Z"
+          fill="none" stroke={C.skyBright} strokeOpacity="0.25" strokeWidth="1.5" />
+        <path d="M1082 95.4 1114 113.9 1114 150.8 1082 169.3 1050 150.8 1050 113.9 Z"
+          fill="none" stroke={C.skyBright} strokeOpacity="0.18" strokeWidth="1.5" />
+      </g>
+
+      {/* gentle fade to white at the very bottom so content below sits on a clean surface */}
+      <rect x="0" y="380" width="1200" height="80" fill={C.skyGhost} opacity="0.0" />
+    </svg>
+  )
+}
 
 function PremiumModal({ resource, onClose, onNavigate }) {
   return (
@@ -140,7 +216,9 @@ export default function ResourcesPage() {
   }
 
   return (
-    <div className="page-wrapper">
+    <div className="page-wrapper" style={{
+      background: `linear-gradient(180deg, ${C.skyGhost} 0%, #ffffff 22%, ${C.skyPaler} 60%, #ffffff 100%)`,
+    }}>
       <style>{`
         .resources-responsive-grid {
           display: grid;
@@ -152,16 +230,22 @@ export default function ResourcesPage() {
         @media (max-width: 480px)  { .resources-responsive-grid { grid-template-columns: 1fr; } }
       `}</style>
 
-      <div className="page-hero" style={{ background:'var(--blue-mist)' }}>
-        <span className="section-tag">Library</span>
-        <h1 className="section-title">Free <em>Wellness</em> Resources</h1>
-        <p className="section-desc">
-          Worksheets, guides, eBooks, and workbooks — all curated and written by our clinical team.
-          Free resources are yours to download instantly as PDF.
-        </p>
+      <div className="page-hero" style={{
+        position:'relative', overflow:'hidden',
+        background: `linear-gradient(135deg, ${C.skyGhost} 0%, #ffffff 45%, ${C.skyPale} 100%)`,
+      }}>
+        <HeroBackdrop />
+        <div style={{ position:'relative', zIndex:1 }}>
+          <span className="section-tag">Library</span>
+          <h1 className="section-title">Free <em>Wellness</em> Resources</h1>
+          <p className="section-desc">
+            Worksheets, guides, eBooks, and workbooks — all curated and written by our clinical team.
+            Free resources are yours to download instantly as PDF.
+          </p>
+        </div>
       </div>
 
-      <div className="section" style={{ background:'var(--off-white)' }}>
+      <div className="section" style={{ background:'transparent' }}>
         {/* Category filter */}
         <div style={{ display:'flex', gap:'0.6rem', flexWrap:'wrap', marginBottom:'2.5rem' }}>
           {cats.map(c => (
