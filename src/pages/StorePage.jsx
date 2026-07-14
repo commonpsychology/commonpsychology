@@ -35,7 +35,9 @@ const CARD = {
 
 // Soft, layered glass background for the products section — mirrors the
 // Resources / Services hero treatment so the whole store feels part of
-// the same family.
+// the same family. Applied on a full-width wrapper (see render) so it
+// bleeds edge-to-edge instead of being boxed in by `.section`'s own
+// max-width.
 const SECTION_BG = `
   radial-gradient(ellipse 80% 60% at 12% 15%, rgba(180,230,210,0.32) 0%, transparent 70%),
   radial-gradient(ellipse 70% 80% at 88% 8%, rgba(186,220,248,0.38) 0%, transparent 65%),
@@ -417,8 +419,13 @@ async function updateQty(productId, qty) {
         <div style={{ position:'fixed', bottom:'2rem', right:'2rem', background:'var(--green-deep)', color:'white', padding:'0.75rem 1.5rem', borderRadius:10, fontWeight:600, fontSize:'0.9rem', zIndex:1000, boxShadow:'0 4px 20px rgba(0,0,0,0.15)' }}>{cartMsg}</div>
       )}
 
-      {/* Products grid — plain clean cards on a soft glass section background */}
-      <div className="section" style={{ background: SECTION_BG }}>
+      {/* Products grid — plain clean cards on a soft glass section background.
+          The gradient lives on this full-width outer wrapper so it bleeds
+          edge-to-edge instead of being boxed in by `.section`'s own
+          max-width/centering; `.section` inside keeps its normal
+          padding/grid behavior untouched. */}
+      <div style={{ background: SECTION_BG }}>
+      <div className="section">
         {loading ? (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:'1.5rem' }}>
             {Array.from({length:8}).map((_,i) => (
@@ -493,6 +500,7 @@ async function updateQty(productId, qty) {
             <button onClick={() => setPage(p => p+1)} disabled={page>=totalPages} className="btn btn-outline" style={{ opacity:page>=totalPages?0.4:1 }}>Next →</button>
           </div>
         )}
+      </div>
       </div>
 
       {/* ── Product quick-view popup ── */}
