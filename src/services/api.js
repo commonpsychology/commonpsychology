@@ -65,7 +65,12 @@ async function request(path, options = {}, retry = true) {
     throw err
   }
 
-  const data = await res.json()
+let data
+  try {
+    data = await res.json()
+  } catch {
+    data = { message: `Server error (${res.status}). Please try again.` }
+  }
 
 if (!res.ok) {
     const err = new Error(data.message || 'Request failed')
