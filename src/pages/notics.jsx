@@ -59,7 +59,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'rgba(20,20,20,0.55)',
+        background: 'rgba(0,60,90,0.45)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -68,14 +68,14 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
     >
       <div
         style={{
-          background: 'linear-gradient(160deg, #dbf0ff 0%, #eef8ff 45%, #ffffff 100%)',
+          background: 'linear-gradient(160deg, #cdecff 0%, #e6f7ff 40%, #ffffff 100%)',
           width: '100%',
           maxWidth: 760,
           maxHeight: '92vh',
           overflowY: 'auto',
           borderRadius: 18,
-          border: '1px solid #bfe3fb',
-          boxShadow: '0 25px 70px rgba(0,123,168,0.28), 0 0 0 1px rgba(255,255,255,0.6) inset',
+          border: '1px solid #99ddff',
+          boxShadow: '0 25px 70px rgba(0,191,255,0.3), 0 0 0 1px rgba(255,255,255,0.6) inset',
           fontFamily: `'Noto Sans Devanagari', 'Mangal', Arial, sans-serif`,
           color: '#1a1a1a',
           position: 'relative',
@@ -113,6 +113,21 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
             height: 50,
             objectFit: 'contain',
             zIndex: 1,
+          }}
+        />
+
+        {/* Bluish accent glow — spans the top */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 180,
+            background: 'linear-gradient(180deg, rgba(0,191,255,0.30) 0%, rgba(0,191,255,0.12) 55%, rgba(0,191,255,0) 100%)',
+            pointerEvents: 'none',
+            zIndex: 0,
           }}
         />
 
@@ -163,11 +178,11 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'flex-start',
+              justifyContent: 'center',
               gap: 18,
               margin: '0.5rem 0 1.2rem',
               textAlign: 'left',
-              padding: '1.1rem 1.5rem 0.4rem 8rem',
+              padding: '1.1rem 1.5rem 0.4rem',
             }}
           >
             <img
@@ -188,7 +203,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
                   letterSpacing: '0.01em',
                   color: '#2e7d4f',
                   lineHeight: 1.25,
-                  marginLeft: '-1.4rem',
+                  marginLeft: '-0.6rem',
                 }}
               >
                 {HEADING_NP}
@@ -248,7 +263,13 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
               <img
                 src={SIGNATURE_IMAGE}
                 alt="signature"
-                style={{ height: 60, objectFit: 'contain', marginBottom: 2 }}
+                style={{
+                  height: 60,
+                  objectFit: 'contain',
+                  marginBottom: 2,
+                  mixBlendMode: 'multiply',
+                  display: 'block',
+                }}
               />
               <div style={{ fontSize: 14, fontWeight: 600, borderTop: '1px solid #999', paddingTop: 4 }}>
                 {SIGNATORY_NAME}
@@ -265,13 +286,13 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
               style={{
                 padding: '10px 30px',
                 borderRadius: 8,
-                background: 'linear-gradient(135deg, #eaf9ff 0%, #7fd4ff 45%, #009fe3 100%)',
+                background: 'linear-gradient(135deg, #eaf9ff 0%, #66d4ff 45%, #00BFFF 100%)',
                 border: '1px solid #bfeaff',
                 color: '#00344c',
                 fontSize: 13,
                 fontWeight: 700,
                 cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(0,159,227,0.45), 0 0 18px rgba(0,191,255,0.35)',
+                boxShadow: '0 4px 16px rgba(0,191,255,0.45), 0 0 18px rgba(0,191,255,0.35)',
                 transition: 'transform 0.2s, box-shadow 0.2s',
               }}
             >
@@ -284,12 +305,12 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
                 padding: '10px 30px',
                 borderRadius: 8,
                 background: 'linear-gradient(135deg, #ffffff 0%, #eaf6ff 100%)',
-                border: '1.5px solid #9fd8ff',
+                border: '1.5px solid #7fd8ff',
                 color: '#00567e',
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: '0 0 10px rgba(0,159,227,0.2)',
+                boxShadow: '0 0 10px rgba(0,191,255,0.25)',
                 transition: 'transform 0.2s, box-shadow 0.2s',
               }}
             >
