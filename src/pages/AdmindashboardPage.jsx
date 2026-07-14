@@ -940,6 +940,7 @@ const SIDEBAR = [
     { id:'community',           label:'Community Groups',  icon:'◉' },
     { id:'community_admin',     label:'Community Admin',   icon:'◆' },
     { id:'social_work', label:'Social Work', icon:'🤝' },
+    { id:'product_reviews', label:'Product Reviews', icon:'⭐' },
     { id:'volunteers',          label:'Volunteers',        icon:'✦' },
     { id:'gallery_submissions', label:'Photo Submissions', icon:'▣' },
     { id:'workshops',           label:'Workshops',         icon:'◈' },
@@ -4209,6 +4210,7 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
 
 {tab === 'social_work' && <SocialWorkAdminSection />}
               {tab === 'delivery_riders' && <AdminDeliveryRidersSection />}
+              {tab === 'product_reviews' && <ProductReviewsSection />}
 
           {/* ═══ FAQs ═══ */}
           {tab === 'faqs' && (
