@@ -505,7 +505,7 @@ export default function SignInPage() {
             <div className="signin-forgot-row">
               <button
                 type="button"
-                onClick={() => navigate('/update-password')}
+                onClick={() => navigate('/forgot-password')}
                 className="signin-forgot-btn"
               >
                 🔓 Forgot your password?
