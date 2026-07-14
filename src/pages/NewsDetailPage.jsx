@@ -7,11 +7,11 @@ const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')
 
 // ─── Newspaper palette ────────────────────────────────────────────
 const T = {
-  paper:'#f7f1e3', paperDeep:'#efe4cc', paperLine:'#d8c9a3',
+  paper:'#f7f6f3', paperDeep:'#bfbebd', paperLine:'#f1f0ed',
   ink:'#211b14', inkSoft:'#4a4038', inkFaint:'#8a7d68',
   blueDeep:'#1a3a4a', blueMid:'#2e6080', sky:'#0e7c9c', skyDark:'#095a73',
   greenDeep:'#2d4a3e', greenMid:'#3d6b5a',
-  white:'#ffffff', cardLine:'#e3d7ba',
+  white:'#ffffff', cardLine:'#f7f4ed',
 }
 
 const btnGrad = `linear-gradient(135deg, ${T.blueDeep} 0%, ${T.sky} 100%)`
