@@ -112,7 +112,7 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    storeApi.productDetail(productSummary.id)
+    storeApi.product(productSummary.id)
       .then(d => { if (!cancelled) setProduct(d.product || productSummary) })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false) })
