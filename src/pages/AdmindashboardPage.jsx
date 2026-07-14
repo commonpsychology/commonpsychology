@@ -804,9 +804,8 @@ function statusVariant(s) {
 }
 function Badge({ s }) { return <span className={`badge ${statusVariant(s)}`}>{String(s)}</span> }
 function Toggle({ on, onChange }) { return <button type="button" className={`toggle${on ? ' on' : ''}`} onClick={() => onChange(!on)} /> }
-
-function Pager({ page, set, total }) {
-  const tp = Math.max(1, Math.ceil(total / LIMIT))
+function Pager({ page, set, total, limit = LIMIT }) {
+  const tp = Math.max(1, Math.ceil(total / limit))
   if (tp <= 1) return null
   return (
     <div className="pager">
@@ -945,12 +944,13 @@ const SIDEBAR = [
     { id:'gallery_submissions', label:'Photo Submissions', icon:'▣' },
     { id:'workshops',           label:'Workshops',         icon:'◈' },
   ]},
-  { group:'System', items:[
+{ group:'System', items:[
     { id:'hero_stats',    label:'Hero Stats',    icon:'✦' },
     { id:'faqs',          label:'FAQs',          icon:'◎' },
     { id:'coupons',       label:'Coupons',       icon:'◆' },
     { id:'contacts',      label:'Contact Msgs',  icon:'▦' },
     { id:'subscriptions', label:'Subscriptions', icon:'◈' },
+    { id:'delivery_riders', label:'Delivery Riders', icon:'🚴' },
     { id:'settings',      label:'Site Settings', icon:'⬡' },
   ]},
 ]
@@ -1896,6 +1896,626 @@ function CourseEnrollmentsSection() {
   )
 }
 
+// ─── DELIVERY RIDERS SECTION ─────────────────────────────────────────────────
+const EMPTY_RIDER = { full_name:'', phone:'', email:'', area:'', vehicle_type:'', password:'', is_active:true }
+
+function AdminDeliveryRidersSection() {
+  const [riders, setRiders]   = useState([])
+  const [total, setTotal]     = useState(0)
+  const [page, setPage]       = useState(1)
+  const [search, setSearch]   = useState('')
+  const [statusF, setStatusF] = useState('')
+  const [loading, setLoading] = useState(false)
+  const RIDER_LIMIT = 15
+
+  const [modal, setModal]     = useState(null) // null | { data: rider|null }
+  const [form, setForm]       = useState(EMPTY_RIDER)
+  const [saving, setSaving]   = useState(false)
+  const [saveErr, setSaveErr] = useState('')
+
+  const [pwModal, setPwModal] = useState(null) // null | rider
+  const [pwValue, setPwValue] = useState('')
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwErr, setPwErr]     = useState('')
+
+  const [delConf, setDelConf] = useState(null)
+  const [toast, setToast]     = useState(null)
+
+  const flash = (msg, ok=true) => { setToast({ msg, ok }); setTimeout(()=>setToast(null), 3000) }
+  const fld = k => e => setForm(f => ({ ...f, [k]: e?.target ? (e.target.type==='checkbox'?e.target.checked:e.target.value) : e }))
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const p = new URLSearchParams({ page, limit: RIDER_LIMIT })
+      if (search) p.set('search', search)
+      if (statusF) p.set('is_active', statusF)
+      const d = await apiFetch(`/admin/delivery-riders?${p}`)
+      setRiders(d.riders || [])
+      setTotal(d.pagination?.total || 0)
+    } catch (e) { flash(e.message, false) }
+    finally { setLoading(false) }
+  }, [page, search, statusF])
+
+  useEffect(() => { load() }, [load])
+
+  const openCreate = () => { setForm(EMPTY_RIDER); setSaveErr(''); setModal({ data:null }) }
+  const openEdit   = r  => { setForm({ full_name:r.full_name||'', phone:r.phone||'', email:r.email||'', area:r.area||'', vehicle_type:r.vehicle_type||'', password:'', is_active:r.is_active!==false }); setSaveErr(''); setModal({ data:r }) }
+  const closeModal = () => setModal(null)
+
+  const save = async () => {
+    if (!form.full_name.trim()) return setSaveErr('Full name is required')
+    if (!form.phone.trim()) return setSaveErr('Phone is required')
+    if (!modal.data && (!form.password || form.password.length < 6)) return setSaveErr('Password must be at least 6 characters')
+    setSaving(true); setSaveErr('')
+    try {
+      if (modal.data) {
+        await apiFetch(`/admin/delivery-riders/${modal.data.id}`, {
+          method:'PUT',
+          body: JSON.stringify({ full_name:form.full_name, phone:form.phone, email:form.email, area:form.area, vehicle_type:form.vehicle_type, is_active:form.is_active }),
+        })
+        flash('Rider updated ✓')
+      } else {
+        await apiFetch('/admin/delivery-riders', { method:'POST', body: JSON.stringify(form) })
+        flash('Rider created ✓')
+      }
+      closeModal(); load()
+    } catch (e) { setSaveErr(e.message) }
+    finally { setSaving(false) }
+  }
+
+  const doDelete = async () => {
+    try {
+      await apiFetch(`/admin/delivery-riders/${delConf.id}`, { method:'DELETE' })
+      flash('Rider deactivated'); setDelConf(null); load()
+    } catch (e) { flash(e.message, false); setDelConf(null) }
+  }
+
+  const toggleActive = async r => {
+    try { await apiFetch(`/admin/delivery-riders/${r.id}`, { method:'PUT', body: JSON.stringify({ is_active: !r.is_active }) }); load() }
+    catch (e) { flash(e.message, false) }
+  }
+
+  const openSetPassword = r => { setPwModal(r); setPwValue(''); setPwErr('') }
+  const saveSetPassword = async () => {
+    if (!pwValue || pwValue.length < 6) return setPwErr('Password must be at least 6 characters')
+    setPwSaving(true); setPwErr('')
+    try {
+      await apiFetch(`/admin/delivery-riders/${pwModal.id}/set-password`, { method:'POST', body: JSON.stringify({ password: pwValue }) })
+      flash(`Password updated for ${pwModal.full_name} ✓`)
+      setPwModal(null)
+    } catch (e) { setPwErr(e.message) }
+    finally { setPwSaving(false) }
+  }
+
+  return (
+    <div style={{ position:'relative' }}>
+      {toast && (
+        <div style={{ position:'fixed', bottom:'1.5rem', right:'1.5rem', zIndex:9999, background:toast.ok?'var(--green)':'var(--red)', color:'white', padding:'.65rem 1.1rem', borderRadius:'var(--radius)', fontWeight:600, fontSize:'.82rem', boxShadow:'var(--shadow-md)' }}>{toast.msg}</div>
+      )}
+
+      <SectionHeader title="Delivery Riders" count={total} onNew={openCreate} newLabel="+ New Rider">
+        <input className="inp" value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search name…" style={{width:180}} />
+        <select className="inp" value={statusF} onChange={e=>{setStatusF(e.target.value);setPage(1)}}>
+          <option value="">All statuses</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
+      </SectionHeader>
+
+      <Table loading={loading} cols={['Rider','Contact','Area','Vehicle','Active','Delivered','Actions']}
+        rows={riders.map(r => (
+          <tr key={r.id}>
+            <td>
+              <div style={{ fontWeight:600, fontSize:'.82rem' }}>{r.full_name}</div>
+              {!r.has_password && <span className="badge badge-amber" style={{ fontSize:'.58rem', marginTop:'.15rem', display:'inline-block' }}>No password set</span>}
+            </td>
+            <td style={{ fontSize:'.78rem' }}>
+              <div>{r.phone}</div>
+              {r.email && <div style={{ fontSize:'.68rem', color:'var(--text-muted)' }}>{r.email}</div>}
+            </td>
+            <td style={{ fontSize:'.78rem' }}>{r.area || '—'}</td>
+            <td style={{ fontSize:'.78rem' }}>{r.vehicle_type || '—'}</td>
+            <td><Toggle on={r.is_active} onChange={() => toggleActive(r)} /></td>
+            <td style={{ fontSize:'.78rem' }}>
+              {r.stats?.delivered ?? 0}
+              {r.stats?.active > 0 && <span style={{ color:'var(--blue)', fontSize:'.68rem', marginLeft:'.35rem' }}>({r.stats.active} active)</span>}
+            </td>
+            <td>
+              <RowActions onEdit={()=>openEdit(r)} onDelete={()=>setDelConf({ id:r.id, label:r.full_name })}>
+                <button className="btn btn-ghost btn-sm" onClick={()=>openSetPassword(r)}>🔑 Password</button>
+              </RowActions>
+            </td>
+          </tr>
+        ))}
+      />
+      <Pager page={page} set={setPage} total={total} limit={RIDER_LIMIT} />
+
+      {/* Create / Edit modal */}
+      {modal && (
+        <div className="overlay" onClick={closeModal}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-head">
+              <span className="modal-head-title">{modal.data ? '✏️ Edit Rider' : '+ New Rider'}</span>
+              <button className="btn btn-ghost btn-sm" onClick={closeModal}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="field-row">
+                <div className="field"><label>Full Name *</label><input className="inp" value={form.full_name} onChange={fld('full_name')} /></div>
+                <div className="field"><label>Phone *</label><input className="inp" value={form.phone} onChange={fld('phone')} /></div>
+              </div>
+              <div className="field-row">
+                <div className="field"><label>Email (for login)</label><input className="inp" type="email" value={form.email} onChange={fld('email')} /></div>
+                <div className="field"><label>Area</label><input className="inp" value={form.area} onChange={fld('area')} placeholder="e.g. Lalitpur" /></div>
+              </div>
+              <div className="field">
+                <label>Vehicle Type</label>
+                <select className="inp" value={form.vehicle_type} onChange={fld('vehicle_type')}>
+                  <option value="">— Select —</option>
+                  <option value="bike">Bike</option>
+                  <option value="scooter">Scooter</option>
+                  <option value="car">Car</option>
+                  <option value="bicycle">Bicycle</option>
+                </select>
+              </div>
+              {!modal.data && (
+                <div className="field">
+                  <label>Initial Password *</label>
+                  <input className="inp" type="text" value={form.password} onChange={fld('password')} placeholder="Min. 6 characters" />
+                  <div className="field-hint">Rider logs in with phone or email + this password. You can change it later from the 🔑 Password action.</div>
+                </div>
+              )}
+              <label style={{ display:'flex', alignItems:'center', gap:'.5rem', fontSize:'.78rem', cursor:'pointer' }}>
+                <Toggle on={form.is_active} onChange={v=>setForm(f=>({...f,is_active:v}))} /> Active
+              </label>
+              {saveErr && <div className="alert alert-error">{saveErr}</div>}
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={closeModal}>Cancel</button>
+              <button className="btn btn-primary" onClick={save} disabled={saving}>
+                {saving ? <><span className="spinner" /> Saving…</> : modal.data ? 'Save Changes' : 'Create Rider'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Set password modal */}
+      {pwModal && (
+        <div className="overlay" onClick={()=>setPwModal(null)}>
+          <div className="modal confirm-dialog" onClick={e=>e.stopPropagation()}>
+            <div className="modal-head"><span className="modal-head-title">🔑 Set Password — {pwModal.full_name}</span></div>
+            <div className="modal-body">
+              <div className="field">
+                <label>New Password</label>
+                <input className="inp" type="text" value={pwValue} onChange={e=>setPwValue(e.target.value)} placeholder="Min. 6 characters" autoFocus />
+              </div>
+              {pwErr && <div className="alert alert-error">{pwErr}</div>}
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={()=>setPwModal(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={saveSetPassword} disabled={pwSaving}>
+                {pwSaving ? <><span className="spinner" /> Saving…</> : 'Set Password'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {delConf && (
+        <Confirm msg={`Deactivate "${delConf.label}"? Their active deliveries will be unassigned and they won't be able to log in. This can be reversed later.`}
+          onConfirm={doDelete} onCancel={()=>setDelConf(null)} />
+      )}
+    </div>
+  )
+}
+// ─── ADMIN PRODUCTS SECTION ──────────────────────────────────────────────────
+const EMPTY_PRODUCT = {
+  name:'', slug:'', category_id:'', short_description:'', description:'',
+  price:0, sale_price:'', sku:'', stock_quantity:0, is_digital:false,
+  digital_file_url:'', tags_text:'', is_active:true, is_featured:false,
+  weight_grams:'', images:[],
+}
+
+function productToForm(p) {
+  return {
+    name:p.name||'', slug:p.slug||'', category_id:p.category_id||'',
+    short_description:p.short_description||'', description:p.description||'',
+    price:p.price||0, sale_price:p.sale_price ?? '', sku:p.sku||'',
+    stock_quantity:p.stock_quantity||0, is_digital:!!p.is_digital,
+    digital_file_url:p.digital_file_url||'', tags_text:(p.tags||[]).join(', '),
+    is_active:p.is_active!==false, is_featured:!!p.is_featured,
+    weight_grams:p.weight_grams ?? '', images:p.images||[],
+  }
+}
+
+function formToPayloadProduct(f) {
+  const slug = f.slug?.trim() ||
+    f.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')
+  return {
+    name:f.name, slug, category_id:f.category_id || null,
+    short_description:f.short_description, description:f.description,
+    price:Number(f.price)||0, sale_price:f.sale_price===''?null:Number(f.sale_price),
+    sku:f.sku, stock_quantity:Number(f.stock_quantity)||0, is_digital:f.is_digital,
+    digital_file_url:f.digital_file_url,
+    tags:f.tags_text.split(',').map(t=>t.trim()).filter(Boolean),
+    is_active:f.is_active, is_featured:f.is_featured,
+    weight_grams:f.weight_grams===''?null:Number(f.weight_grams),
+    images:f.images,
+  }
+}
+
+function AdminProductsSection() {
+  const [products, setProducts]     = useState([])
+  const [categories, setCategories] = useState([])
+  const [total, setTotal]           = useState(0)
+  const [page, setPage]             = useState(1)
+  const [search, setSearch]         = useState('')
+  const [catFilter, setCatFilter]   = useState('')
+  const [loading, setLoading]       = useState(false)
+
+  const [modal, setModal]     = useState(null)
+  const [form, setForm]       = useState(EMPTY_PRODUCT)
+  const [saving, setSaving]   = useState(false)
+  const [saveErr, setSaveErr] = useState('')
+  const [uploading, setUploading] = useState(false)
+
+  const [delConf, setDelConf] = useState(null)
+  const [toast, setToast]     = useState(null)
+  const PROD_LIMIT = 12
+
+  const [catModal, setCatModal]       = useState(false)
+  const [catForm, setCatForm]         = useState({ id:null, name:'', slug:'', sort_order:0 })
+  const [catSaving, setCatSaving]     = useState(false)
+  const [catErr, setCatErr]           = useState('')
+  const [catDelConf, setCatDelConf]   = useState(null)
+
+  const flash = (msg, ok=true) => { setToast({ msg, ok }); setTimeout(()=>setToast(null), 3000) }
+  const fld = k => e => setForm(f => ({ ...f, [k]: e?.target ? (e.target.type==='checkbox'?e.target.checked:e.target.value) : e }))
+
+  const reloadCategories = () => apiFetch('/admin/product-categories').then(d => setCategories(d.categories||[])).catch(()=>{})
+
+  useEffect(() => { reloadCategories() }, [])
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const p = new URLSearchParams({ page, limit:PROD_LIMIT, include_inactive:'true' })
+      if (search) p.set('search', search)
+      if (catFilter) p.set('category_id', catFilter)
+      const d = await apiFetch(`/admin/products?${p}`)
+      setProducts(d.items || [])
+      setTotal(d.pagination?.total || 0)
+    } catch (e) { flash(e.message, false) }
+    finally { setLoading(false) }
+  }, [page, search, catFilter])
+
+  useEffect(() => { load() }, [load])
+
+  const openCreate = () => { setForm(EMPTY_PRODUCT); setSaveErr(''); setModal({ data:null }) }
+  const openEdit   = p  => { setForm(productToForm(p)); setSaveErr(''); setModal({ data:p }) }
+  const closeModal = () => setModal(null)
+
+  const save = async () => {
+    if (!form.name.trim()) return setSaveErr('Product name is required')
+    setSaving(true); setSaveErr('')
+    try {
+      const body = formToPayloadProduct(form)
+      if (modal.data) await apiFetch(`/admin/products/${modal.data.id}`, { method:'PUT', body:JSON.stringify(body) })
+      else await apiFetch('/admin/products', { method:'POST', body:JSON.stringify(body) })
+      flash(modal.data ? 'Product updated ✓' : 'Product created ✓')
+      closeModal(); load()
+    } catch (e) { setSaveErr(e.message) }
+    finally { setSaving(false) }
+  }
+
+  const doDelete = async () => {
+    try {
+      await apiFetch(`/admin/products/${delConf.id}`, { method:'DELETE' })
+      flash('Product deactivated'); setDelConf(null); load()
+    } catch (e) { flash(e.message, false); setDelConf(null) }
+  }
+
+  const toggleActive = async p => {
+    try { await apiFetch(`/admin/products/${p.id}`, { method:'PUT', body:JSON.stringify({ is_active: !p.is_active }) }); load() }
+    catch (e) { flash(e.message, false) }
+  }
+
+  const uploadImages = async (files) => {
+    if (!modal?.data?.id) { flash('Save the product first, then add images', false); return }
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      Array.from(files).forEach(f => fd.append('images', f))
+      const res = await fetch(`${API_BASE}/admin/products/${modal.data.id}/images`, {
+        method:'POST', headers:{ Authorization:`Bearer ${getToken()}` }, body:fd,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`)
+      setForm(f => ({ ...f, images: data.product.images }))
+      flash('Images uploaded ✓')
+    } catch (e) { flash(e.message, false) }
+    finally { setUploading(false) }
+  }
+
+  const removeImage = async (url) => {
+    if (!modal?.data?.id) { setForm(f => ({ ...f, images: f.images.filter(u => u !== url) })); return }
+    try {
+      const d = await apiFetch(`/admin/products/${modal.data.id}/images`, { method:'DELETE', body:JSON.stringify({ url }) })
+      setForm(f => ({ ...f, images: d.product.images }))
+    } catch (e) { flash(e.message, false) }
+  }
+
+  const editCategory = c => setCatForm({ id:c.id, name:c.name, slug:c.slug, sort_order:c.sort_order||0 })
+  const resetCategoryForm = () => setCatForm({ id:null, name:'', slug:'', sort_order: categories.length })
+
+  const saveCategory = async () => {
+    if (!catForm.name.trim()) return setCatErr('Category name is required')
+    setCatSaving(true); setCatErr('')
+    try {
+      const slug = catForm.slug.trim() || catForm.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')
+      const body = { name: catForm.name, slug, sort_order: Number(catForm.sort_order)||0 }
+      if (catForm.id) await apiFetch(`/admin/product-categories/${catForm.id}`, { method:'PUT', body:JSON.stringify(body) })
+      else await apiFetch('/admin/product-categories', { method:'POST', body:JSON.stringify(body) })
+      flash(catForm.id ? 'Category updated ✓' : 'Category created ✓')
+      resetCategoryForm(); reloadCategories()
+    } catch (e) { setCatErr(e.message) }
+    finally { setCatSaving(false) }
+  }
+
+  const doDeleteCategory = async () => {
+    try {
+      await apiFetch(`/admin/product-categories/${catDelConf.id}`, { method:'DELETE' })
+      flash('Category deleted')
+      setCatDelConf(null); reloadCategories(); load()
+    } catch (e) { flash(e.message, false); setCatDelConf(null) }
+  }
+
+  return (
+    <div style={{ position:'relative' }}>
+      {toast && (
+        <div style={{ position:'fixed', bottom:'1.5rem', right:'1.5rem', zIndex:9999, background:toast.ok?'var(--green)':'var(--red)', color:'white', padding:'.65rem 1.1rem', borderRadius:'var(--radius)', fontWeight:600, fontSize:'.82rem', boxShadow:'var(--shadow-md)' }}>{toast.msg}</div>
+      )}
+
+      <SectionHeader title="Products" count={total} onNew={openCreate}>
+        <input className="inp" value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search name…" style={{width:180}} />
+        <select className="inp" value={catFilter} onChange={e=>{setCatFilter(e.target.value);setPage(1)}}>
+          <option value="">All categories</option>
+          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <button className="btn btn-ghost" onClick={() => setCatModal(true)}>🏷 Categories</button>
+        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
+      </SectionHeader>
+
+      <Table loading={loading} cols={['Image','Product','Price','Stock','Rating','Active','Actions']}
+        rows={products.map(p => (
+          <tr key={p.id}>
+            <td>
+              <div style={{ width:44, height:44, borderRadius:8, overflow:'hidden', background:'var(--surface-2)' }}>
+                {(p.images?.[0]||p.image_url) ? <img src={p.images?.[0]||p.image_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : null}
+              </div>
+            </td>
+            <td>
+              <div style={{ fontWeight:600, fontSize:'.82rem' }}>{p.name}</div>
+              <div style={{ fontSize:'.68rem', color:'var(--text-muted)' }}>{p.sku||'—'}</div>
+            </td>
+            <td>
+              {p.sale_price
+                ? <><strong>NPR {Number(p.sale_price).toLocaleString()}</strong> <span style={{textDecoration:'line-through',color:'var(--text-muted)',fontSize:'.72rem'}}>NPR {Number(p.price).toLocaleString()}</span></>
+                : <>NPR {Number(p.price||0).toLocaleString()}</>}
+            </td>
+            <td>{p.is_digital ? '∞' : (p.stock_quantity||0)}</td>
+            <td>{p.rating ? `★ ${Number(p.rating).toFixed(1)} (${p.reviews_count||0})` : '—'}</td>
+            <td><Toggle on={p.is_active} onChange={() => toggleActive(p)} /></td>
+            <td><RowActions onEdit={()=>openEdit(p)} onDelete={()=>setDelConf({ id:p.id, label:p.name })} /></td>
+          </tr>
+        ))}
+      />
+      <Pager page={page} set={setPage} total={total} limit={PROD_LIMIT} />
+
+      {modal && (
+        <div className="overlay" onClick={closeModal}>
+          <div className="modal modal-lg" onClick={e=>e.stopPropagation()} style={{ maxWidth:820 }}>
+            <div className="modal-head">
+              <span className="modal-head-title">{modal.data ? '✏️ Edit Product' : '+ New Product'}</span>
+              <button className="btn btn-ghost btn-sm" onClick={closeModal}>✕</button>
+            </div>
+            <div className="modal-body" style={{ maxHeight:'75vh', overflowY:'auto' }}>
+              <div className="field-row">
+                <div className="field"><label>Name *</label><input className="inp" value={form.name} onChange={fld('name')} /></div>
+                <div className="field"><label>Category</label>
+                  <select className="inp" value={form.category_id} onChange={fld('category_id')}>
+                    <option value="">— None —</option>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="field-row">
+                <div className="field"><label>Slug (auto if blank)</label><input className="inp mono" value={form.slug} onChange={fld('slug')} placeholder="auto-generated-from-name" /></div>
+                <div className="field"><label>SKU</label><input className="inp" value={form.sku} onChange={fld('sku')} /></div>
+              </div>
+
+              <div className="field"><label>Short Description</label><textarea className="inp" rows={2} value={form.short_description} onChange={fld('short_description')} /></div>
+              <div className="field"><label>Full Description</label><textarea className="inp" rows={4} value={form.description} onChange={fld('description')} /></div>
+
+              <div className="field-row3">
+                <div className="field"><label>Price (NPR) *</label><input className="inp" type="number" value={form.price} onChange={fld('price')} /></div>
+                <div className="field"><label>Sale Price (blank = none)</label><input className="inp" type="number" value={form.sale_price} onChange={fld('sale_price')} /></div>
+                <div className="field"><label>Weight (g)</label><input className="inp" type="number" value={form.weight_grams} onChange={fld('weight_grams')} /></div>
+              </div>
+
+              <div className="field-row3">
+                <div className="field"><label>Stock Quantity</label><input className="inp" type="number" value={form.stock_quantity} onChange={fld('stock_quantity')} disabled={form.is_digital} /></div>
+                <div className="field" style={{ justifyContent:'flex-end', paddingBottom:'.4rem' }}>
+                  <label style={{ display:'flex', alignItems:'center', gap:'.5rem', cursor:'pointer' }}>
+                    <Toggle on={form.is_digital} onChange={v=>setForm(f=>({...f,is_digital:v}))} /> Digital product
+                  </label>
+                </div>
+              </div>
+
+              {form.is_digital && (
+                <div className="field"><label>Digital File URL</label><input className="inp" value={form.digital_file_url} onChange={fld('digital_file_url')} /></div>
+              )}
+
+              <div className="field"><label>Tags (comma separated)</label><input className="inp" value={form.tags_text} onChange={fld('tags_text')} placeholder="mindfulness, workbook, self-help" /></div>
+
+              <div className="field">
+                <label>Images ({form.images.length})</label>
+                <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap', marginBottom:'.5rem' }}>
+                  {form.images.map((url,i) => (
+                    <div key={i} style={{ position:'relative', width:72, height:72, borderRadius:8, overflow:'hidden', border:'1px solid var(--border)' }}>
+                      <img src={url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <button onClick={()=>removeImage(url)} style={{ position:'absolute', top:2, right:2, width:20, height:20, borderRadius:'50%', border:'none', background:'rgba(0,0,0,0.6)', color:'#fff', fontSize:'.65rem', cursor:'pointer' }}>✕</button>
+                    </div>
+                  ))}
+                </div>
+                <input type="file" accept="image/*" multiple disabled={uploading}
+                  onChange={e => e.target.files.length && uploadImages(e.target.files)}
+                  style={{ padding:'.4rem', border:'1.5px solid var(--border)', borderRadius:'var(--radius-sm)', fontSize:'.76rem', width:'100%' }} />
+                {uploading && <div className="field-hint"><span className="spinner" /> Uploading…</div>}
+                {!modal.data && <div className="field-hint">Save the product first to enable image upload.</div>}
+              </div>
+
+              <div style={{ display:'flex', gap:'1.25rem' }}>
+                <label style={{ display:'flex', alignItems:'center', gap:'.5rem', fontSize:'.78rem', cursor:'pointer' }}>
+                  <Toggle on={form.is_active} onChange={v=>setForm(f=>({...f,is_active:v}))} /> Active
+                </label>
+                <label style={{ display:'flex', alignItems:'center', gap:'.5rem', fontSize:'.78rem', cursor:'pointer' }}>
+                  <Toggle on={form.is_featured} onChange={v=>setForm(f=>({...f,is_featured:v}))} /> Featured
+                </label>
+              </div>
+
+              {saveErr && <div className="alert alert-error">{saveErr}</div>}
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={closeModal}>Cancel</button>
+              <button className="btn btn-primary" onClick={save} disabled={saving}>
+                {saving ? <><span className="spinner" /> Saving…</> : modal.data ? 'Save Changes' : 'Create Product'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {delConf && (
+        <Confirm msg={`Deactivate "${delConf.label}"? It will be hidden from the store but not permanently deleted.`}
+          onConfirm={doDelete} onCancel={()=>setDelConf(null)} />
+      )}
+
+      {catModal && (
+        <div className="overlay" onClick={() => setCatModal(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()} style={{ maxWidth:560 }}>
+            <div className="modal-head">
+              <span className="modal-head-title">🏷 Manage Categories</span>
+              <button className="btn btn-ghost btn-sm" onClick={() => setCatModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ display:'flex', flexDirection:'column', gap:'.4rem', maxHeight:260, overflowY:'auto', marginBottom:'.5rem' }}>
+                {categories.length === 0
+                  ? <div style={{ fontSize:'.8rem', color:'var(--text-muted)', textAlign:'center', padding:'1rem' }}>No categories yet.</div>
+                  : categories.map(c => (
+                    <div key={c.id} style={{ display:'flex', alignItems:'center', gap:'.6rem', padding:'.5rem .7rem', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', background: catForm.id===c.id ? 'var(--blue-lt)' : 'var(--surface)' }}>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontWeight:600, fontSize:'.82rem' }}>{c.name}</div>
+                        <div style={{ fontSize:'.68rem', color:'var(--text-muted)' }}>{c.slug} · order {c.sort_order||0}</div>
+                      </div>
+                      <button className="btn btn-ghost btn-sm" onClick={() => editCategory(c)}>✏️</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setCatDelConf({ id:c.id, label:c.name })}>🗑</button>
+                    </div>
+                  ))
+                }
+              </div>
+
+              <div style={{ borderTop:'1px solid var(--border)', paddingTop:'.85rem' }}>
+                <div style={{ fontSize:'.68rem', fontWeight:700, color:'var(--text-label)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:'.5rem' }}>
+                  {catForm.id ? 'Edit Category' : 'New Category'}
+                </div>
+                <div className="field-row3" style={{ gridTemplateColumns:'2fr 2fr 1fr' }}>
+                  <div className="field"><label>Name *</label><input className="inp" value={catForm.name} onChange={e=>setCatForm(f=>({...f,name:e.target.value}))} /></div>
+                  <div className="field"><label>Slug (auto if blank)</label><input className="inp mono" value={catForm.slug} onChange={e=>setCatForm(f=>({...f,slug:e.target.value}))} /></div>
+                  <div className="field"><label>Order</label><input className="inp" type="number" value={catForm.sort_order} onChange={e=>setCatForm(f=>({...f,sort_order:e.target.value}))} /></div>
+                </div>
+                {catErr && <div className="alert alert-error" style={{ marginTop:'.5rem' }}>{catErr}</div>}
+                <div style={{ display:'flex', gap:'.5rem', marginTop:'.75rem' }}>
+                  {catForm.id && <button className="btn btn-ghost" onClick={resetCategoryForm}>Cancel Edit</button>}
+                  <button className="btn btn-primary" onClick={saveCategory} disabled={catSaving}>
+                    {catSaving ? <><span className="spinner" /> Saving…</> : catForm.id ? 'Save Changes' : '+ Add Category'}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={() => setCatModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {catDelConf && (
+        <Confirm msg={`Delete category "${catDelConf.label}"? Products in this category will become uncategorized.`}
+          onConfirm={doDeleteCategory} onCancel={()=>setCatDelConf(null)} />
+      )}
+    </div>
+  )
+}
+
+// ─── PRODUCT REVIEWS SECTION ─────────────────────────────────────────────────
+function ProductReviewsSection() {
+  const [reviews, setReviews] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [filterProduct, setFilterProduct] = useState('')
+  const [toast, setToast] = useState(null)
+  const flash = (msg, ok=true) => { setToast({ msg, ok }); setTimeout(()=>setToast(null), 3000) }
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const p = new URLSearchParams()
+      if (filterProduct) p.set('product_id', filterProduct)
+      const d = await apiFetch(`/admin/product-reviews?${p}`)
+      setReviews(d.items || [])
+    } catch (e) { flash(e.message, false) }
+    finally { setLoading(false) }
+  }, [filterProduct])
+
+  useEffect(() => { load() }, [load])
+
+  const setApproved = async (id, is_approved) => {
+    try { await apiFetch(`/admin/product-reviews/${id}`, { method:'PUT', body: JSON.stringify({ is_approved }) }); load() }
+    catch (e) { flash(e.message, false) }
+  }
+  const remove = async id => {
+    try { await apiFetch(`/admin/product-reviews/${id}`, { method:'DELETE' }); flash('Review deleted'); load() }
+    catch (e) { flash(e.message, false) }
+  }
+
+  return (
+    <div style={{ position:'relative' }}>
+      {toast && (
+        <div style={{ position:'fixed', bottom:'1.5rem', right:'1.5rem', zIndex:9999, background:toast.ok?'var(--green)':'var(--red)', color:'white', padding:'.65rem 1.1rem', borderRadius:'var(--radius)', fontWeight:600, fontSize:'.82rem', boxShadow:'var(--shadow-md)' }}>{toast.msg}</div>
+      )}
+      <SectionHeader title="Product Reviews" count={reviews.length} sub="Moderate star ratings and comments left on store products">
+        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
+      </SectionHeader>
+      <Table loading={loading} cols={['Product','Rating','Comment','Author','Date','Approved','Actions']}
+        rows={reviews.map(r => (
+          <tr key={r.id}>
+            <td style={{ fontWeight:600, fontSize:'.82rem' }}>{r.products?.name || '—'}</td>
+            <td style={{ color:'#f59e0b', fontSize:'.85rem' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</td>
+            <td style={{ maxWidth:280, fontSize:'.78rem' }}>{r.comment || <span style={{ color:'var(--text-muted)' }}>—</span>}</td>
+            <td style={{ fontSize:'.78rem' }}>{r.author_name || 'Anonymous'}</td>
+            <td style={{ fontSize:'.72rem', color:'var(--text-muted)' }}>{fmt(r.created_at)}</td>
+            <td><Toggle on={r.is_approved} onChange={() => setApproved(r.id, !r.is_approved)} /></td>
+            <td><button className="btn btn-danger btn-sm btn-icon" onClick={() => remove(r.id)}>🗑</button></td>
+          </tr>
+        ))}
+      />
+    </div>
+  )
+}
+
 // ─── MAIN EXPORT ─────────────────────────────────────────────────────────────
 export default function AdminDashboardPage() {
   useEffect(() => { injectCSS() }, [])
@@ -1976,7 +2596,6 @@ export default function AdminDashboardPage() {
   const [panalyses, setPanalyses] = useState([]); const [paTotal, setPaTotal]           = useState(0); const [paPage, setPaPage]           = useState(1)
   const [pconcepts, setPconcepts] = useState([]); const [pcTotal, setPcTotal]           = useState(0); const [pcPage, setPcPage]           = useState(1)
   const [therapists, setTherapists] = useState([]); const [thrTotal, setThrTotal]       = useState(0); const [thrPage, setThrPage]         = useState(1)
-  const [products, setProducts]   = useState([]); const [prodTotal, setProdTotal]       = useState(0); const [prodPage, setProdPage]       = useState(1)
   const [courses, setCourses]     = useState([]); const [courseTotal, setCourseTotal]   = useState(0); const [coursePage, setCoursePage]   = useState(1)
   const [courseSubTab, setCourseSubTab] = useState('list')
   const [assessments, setAssess]  = useState([]); const [assTotal, setAssTotal]         = useState(0); const [assPage, setAssPage]         = useState(1)
@@ -2039,8 +2658,7 @@ export default function AdminDashboardPage() {
       research:            () => sec('/admin/research',         setResearch,   setRscTotal,    rscPage),
       psych_videos:        () => sec('/admin/psych-videos',     setPvids,      setPvTotal,     pvPage),
       psych_analyses:      () => sec('/admin/psych-analyses',   setPanalyses,  setPaTotal,     paPage),
-      psych_concepts:      () => sec('/admin/psych-concepts',   setPconcepts,  setPcTotal,     pcPage),
-      products:            () => sec('/admin/products',         setProducts,   setProdTotal,   prodPage),
+psych_concepts:      () => sec('/admin/psych-concepts',   setPconcepts,  setPcTotal,     pcPage),
       courses:             () => sec('/admin/courses',          setCourses,    setCourseTotal, coursePage),
       assessments:         () => sec('/admin/assessments',      setAssess,     setAssTotal,    assPage),
       community:           () => sec('/admin/community-groups', setCommunity,  setComTotal,    comPage),
@@ -2060,7 +2678,7 @@ export default function AdminDashboardPage() {
     if (MAP[tab]) MAP[tab]()   // ← now correctly outside the object
 }, [tab, uPage, aPage, oPage, oStatus, oDeliveryStatus,   // ← added oStatus, oDeliveryStatus
     postsPage, newsPage, resPage, galSubPage, volPage,
-    rscPage, pvPage, paPage, pcPage, prodPage, coursePage, assPage, comPage,
+    rscPage, pvPage, paPage, pcPage, coursePage, assPage, comPage,
     faqPage, couPage, rbPage, ctcPage, subPage, thrPage])
 
   // Fetchers
@@ -2302,8 +2920,8 @@ const saveSessionModal = async () => {
   const ENDPOINTS = {
     post:'/admin/posts', news_article:'/admin/news', resource:'/admin/resources',
     gallery_item:'/admin/gallery', research_paper:'/admin/research', therapist_profile:'/admin/therapists',
-    psych_video:'/admin/psych-videos', psych_analysis:'/admin/psych-analyses', psych_concept:'/admin/psych-concepts',
-    product:'/admin/products', course:'/admin/courses', assessment:'/admin/assessments',
+  psych_video:'/admin/psych-videos', psych_analysis:'/admin/psych-analyses', psych_concept:'/admin/psych-concepts',
+    course:'/admin/courses', assessment:'/admin/assessments',
     community_group:'/admin/community-groups', faq:'/admin/faqs', coupon:'/admin/coupons',
     setting:'/admin/settings', workshop:null,
   }
@@ -2317,8 +2935,7 @@ const saveSessionModal = async () => {
     research_paper:    () => sec('/admin/research',         setResearch,   setRscTotal,    rscPage),
     psych_video:       () => sec('/admin/psych-videos',     setPvids,      setPvTotal,     pvPage),
     psych_analysis:    () => sec('/admin/psych-analyses',   setPanalyses,  setPaTotal,     paPage),
-    psych_concept:     () => sec('/admin/psych-concepts',   setPconcepts,  setPcTotal,     pcPage),
-    product:           () => sec('/admin/products',         setProducts,   setProdTotal,   prodPage),
+psych_concept:     () => sec('/admin/psych-concepts',   setPconcepts,  setPcTotal,     pcPage),
     course:            () => sec('/admin/courses',          setCourses,    setCourseTotal, coursePage),
     assessment:        () => sec('/admin/assessments',      setAssess,     setAssTotal,    assPage),
     community_group:   () => sec('/admin/community-groups', setCommunity,  setComTotal,    comPage),
@@ -2588,19 +3205,17 @@ await REFRESH_MAP[modal.type]?.()
         {[['is_free','Free'],['is_published','Published']].map(([k,l])=>(<label key={k} style={{display:'flex',alignItems:'center',gap:'.5rem',fontSize:'.78rem',cursor:'pointer'}}><Toggle on={form[k]!==false} onChange={v=>setForm(p=>({...p,[k]:v}))} />{l}</label>))}
       </div>
     </>)
-    if (['psych_video','psych_analysis','psych_concept','product','assessment','therapist_profile'].includes(t)) return (<>
+   if (['psych_video','psych_analysis','psych_concept','assessment','therapist_profile'].includes(t)) return (<>
       <div className="field"><label>{t==='psych_concept'?'Term':'Title'} *</label><input className="inp" value={form.title||form.term||''} onChange={e=>setForm(p=>({...p,[t==='psych_concept'?'term':'title']:e.target.value}))} /></div>
       {t==='psych_video' && <div className="field"><label>YouTube ID *</label><input className="inp mono" value={form.youtube_id||''} onChange={fld('youtube_id')} /></div>}
       {t==='psych_concept' && <div className="field"><label>Definition *</label><textarea className="inp" rows={4} value={form.definition||''} onChange={fld('definition')} /></div>}
-      {t==='product' && <div className="field-row"><div className="field"><label>Price (NPR)</label><input className="inp" type="number" value={form.price||0} onChange={fld('price')} /></div><div className="field"><label>Stock</label><input className="inp" type="number" value={form.stock_quantity||0} onChange={fld('stock_quantity')} /></div></div>}
       {t==='therapist_profile' && <div className="field-row"><div className="field"><label>Email</label><input className="inp" value={form.email||''} onChange={fld('email')} /></div><div className="field"><label>Fee (NPR)</label><input className="inp" type="number" value={form.consultation_fee||0} onChange={fld('consultation_fee')} /></div></div>}
       <label style={{display:'flex',alignItems:'center',gap:'.5rem',fontSize:'.78rem',cursor:'pointer'}}><Toggle on={form.is_active!==false && form.is_available!==false} onChange={v=>setForm(p=>({...p,is_active:v,is_available:v}))} /> Active</label>
     </>)
     return <p style={{color:'var(--text-muted)',fontSize:'.82rem'}}>No form defined for "{t}".</p>
   }
 
-  const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'Resource', gallery_item:'Gallery Item', research_paper:'Research Paper', psych_video:'Psych Video', psych_analysis:'Psych Analysis', psych_concept:'Psych Concept', therapist_profile:'Therapist', product:'Product', course:'Course', assessment:'Assessment', community_group:'Community Group', faq:'FAQ', coupon:'Coupon', setting:'Setting', workshop:'Workshop' }
-
+const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'Resource', gallery_item:'Gallery Item', research_paper:'Research Paper', psych_video:'Psych Video', psych_analysis:'Psych Analysis', psych_concept:'Psych Concept', therapist_profile:'Therapist', course:'Course', assessment:'Assessment', community_group:'Community Group', faq:'FAQ', coupon:'Coupon', setting:'Setting', workshop:'Workshop' }
   if (authLoading) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#0d1117' }}>
       <div style={{ textAlign:'center', color:'#4a5568' }}>
@@ -3350,23 +3965,7 @@ await REFRESH_MAP[modal.type]?.()
           )}
 
           {/* ═══ PRODUCTS ═══ */}
-          {tab === 'products' && (
-            <div>
-              <SectionHeader title="Products" count={prodTotal} onNew={() => openCreate('product',{is_active:true})} />
-              <Table loading={busy.products} cols={['Product','Price','Stock','Active','Actions']}
-                rows={products.map(p=>(
-                  <tr key={p.id}>
-                    <td style={{fontWeight:600,fontSize:'.82rem'}}>{p.name}</td>
-                    <td>NPR {Number(p.price||0).toLocaleString()}</td>
-                    <td>{p.is_digital?'∞':(p.stock_quantity||0)}</td>
-                    <td><Badge s={p.is_active?'active':'paused'} /></td>
-                    <td><RowActions onEdit={()=>openEdit('product',p)} onDelete={()=>del('/admin/products',p.id,p.name,()=>sec('/admin/products',setProducts,setProdTotal,prodPage))} /></td>
-                  </tr>
-                ))}
-              />
-              <Pager page={prodPage} set={setProdPage} total={prodTotal} />
-            </div>
-          )}
+          {tab === 'products' && <AdminProductsSection />}
 
           {tab === 'courses' && (
   <CourseContentSection
@@ -3608,8 +4207,8 @@ await REFRESH_MAP[modal.type]?.()
             </div>
           )}
 
-              {tab === 'social_work' && <SocialWorkAdminSection />}
-
+{tab === 'social_work' && <SocialWorkAdminSection />}
+              {tab === 'delivery_riders' && <AdminDeliveryRidersSection />}
 
           {/* ═══ FAQs ═══ */}
           {tab === 'faqs' && (
