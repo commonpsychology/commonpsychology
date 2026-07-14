@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter }  from '../context/RouterContext'
 import { useAuth }    from '../context/AuthContext'
 import { profile as profileApi } from '../services/api'
+import SmartDatePicker from '../components/SmartDatePicker'
 
 const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
@@ -472,10 +473,9 @@ background:'rgba(0,123,168,0.08)', color:SKY_D,
               {error && <div style={{ background:'#fff0f0', border:'1px solid #f5a0a0', borderRadius:8, padding:'0.65rem 1rem', marginBottom:'1rem', fontSize:'0.85rem', color:'#c0392b' }}>{error}</div>}
 
               <div className="acc-grid-2">
-                {[
+             {[
                   { key:'full_name',         label:'Full Name',         type:'text' },
                   { key:'phone',             label:'Phone',             type:'tel'  },
-                  { key:'date_of_birth',     label:'Date of Birth',     type:'date' },
                   { key:'city',              label:'City',              type:'text' },
                   { key:'address',           label:'Address',           type:'text' },
                   { key:'emergency_contact_name',     label:'Emergency Contact Name',     type:'text' },
@@ -488,6 +488,18 @@ background:'rgba(0,123,168,0.08)', color:SKY_D,
                   </div>
                 ))}
 
+                <div>
+                  <label style={labelSx}>Date of Birth</label>
+                  {editing ? (
+                    <SmartDatePicker
+                      value={form.date_of_birth}
+                      onChange={up('date_of_birth')}
+                      placeholder="YYYY-MM-DD"
+                    />
+                  ) : (
+                    <input type="text" value={form.date_of_birth} disabled style={inputSx}/>
+                  )}
+                </div>
                 <div>
                   <label style={labelSx}>Gender</label>
                   <select value={form.gender} disabled={!editing} onChange={e => up('gender')(e.target.value)} style={{ ...inputSx, cursor: editing ? 'pointer' : 'default' }}>

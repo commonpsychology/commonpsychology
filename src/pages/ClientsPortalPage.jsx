@@ -658,24 +658,17 @@ async function loadLoyaltyStatus() {
 
       <JournalModal entry={openEntry} onClose={() => setOpenEntry(null)} />
 
-     {/* ── Header ── */}
+    {/* ── Header ── */}
      <div
         style={{
           position: 'relative',
           overflow: 'hidden',
-         background: `
-            linear-gradient(180deg,
-              #f5fbff    0%,
-              #d7f0fd    8%,
-              #8fdcff   18%,
-              #00BFFF   30%,
-              #00BFF6   45%,
-              #2eacbe   58%,
-              #3dbb9e   72%,
-              #4fca85   86%,
-              #5fd68f  100%
-            )
-          `,
+          background: 'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(214,238,252,0.65) 55%, rgba(255,255,255,0.85) 100%)',
+          backdropFilter: 'blur(18px)',
+          WebkitBackdropFilter: 'blur(18px)',
+          border: '1px solid rgba(255,255,255,0.6)',
+          borderBottom: '1px solid rgba(120,190,230,0.5)',
+          boxShadow: '0 4px 22px rgba(14,165,233,0.12), inset 0 1px 0 rgba(255,255,255,0.6)',
           padding: 'clamp(1.5rem,4vw,2.25rem) clamp(1rem,4vw,2rem)',
           display: 'flex',
           alignItems: 'center',
@@ -686,12 +679,12 @@ async function loadLoyaltyStatus() {
       >
       <div style={{
           position: 'absolute', width: 280, height: 280, borderRadius: '50%',
-          background: 'rgba(0,191,255,0.34)', filter: 'blur(52px)',
+          background: 'rgba(14,165,233,0.16)', filter: 'blur(52px)',
           top: -140, right: '10%', pointerEvents: 'none',
         }} />
         <div style={{
           position: 'absolute', width: 220, height: 220, borderRadius: '50%',
-          background: 'rgba(93,214,143,0.4)', filter: 'blur(50px)',
+          background: 'rgba(125,211,252,0.22)', filter: 'blur(50px)',
           bottom: -100, left: '10%', pointerEvents: 'none',
         }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -699,7 +692,7 @@ async function loadLoyaltyStatus() {
             style={{
               fontFamily: 'var(--font-display)',
               fontSize: 'clamp(1.3rem,4.5vw,1.75rem)',
-              color: 'rgba(255,255,255,0.92)',
+              color: '#0f3a52',
               fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
@@ -743,10 +736,10 @@ async function loadLoyaltyStatus() {
                     boxShadow: '0 6px 24px rgba(255,183,77,0.45)',
                     animation: 'glowPulse 2.4s ease-in-out infinite',
                   }
-                : {
-                    background: 'rgba(255,255,255,0.1)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    color: 'rgba(255,255,255,0.85)',
+              : {
+                    background: 'rgba(14,165,233,0.08)',
+                    border: '1px solid rgba(14,165,233,0.18)',
+                    color: '#3a5a72',
                     fontWeight: 500,
                     backdropFilter: 'blur(6px)',
                   }),
@@ -771,31 +764,31 @@ async function loadLoyaltyStatus() {
             gap: '0.5rem',
             padding: '0.6rem 1.2rem',
             borderRadius: 12,
-            border: '1.5px solid rgba(255,255,255,0.35)',
-            background: 'rgba(255,255,255,0.14)',
+            border: '1.5px solid rgba(14,165,233,0.3)',
+            background: 'rgba(255,255,255,0.55)',
             backdropFilter: 'blur(10px)',
             WebkitBackdropFilter: 'blur(10px)',
             fontSize: '0.85rem',
             fontWeight: 700,
-            color: '#fff',
+            color: '#0369a1',
             cursor: 'pointer',
-            boxShadow: '0 4px 18px rgba(15,52,96,0.18), inset 0 1px 0 rgba(255,255,255,0.25)',
+            boxShadow: '0 4px 18px rgba(14,165,233,0.12), inset 0 1px 0 rgba(255,255,255,0.6)',
             transition: 'all 0.22s ease',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.24)'
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.55)'
-            e.currentTarget.style.boxShadow = '0 6px 22px rgba(15,52,96,0.24), inset 0 1px 0 rgba(255,255,255,0.35)'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.85)'
+            e.currentTarget.style.borderColor = 'rgba(14,165,233,0.5)'
+            e.currentTarget.style.boxShadow = '0 6px 22px rgba(14,165,233,0.18), inset 0 1px 0 rgba(255,255,255,0.7)'
             e.currentTarget.style.transform = 'translateY(-1px)'
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.14)'
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'
-            e.currentTarget.style.boxShadow = '0 4px 18px rgba(15,52,96,0.18), inset 0 1px 0 rgba(255,255,255,0.25)'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.55)'
+            e.currentTarget.style.borderColor = 'rgba(14,165,233,0.3)'
+            e.currentTarget.style.boxShadow = '0 4px 18px rgba(14,165,233,0.12), inset 0 1px 0 rgba(255,255,255,0.6)'
             e.currentTarget.style.transform = 'none'
           }}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0369a1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />

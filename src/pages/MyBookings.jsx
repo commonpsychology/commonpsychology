@@ -87,8 +87,7 @@ function SerenityBookingCard({ booking }) {
   const progress = isActive ? Math.min(100, ((nowMs - startMs) / (endMs - startMs)) * 100) : 0
 
   return (
-    <div style={{ background:past?'#f8fafc':WHITE, borderRadius:20, border:`1.5px solid ${past?BORDER:pkg.color+'44'}`, overflow:'hidden', boxShadow:past?'none':`0 6px 28px ${pkg.color}18`, opacity:past?0.65:1, marginBottom:'1rem', position:'relative', transition:'all 0.25s' }}>
-      <div style={{ height:4, background:past?BORDER:pkg.grad }} />
+<div style={{ background:past?'#f8fafc':'linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.8) 100%)', backdropFilter: past?'none':'blur(14px)', WebkitBackdropFilter: past?'none':'blur(14px)', borderRadius:20, border:`1.5px solid ${past?BORDER:pkg.color+'44'}`, overflow:'hidden', boxShadow:past?'none':`0 6px 28px ${pkg.color}18, inset 0 1px 0 rgba(255,255,255,0.55)`, opacity:past?0.65:1, marginBottom:'1rem', position:'relative', transition:'all 0.25s' }}>      <div style={{ height:4, background:past?BORDER:pkg.grad }} />
       {isActive && <div style={{ position:'absolute', top:4, left:0, height:4, width:`${progress}%`, background:'rgba(255,255,255,0.6)', transition:'width 1s linear', zIndex:2 }} />}
 
       <div style={{ padding:'1.25rem 1.5rem' }}>
@@ -196,31 +195,33 @@ export default function MyBookings() {
   return (
     <div className="page-wrapper" style={{ background:BG, minHeight:'100vh' }}>
 
-      {/* Header */}
-      <div style={{
+   <div style={{
         position:'relative', overflow:'hidden',
-        background:'linear-gradient(135deg, #0f3a4a 0%, #0e5f73 45%, #0d8a7a 100%)',
+        background:'linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(214,238,252,0.7) 55%, rgba(255,255,255,0.88) 100%)',
+        backdropFilter:'blur(18px)', WebkitBackdropFilter:'blur(18px)',
+        borderBottom:'1px solid rgba(120,190,230,0.4)',
+        boxShadow:'0 4px 22px rgba(14,165,233,0.10), inset 0 1px 0 rgba(255,255,255,0.6)',
         padding:'clamp(1.75rem,4vw,2.5rem) clamp(1rem,4vw,2rem)',
         display:'flex', alignItems:'center', justifyContent:'space-between',
         flexWrap:'wrap', gap:'1rem',
       }}>
-        <div style={{ position:'absolute', width:260, height:260, borderRadius:'50%', background:'rgba(255,255,255,0.08)', filter:'blur(40px)', top:-120, right:'8%', pointerEvents:'none' }} />
-        <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(16,185,129,0.18)', filter:'blur(36px)', bottom:-90, left:'12%', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', width:260, height:260, borderRadius:'50%', background:'rgba(14,165,233,0.12)', filter:'blur(40px)', top:-120, right:'8%', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(125,211,252,0.2)', filter:'blur(36px)', bottom:-90, left:'12%', pointerEvents:'none' }} />
 
         <div style={{ position:'relative', zIndex:1, display:'flex', alignItems:'center', gap:'1rem' }}>
-          <div style={{ width:52, height:52, borderRadius:14, background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.6rem', flexShrink:0, backdropFilter:'blur(6px)' }}>🏛️</div>
+          <div style={{ width:52, height:52, borderRadius:14, background:'rgba(14,165,233,0.10)', border:'1px solid rgba(14,165,233,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.6rem', flexShrink:0, backdropFilter:'blur(6px)' }}>🏛️</div>
           <div>
-            <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.3rem,4vw,1.9rem)', color:'rgba(255,255,255,0.95)', margin:0 }}>My Bookings</h1>
-<p style={{ fontFamily:'inherit', fontSize:'0.82rem', color:'rgba(255,255,255,0.65)', margin:'0.2rem 0 0' }}>Your room reservations, all in one place</p>          </div>
+            <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.3rem,4vw,1.9rem)', color:'#0f3a52', margin:0 }}>My Bookings</h1>
+<p style={{ fontFamily:'inherit', fontSize:'0.82rem', color:'#5a7c8f', margin:'0.2rem 0 0' }}>Your room reservations, all in one place</p>          </div>
         </div>
 
         <div style={{ position:'relative', zIndex:1, display:'flex', gap:'0.6rem', flexWrap:'wrap' }}>
-       <button onClick={() => navigate('/ashram')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'1.5px solid rgba(255,255,255,0.25)', background:'rgba(255,255,255,0.08)', backdropFilter:'blur(6px)', fontSize:'0.85rem', fontWeight:600, color:'#fff', cursor:'pointer', transition:'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.18)' }}
-            onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.08)' }}>
+       <button onClick={() => navigate('/ashram')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'1.5px solid rgba(14,165,233,0.3)', background:'rgba(255,255,255,0.5)', backdropFilter:'blur(6px)', fontSize:'0.85rem', fontWeight:600, color:'#0369a1', cursor:'pointer', transition:'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.85)' }}
+            onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.5)' }}>
             ← Book a Room
           </button>
-          <button onClick={() => navigate('/ashram')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'none', background:'linear-gradient(135deg,#ffd166,#ffb74d)', fontSize:'0.85rem', fontWeight:700, color:'#3a2400', cursor:'pointer', boxShadow:'0 4px 16px rgba(255,183,77,0.35)' }}>
+          <button onClick={() => navigate('/ashram')} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.6rem 1.1rem', borderRadius:12, border:'none', background:'linear-gradient(135deg,#0ea5e9,#7dd3fc)', fontSize:'0.85rem', fontWeight:700, color:'#fff', cursor:'pointer', boxShadow:'0 4px 16px rgba(14,165,233,0.35)' }}>
             + New Booking
           </button>
         </div>
