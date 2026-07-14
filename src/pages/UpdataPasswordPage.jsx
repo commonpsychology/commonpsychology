@@ -4,10 +4,11 @@ import { useRouter } from '../context/RouterContext'
 
 /* ----------------------------------------------------------------
    Design tokens — "Tidal" system
-   A deep-to-bright blue gradient world, now paired with a light
-   sky-blue-to-white surface (instead of warm ivory) and a subtle
-   honeycomb texture for depth. Display serif for headlines, a
-   clean grotesk for body/UI.
+   A deep-to-bright blue gradient world, paired with a light
+   sky-blue-to-white glass surface and a subtle honeycomb texture
+   for depth. Display serif for headlines, a clean grotesk for
+   body/UI. Form surfaces now use the same frosted-glass treatment
+   used across Services / Store / Booking / Forgot Password.
 ------------------------------------------------------------------ */
 const C = {
   abyss:    '#04263F',
@@ -32,6 +33,20 @@ const displayFont = `'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia
 const bodyFont    = `'Inter', 'Helvetica Neue', Arial, sans-serif`
 const monoFont    = `'IBM Plex Mono', 'SF Mono', Menlo, monospace`
 
+// ── Glass card palette — same bluish-white frosted look used across
+//    Services / Store / Booking / Resources / Staff / Forgot Password ──
+const GLASS = {
+  bg:     'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%)',
+  border: '1px solid rgba(255,255,255,0.6)',
+  shadow: '0 18px 48px -16px rgba(10,77,120,0.24), 0 4px 14px rgba(10,77,120,0.08), inset 0 1px 0 rgba(255,255,255,0.55)',
+  blur:   'blur(18px)',
+}
+// Input surfaces sit one tone lighter than the card, still glassy
+const FIELD_GLASS = {
+  idle:    'rgba(255,255,255,0.5)',
+  focused: 'rgba(255,255,255,0.88)',
+}
+
 /* ---------------- Honeycomb texture helper ---------------- */
 // Generates a tileable pointy-top hexagon grid as an inline SVG data URI.
 function honeycombPattern(stroke, opacity = 1) {
@@ -49,8 +64,9 @@ const heroHoneycomb = honeycombPattern('#FFFFFF', 0.10) // faint white comb insi
 
 /* Reset applied to the page root, independent of any global/page-wrapper
    CSS that might otherwise add a top margin/padding/gap above the hero.
-   Background is now a soft sky-blue-to-white gradient with a honeycomb
-   texture layered underneath it. */
+   Background is a soft sky-blue-to-white gradient with a honeycomb
+   texture layered underneath it, so the glass cards have something to
+   frost against. */
 const rootResetStyle = {
   margin: 0,
   padding: 0,
@@ -114,7 +130,9 @@ function TideGauge({ password }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem', margin: '0.85rem 0 1.5rem' }}>
       <div style={{
         position: 'relative', width: 30, height: 46, borderRadius: '6px 6px 9px 9px',
-        border: `2px solid ${C.sandLine}`, overflow: 'hidden', background: C.white, flexShrink: 0,
+        border: `2px solid rgba(207,233,245,0.8)`, overflow: 'hidden',
+        background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+        flexShrink: 0,
       }}>
         <div className="twp-wave" style={{
           position: 'absolute', left: -4, right: -4, bottom: 0,
@@ -147,7 +165,7 @@ function TideGauge({ password }) {
   )
 }
 
-/* ---------------------- Inputs ---------------------- */
+/* ---------------------- Inputs (glass surfaces) ---------------------- */
 
 function TextField({ label, value, onChange, placeholder, type = 'text', autoComplete }) {
   const [focused, setFocused] = useState(false)
@@ -170,9 +188,10 @@ function TextField({ label, value, onChange, placeholder, type = 'text', autoCom
         onBlur={() => setFocused(false)}
         style={{
           width: '100%', padding: '0.9rem 1.05rem',
-          border: `1.5px solid ${focused ? C.mid : C.sandLine}`,
+          border: `1.5px solid ${focused ? C.mid : 'rgba(207,233,245,0.7)'}`,
           borderRadius: 10, fontFamily: bodyFont, fontSize: '0.95rem',
-          color: C.ink, background: focused ? C.white : C.sky,
+          color: C.ink, background: focused ? FIELD_GLASS.focused : FIELD_GLASS.idle,
+          backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
           boxShadow: focused ? `0 0 0 4px ${C.mid}1a` : 'none',
           transition: 'all 0.18s ease', boxSizing: 'border-box',
         }}
@@ -206,9 +225,10 @@ function PasswordField({ label, value, onChange, placeholder, hint, autoComplete
           onBlur={() => setFocused(false)}
           style={{
             width: '100%', padding: '0.9rem 3rem 0.9rem 1.05rem',
-            border: `1.5px solid ${focused ? C.mid : C.sandLine}`,
+            border: `1.5px solid ${focused ? C.mid : 'rgba(207,233,245,0.7)'}`,
             borderRadius: 10, fontFamily: bodyFont, fontSize: '0.95rem',
-            color: C.ink, background: focused ? C.white : C.sky,
+            color: C.ink, background: focused ? FIELD_GLASS.focused : FIELD_GLASS.idle,
+            backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
             boxShadow: focused ? `0 0 0 4px ${C.mid}1a` : 'none',
             transition: 'all 0.18s ease', boxSizing: 'border-box',
           }}
@@ -241,8 +261,12 @@ function SuccessView({ onDone }) {
     <div className="page-wrapper" style={{ ...rootResetStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
       <FontImports />
       <div className="twp-card" style={{
-        maxWidth: 440, width: '100%', background: C.white, borderRadius: 20,
-        border: `1px solid ${C.sandLine}`, boxShadow: '0 24px 60px -16px rgba(10,77,120,0.18)',
+        maxWidth: 440, width: '100%',
+        background: GLASS.bg,
+        backdropFilter: GLASS.blur, WebkitBackdropFilter: GLASS.blur,
+        borderRadius: 20,
+        border: GLASS.border,
+        boxShadow: GLASS.shadow,
         overflow: 'hidden', textAlign: 'center', position: 'relative', zIndex: 1,
       }}>
         <div style={{ height: 5, background: waterGrad }} />
@@ -348,12 +372,21 @@ export default function UpdatePasswordPage() {
               background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)',
               color: 'rgba(255,255,255,0.92)', borderRadius: 100, padding: '0.4rem 1.1rem 0.4rem 0.85rem',
               fontFamily: bodyFont, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
-              marginBottom: '2rem', backdropFilter: 'blur(6px)',
+              marginBottom: '2rem', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
             }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             Back to sign in
           </button>
+
+          <div style={{
+            width: 56, height: 56, borderRadius: 16,
+            background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.24)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem',
+            marginBottom: '1.25rem', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+          }}>
+            🔐
+          </div>
 
           <div style={{
             fontFamily: monoFont, fontSize: '0.7rem', fontWeight: 500, letterSpacing: '0.16em',
@@ -373,20 +406,24 @@ export default function UpdatePasswordPage() {
         </div>
       </div>
 
-      {/* ---------- Form card, overlapping the hero ---------- */}
+      {/* ---------- Form card, overlapping the hero — frosted glass ---------- */}
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '0 1.5rem 5rem', marginTop: '-3.6rem', position: 'relative' }}>
         <div className="twp-card" style={{
-          background: C.white, borderRadius: 18,
-          border: `1px solid ${C.sandLine}`,
-          boxShadow: '0 30px 70px -20px rgba(10,38,63,0.22)',
-          overflow: 'hidden',
+          background: GLASS.bg,
+          backdropFilter: GLASS.blur, WebkitBackdropFilter: GLASS.blur,
+          borderRadius: 18,
+          border: GLASS.border,
+          boxShadow: GLASS.shadow,
+          overflow: 'hidden', position: 'relative',
         }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: waterGrad }} />
           <div style={{ padding: '2.4rem 2.2rem 2.2rem' }}>
 
             {status === 'error' && (
               <div style={{
-                background: '#FDF1EE', border: `1.5px solid ${C.coral}55`, borderRadius: 10,
+                background: 'rgba(253,241,238,0.85)', border: `1.5px solid ${C.coral}55`, borderRadius: 10,
                 padding: '0.9rem 1.05rem', marginBottom: '1.5rem',
+                backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
                 display: 'flex', alignItems: 'flex-start', gap: '0.7rem',
               }}>
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.coral} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -411,7 +448,7 @@ export default function UpdatePasswordPage() {
               placeholder="Enter your current password"
             />
 
-            <div style={{ height: 1, background: C.sandLine, margin: '0.3rem 0 1.6rem' }} />
+            <div style={{ height: 1, background: 'rgba(207,233,245,0.7)', margin: '0.3rem 0 1.6rem' }} />
 
             <PasswordField
               label="New password"
@@ -446,7 +483,11 @@ export default function UpdatePasswordPage() {
               </div>
             )}
 
-            <div style={{ margin: '1.7rem 0 0.4rem', padding: '1rem 1.1rem', background: C.sky, borderRadius: 10, border: `1px solid ${C.sandLine}` }}>
+            <div style={{
+              margin: '1.7rem 0 0.4rem', padding: '1rem 1.1rem', borderRadius: 10,
+              background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(207,233,245,0.7)',
+              backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+            }}>
               <div style={{ fontFamily: monoFont, fontSize: '0.64rem', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.inkFaint, marginBottom: '0.65rem' }}>
                 For a deeper tide
               </div>
@@ -488,7 +529,7 @@ export default function UpdatePasswordPage() {
               style={{
                 width: '100%', padding: '0.95rem', borderRadius: 10, border: 'none',
                 marginTop: '0.6rem',
-                background: formOK ? buttonGrad : C.skySoft,
+                background: formOK ? buttonGrad : 'rgba(223,243,251,0.8)',
                 color: formOK ? 'white' : C.inkFaint,
                 fontFamily: bodyFont, fontWeight: 700, fontSize: '0.95rem',
                 cursor: formOK && status !== 'saving' ? 'pointer' : 'not-allowed',

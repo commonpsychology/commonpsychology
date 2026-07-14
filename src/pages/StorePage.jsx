@@ -21,6 +21,18 @@ const GLASS = {
   shadowHov: '0 20px 44px rgba(0,123,168,0.22), 0 6px 16px rgba(29,158,117,0.14), inset 0 1px 0 rgba(255,255,255,0.6)',
 }
 
+// Plain, clean card palette (no blue-white glass tint) — used for the
+// product grid cards themselves, while the section background keeps its
+// soft glass treatment.
+const CARD = {
+  bg:      '#ffffff',
+  bgHover: '#ffffff',
+  border:    '1px solid rgba(226,232,240,0.9)',
+  borderHov: '1px solid rgba(29,158,117,0.35)',
+  shadow:    '0 2px 12px rgba(15,23,42,0.06)',
+  shadowHov: '0 16px 34px rgba(15,23,42,0.10)',
+}
+
 // Soft, layered glass background for the products section — mirrors the
 // Resources / Services hero treatment so the whole store feels part of
 // the same family.
@@ -30,6 +42,119 @@ const SECTION_BG = `
   radial-gradient(ellipse 60% 60% at 50% 100%, rgba(254,243,199,0.28) 0%, transparent 60%),
   linear-gradient(180deg, #f5fbff 0%, #eef8fc 55%, #f8fcff 100%)
 `
+
+// ─── Product Quick-View Modal ───────────────────────────────────────────────
+function ProductQuickView({ product, onClose, onAddToCart, adding }) {
+  const [activeImg, setActiveImg] = useState(0)
+  const images = product.images?.length ? product.images : []
+  const price = product.sale_price ?? product.price ?? 0
+
+  useEffect(() => {
+    const onKey = e => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div
+      style={{ position:'fixed', inset:0, zIndex:1100, background:'rgba(15,23,42,0.55)', backdropFilter:'blur(3px)', WebkitBackdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{
+        width:'100%', maxWidth:880, maxHeight:'92vh', overflowY:'auto',
+        background:'#ffffff', borderRadius:20, boxShadow:'0 30px 70px rgba(0,0,0,0.35)',
+        display:'grid', gridTemplateColumns:'minmax(0,1fr)', position:'relative',
+      }} className="qv-grid">
+        <button onClick={onClose} style={{ position:'absolute', top:14, right:14, zIndex:2, width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.06)', color:'var(--text-mid)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem', padding:'1.5rem 1.5rem 0' }}>
+          <div style={{ width:'100%', aspectRatio:'1/1', borderRadius:14, overflow:'hidden', background:'#f1f5f9', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3.5rem' }}>
+            {images[activeImg]
+              ? <img src={images[activeImg]} alt={product.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+              : '📚'}
+          </div>
+          {images.length > 1 && (
+            <div style={{ display:'flex', gap:'0.5rem', overflowX:'auto', paddingBottom:'0.25rem' }}>
+              {images.map((img,i) => (
+                <button key={i} onClick={() => setActiveImg(i)}
+                  style={{ flexShrink:0, width:60, height:60, borderRadius:9, overflow:'hidden', padding:0, cursor:'pointer', border:`2px solid ${i===activeImg?'var(--green-deep)':'transparent'}`, opacity:i===activeImg?1:0.65 }}>
+                  <img src={img} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ padding:'1.5rem', display:'flex', flexDirection:'column' }}>
+          <div style={{ display:'flex', gap:'0.4rem', flexWrap:'wrap', marginBottom:'0.5rem' }}>
+            {product.is_featured && <span style={{ background:'var(--green-deep)', color:'#fff', fontSize:'0.65rem', fontWeight:800, padding:'0.2rem 0.6rem', borderRadius:100, letterSpacing:'0.06em' }}>FEATURED</span>}
+            {product.sale_price && <span style={{ background:'#ef4444', color:'#fff', fontSize:'0.65rem', fontWeight:800, padding:'0.2rem 0.6rem', borderRadius:100 }}>SALE</span>}
+            {product.tags?.slice(0,3).map((t,i) => <span key={i} style={{ fontSize:'0.68rem', fontWeight:600, background:'rgba(29,158,117,0.1)', color:'var(--green-deep)', padding:'0.15rem 0.55rem', borderRadius:100, border:'1px solid rgba(29,158,117,0.15)' }}>{t}</span>)}
+          </div>
+
+          <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.4rem', color:'var(--green-deep)', fontWeight:700, marginBottom:'0.4rem' }}>{product.name}</h2>
+
+          {(product.rating || product.reviews_count) && (
+            <div style={{ display:'flex', alignItems:'center', gap:'0.4rem', marginBottom:'0.6rem' }}>
+              <span style={{ color:'#f59e0b', fontSize:'0.85rem' }}>
+                {'★'.repeat(Math.round(product.rating||0))}{'☆'.repeat(5-Math.round(product.rating||0))}
+              </span>
+              <span style={{ fontSize:'0.78rem', color:'var(--text-light)' }}>
+                {product.rating ? Number(product.rating).toFixed(1) : ''} {product.reviews_count ? `(${product.reviews_count} reviews)` : ''}
+              </span>
+            </div>
+          )}
+
+          <div style={{ marginBottom:'0.9rem' }}>
+            {product.sale_price
+              ? <><span style={{ fontFamily:'var(--font-display)', fontSize:'1.5rem', color:'var(--green-deep)', fontWeight:700 }}>NPR {product.sale_price.toLocaleString()}</span><span style={{ fontSize:'0.95rem', color:'var(--text-light)', textDecoration:'line-through', marginLeft:'0.6rem' }}>NPR {product.price?.toLocaleString()}</span></>
+              : <span style={{ fontFamily:'var(--font-display)', fontSize:'1.5rem', color:'var(--green-deep)', fontWeight:700 }}>NPR {product.price?.toLocaleString()}</span>
+            }
+          </div>
+
+          <p style={{ fontSize:'0.86rem', color:'var(--text-mid)', lineHeight:1.7, marginBottom:'1rem', whiteSpace:'pre-line' }}>
+            {product.description || product.short_description || 'No description available for this product yet.'}
+          </p>
+
+          <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'1.25rem' }}>
+            <span style={{ fontSize:'0.8rem', fontWeight:600, color:product.stock_quantity>0?'var(--green-deep)':'#ef4444' }}>
+              {product.is_digital ? '📥 Digital download' : product.stock_quantity > 0 ? `✓ ${product.stock_quantity} in stock` : '✕ Out of stock'}
+            </span>
+          </div>
+
+          {Array.isArray(product.reviews) && product.reviews.length > 0 && (
+            <div style={{ marginBottom:'1.25rem', borderTop:'1px solid #eef2f6', paddingTop:'1rem' }}>
+              <h3 style={{ fontSize:'0.78rem', fontWeight:800, color:'var(--text-mid)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.6rem' }}>Customer Reviews</h3>
+              <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem', maxHeight:180, overflowY:'auto' }}>
+                {product.reviews.map((r,i) => (
+                  <div key={i} style={{ background:'#f8fafc', borderRadius:10, padding:'0.65rem 0.85rem' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.2rem' }}>
+                      <span style={{ fontSize:'0.78rem', fontWeight:700, color:'var(--text-mid)' }}>{r.author_name || 'Anonymous'}</span>
+                      <span style={{ color:'#f59e0b', fontSize:'0.72rem' }}>{'★'.repeat(Math.round(r.rating||0))}</span>
+                    </div>
+                    <p style={{ fontSize:'0.78rem', color:'var(--text-light)', lineHeight:1.5, margin:0 }}>{r.comment}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ marginTop:'auto', paddingTop:'0.5rem' }}>
+            <button onClick={() => onAddToCart(product.id)} disabled={adding===product.id||product.stock_quantity===0}
+              style={{ width:'100%', padding:'0.85rem', background:product.stock_quantity===0?'#e5e7eb':'var(--green-deep)', color:product.stock_quantity===0?'#9ca3af':'white', border:'none', borderRadius:10, fontSize:'0.9rem', fontWeight:700, cursor:product.stock_quantity===0?'not-allowed':'pointer' }}>
+              {adding===product.id ? 'Adding…' : product.stock_quantity===0 ? 'Out of Stock' : '+ Add to Cart'}
+            </button>
+          </div>
+        </div>
+      </div>
+      <style>{`
+        @media (min-width: 720px) {
+          .qv-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
+    </div>
+  )
+}
 
 export default function StorePage() {
   const { navigate }    = useRouter()
@@ -48,6 +173,7 @@ export default function StorePage() {
   const [page,        setPage]        = useState(1)
   const [total,       setTotal]       = useState(0)
   const [hoveredProduct, setHoveredProduct] = useState(null)
+  const [quickViewProduct, setQuickViewProduct] = useState(null)
   const [address, setAddress] = useState({
   full_name: '', phone: '', address_line: '', city: '', landmark: '', notes: ''
 })
@@ -83,6 +209,14 @@ function validateAddress() {
     if (!user) return
     storeApi.getCart().then(d => setCart(d.cart || [])).catch(() => {})
   }, [user])
+
+  // Keep the quick-view modal's product data in sync if the underlying
+  // products list refreshes while it's open.
+  useEffect(() => {
+    if (!quickViewProduct) return
+    const fresh = products.find(p => p.id === quickViewProduct.id)
+    if (fresh) setQuickViewProduct(fresh)
+  }, [products])
 
   async function addToCart(productId) {
   if (!user) { navigate('/signin'); return }
@@ -283,15 +417,14 @@ async function updateQty(productId, qty) {
         <div style={{ position:'fixed', bottom:'2rem', right:'2rem', background:'var(--green-deep)', color:'white', padding:'0.75rem 1.5rem', borderRadius:10, fontWeight:600, fontSize:'0.9rem', zIndex:1000, boxShadow:'0 4px 20px rgba(0,0,0,0.15)' }}>{cartMsg}</div>
       )}
 
-      {/* Products grid — bluish-white glass cards on a matching glass section background */}
+      {/* Products grid — plain clean cards on a soft glass section background */}
       <div className="section" style={{ background: SECTION_BG }}>
         {loading ? (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:'1.5rem' }}>
             {Array.from({length:8}).map((_,i) => (
               <div key={i} style={{
-                background: GLASS.bg,
-                backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)',
-                border: GLASS.border,
+                background: CARD.bg,
+                border: CARD.border,
                 borderRadius:'var(--radius-lg)', minHeight:300, opacity:0.5,
               }}/>
             ))}
@@ -309,18 +442,18 @@ async function updateQty(productId, qty) {
               <div key={p.id}
                 onMouseEnter={() => setHoveredProduct(p.id)}
                 onMouseLeave={() => setHoveredProduct(null)}
+                onClick={() => setQuickViewProduct(p)}
                 style={{
-                  background: isHovered ? GLASS.bgHover : GLASS.bg,
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: isHovered ? GLASS.borderHov : GLASS.border,
+                  background: isHovered ? CARD.bgHover : CARD.bg,
+                  border: isHovered ? CARD.borderHov : CARD.border,
                   borderRadius: 'var(--radius-lg)',
                   overflow: 'hidden',
+                  cursor: 'pointer',
                   transform: isHovered ? 'translateY(-8px) scale(1.015)' : 'translateY(0) scale(1)',
-                  boxShadow: isHovered ? GLASS.shadowHov : GLASS.shadow,
+                  boxShadow: isHovered ? CARD.shadowHov : CARD.shadow,
                   transition: 'transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s ease, background 0.35s ease, border 0.35s ease',
                 }}>
-                <div style={{ height:200, background:'rgba(224,247,255,0.55)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3rem', position:'relative' }}>
+                <div style={{ height:200, background:'#f1f5f9', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3rem', position:'relative' }}>
                   {p.images?.[0] ? <img src={p.images[0]} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : '📚'}
                   {p.is_featured && <span style={{ position:'absolute', top:10, left:10, background:'var(--green-deep)', color:'white', fontSize:'0.68rem', fontWeight:800, padding:'0.2rem 0.6rem', borderRadius:'100px', letterSpacing:'0.08em' }}>FEATURED</span>}
                   {p.sale_price && <span style={{ position:'absolute', top:10, right:10, background:'#ef4444', color:'white', fontSize:'0.68rem', fontWeight:800, padding:'0.2rem 0.6rem', borderRadius:'100px' }}>SALE</span>}
@@ -343,7 +476,7 @@ async function updateQty(productId, qty) {
                       {p.is_digital ? '📥 Digital' : p.stock_quantity > 0 ? `${p.stock_quantity} left` : 'Out of stock'}
                     </span>
                   </div>
-                  <button onClick={() => addToCart(p.id)} disabled={adding===p.id||p.stock_quantity===0}
+                  <button onClick={e => { e.stopPropagation(); addToCart(p.id) }} disabled={adding===p.id||p.stock_quantity===0}
                     style={{ width:'100%', marginTop:'0.75rem', padding:'0.65rem', background:p.stock_quantity===0?'#e5e7eb':'var(--green-deep)', color:p.stock_quantity===0?'#9ca3af':'white', border:'none', borderRadius:8, fontSize:'0.85rem', fontWeight:700, cursor:p.stock_quantity===0?'not-allowed':'pointer', transition:'background 0.2s' }}>
                     {adding===p.id ? 'Adding…' : p.stock_quantity===0 ? 'Out of Stock' : '+ Add to Cart'}
                   </button>
@@ -361,6 +494,16 @@ async function updateQty(productId, qty) {
           </div>
         )}
       </div>
+
+      {/* ── Product quick-view popup ── */}
+      {quickViewProduct && (
+        <ProductQuickView
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+          onAddToCart={addToCart}
+          adding={adding}
+        />
+      )}
 
       {/* ── Cart drawer ── */}
       {cartOpen && (

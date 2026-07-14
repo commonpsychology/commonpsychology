@@ -21,12 +21,20 @@ const CSS = `
     padding: 3rem 2.5rem;
     border-right: 1px solid rgba(255,255,255,0.6);
     box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
+    position: relative;
+    overflow: hidden;
+  }
+  .reg-left-header-img {
+    display: block;
+    max-width: 78%;
+    height: auto;
+    margin: 0 auto 1.5rem;
   }
   .reg-right {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem);
+    padding: 0.85rem clamp(1rem, 4vw, 2rem) clamp(1.5rem, 4vw, 3rem);
     overflow-y: auto;
   }
   .reg-card {
@@ -39,7 +47,25 @@ const CSS = `
     width: 100%;
     max-width: 460px;
     box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
-    margin: 1rem 0;
+    margin: 0.5rem 0 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .reg-card-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: auto;
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 0;
+    user-select: none;
+  }
+  .reg-card > * {
+    position: relative;
+    z-index: 1;
   }
 .reg-input {
     width: 100%;
@@ -138,8 +164,8 @@ const CSS = `
   @media (max-width: 680px) {
     .reg-root  { grid-template-columns: 1fr; }
     .reg-left  { display: none; }
-    .reg-right { padding: 1.5rem 1rem; align-items: flex-start; padding-top: 2rem; }
-    .reg-card  { border-radius: 16px; max-width: 100%; margin: 0; }
+    .reg-right { padding: 0.5rem 1rem 1.5rem; align-items: flex-start; }
+    .reg-card  { border-radius: 16px; max-width: 100%; margin: 0.35rem 0 0; }
   }
 `
 function injectCSS() {
@@ -225,6 +251,7 @@ setError('')
 {/* ── Left panel ── */}
       <div className="reg-left">
         <div style={{ textAlign: 'center', maxWidth: 280 }}>
+          <img src="/header.png" alt="" className="reg-left-header-img" />
           <div className="reg-hero-banner">
             <div className="reg-hero-banner-eyebrow">✨ You're closer than you think</div>
             <p className="reg-hero-banner-title">
@@ -254,6 +281,7 @@ setError('')
       {/* ── Right form ── */}
       <div className="reg-right">
         <div className="reg-card">
+          <img src="/header.png" alt="" className="reg-card-watermark" />
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--green-deep)', marginBottom: '0.3rem' }}>
             Create your account
           </h1>

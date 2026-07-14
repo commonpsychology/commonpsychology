@@ -377,15 +377,13 @@ async function handleConfirm() {
   padding: '3rem 2rem 2.5rem',
   color: C.textDark,
   borderRadius: '0 0 32px 32px',
-  background: GLASS.base,
+  background: 'linear-gradient(135deg, #00BFFF 0%, #00BFFF 2%, #e8f3ee 40%, #f0f8f4 60%, #f8fcfa 80%, #f8fcfa 100%)',
   backdropFilter: GLASS.blur,
   WebkitBackdropFilter: GLASS.blur,
   border: GLASS.borderIdle,
   borderTop: 'none',
   boxShadow: GLASS.shadowIdle,
 }}>
-  <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(0,191,255,0.12)', filter:'blur(30px)', top:-40, right:'5%', pointerEvents:'none' }} />
-  <div style={{ position:'absolute', width:130, height:130, borderRadius:'50%', background:'rgba(0,150,220,0.10)', filter:'blur(24px)', bottom:-20, left:'8%', pointerEvents:'none' }} />
   <div style={{ position:'relative', maxWidth:800, margin:'0 auto' }}>
           <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.12em', textTransform:'uppercase', color:C.skyDeep, opacity:0.85 }}>Book a Session</span>
           <h1 style={{ fontFamily:'var(--font-display)', fontSize:'2rem', margin:'0.5rem 0', color:C.textDark }}>Schedule Your Therapy</h1>

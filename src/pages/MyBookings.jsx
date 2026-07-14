@@ -62,6 +62,8 @@ function paymentStatusBadge(paymentStatus, paymentMethod) {
   return                                    { label:'💳 Payment Due',                            bg:'#fee2e2', color:'#991b1b' }
 }
 
+const ACTIVE_GLOW_BG = 'linear-gradient(160deg, rgba(255,255,255,0.97) 0%, rgba(209,250,229,0.62) 55%, rgba(255,255,255,0.96) 100%)'
+
 function SerenityBookingCard({ booking }) {
   const [, setTick] = useState(0)
   useEffect(() => {
@@ -87,26 +89,39 @@ function SerenityBookingCard({ booking }) {
   const progress = isActive ? Math.min(100, ((nowMs - startMs) / (endMs - startMs)) * 100) : 0
 
   return (
-<div style={{ background:past?'#f8fafc':'linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.8) 100%)', backdropFilter: past?'none':'blur(14px)', WebkitBackdropFilter: past?'none':'blur(14px)', borderRadius:20, border:`1.5px solid ${past?BORDER:pkg.color+'44'}`, overflow:'hidden', boxShadow:past?'none':`0 6px 28px ${pkg.color}18, inset 0 1px 0 rgba(255,255,255,0.55)`, opacity:past?0.65:1, marginBottom:'1rem', position:'relative', transition:'all 0.25s' }}>      <div style={{ height:4, background:past?BORDER:pkg.grad }} />
-      {isActive && <div style={{ position:'absolute', top:4, left:0, height:4, width:`${progress}%`, background:'rgba(255,255,255,0.6)', transition:'width 1s linear', zIndex:2 }} />}
+<div style={{
+  background: past ? '#f8fafc' : isActive ? ACTIVE_GLOW_BG : 'linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.8) 100%)',
+  backdropFilter: past ? 'none' : 'blur(14px)',
+  WebkitBackdropFilter: past ? 'none' : 'blur(14px)',
+  borderRadius: 20,
+  border: isActive ? '2px solid #10b981' : `1.5px solid ${past?BORDER:pkg.color+'44'}`,
+  overflow: 'hidden',
+  boxShadow: past ? 'none' : isActive ? '0 0 0 3px rgba(16,185,129,0.16), 0 10px 38px rgba(16,185,129,0.38), inset 0 1px 0 rgba(255,255,255,0.8)' : `0 6px 28px ${pkg.color}18, inset 0 1px 0 rgba(255,255,255,0.55)`,
+  opacity: past ? 0.65 : 1,
+  marginBottom: '1rem',
+  position: 'relative',
+  transition: 'all 0.25s',
+  animation: isActive ? 'cardGlow 2.2s ease-in-out infinite' : 'none',
+}}>      <div style={{ height:isActive?5:4, background:past?BORDER:isActive?'linear-gradient(90deg,#059669,#10b981,#34d399,#10b981,#059669)':pkg.grad, backgroundSize:isActive?'200% 100%':'auto', animation:isActive?'shimmerBar 2.4s linear infinite':'none' }} />
+      {isActive && <div style={{ position:'absolute', top:5, left:0, height:5, width:`${progress}%`, background:'rgba(255,255,255,0.7)', transition:'width 1s linear', zIndex:2, boxShadow:'0 0 8px rgba(255,255,255,0.9)' }} />}
 
       <div style={{ padding:'1.25rem 1.5rem' }}>
         <div style={{ display:'flex', gap:'1rem', alignItems:'flex-start', flexWrap:'wrap' }}>
-          <div style={{ flexShrink:0, width:72, minHeight:72, borderRadius:16, background:past?'#f1f5f9':pkg.faint, border:`1.5px solid ${past?BORDER:pkg.color+'33'}`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2 }}>
-<span style={{ fontSize:'1.6rem' }}>{past?rEmoji:pkg.emoji}</span>            <span style={{ fontSize:'0.62rem', fontWeight:800, color:past?SLATE_L:pkg.color, textTransform:'uppercase', letterSpacing:'0.04em', textAlign:'center', lineHeight:1.2, padding:'0 4px' }}>
+          <div style={{ flexShrink:0, width:72, minHeight:72, borderRadius:16, background:past?'#f1f5f9':isActive?'#d1fae5':pkg.faint, border:`1.5px solid ${past?BORDER:isActive?'#10b981':pkg.color+'33'}`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2, boxShadow:isActive?'0 0 16px rgba(16,185,129,0.35)':'none' }}>
+<span style={{ fontSize:'1.6rem' }}>{past?rEmoji:pkg.emoji}</span>            <span style={{ fontSize:'0.62rem', fontWeight:800, color:past?SLATE_L:isActive?'#047857':pkg.color, textTransform:'uppercase', letterSpacing:'0.04em', textAlign:'center', lineHeight:1.2, padding:'0 4px' }}>
               {dateObj.toLocaleDateString('en-US',{month:'short'})}<br/><span style={{ fontSize:'1rem', fontWeight:900 }}>{dateObj.getDate()}</span>
             </span>
           </div>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexWrap:'wrap', marginBottom:'0.3rem' }}>
-<span style={{ fontFamily:'var(--font-display)', fontSize:'1rem', fontWeight:700, color:past?SLATE_M:SLATE }}>{rEmoji} {roomName}</span>              <span style={{ fontSize:'0.68rem', fontWeight:700, background:past?'#f1f5f9':pkg.faint, color:past?SLATE_L:pkg.color, borderRadius:100, padding:'0.15rem 0.6rem', border:`1px solid ${past?BORDER:pkg.color+'44'}` }}>{pkg.name}</span>
+<span style={{ fontFamily:'var(--font-display)', fontSize:'1rem', fontWeight:700, color:past?SLATE_M:SLATE }}>{rEmoji} {roomName}</span>              <span style={{ fontSize:'0.68rem', fontWeight:700, background:past?'#f1f5f9':isActive?'#d1fae5':pkg.faint, color:past?SLATE_L:isActive?'#047857':pkg.color, borderRadius:100, padding:'0.15rem 0.6rem', border:`1px solid ${past?BORDER:isActive?'#10b981':pkg.color+'44'}` }}>{pkg.name}</span>
             </div>
             <div style={{ fontSize:'0.8rem', color:SLATE_M, marginBottom:'0.5rem', fontWeight:500 }}>📅 {dayName}, {monthDay}</div>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:'0.35rem', background:past?'#f8fafc':'#f0f9ff', border:`1px solid ${past?BORDER:'#bae6fd'}`, borderRadius:10, padding:'0.45rem 0.85rem', marginBottom:'0.65rem' }}>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:'0.35rem', background:past?'#f8fafc':isActive?'#ecfdf5':'#f0f9ff', border:`1px solid ${past?BORDER:isActive?'#6ee7b7':'#bae6fd'}`, borderRadius:10, padding:'0.45rem 0.85rem', marginBottom:'0.65rem' }}>
               <span style={{ fontSize:'0.75rem' }}>🕐</span>
-              <span style={{ fontFamily:'var(--font-display)', fontSize:'0.95rem', fontWeight:700, color:past?SLATE_M:SKY_D }}>{fmtTime12(booking.start_time)}</span>
+              <span style={{ fontFamily:'var(--font-display)', fontSize:'0.95rem', fontWeight:700, color:past?SLATE_M:isActive?'#047857':SKY_D }}>{fmtTime12(booking.start_time)}</span>
               <span style={{ fontSize:'0.7rem', color:SLATE_L, fontWeight:500 }}>→</span>
-              <span style={{ fontFamily:'var(--font-display)', fontSize:'0.95rem', fontWeight:700, color:past?SLATE_M:SKY_D }}>{fmtTime12(booking.end_time)}</span>
+              <span style={{ fontFamily:'var(--font-display)', fontSize:'0.95rem', fontWeight:700, color:past?SLATE_M:isActive?'#047857':SKY_D }}>{fmtTime12(booking.end_time)}</span>
               <span style={{ fontSize:'0.68rem', color:SLATE_M, marginLeft:'0.25rem' }}>({Number(booking.duration_hours)}h)</span>
             </div>
             <div style={{ display:'flex', gap:'0.4rem', flexWrap:'wrap', alignItems:'center' }}>
@@ -125,9 +140,12 @@ function SerenityBookingCard({ booking }) {
                 <div style={{ fontSize:'0.9rem', fontWeight:700, color:SLATE_M }}>Done</div>
               </div>
             ) : isActive ? (
-              <div style={{ background:'linear-gradient(135deg,#10b981,#34d399)', borderRadius:12, padding:'0.5rem 0.85rem', textAlign:'center', boxShadow:'0 4px 14px #10b98133', animation:'pulse 2s ease-in-out infinite' }}>
-                <div style={{ fontSize:'0.62rem', fontWeight:800, color:'rgba(255,255,255,0.85)', textTransform:'uppercase', letterSpacing:'0.06em' }}>LIVE</div>
-                <div style={{ fontSize:'0.82rem', fontWeight:800, color:'#fff' }}>In Session</div>
+              <div style={{ background:'linear-gradient(135deg,#059669,#10b981,#34d399)', borderRadius:12, padding:'0.55rem 0.95rem', textAlign:'center', boxShadow:'0 0 0 3px rgba(16,185,129,0.18), 0 6px 22px rgba(16,185,129,0.55)', animation:'pulse 2s ease-in-out infinite' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:4, fontSize:'0.62rem', fontWeight:800, color:'#fff', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+                  <span style={{ width:6, height:6, borderRadius:'50%', background:'#fff', boxShadow:'0 0 6px #fff', display:'inline-block' }}/>
+                  LIVE
+                </div>
+                <div style={{ fontSize:'0.86rem', fontWeight:800, color:'#fff' }}>In Session</div>
               </div>
             ) : countdown ? (
               <div style={{ background:countdown.urgency==='imminent'?'linear-gradient(135deg,#ef4444,#f87171)':countdown.urgency==='soon'?'linear-gradient(135deg,#f59e0b,#fbbf24)':pkg.grad, borderRadius:12, padding:'0.5rem 0.85rem', textAlign:'center', boxShadow:`0 4px 14px ${pkg.color}33` }}>
@@ -140,16 +158,20 @@ function SerenityBookingCard({ booking }) {
         {isActive && (
           <div style={{ marginTop:'0.85rem' }}>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.3rem' }}>
-              <span style={{ fontSize:'0.68rem', color:'#10b981', fontWeight:700 }}>Session in progress</span>
-              <span style={{ fontSize:'0.68rem', color:'#10b981', fontWeight:700 }}>{Math.round(progress)}%</span>
+              <span style={{ fontSize:'0.68rem', color:'#047857', fontWeight:800 }}>Session in progress</span>
+              <span style={{ fontSize:'0.68rem', color:'#047857', fontWeight:800 }}>{Math.round(progress)}%</span>
             </div>
-            <div style={{ height:6, background:'#d1fae5', borderRadius:99, overflow:'hidden' }}>
-              <div style={{ height:'100%', background:'linear-gradient(90deg,#10b981,#34d399)', width:`${progress}%`, borderRadius:99, transition:'width 1s linear', boxShadow:'0 0 8px #10b98166' }} />
+            <div style={{ height:7, background:'#a7f3d0', borderRadius:99, overflow:'hidden', boxShadow:'inset 0 1px 3px rgba(5,150,105,0.25)' }}>
+              <div style={{ height:'100%', background:'linear-gradient(90deg,#059669,#10b981,#34d399)', width:`${progress}%`, borderRadius:99, transition:'width 1s linear', boxShadow:'0 0 10px rgba(16,185,129,0.8)' }} />
             </div>
           </div>
         )}
       </div>
-      <style>{`@keyframes pulse{0%,100%{box-shadow:0 4px 14px #10b98133;}50%{box-shadow:0 4px 22px #10b98166;}}`}</style>
+      <style>{`
+        @keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,0.18), 0 6px 22px rgba(16,185,129,0.55);}50%{box-shadow:0 0 0 5px rgba(16,185,129,0.3), 0 8px 30px rgba(16,185,129,0.75);}}
+        @keyframes cardGlow{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,0.16), 0 10px 38px rgba(16,185,129,0.38), inset 0 1px 0 rgba(255,255,255,0.8);}50%{box-shadow:0 0 0 5px rgba(16,185,129,0.26), 0 14px 48px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.9);}}
+        @keyframes shimmerBar{0%{background-position:200% 0}100%{background-position:-200% 0}}
+      `}</style>
     </div>
   )
 }
@@ -162,11 +184,19 @@ export default function MyBookings() {
   const [loading,         setLoading]         = useState(true)
   const [error,           setError]           = useState('')
   const [showPast,        setShowPast]        = useState(false)
+  const [nowTick,         setNowTick]         = useState(() => Date.now())
 
   useEffect(() => {
     if (!user) { navigate('/signin'); return }
     load()
   }, [user])
+
+  // Re-check every few seconds so a booking flips from "Upcoming" to "Past"
+  // the moment its end time elapses, without needing a page refresh.
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 5000)
+    return () => clearInterval(id)
+  }, [])
 
   async function load() {
     setLoading(true); setError('')
@@ -184,13 +214,13 @@ export default function MyBookings() {
     }
   }
 
-  const todayStr = new Date().toISOString().split('T')[0]
+  const isElapsed = b => new Date(`${b.booked_date}T${b.end_time}`).getTime() <= nowTick
   const upcoming = bookings
-    .filter(b => b.booked_date >= todayStr && b.status !== 'cancelled')
+    .filter(b => b.status !== 'cancelled' && !isElapsed(b))
     .sort((a,b) => a.booked_date.localeCompare(b.booked_date) || a.start_time.localeCompare(b.start_time))
   const past = bookings
-    .filter(b => b.booked_date < todayStr || b.status === 'cancelled')
-    .sort((a,b) => b.booked_date.localeCompare(a.booked_date))
+    .filter(b => b.status === 'cancelled' || isElapsed(b))
+    .sort((a,b) => b.booked_date.localeCompare(a.booked_date) || b.start_time.localeCompare(a.start_time))
 
   return (
     <div className="page-wrapper" style={{ background:BG, minHeight:'100vh' }}>
