@@ -104,7 +104,6 @@ const ROUTES = {
   '/ai-tools':           AIToolsPage,
   '/verify':             VerifyAccountPage,
   '/staff/portal':        StaffportalPage,
-  '/notice-check':          notice,
   '/account':            MyAccountPage,
   '/disorders':          DisordersPage,
   '/psychological-view': PsychologicalViewPage,
