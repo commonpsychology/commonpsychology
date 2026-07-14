@@ -51,9 +51,9 @@ const CSS = `
     position: relative;
     overflow: hidden;
   }
-  .reg-card-watermark {
+.reg-card-watermark {
     position: absolute;
-    top: 72%;
+    top: 85%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 62%;
