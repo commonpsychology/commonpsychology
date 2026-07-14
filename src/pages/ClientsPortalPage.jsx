@@ -704,13 +704,13 @@ async function loadLoyaltyStatus() {
             <span
               style={{
                 fontWeight: 800,
-                background: 'linear-gradient(90deg, #ffe9b3, #ffd166 50%, #ffe9b3)',
+                background: 'linear-gradient(90deg, #0c9ff5, #056ffa 50%, #1276fa)',
                 backgroundSize: '200% auto',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
                 animation: 'shine 3.5s linear infinite',
-                textShadow: '0 0 24px rgba(255,209,102,0.35)',
+                textShadow: '0 0 24px rgba(12, 12, 12, 0.35)',
               }}
             >
               {user?.fullName?.split(' ')[0] || 'there'}
