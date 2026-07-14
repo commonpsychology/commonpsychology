@@ -98,40 +98,43 @@ const CSS = `
     box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
   }
 
-  /* ── Inclusive welcome / enticing message block ── */
+/* ── Inclusive welcome / enticing message block — compact glass card ── */
   .signin-welcome {
-    background: rgba(255,255,255,0.55);
-    border: 1px solid rgba(255,255,255,0.7);
-    border-radius: 16px;
-    padding: 1.1rem 1.15rem;
-    margin: 1.35rem 0;
-    backdrop-filter: blur(2px);
+    background: linear-gradient(160deg, rgba(255,255,255,0.8) 0%, rgba(214,238,252,0.6) 55%, rgba(255,255,255,0.75) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.65);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    margin: 1rem 0;
+    box-shadow: 0 4px 16px rgba(14,165,233,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
     text-align: left;
   }
   .signin-welcome-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     font-family: var(--font-body);
-    font-size: 0.72rem;
-    font-weight: 700;
+    font-size: 0.65rem;
+    font-weight: 800;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--green-deep, #1a5c38);
-    margin-bottom: 0.5rem;
+    color: #0369a1;
+    margin-bottom: 0.35rem;
   }
   .signin-welcome-body {
     font-family: var(--font-body);
-    font-size: 0.85rem;
-    line-height: 1.65;
+    font-size: 0.78rem;
+    line-height: 1.5;
     color: var(--text-mid);
-    margin: 0 0 0.6rem;
+    margin: 0 0 0.4rem;
   }
   .signin-welcome-question {
-    font-family: var(--font-display);
-    font-size: 1.02rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.82rem;
     line-height: 1.4;
-    color: var(--green-deep, #1a5c38);
+    color: #0369a1;
     margin: 0;
   }
 

@@ -1,4 +1,5 @@
 // CourseContentSection.jsx — SELF-CONTAINED, ERROR-FREE
+// Glass (bluish-white) design pass applied — accent color #0ea5e9.
 // Drop-in replacement. In AdminDashboardPage.jsx, change the courses tab to:
 //
 //   {tab === 'courses' && (
@@ -27,6 +28,179 @@ import { useState, useEffect, useCallback } from 'react'
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const LIMIT    = 20
 const PLIMIT   = 200
+
+// ─── Glass design tokens ────────────────────────────────────────────────────
+const SKY = {
+  accent:     '#0ea5e9',
+  accentSoft: '#7dd3fc',
+  accentDeep: '#0369a1',
+  glassBg:    'linear-gradient(160deg, rgba(255,255,255,0.78) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.75) 100%)',
+  glassBgHov: 'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(200,232,250,0.68) 55%, rgba(255,255,255,0.85) 100%)',
+  border:     '1px solid rgba(255,255,255,0.6)',
+  borderHov:  '1px solid rgba(120,190,230,0.65)',
+  shadow:     '0 4px 18px rgba(14,165,233,0.10), inset 0 1px 0 rgba(255,255,255,0.55)',
+  shadowHov:  '0 10px 28px rgba(14,165,233,0.16), inset 0 1px 0 rgba(255,255,255,0.6)',
+  ink:        '#0f3a52',
+  inkSoft:    '#4a6a7a',
+  inkFaint:   '#8fa9b2',
+}
+
+const CC_CSS = `
+  .cc-wrap { position: relative; }
+
+  .cc-sec-head {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.1rem;
+    background: ${SKY.glassBg};
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: ${SKY.border}; border-radius: 16px;
+    box-shadow: ${SKY.shadow};
+    padding: 1.1rem 1.3rem;
+  }
+  .cc-sec-title { font-size: 1.15rem; font-weight: 800; color: ${SKY.ink}; margin: 0; display: flex; align-items: baseline; gap: 0.4rem; }
+  .cc-sec-count { font-size: 0.85rem; font-weight: 700; color: ${SKY.accentDeep}; }
+  .cc-sec-sub   { font-size: 0.8rem; color: ${SKY.inkSoft}; margin: 0.25rem 0 0; }
+
+  .cc-btn {
+    padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: all 0.18s ease; border: none;
+  }
+  .cc-btn-primary {
+    background: linear-gradient(135deg, ${SKY.accent}, ${SKY.accentSoft});
+    color: #fff; box-shadow: 0 4px 14px rgba(14,165,233,0.35);
+  }
+  .cc-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(14,165,233,0.45); }
+  .cc-btn-ghost {
+    background: rgba(255,255,255,0.55); color: ${SKY.accentDeep};
+    border: 1.5px solid rgba(14,165,233,0.3);
+  }
+  .cc-btn-ghost:hover { background: rgba(255,255,255,0.85); }
+
+  .cc-subtabbar {
+    display: flex; gap: 0.35rem; flex-wrap: wrap;
+    background: ${SKY.glassBg};
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: ${SKY.border}; border-radius: 14px;
+    box-shadow: ${SKY.shadow};
+    padding: 0.4rem;
+    margin-bottom: 1.1rem;
+  }
+  .cc-subtab {
+    padding: 0.55rem 1rem; border-radius: 10px; border: none; background: transparent;
+    font-size: 0.8rem; font-weight: 600; color: ${SKY.inkSoft}; cursor: pointer;
+    font-family: inherit; transition: all 0.18s ease; white-space: nowrap;
+  }
+  .cc-subtab.active {
+    background: linear-gradient(135deg, ${SKY.accent}, ${SKY.accentSoft});
+    color: #fff; font-weight: 800; box-shadow: 0 4px 14px rgba(14,165,233,0.32);
+  }
+  .cc-subtab:not(.active):hover { background: rgba(255,255,255,0.5); color: ${SKY.accentDeep}; }
+
+  .cc-filters {
+    display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;
+    background: ${SKY.glassBg};
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: ${SKY.border}; border-radius: 14px;
+    box-shadow: ${SKY.shadow};
+    padding: 0.85rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .cc-inp {
+    padding: 0.55rem 0.85rem; border-radius: 9px;
+    border: 1.5px solid rgba(120,190,230,0.45);
+    background: rgba(255,255,255,0.7);
+    font-size: 0.82rem; color: ${SKY.ink}; font-family: inherit;
+    outline: none; transition: all 0.18s ease;
+  }
+  .cc-inp:focus { border-color: ${SKY.accent}; background: #fff; box-shadow: 0 0 0 3px rgba(14,165,233,0.14); }
+
+  .cc-tbl-wrap {
+    background: ${SKY.glassBg};
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: ${SKY.border}; border-radius: 16px;
+    box-shadow: ${SKY.shadow};
+    overflow: hidden;
+  }
+  .cc-tbl-wrap table.tbl { background: transparent; }
+  .cc-tbl-wrap thead tr { background: rgba(255,255,255,0.5); }
+  .cc-tbl-wrap thead th {
+    font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+    color: ${SKY.accentDeep}; padding: 0.75rem 0.9rem; text-align: left;
+    border-bottom: 1px solid rgba(120,190,230,0.35);
+  }
+  .cc-tbl-wrap tbody td { padding: 0.7rem 0.9rem; border-bottom: 1px solid rgba(214,238,252,0.5); }
+  .cc-tbl-wrap tbody tr:hover { background: rgba(255,255,255,0.4); }
+  .cc-tbl-wrap tbody tr:last-child td { border-bottom: none; }
+
+  .cc-empty {
+    text-align: center; padding: 2.5rem 1rem;
+    background: rgba(255,255,255,0.4); border-radius: 14px;
+  }
+  .cc-empty-icon { font-size: 2.2rem; margin-bottom: 0.5rem; opacity: 0.5; }
+  .cc-empty-text { font-size: 0.85rem; color: ${SKY.inkSoft}; font-weight: 600; }
+
+  .cc-stat {
+    background: ${SKY.glassBg};
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: ${SKY.border}; border-radius: 14px;
+    box-shadow: ${SKY.shadow};
+    padding: 0.75rem 1.05rem;
+    min-width: 120px;
+  }
+  .cc-stat-val { font-size: 1.05rem; font-weight: 800; color: ${SKY.accentDeep}; }
+  .cc-stat-lbl { font-size: 0.62rem; font-weight: 700; color: ${SKY.inkFaint}; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.15rem; }
+
+  .cc-overlay {
+    position: fixed; inset: 0; z-index: 9998;
+    background: rgba(15,58,82,0.35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .cc-modal {
+    width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+    background: linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(224,242,254,0.9) 100%);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.7); border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(14,165,233,0.22), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .cc-modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem 1.3rem; border-bottom: 1px solid rgba(120,190,230,0.3);
+  }
+  .cc-modal-title { font-size: 1rem; font-weight: 800; color: ${SKY.ink}; }
+  .cc-modal-body { padding: 1.2rem 1.3rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .cc-modal-foot { display: flex; justify-content: flex-end; gap: 0.6rem; padding: 1rem 1.3rem; border-top: 1px solid rgba(120,190,230,0.3); }
+
+  .cc-field label { display: block; font-size: 0.72rem; font-weight: 800; color: ${SKY.accentDeep}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
+  .cc-field-hint { font-size: 0.68rem; color: ${SKY.inkFaint}; margin-top: 0.25rem; }
+  .cc-field-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .cc-field-row > .cc-field { flex: 1; min-width: 140px; }
+
+  .cc-alert {
+    border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.8rem; font-weight: 600;
+  }
+  .cc-alert-error { background: #fff0f0; border: 1px solid #f5c4c4; color: #c0392b; }
+  .cc-alert-info  { background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.25); color: ${SKY.accentDeep}; }
+
+  .cc-toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
+    padding: 0.7rem 1.15rem; border-radius: 12px; font-weight: 700; font-size: 0.82rem;
+    color: #fff; box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .cc-toast-ok  { background: linear-gradient(135deg, #10b981, #34d399); }
+  .cc-toast-err { background: linear-gradient(135deg, #ef4444, #f87171); }
+
+  .cc-pill { background: rgba(14,165,233,0.10); color: ${SKY.accentDeep}; padding: 0.15rem 0.55rem; border-radius: 100px; font-weight: 700; font-size: 0.7rem; }
+`
+
+function injectCC() {
+  if (typeof document === 'undefined') return
+  if (document.getElementById('cc-glass-css')) return
+  const el = document.createElement('style')
+  el.id = 'cc-glass-css'
+  el.textContent = CC_CSS
+  document.head.appendChild(el)
+}
 
 const getToken = () => localStorage.getItem('accessToken')
 const apiFetch = async (path, opts = {}) => {
@@ -73,7 +247,18 @@ function Toggle({ on, onChange }) {
       type="button"
       className={`toggle${on ? ' on' : ''}`}
       onClick={() => onChange(!on)}
-    />
+      style={{
+        width: 40, height: 22, borderRadius: 99, border: 'none', cursor: 'pointer',
+        position: 'relative', flexShrink: 0,
+        background: on ? `linear-gradient(135deg, ${SKY.accent}, ${SKY.accentSoft})` : 'rgba(143,169,178,0.35)',
+        transition: 'background 0.2s',
+      }}
+    >
+      <span style={{
+        position: 'absolute', top: 2, left: on ? 20 : 2, width: 18, height: 18, borderRadius: '50%',
+        background: '#fff', boxShadow: '0 2px 5px rgba(0,0,0,0.2)', transition: 'left 0.2s',
+      }} />
+    </button>
   )
 }
 
@@ -81,25 +266,31 @@ function Pager({ page, set, total }) {
   const tp = Math.max(1, Math.ceil(total / LIMIT))
   if (tp <= 1) return null
   return (
-    <div className="pager">
-      <button className="pg-btn" onClick={() => set(p => Math.max(1, p - 1))} disabled={page === 1}>← Prev</button>
-      <span className="pg-info">{page} / {tp} · <strong>{total}</strong> total</span>
-      <button className="pg-btn" onClick={() => set(p => Math.min(tp, p + 1))} disabled={page === tp}>Next →</button>
+    <div className="pager" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.85rem', marginTop: '1rem' }}>
+      <button className="cc-btn cc-btn-ghost" onClick={() => set(p => Math.max(1, p - 1))} disabled={page === 1}>← Prev</button>
+      <span style={{ fontSize: '0.78rem', color: SKY.inkSoft, fontWeight: 600 }}>{page} / {tp} · <strong style={{ color: SKY.accentDeep }}>{total}</strong> total</span>
+      <button className="cc-btn cc-btn-ghost" onClick={() => set(p => Math.min(tp, p + 1))} disabled={page === tp}>Next →</button>
     </div>
   )
 }
 
 function Confirm({ msg, onConfirm, onCancel, danger = true }) {
   return (
-    <div className="overlay" onClick={onCancel}>
-      <div className="modal confirm-dialog" onClick={e => e.stopPropagation()}>
-        <div className="modal-head">
-          <span className="modal-head-title">{danger ? '⚠️ Confirm Action' : '❓ Confirm'}</span>
+    <div className="cc-overlay" onClick={onCancel}>
+      <div className="cc-modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+        <div className="cc-modal-head">
+          <span className="cc-modal-title">{danger ? '⚠️ Confirm Action' : '❓ Confirm'}</span>
         </div>
-        <div className="modal-body"><p className="confirm-msg">{msg}</p></div>
-        <div className="modal-foot">
-          <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
-          <button className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} onClick={onConfirm}>Confirm</button>
+        <div className="cc-modal-body"><p style={{ fontSize: '0.86rem', color: SKY.inkSoft, lineHeight: 1.6, margin: 0 }}>{msg}</p></div>
+        <div className="cc-modal-foot">
+          <button className="cc-btn cc-btn-ghost" onClick={onCancel}>Cancel</button>
+          <button
+            className="cc-btn"
+            style={{ background: danger ? 'linear-gradient(135deg,#ef4444,#f87171)' : `linear-gradient(135deg, ${SKY.accent}, ${SKY.accentSoft})`, color: '#fff', boxShadow: '0 4px 14px rgba(0,0,0,0.18)' }}
+            onClick={onConfirm}
+          >
+            Confirm
+          </button>
         </div>
       </div>
     </div>
@@ -110,8 +301,8 @@ function RowActions({ onEdit, onDelete, children }) {
   return (
     <div style={{ display: 'flex', gap: '.3rem', flexWrap: 'wrap' }}>
       {children}
-      {onEdit   && <button className="btn btn-ghost btn-sm btn-icon" title="Edit"   onClick={onEdit}>✏️</button>}
-      {onDelete && <button className="btn btn-danger btn-sm btn-icon" title="Delete" onClick={onDelete}>🗑</button>}
+      {onEdit   && <button className="cc-btn cc-btn-ghost" style={{ padding: '0.35rem 0.55rem' }} title="Edit"   onClick={onEdit}>✏️</button>}
+      {onDelete && <button className="cc-btn" style={{ padding: '0.35rem 0.55rem', background: 'linear-gradient(135deg,#ef4444,#f87171)', color: '#fff' }} title="Delete" onClick={onDelete}>🗑</button>}
     </div>
   )
 }
@@ -207,55 +398,50 @@ function PlaylistsSection({ courses, onEditVideo }) {
   return (
     <div style={{ position: 'relative' }}>
       {toast && (
-        <div style={{
-          position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 9999,
-          background: toast.ok ? 'var(--green)' : 'var(--red)',
-          color: 'white', padding: '.65rem 1.1rem', borderRadius: 'var(--radius)',
-          fontWeight: 600, fontSize: '.82rem', boxShadow: 'var(--shadow-md)',
-        }}>{toast.msg}</div>
+        <div className={`cc-toast ${toast.ok ? 'cc-toast-ok' : 'cc-toast-err'}`}>{toast.msg}</div>
       )}
 
-      <div className="filters">
-        <select className="inp" value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)} style={{ minWidth: 220 }}>
+      <div className="cc-filters">
+        <select className="cc-inp" value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)} style={{ minWidth: 220 }}>
           <option value="">— Select a course —</option>
           {courses.map(c => <option key={c.id} value={c.id}>{c.emoji || '📚'} {c.title}</option>)}
         </select>
-        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
-        {selectedCourse && <button className="btn btn-primary" onClick={openCreate}>+ New Playlist</button>}
+        <button className="cc-btn cc-btn-ghost" onClick={load}>↺ Refresh</button>
+        {selectedCourse && <button className="cc-btn cc-btn-primary" onClick={openCreate}>+ New Playlist</button>}
       </div>
 
       {!selectedCourse && (
-        <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <div className="empty-text">Select a course to manage its playlists</div>
+        <div className="cc-empty">
+          <div className="cc-empty-icon">📋</div>
+          <div className="cc-empty-text">Select a course to manage its playlists</div>
         </div>
       )}
 
       {selectedCourse && error && (
-        <div className="alert alert-error" style={{ marginBottom: '.85rem' }}>⚠️ {error}</div>
+        <div className="cc-alert cc-alert-error" style={{ marginBottom: '.85rem' }}>⚠️ {error}</div>
       )}
 
       {selectedCourse && (
-        <div className="tbl-wrap">
-          <div className="tbl-scroll">
-            <table className="tbl">
+        <div className="cc-tbl-wrap">
+          <div className="tbl-scroll" style={{ overflowX: 'auto' }}>
+            <table className="tbl" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>{['#', 'Playlist', 'Videos', 'Duration', 'PIN', 'Published', 'Actions'].map(h => <th key={h}>{h}</th>)}</tr>
               </thead>
               <tbody>
                 {loading
-                  ? <tr><td className="tbl-loading" colSpan={7}><span className="spinner" /> Loading playlists…</td></tr>
+                  ? <tr><td className="tbl-loading" colSpan={7} style={{ textAlign: 'center', padding: '1.5rem', color: SKY.inkSoft }}><span className="spinner" /> Loading playlists…</td></tr>
                   : playlists.length === 0
-                    ? <tr><td colSpan={7}><div className="empty-state"><div className="empty-icon">📂</div><div className="empty-text">No playlists yet for this course</div></div></td></tr>
+                    ? <tr><td colSpan={7}><div className="cc-empty"><div className="cc-empty-icon">📂</div><div className="cc-empty-text">No playlists yet for this course</div></div></td></tr>
                     : playlists.map(p => (
                         <tr key={p.id}>
-                          <td style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '.78rem', width: 32 }}>{p.sort_order}</td>
+                          <td style={{ fontWeight: 700, color: SKY.inkFaint, fontSize: '.78rem', width: 32 }}>{p.sort_order}</td>
                           <td>
-                            <div style={{ fontWeight: 600, fontSize: '.82rem' }}>{p.emoji} {p.title}</div>
-                            {p.description && <div style={{ fontSize: '.7rem', color: 'var(--text-muted)', marginTop: '.1rem' }}>{p.description.slice(0, 60)}{p.description.length > 60 ? '…' : ''}</div>}
+                            <div style={{ fontWeight: 600, fontSize: '.82rem', color: SKY.ink }}>{p.emoji} {p.title}</div>
+                            {p.description && <div style={{ fontSize: '.7rem', color: SKY.inkFaint, marginTop: '.1rem' }}>{p.description.slice(0, 60)}{p.description.length > 60 ? '…' : ''}</div>}
                           </td>
-                          <td style={{ fontSize: '.78rem', fontWeight: 700, color: 'var(--blue-dk)' }}>{p.video_count ?? '—'}</td>
-                          <td style={{ fontSize: '.74rem', color: 'var(--text-muted)' }}>{p.total_duration_secs ? secsToHMS(p.total_duration_secs) : '—'}</td>
+                          <td style={{ fontSize: '.78rem', fontWeight: 700, color: SKY.accentDeep }}>{p.video_count ?? '—'}</td>
+                          <td style={{ fontSize: '.74rem', color: SKY.inkFaint }}>{p.total_duration_secs ? secsToHMS(p.total_duration_secs) : '—'}</td>
                           <td>
                             {p.requires_pin || p.access_pin
                               ? <span className="badge badge-amber">🔒 PIN set</span>
@@ -268,7 +454,7 @@ function PlaylistsSection({ courses, onEditVideo }) {
                           </td>
                           <td>
                             <RowActions onEdit={() => openEdit(p)} onDelete={() => setDelConf({ id: p.id, label: p.title })}>
-                              <button className="btn btn-ghost btn-sm" title="Manage videos in this playlist"
+                              <button className="cc-btn cc-btn-ghost" style={{ padding: '0.35rem 0.6rem' }} title="Manage videos in this playlist"
                                 onClick={() => onEditVideo(p.course_id, p.id)}>
                                 🎬 Videos
                               </button>
@@ -284,63 +470,63 @@ function PlaylistsSection({ courses, onEditVideo }) {
       )}
 
       {modal && (
-        <div className="overlay" onClick={closeModal}>
-          <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
-            <div className="modal-head">
-              <span className="modal-head-title">{modal.data ? '✏️ Edit Playlist' : '+ New Playlist'}</span>
-              <button className="btn btn-ghost btn-sm" onClick={closeModal}>✕</button>
+        <div className="cc-overlay" onClick={closeModal}>
+          <div className="cc-modal" onClick={e => e.stopPropagation()}>
+            <div className="cc-modal-head">
+              <span className="cc-modal-title">{modal.data ? '✏️ Edit Playlist' : '+ New Playlist'}</span>
+              <button className="cc-btn cc-btn-ghost" style={{ padding: '0.35rem 0.6rem' }} onClick={closeModal}>✕</button>
             </div>
-            <div className="modal-body">
+            <div className="cc-modal-body">
               {!modal.data && (
-                <div className="field">
+                <div className="cc-field">
                   <label>Course *</label>
-                  <select className="inp" value={form.course_id || ''} onChange={e => setForm(f => ({ ...f, course_id: e.target.value }))}>
+                  <select className="cc-inp" style={{ width: '100%' }} value={form.course_id || ''} onChange={e => setForm(f => ({ ...f, course_id: e.target.value }))}>
                     <option value="">— Select course —</option>
                     {courses.map(c => <option key={c.id} value={c.id}>{c.emoji || '📚'} {c.title}</option>)}
                   </select>
                 </div>
               )}
               {modal.data && (
-                <div className="alert alert-info" style={{ marginBottom: '.25rem' }}>
+                <div className="cc-alert cc-alert-info">
                   Course: <strong>{courseTitle(modal.data.course_id)}</strong>
                 </div>
               )}
-              <div className="field-row">
-                <div className="field" style={{ flex: '0 0 64px' }}>
+              <div className="cc-field-row">
+                <div className="cc-field" style={{ flex: '0 0 64px' }}>
                   <label>Emoji</label>
-                  <input className="inp" value={form.emoji || '📚'} onChange={e => setForm(f => ({ ...f, emoji: e.target.value }))} style={{ textAlign: 'center', fontSize: '1.15rem' }} />
+                  <input className="cc-inp" value={form.emoji || '📚'} onChange={e => setForm(f => ({ ...f, emoji: e.target.value }))} style={{ textAlign: 'center', fontSize: '1.15rem', width: '100%' }} />
                 </div>
-                <div className="field" style={{ flex: 1 }}>
+                <div className="cc-field">
                   <label>Title *</label>
-                  <input className="inp" value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Module 1: Foundations" />
+                  <input className="cc-inp" style={{ width: '100%' }} value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Module 1: Foundations" />
                 </div>
               </div>
-              <div className="field">
+              <div className="cc-field">
                 <label>Description</label>
-                <textarea className="inp" rows={2} value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief description shown to students" />
+                <textarea className="cc-inp" style={{ width: '100%', resize: 'vertical' }} rows={2} value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief description shown to students" />
               </div>
-              <div className="field-row">
-                <div className="field">
+              <div className="cc-field-row">
+                <div className="cc-field">
                   <label>Sort Order</label>
-                  <input className="inp" type="number" min="0" value={form.sort_order ?? 0} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} />
-                  <div className="field-hint">Lower = shown first</div>
+                  <input className="cc-inp" style={{ width: '100%' }} type="number" min="0" value={form.sort_order ?? 0} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} />
+                  <div className="cc-field-hint">Lower = shown first</div>
                 </div>
-                <div className="field">
+                <div className="cc-field">
                   <label>Access PIN (optional)</label>
-                  <input className="inp" type="password" value={form.access_pin || ''} onChange={e => setForm(f => ({ ...f, access_pin: e.target.value }))}
+                  <input className="cc-inp" style={{ width: '100%' }} type="password" value={form.access_pin || ''} onChange={e => setForm(f => ({ ...f, access_pin: e.target.value }))}
                     placeholder={modal.data ? 'Leave blank to keep existing' : '4-digit PIN to lock'} />
-                  <div className="field-hint">Leave blank to remove PIN. Stored hashed.</div>
+                  <div className="cc-field-hint">Leave blank to remove PIN. Stored hashed.</div>
                 </div>
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '.5rem', fontSize: '.78rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '.5rem', fontSize: '.8rem', color: SKY.inkSoft, fontWeight: 600, cursor: 'pointer' }}>
                 <Toggle on={form.is_published !== false} onChange={v => setForm(f => ({ ...f, is_published: v }))} />
                 Published (visible to enrolled students)
               </label>
-              {saveErr && <div className="alert alert-error">{saveErr}</div>}
+              {saveErr && <div className="cc-alert cc-alert-error">{saveErr}</div>}
             </div>
-            <div className="modal-foot">
-              <button className="btn btn-ghost" onClick={closeModal}>Cancel</button>
-              <button className="btn btn-primary" onClick={save} disabled={saving}>
+            <div className="cc-modal-foot">
+              <button className="cc-btn cc-btn-ghost" onClick={closeModal}>Cancel</button>
+              <button className="cc-btn cc-btn-primary" onClick={save} disabled={saving}>
                 {saving ? <><span className="spinner" /> Saving…</> : modal.data ? 'Save Changes' : 'Create Playlist'}
               </button>
             </div>
@@ -470,99 +656,92 @@ function VideosSection({ courses, initialCourseId, initialPlaylistId }) {
   return (
     <div style={{ position: 'relative' }}>
       {toast && (
-        <div style={{
-          position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 9999,
-          background: toast.ok ? 'var(--green)' : 'var(--red)',
-          color: 'white', padding: '.65rem 1.1rem', borderRadius: 'var(--radius)',
-          fontWeight: 600, fontSize: '.82rem', boxShadow: 'var(--shadow-md)',
-        }}>{toast.msg}</div>
+        <div className={`cc-toast ${toast.ok ? 'cc-toast-ok' : 'cc-toast-err'}`}>{toast.msg}</div>
       )}
 
-      <div className="filters">
-        <select className="inp" value={selectedCourse}
+      <div className="cc-filters">
+        <select className="cc-inp" value={selectedCourse}
           onChange={e => { setSelectedCourse(e.target.value); setSelectedPlaylist('') }}
           style={{ minWidth: 220 }}>
           <option value="">— Select a course —</option>
           {courses.map(c => <option key={c.id} value={c.id}>{c.emoji || '📚'} {c.title}</option>)}
         </select>
         {selectedCourse && (
-          <select className="inp" value={selectedPlaylist} onChange={e => setSelectedPlaylist(e.target.value)} style={{ minWidth: 180 }}>
+          <select className="cc-inp" value={selectedPlaylist} onChange={e => setSelectedPlaylist(e.target.value)} style={{ minWidth: 180 }}>
             <option value="">All playlists</option>
             {playlists.map(p => <option key={p.id} value={p.id}>{p.emoji} {p.title}</option>)}
           </select>
         )}
-        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
-        {selectedCourse && <button className="btn btn-primary" onClick={openCreate}>+ Add Video</button>}
+        <button className="cc-btn cc-btn-ghost" onClick={load}>↺ Refresh</button>
+        {selectedCourse && <button className="cc-btn cc-btn-primary" onClick={openCreate}>+ Add Video</button>}
         {selectedPlaylist && (
-          <span style={{ fontSize: '.72rem', color: 'var(--blue-dk)', fontWeight: 700, alignSelf: 'center' }}>
-            🔍 Filtered by playlist
-          </span>
+          <span className="cc-pill">🔍 Filtered by playlist</span>
         )}
       </div>
 
       {!selectedCourse && (
-        <div className="empty-state"><div className="empty-icon">🎬</div><div className="empty-text">Select a course to manage its videos</div></div>
+        <div className="cc-empty"><div className="cc-empty-icon">🎬</div><div className="cc-empty-text">Select a course to manage its videos</div></div>
       )}
 
       {selectedCourse && error && (
-        <div className="alert alert-error" style={{ marginBottom: '.85rem' }}>⚠️ {error}</div>
+        <div className="cc-alert cc-alert-error" style={{ marginBottom: '.85rem' }}>⚠️ {error}</div>
       )}
 
       {/* Stats bar */}
       {selectedCourse && !loading && videos.length > 0 && (
         <div style={{ display: 'flex', gap: '.85rem', marginBottom: '.85rem', flexWrap: 'wrap' }}>
           {[
-            { label: 'Total videos',   val: videos.length,                                                                          color: '#eff6ff', tc: 'var(--blue-dk)' },
-            { label: 'Free previews',  val: videos.filter(v => v.is_free_preview).length,                                          color: '#ecfdf5', tc: '#065f46' },
-            { label: 'Total duration', val: secsToHMS(videos.reduce((s, v) => s + (v.duration_secs || 0), 0)),                     color: '#f5f3ff', tc: '#5b21b6' },
-            { label: 'Avg duration',   val: secsToHMS(Math.round(videos.reduce((s, v) => s + (v.duration_secs || 0), 0) / videos.length)), color: '#fffbeb', tc: '#92400e' },
+            { label: 'Total videos',   val: videos.length },
+            { label: 'Free previews',  val: videos.filter(v => v.is_free_preview).length },
+            { label: 'Total duration', val: secsToHMS(videos.reduce((s, v) => s + (v.duration_secs || 0), 0)) },
+            { label: 'Avg duration',   val: secsToHMS(Math.round(videos.reduce((s, v) => s + (v.duration_secs || 0), 0) / videos.length)) },
           ].map((s, i) => (
-            <div key={i} style={{ background: s.color, borderRadius: 'var(--radius)', padding: '.65rem .95rem', border: '1px solid var(--border)', minWidth: 110 }}>
-              <div style={{ fontSize: '1rem', fontWeight: 800, color: s.tc }}>{s.val}</div>
-              <div style={{ fontSize: '.62rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: '.15rem' }}>{s.label}</div>
+            <div key={i} className="cc-stat">
+              <div className="cc-stat-val">{s.val}</div>
+              <div className="cc-stat-lbl">{s.label}</div>
             </div>
           ))}
         </div>
       )}
 
       {selectedCourse && (
-        <div className="tbl-wrap">
-          <div className="tbl-scroll">
-            <table className="tbl">
+        <div className="cc-tbl-wrap">
+          <div className="tbl-scroll" style={{ overflowX: 'auto' }}>
+            <table className="tbl" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>{['#', 'Thumbnail', 'Video', 'Playlist', 'Duration', 'Free Preview', 'Actions'].map(h => <th key={h}>{h}</th>)}</tr>
               </thead>
               <tbody>
                 {loading
-                  ? <tr><td className="tbl-loading" colSpan={7}><span className="spinner" /> Loading videos…</td></tr>
+                  ? <tr><td className="tbl-loading" colSpan={7} style={{ textAlign: 'center', padding: '1.5rem', color: SKY.inkSoft }}><span className="spinner" /> Loading videos…</td></tr>
                   : videos.length === 0
-                    ? <tr><td colSpan={7}><div className="empty-state"><div className="empty-icon">🎬</div><div className="empty-text">No videos yet{selectedPlaylist ? ' in this playlist' : ' for this course'}</div></div></td></tr>
+                    ? <tr><td colSpan={7}><div className="cc-empty"><div className="cc-empty-icon">🎬</div><div className="cc-empty-text">No videos yet{selectedPlaylist ? ' in this playlist' : ' for this course'}</div></div></td></tr>
                     : videos.map(v => {
                         const ytId = ytIdFromUrl(v.video_url)
                         const thumb = v.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null)
                         const playlist = playlists.find(p => p.id === v.playlist_id)
                         return (
                           <tr key={v.id}>
-                            <td style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '.78rem', width: 32 }}>{v.sort_order}</td>
+                            <td style={{ fontWeight: 700, color: SKY.inkFaint, fontSize: '.78rem', width: 32 }}>{v.sort_order}</td>
                             <td style={{ width: 72 }}>
                               {thumb
-                                ? <img src={thumb} alt="" style={{ width: 64, height: 40, objectFit: 'cover', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }} />
-                                : <div style={{ width: 64, height: 40, background: 'var(--surface-2)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>🎬</div>
+                                ? <img src={thumb} alt="" style={{ width: 64, height: 40, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(120,190,230,0.4)' }} />
+                                : <div style={{ width: 64, height: 40, background: 'rgba(14,165,233,0.08)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>🎬</div>
                               }
                             </td>
                             <td>
-                              <div style={{ fontWeight: 600, fontSize: '.82rem' }}>{v.title}</div>
-                              {v.description && <div style={{ fontSize: '.7rem', color: 'var(--text-muted)', marginTop: '.1rem' }}>{v.description.slice(0, 55)}{v.description.length > 55 ? '…' : ''}</div>}
-                              <div className="mono" style={{ fontSize: '.62rem', color: 'var(--blue-dk)', marginTop: '.18rem' }}>
+                              <div style={{ fontWeight: 600, fontSize: '.82rem', color: SKY.ink }}>{v.title}</div>
+                              {v.description && <div style={{ fontSize: '.7rem', color: SKY.inkFaint, marginTop: '.1rem' }}>{v.description.slice(0, 55)}{v.description.length > 55 ? '…' : ''}</div>}
+                              <div className="mono" style={{ fontSize: '.62rem', color: SKY.accentDeep, marginTop: '.18rem' }}>
                                 {ytId ? `yt:${ytId}` : v.video_url?.slice(0, 40)}
                               </div>
                             </td>
                             <td style={{ fontSize: '.74rem' }}>
                               {playlist
-                                ? <span style={{ background: 'var(--blue-lt)', color: 'var(--blue-dk)', padding: '.15rem .45rem', borderRadius: 4, fontWeight: 600 }}>{playlist.emoji} {playlist.title}</span>
-                                : <span style={{ color: 'var(--text-muted)' }}>Unassigned</span>}
+                                ? <span className="cc-pill">{playlist.emoji} {playlist.title}</span>
+                                : <span style={{ color: SKY.inkFaint }}>Unassigned</span>}
                             </td>
-                            <td style={{ fontSize: '.74rem', fontWeight: 600, color: 'var(--text-muted)' }}>{v.duration_secs ? secsToHMS(v.duration_secs) : '—'}</td>
+                            <td style={{ fontSize: '.74rem', fontWeight: 600, color: SKY.inkFaint }}>{v.duration_secs ? secsToHMS(v.duration_secs) : '—'}</td>
                             <td>
                               <span className={`badge ${v.is_free_preview ? 'badge-green' : 'badge-gray'}`}>
                                 {v.is_free_preview ? '🔓 Free' : '🔒 Paid'}
@@ -572,7 +751,7 @@ function VideosSection({ courses, initialCourseId, initialPlaylistId }) {
                               <RowActions onEdit={() => openEdit(v)} onDelete={() => setDelConf({ id: v.id, label: v.title })}>
                                 {v.video_url && (
                                   <a href={v.video_url} target="_blank" rel="noreferrer">
-                                    <button className="btn btn-ghost btn-sm" title="Preview video">▶</button>
+                                    <button className="cc-btn cc-btn-ghost" style={{ padding: '0.35rem 0.55rem' }} title="Preview video">▶</button>
                                   </a>
                                 )}
                               </RowActions>
@@ -588,80 +767,80 @@ function VideosSection({ courses, initialCourseId, initialPlaylistId }) {
       )}
 
       {modal && (
-        <div className="overlay" onClick={closeModal}>
-          <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
-            <div className="modal-head">
-              <span className="modal-head-title">{modal.data ? '✏️ Edit Video' : '+ Add Video'}</span>
-              <button className="btn btn-ghost btn-sm" onClick={closeModal}>✕</button>
+        <div className="cc-overlay" onClick={closeModal}>
+          <div className="cc-modal" onClick={e => e.stopPropagation()}>
+            <div className="cc-modal-head">
+              <span className="cc-modal-title">{modal.data ? '✏️ Edit Video' : '+ Add Video'}</span>
+              <button className="cc-btn cc-btn-ghost" style={{ padding: '0.35rem 0.6rem' }} onClick={closeModal}>✕</button>
             </div>
-            <div className="modal-body">
-              <div className="field-row">
-                <div className="field">
+            <div className="cc-modal-body">
+              <div className="cc-field-row">
+                <div className="cc-field">
                   <label>Course *</label>
-                  <select className="inp" value={form.course_id || ''} onChange={e => setForm(f => ({ ...f, course_id: e.target.value, playlist_id: null }))}>
+                  <select className="cc-inp" style={{ width: '100%' }} value={form.course_id || ''} onChange={e => setForm(f => ({ ...f, course_id: e.target.value, playlist_id: null }))}>
                     <option value="">— Select course —</option>
                     {courses.map(c => <option key={c.id} value={c.id}>{c.emoji || '📚'} {c.title}</option>)}
                   </select>
                 </div>
-                <div className="field">
+                <div className="cc-field">
                   <label>Playlist (optional)</label>
-                  <select className="inp" value={form.playlist_id || ''} onChange={e => setForm(f => ({ ...f, playlist_id: e.target.value || null }))}>
+                  <select className="cc-inp" style={{ width: '100%' }} value={form.playlist_id || ''} onChange={e => setForm(f => ({ ...f, playlist_id: e.target.value || null }))}>
                     <option value="">— No playlist / Unassigned —</option>
                     {playlists.map(p => <option key={p.id} value={p.id}>{p.emoji} {p.title}</option>)}
                   </select>
                 </div>
               </div>
-              <div className="field">
+              <div className="cc-field">
                 <label>Title *</label>
-                <input className="inp" value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Introduction to CBT" />
+                <input className="cc-inp" style={{ width: '100%' }} value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Introduction to CBT" />
               </div>
-              <div className="field">
+              <div className="cc-field">
                 <label>Description</label>
-                <textarea className="inp" rows={2} value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief summary shown to students" />
+                <textarea className="cc-inp" style={{ width: '100%', resize: 'vertical' }} rows={2} value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief summary shown to students" />
               </div>
-              <div className="field">
+              <div className="cc-field">
                 <label>Video URL * (YouTube embed or direct)</label>
-                <input className="inp mono" value={form.video_url || ''} onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))} placeholder="https://www.youtube.com/embed/VIDEO_ID" />
-                <div className="field-hint">Use embed URL format: https://www.youtube.com/embed/VIDEO_ID</div>
+                <input className="cc-inp mono" style={{ width: '100%' }} value={form.video_url || ''} onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))} placeholder="https://www.youtube.com/embed/VIDEO_ID" />
+                <div className="cc-field-hint">Use embed URL format: https://www.youtube.com/embed/VIDEO_ID</div>
               </div>
               {/* Live thumbnail preview */}
               {(() => {
                 const ytId = ytIdFromUrl(form.video_url)
                 const thumb = form.thumbnail_url || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null)
                 return thumb ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '.85rem', padding: '.65rem', background: 'var(--surface-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                    <img src={thumb} alt="preview" style={{ width: 96, height: 60, objectFit: 'cover', borderRadius: 4 }} />
-                    <div style={{ fontSize: '.72rem', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '.85rem', padding: '.65rem', background: 'rgba(14,165,233,0.06)', borderRadius: 10, border: '1px solid rgba(120,190,230,0.35)' }}>
+                    <img src={thumb} alt="preview" style={{ width: 96, height: 60, objectFit: 'cover', borderRadius: 6 }} />
+                    <div style={{ fontSize: '.72rem', color: SKY.inkSoft }}>
                       {ytId ? <>YouTube ID: <strong className="mono">{ytId}</strong></> : 'Custom thumbnail'}
                     </div>
                   </div>
                 ) : null
               })()}
-              <div className="field">
+              <div className="cc-field">
                 <label>Thumbnail URL (optional — auto-detected from YouTube)</label>
-                <input className="inp" value={form.thumbnail_url || ''} onChange={e => setForm(f => ({ ...f, thumbnail_url: e.target.value }))} placeholder="https://…" />
+                <input className="cc-inp" style={{ width: '100%' }} value={form.thumbnail_url || ''} onChange={e => setForm(f => ({ ...f, thumbnail_url: e.target.value }))} placeholder="https://…" />
               </div>
-              <div className="field-row">
-                <div className="field">
+              <div className="cc-field-row">
+                <div className="cc-field">
                   <label>Duration (seconds)</label>
-                  <input className="inp" type="number" min="0" value={form.duration_secs || ''} onChange={e => setForm(f => ({ ...f, duration_secs: e.target.value }))} placeholder="e.g. 720 = 12 min" />
-                  {form.duration_secs && <div className="field-hint">= {secsToHMS(form.duration_secs)}</div>}
+                  <input className="cc-inp" style={{ width: '100%' }} type="number" min="0" value={form.duration_secs || ''} onChange={e => setForm(f => ({ ...f, duration_secs: e.target.value }))} placeholder="e.g. 720 = 12 min" />
+                  {form.duration_secs && <div className="cc-field-hint">= {secsToHMS(form.duration_secs)}</div>}
                 </div>
-                <div className="field">
+                <div className="cc-field">
                   <label>Sort Order</label>
-                  <input className="inp" type="number" min="0" value={form.sort_order ?? 0} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} />
-                  <div className="field-hint">Lower = shown first within playlist</div>
+                  <input className="cc-inp" style={{ width: '100%' }} type="number" min="0" value={form.sort_order ?? 0} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} />
+                  <div className="cc-field-hint">Lower = shown first within playlist</div>
                 </div>
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '.5rem', fontSize: '.78rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '.5rem', fontSize: '.8rem', color: SKY.inkSoft, fontWeight: 600, cursor: 'pointer' }}>
                 <Toggle on={!!form.is_free_preview} onChange={v => setForm(f => ({ ...f, is_free_preview: v }))} />
                 Free Preview — visible to non-enrolled visitors
               </label>
-              {saveErr && <div className="alert alert-error">{saveErr}</div>}
+              {saveErr && <div className="cc-alert cc-alert-error">{saveErr}</div>}
             </div>
-            <div className="modal-foot">
-              <button className="btn btn-ghost" onClick={closeModal}>Cancel</button>
-              <button className="btn btn-primary" onClick={save} disabled={saving}>
+            <div className="cc-modal-foot">
+              <button className="cc-btn cc-btn-ghost" onClick={closeModal}>Cancel</button>
+              <button className="cc-btn cc-btn-primary" onClick={save} disabled={saving}>
                 {saving ? <><span className="spinner" /> Saving…</> : modal.data ? 'Save Changes' : 'Add Video'}
               </button>
             </div>
@@ -686,17 +865,17 @@ function VideosSection({ courses, initialCourseId, initialPlaylistId }) {
 function CoursesListSection({ courses, courseTotal, coursePage, setCoursePage, busy, openEdit, openCreate, del, sec, setCourses, setCourseTotal }) {
   return (
     <>
-      <div className="tbl-wrap">
-        <div className="tbl-scroll">
-          <table className="tbl">
+      <div className="cc-tbl-wrap">
+        <div className="tbl-scroll" style={{ overflowX: 'auto' }}>
+          <table className="tbl" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>{['Course', 'Level', 'Price', 'Start Date', 'Seats Left', 'Published', 'Actions'].map(h => <th key={h}>{h}</th>)}</tr>
             </thead>
             <tbody>
               {busy.courses
-                ? <tr><td className="tbl-loading" colSpan={7}><span className="spinner" /> Loading…</td></tr>
+                ? <tr><td className="tbl-loading" colSpan={7} style={{ textAlign: 'center', padding: '1.5rem', color: SKY.inkSoft }}><span className="spinner" /> Loading…</td></tr>
                 : courses.length === 0
-                  ? <tr><td colSpan={7}><div className="empty-state"><div className="empty-icon">📭</div><div className="empty-text">No courses found.</div></div></td></tr>
+                  ? <tr><td colSpan={7}><div className="cc-empty"><div className="cc-empty-icon">📭</div><div className="cc-empty-text">No courses found.</div></div></td></tr>
                   : courses.map(c => {
                       const seats  = c.seats || c.max_seats || c.total_seats
                       const booked = c.booked_count || c.enrolled_count || 0
@@ -705,34 +884,34 @@ function CoursesListSection({ courses, courseTotal, coursePage, setCoursePage, b
                       return (
                         <tr key={c.id}>
                           <td>
-                            <div style={{ fontWeight: 600, fontSize: '.82rem' }}>{c.emoji} {c.title}</div>
+                            <div style={{ fontWeight: 600, fontSize: '.82rem', color: SKY.ink }}>{c.emoji} {c.title}</div>
                             {c.tags?.length > 0 && (
-                              <div style={{ fontSize: '.68rem', color: 'var(--text-muted)', marginTop: '.15rem' }}>
+                              <div style={{ fontSize: '.68rem', color: SKY.inkFaint, marginTop: '.15rem' }}>
                                 {(Array.isArray(c.tags) ? c.tags : c.tags.split(',')).slice(0, 3).join(' · ')}
                               </div>
                             )}
                           </td>
                           <td><Badge s={c.level || 'Beginner'} /></td>
-                          <td>
+                          <td style={{ color: SKY.ink, fontWeight: 600 }}>
                             {c.price_label || (c.is_free || !c.price || Number(c.price) === 0
                               ? <Badge s="free" />
                               : `NPR ${Number(c.price).toLocaleString()}`)}
                           </td>
-                          <td style={{ fontSize: '.74rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                          <td style={{ fontSize: '.74rem', color: SKY.inkFaint, whiteSpace: 'nowrap' }}>
                             {c.start_date ? new Date(c.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                             {c.start_time ? <><br /><span style={{ fontSize: '.68rem' }}>{c.start_time}</span></> : null}
                           </td>
                           <td>
                             {left !== null
                               ? <div>
-                                  <span style={{ fontWeight: 800, fontSize: '.82rem', color: left === 0 ? 'var(--red)' : pct >= 80 ? 'var(--amber)' : 'var(--green)' }}>
+                                  <span style={{ fontWeight: 800, fontSize: '.82rem', color: left === 0 ? '#c0392b' : pct >= 80 ? '#b45309' : '#1a7a4a' }}>
                                     {left} / {seats}
                                   </span>
-                                  <div style={{ marginTop: '.25rem', height: 3, background: 'var(--border)', borderRadius: 100, overflow: 'hidden', width: 60 }}>
-                                    <div style={{ height: '100%', width: pct + '%', background: left === 0 ? 'var(--red)' : pct >= 80 ? 'var(--amber)' : 'var(--green)', borderRadius: 100 }} />
+                                  <div style={{ marginTop: '.25rem', height: 3, background: 'rgba(120,190,230,0.3)', borderRadius: 100, overflow: 'hidden', width: 60 }}>
+                                    <div style={{ height: '100%', width: pct + '%', background: left === 0 ? '#c0392b' : pct >= 80 ? '#b45309' : '#1a7a4a', borderRadius: 100 }} />
                                   </div>
                                 </div>
-                              : <span style={{ color: 'var(--text-muted)', fontSize: '.78rem' }}>—</span>
+                              : <span style={{ color: SKY.inkFaint, fontSize: '.78rem' }}>—</span>
                             }
                           </td>
                           <td><Badge s={c.is_published ? 'published' : 'draft'} /></td>
@@ -764,6 +943,8 @@ export default function CourseContentSection({
   setCourses, setCourseTotal,
   EnrollmentsComponent,
 }) {
+  useEffect(() => { injectCC() }, [])
+
   const [subTab, setSubTab] = useState('list')
 
   const [videoFilterCourse,   setVideoFilterCourse]   = useState('')
@@ -783,34 +964,34 @@ export default function CourseContentSection({
   ]
 
   return (
-    <div>
+    <div className="cc-wrap">
       {/* Header */}
-      <div className="sec-head">
+      <div className="cc-sec-head">
         <div>
-          <h1 className="sec-title">
+          <h1 className="cc-sec-title">
             Courses
             {subTab === 'list' && courseTotal != null && (
-              <span className="sec-count">({courseTotal})</span>
+              <span className="cc-sec-count">({courseTotal})</span>
             )}
           </h1>
-          <p className="sec-sub">Manage courses, playlists, videos and enrollments</p>
+          <p className="cc-sec-sub">Manage courses, playlists, videos and enrollments</p>
         </div>
-        <div className="sec-actions">
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
           {subTab === 'list' && (
             <>
-              <button className="btn btn-ghost" onClick={() => sec('/admin/courses', setCourses, setCourseTotal, coursePage)}>↺ Refresh</button>
-              <button className="btn btn-primary" onClick={() => openCreate('course', { is_free: true, is_published: false, level: 'Beginner' })}>+ New Course</button>
+              <button className="cc-btn cc-btn-ghost" onClick={() => sec('/admin/courses', setCourses, setCourseTotal, coursePage)}>↺ Refresh</button>
+              <button className="cc-btn cc-btn-primary" onClick={() => openCreate('course', { is_free: true, is_published: false, level: 'Beginner' })}>+ New Course</button>
             </>
           )}
         </div>
       </div>
 
       {/* Sub-tab bar */}
-      <div className="sub-tabbar" style={{ marginBottom: '1.1rem' }}>
+      <div className="cc-subtabbar">
         {SUBTABS.map(t => (
           <button
             key={t.id}
-            className={`sub-tab${subTab === t.id ? ' active' : ''}`}
+            className={`cc-subtab${subTab === t.id ? ' active' : ''}`}
             onClick={() => setSubTab(t.id)}
           >
             {t.label}

@@ -170,14 +170,14 @@ function VideoSlider({ videos, loading }) {
   }
 
   return (
-    <div style={{ background: 'linear-gradient(160deg,#0a1628 0%,#0f2744 60%,#0a1e1a 100%)', padding: '4rem 2rem', position: 'relative', overflow: 'hidden' }}>
+  <div style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(214,238,252,0.7) 55%, rgba(224,242,254,0.9) 100%)', padding: '4rem 2rem', position: 'relative', overflow: 'hidden' }}>
 
       <div style={{ textAlign: 'center', marginBottom: '2.5rem', position: 'relative', zIndex: 1 }}>
-        <span className="section-tag" style={{ color: 'rgba(56,189,248,0.7)' }}>On YouTube</span>
-        <h2 className="section-title" style={{ color: 'white', marginBottom: '0.5rem' }}>
-          Watch Our <em style={{ color: '#38BDF8' }}>Video Series</em>
+        <span className="section-tag" style={{ color: '#0369a1' }}>On YouTube</span>
+        <h2 className="section-title" style={{ color: '#0f3a52', marginBottom: '0.5rem' }}>
+          Watch Our <em style={{ color: '#0ea5e9' }}>Video Series</em>
         </h2>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.92rem', color: 'rgba(255,255,255,0.45)', maxWidth: 480, margin: '0 auto', lineHeight: 1.8 }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.92rem', color: '#4a6a7a', maxWidth: 480, margin: '0 auto', lineHeight: 1.8 }}>
           Deep-dive conversations and educational content on mental health, psychology and society.
         </p>
       </div>
@@ -190,8 +190,8 @@ function VideoSlider({ videos, loading }) {
 
             // ── skeleton while loading ──
             if (loading) return (
-              <div key={video.id} style={{ borderRadius: 14, overflow: 'hidden', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', opacity: i === 1 ? 1 : 0.6, transform: i === 1 ? 'scale(1.04)' : 'scale(0.96)' }}>
-                <div style={{ aspectRatio: '16/9', background: 'rgba(255,255,255,0.06)' }} />
+           <div key={video.id} style={{ borderRadius: 14, overflow: 'hidden', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(120,190,230,0.35)', opacity: i === 1 ? 1 : 0.6, transform: i === 1 ? 'scale(1.04)' : 'scale(0.96)' }}>
+                <div style={{ aspectRatio: '16/9', background: 'rgba(14,165,233,0.08)' }} />
                 <div style={{ padding: '0.9rem', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <Sk w="80%" h={13} /><Sk w="55%" h={10} />
                 </div>
@@ -212,15 +212,16 @@ function VideoSlider({ videos, loading }) {
                     openYouTube(video.youtube_id)
                   }
                 }}
-                style={{
+        style={{
                   borderRadius: 14, overflow: 'hidden',
-                  border: isCenter ? '2px solid rgba(56,189,248,0.6)' : '1px solid rgba(255,255,255,0.08)',
-                  background: isCenter ? 'rgba(56,189,248,0.07)' : 'rgba(255,255,255,0.03)',
+                  border: isCenter ? '2px solid rgba(14,165,233,0.55)' : '1px solid rgba(120,190,230,0.3)',
+                  background: isCenter ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)',
+                  backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
                   transform: isCenter ? 'scale(1.04)' : 'scale(0.96)',
-                  opacity: isCenter ? 1 : 0.6,
+                  opacity: isCenter ? 1 : 0.75,
                   transition: 'all 0.3s ease',
                   cursor: 'pointer',
-                  boxShadow: isCenter ? '0 20px 48px rgba(56,189,248,0.18)' : 'none',
+                  boxShadow: isCenter ? '0 20px 44px rgba(14,165,233,0.18), inset 0 1px 0 rgba(255,255,255,0.6)' : 'none',
                 }}
               >
                 <div style={{ position: 'relative', aspectRatio: '16/9', background: '#0a1628', overflow: 'hidden' }}>
@@ -267,22 +268,22 @@ function VideoSlider({ videos, loading }) {
                   )}
                 </div>
 
-                <div style={{ padding: '0.9rem' }}>
-                  <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: isCenter ? 'white' : 'rgba(255,255,255,0.55)', lineHeight: 1.35, marginBottom: '0.4rem' }}>
+<div style={{ padding: '0.9rem' }}>
+                  <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: isCenter ? '#0f3a52' : '#7a97a7', lineHeight: 1.35, marginBottom: '0.4rem' }}>
                     {video.title}
                   </h4>
                   {isCenter && (
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '0.5rem' }}>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: '#4a6a7a', lineHeight: 1.6, marginBottom: '0.5rem' }}>
                       {video.description}
                     </p>
                   )}
-                  <div style={{ fontSize: '0.68rem', color: isCenter ? 'rgba(56,189,248,0.75)' : 'rgba(255,255,255,0.28)' }}>
+                  <div style={{ fontSize: '0.68rem', color: isCenter ? '#0369a1' : '#a8bcc6' }}>
                     {video.views}
                   </div>
 
                   {/* Tap-to-watch hint on center card */}
                   {isCenter && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', color: 'rgba(56,189,248,0.6)', fontFamily: 'var(--font-body)' }}>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', color: '#0ea5e9', fontFamily: 'var(--font-body)' }}>
                       👆 Click to watch on YouTube
                     </div>
                   )}
@@ -294,30 +295,30 @@ function VideoSlider({ videos, loading }) {
 
         {/* Navigation arrows + dots */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem', marginTop: '2rem' }}>
-          <button
+<button
             onClick={() => setCurrent(c => (c - 1 + total) % total)}
-            style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(56,189,248,0.2)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
+            style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(14,165,233,0.3)', color: '#0369a1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(14,165,233,0.18)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.6)'}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="#0369a1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
 
           {Array.from({ length: total }).map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              style={{ width: i === current ? 24 : 7, height: 7, borderRadius: 10, background: i === current ? '#38BDF8' : 'rgba(255,255,255,0.22)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.28s ease' }}
+              style={{ width: i === current ? 24 : 7, height: 7, borderRadius: 10, background: i === current ? '#0ea5e9' : 'rgba(14,165,233,0.25)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.28s ease' }}
             />
           ))}
 
           <button
             onClick={() => setCurrent(c => (c + 1) % total)}
-            style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(56,189,248,0.2)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
+            style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(14,165,233,0.3)', color: '#0369a1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(14,165,233,0.18)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.6)'}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="#0369a1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         </div>
 
@@ -347,9 +348,9 @@ function VideoSlider({ videos, loading }) {
         </div>
       </div>
 
-      {/* decorative blobs */}
-      <div style={{ position: 'absolute', left: -80, bottom: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(56,189,248,0.04)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', right: -60, top: 40, width: 220, height: 220, borderRadius: '50%', background: 'rgba(56,189,248,0.03)', pointerEvents: 'none' }} />
+ {/* decorative blobs */}
+      <div style={{ position: 'absolute', left: -80, bottom: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(14,165,233,0.10)', filter: 'blur(20px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', right: -60, top: 40, width: 220, height: 220, borderRadius: '50%', background: 'rgba(125,211,252,0.14)', filter: 'blur(20px)', pointerEvents: 'none' }} />
     </div>
   )
 }
@@ -422,21 +423,20 @@ function ConceptsGlossary({ concepts, loading }) {
   return (
     // ① Remove the hard bottom edge — use paddingBottom:0 on the section,
     //    let the gradient tail div carry the visual into the footer.
-    <div
+<div
       className="section"
       style={{
-        background: 'var(--green-deep)',
-        color: 'white',
-        paddingBottom: 0,          // ← was implicit e.g. 3rem; now 0
+        background: 'linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(214,238,252,0.75) 55%, rgba(224,242,254,0.9) 100%)',
+        color: '#0f3a52',
+        paddingBottom: 0,
         position: 'relative',
-          marginBottom: '4rem',
-
+        marginBottom: '4rem',
       }}
     >
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <span className="section-tag" style={{ color: 'var(--green-pale)' }}>Psychology 101</span>
-        <h2 className="section-title" style={{ color: 'white' }}>
-          Key Concepts to <em>Understand the World</em>
+        <span className="section-tag" style={{ color: '#0369a1' }}>Psychology 101</span>
+        <h2 className="section-title" style={{ color: '#0f3a52' }}>
+          Key Concepts to <em style={{ color: '#0ea5e9' }}>Understand the World</em>
         </h2>
       </div>
 
@@ -446,13 +446,14 @@ function ConceptsGlossary({ concepts, loading }) {
       >
         {items.map((c) => {
           if (loading) return (
-            <div
+       <div
               key={c.id}
               style={{
-                background: 'rgba(255,255,255,0.07)',
+                background: 'rgba(255,255,255,0.55)',
+                backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
                 borderRadius: 'var(--radius-md)',
                 padding: '1.5rem',
-                border: '1px solid rgba(255,255,255,0.12)',
+                border: '1px solid rgba(120,190,230,0.35)',
                 display: 'flex', flexDirection: 'column', gap: 10,
               }}
             >
@@ -464,20 +465,22 @@ function ConceptsGlossary({ concepts, loading }) {
             <div
               key={c.id}
               style={{
-                background: 'rgba(255,255,255,0.07)',
+                background: 'rgba(255,255,255,0.55)',
+                backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
                 borderRadius: 'var(--radius-md)',
                 padding: '1.5rem',
-                border: '1px solid rgba(255,255,255,0.12)',
+                border: '1px solid rgba(120,190,230,0.35)',
+                boxShadow: '0 4px 16px rgba(14,165,233,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
                 cursor: 'pointer',
-                transition: 'background 0.2s',
+                transition: 'background 0.2s, transform 0.2s',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.8)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.55)'; e.currentTarget.style.transform = 'none' }}
             >
               <h4 style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: '1.05rem',
-                color: '#38BDF8',
+                color: '#0ea5e9',
                 marginBottom: '0.5rem',
               }}>
                 {c.term}
@@ -485,7 +488,7 @@ function ConceptsGlossary({ concepts, loading }) {
               <p style={{
                 fontFamily: 'var(--font-body)',
                 fontSize: '0.88rem',
-                color: 'rgba(255,255,255,0.65)',
+                color: '#4a6a7a',
                 lineHeight: 1.7,
                 margin: 0,
               }}>
@@ -498,20 +501,17 @@ function ConceptsGlossary({ concepts, loading }) {
 
       {/* ② Gradient tail — fades green-deep → your footer's background color */}
       {/*    Adjust the final stop color to match whatever your footer uses.   */}
-      <div
+   <div
         style={{
-          marginTop: '2rem',         // breathing room below the grid
+          marginTop: '2rem',
           height: '100px',
           background: `linear-gradient(
   to bottom,
-  var(--green-deep)     0%,
-  rgba(180, 220, 180, 0.15) 50%,
-  rgba(220, 240, 220, 0.35) 80%,
-  rgba(240, 255, 240, 0.6)  100%
+  rgba(224,242,254,0.9)  0%,
+  rgba(240,249,255,0.5)  50%,
+  rgba(250,252,255,0.2)  80%,
+  transparent            100%
 )`,
-          // If your footer has a solid color like #0f1a12 or similar, replace
-          // "transparent" with that exact color for a perfect seam, e.g.:
-          // background: 'linear-gradient(to bottom, var(--green-deep), #111827)'
         }}
       />
     </div>
@@ -574,23 +574,28 @@ export default function PsychologicalViewPage() {
         }
       `}</style>
 
-      {/* ── HERO ── */}
-      <div className="psych-hero" style={{ background: 'linear-gradient(145deg,#0c1e2b 0%,#1a3a4a 50%,#1a2e1a 100%)', padding: '5rem 6rem 3rem', position: 'relative', overflow: 'hidden', color: 'white' }}>
+    {/* ── HERO ── */}
+      <div className="psych-hero" style={{
+        background: 'linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(214,238,252,0.75) 45%, rgba(224,242,254,0.9) 100%)',
+        padding: '5rem 6rem 3rem', position: 'relative', overflow: 'hidden', color: '#0f3a52',
+      }}>
+        <div style={{ position: 'absolute', width: 320, height: 320, borderRadius: '50%', background: 'rgba(14,165,233,0.14)', filter: 'blur(60px)', top: -140, right: '6%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'rgba(125,211,252,0.22)', filter: 'blur(50px)', bottom: -80, left: '4%', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <span className="section-tag" style={{ color: 'rgba(176,212,232,0.7)' }}>Psychological View</span>
-          <h1 className="section-title" style={{ color: 'white', fontSize: 'clamp(2rem,4vw,3rem)', marginBottom: '1rem' }}>
-            The World, Seen Through <em style={{ color: '#38BDF8' }}>Psychology</em>
+          <span className="section-tag" style={{ color: '#0369a1' }}>Psychological View</span>
+          <h1 className="section-title" style={{ color: '#0f3a52', fontSize: 'clamp(2rem,4vw,3rem)', marginBottom: '1rem' }}>
+            The World, Seen Through <em style={{ color: '#0ea5e9' }}>Psychology</em>
           </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '1.05rem', color: 'rgba(255,255,255,0.55)', maxWidth: 580, lineHeight: 1.8, marginBottom: '2rem' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '1.05rem', color: '#3a5a72', maxWidth: 580, lineHeight: 1.8, marginBottom: '2rem' }}>
             Events do not happen in a vacuum. Behind every social crisis, political upheaval, and cultural shift lie deep psychological forces — fear, identity, trauma, and power. This is our analysis.
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button className="btn btn-primary" onClick={() => navigate('/research')}>Our Research →</button>
-            <button className="btn btn-outline" onClick={() => navigate('/blog')} style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.8)' }}>Blog & Articles</button>
+            <button className="btn btn-primary" onClick={() => navigate('/research')} style={{ background: 'linear-gradient(135deg,#0ea5e9,#7dd3fc)', border: 'none', boxShadow: '0 6px 18px rgba(14,165,233,0.35)' }}>Our Research →</button>
+            <button className="btn btn-outline" onClick={() => navigate('/blog')} style={{ borderColor: 'rgba(14,165,233,0.4)', color: '#0369a1', background: 'rgba(255,255,255,0.5)' }}>Blog & Articles</button>
           </div>
         </div>
         {[280, 200, 120].map((r, i) => (
-          <div key={i} style={{ position: 'absolute', right: -r / 2, top: '50%', transform: 'translateY(-50%)', width: r * 2, height: r * 2, borderRadius: '50%', border: `1px solid rgba(0,191,255,${0.06 + i * 0.02})`, pointerEvents: 'none' }} />
+          <div key={i} style={{ position: 'absolute', right: -r / 2, top: '50%', transform: 'translateY(-50%)', width: r * 2, height: r * 2, borderRadius: '50%', border: `1px solid rgba(14,165,233,${0.10 + i * 0.03})`, pointerEvents: 'none' }} />
         ))}
       </div>
 

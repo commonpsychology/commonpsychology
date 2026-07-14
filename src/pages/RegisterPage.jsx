@@ -41,21 +41,46 @@ const CSS = `
     box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
     margin: 1rem 0;
   }
-  .reg-input {
+.reg-input {
     width: 100%;
     padding: 0.85rem 1rem;
-    border: 2px solid var(--earth-cream, #e8e0d0);
+    border: 1.5px solid rgba(120,190,230,0.45);
     border-radius: 10px;
     font-family: var(--font-body);
     font-size: 0.95rem;
     outline: none;
     color: var(--text-dark);
-    transition: border-color 0.2s;
-    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     box-sizing: border-box;
   }
-  .reg-input:focus { border-color: var(--green-soft, #4caf50); }
+  .reg-input:focus { border-color: #0ea5e9; background: rgba(255,255,255,0.92); box-shadow: 0 0 0 3px rgba(14,165,233,0.14); }
   .reg-input.err   { border-color: #e53935; }
+
+  /* ── Top enticing banner ── */
+  .reg-hero-banner {
+    background: linear-gradient(160deg, rgba(255,255,255,0.8) 0%, rgba(214,238,252,0.6) 55%, rgba(255,255,255,0.75) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.65);
+    border-radius: 18px;
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 1.75rem;
+    text-align: center;
+    box-shadow: 0 6px 22px rgba(14,165,233,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .reg-hero-banner-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-family: var(--font-body); font-size: 0.68rem; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase; color: #0369a1;
+    margin-bottom: 0.5rem;
+  }
+  .reg-hero-banner-title {
+    font-family: var(--font-display); font-size: 1.15rem; font-weight: 600;
+    color: var(--green-deep); line-height: 1.35; margin: 0;
+  }
   .reg-btn {
     width: 100%;
     padding: 0.9rem;
@@ -92,14 +117,17 @@ const CSS = `
     display: flex;
     gap: 10px;
   }
-  .reg-phone-prefix {
-    background: #f8f8f8;
-    border: 2px solid #e8e0d0;
+.reg-phone-prefix {
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1.5px solid rgba(120,190,230,0.45);
     border-radius: 10px;
     padding: 0.85rem 0.9rem;
     font-family: var(--font-body);
     font-size: 0.88rem;
-    color: #555;
+    color: #0369a1;
+    font-weight: 600;
     white-space: nowrap;
     display: flex;
     align-items: center;
@@ -194,10 +222,15 @@ setError('')
 
   return (
     <div className="reg-root">
-
-      {/* ── Left panel ── */}
+{/* ── Left panel ── */}
       <div className="reg-left">
         <div style={{ textAlign: 'center', maxWidth: 280 }}>
+          <div className="reg-hero-banner">
+            <div className="reg-hero-banner-eyebrow">✨ You're closer than you think</div>
+            <p className="reg-hero-banner-title">
+              One step away<br/>from <em style={{ fontStyle: 'italic', color: '#0ea5e9' }}>unknown</em> to <em style={{ fontStyle: 'italic', color: 'var(--green-deep)' }}>known</em>.
+            </p>
+          </div>
           <div style={{ fontSize: '3.5rem', marginBottom: '1.5rem' }}>🧠</div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.9rem', color: 'var(--green-deep)', marginBottom: '1rem', lineHeight: 1.3 }}>
             Start Your<br />Healing Journey
