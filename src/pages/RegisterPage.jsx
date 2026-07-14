@@ -34,7 +34,7 @@ const CSS = `
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding: 0.85rem clamp(1rem, 4vw, 2rem) clamp(1.5rem, 4vw, 3rem);
+    padding: 0 clamp(1rem, 4vw, 2rem) clamp(1.5rem, 4vw, 3rem);
     overflow-y: auto;
   }
   .reg-card {
@@ -47,16 +47,16 @@ const CSS = `
     width: 100%;
     max-width: 460px;
     box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
-    margin: 0.5rem 0 1rem;
+    margin: 0 0 1rem;
     position: relative;
     overflow: hidden;
   }
   .reg-card-watermark {
     position: absolute;
-    top: 50%;
+    top: 72%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 70%;
+    width: 62%;
     height: auto;
     opacity: 0.06;
     pointer-events: none;
@@ -164,8 +164,8 @@ const CSS = `
   @media (max-width: 680px) {
     .reg-root  { grid-template-columns: 1fr; }
     .reg-left  { display: none; }
-    .reg-right { padding: 0.5rem 1rem 1.5rem; align-items: flex-start; }
-    .reg-card  { border-radius: 16px; max-width: 100%; margin: 0.35rem 0 0; }
+    .reg-right { padding: 0 1rem 1.5rem; align-items: flex-start; }
+    .reg-card  { border-radius: 16px; max-width: 100%; margin: 0; }
   }
 `
 function injectCSS() {
