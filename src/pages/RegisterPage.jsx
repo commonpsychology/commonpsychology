@@ -282,7 +282,7 @@ setError('')
       <div className="reg-right">
         <div className="reg-card">
           <img src="/header.png" alt="" className="reg-card-watermark" />
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--green-deep)', marginBottom: '0.3rem' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--green-deep)', marginBottom: '0.1rem' }}>
             Create your account
           </h1>
           <p style={{ color: 'var(--text-light)', fontSize: '0.88rem', marginBottom: '1.75rem', fontFamily: 'var(--font-body)' }}>
