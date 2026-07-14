@@ -15,6 +15,7 @@ import AssessmentsPage     from './pages/AssessmentsPage'
 import AssessmentTakePage  from './pages/AssessmentTakePage'
 import ResourcesPage       from './pages/ResourcesPage'
 import VerifyAccountPage   from './pages/VerifyAccountPage'
+import notice from './pages/notics'
 import OurNews             from './pages/OurNews'
 import DisasterManagement  from './pages/DisasterManagement'
 import NewsDetailPage      from './pages/NewsDetailPage'
@@ -103,6 +104,7 @@ const ROUTES = {
   '/ai-tools':           AIToolsPage,
   '/verify':             VerifyAccountPage,
   '/staff/portal':        StaffportalPage,
+  '/notice-check':          notice,
   '/account':            MyAccountPage,
   '/disorders':          DisordersPage,
   '/psychological-view': PsychologicalViewPage,
