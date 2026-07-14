@@ -245,7 +245,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
             ))}
           </div>
 
-          {/* Footer row: date (dynamic, left) + signature (static, right) */}
+          {/* Footer row: (static, right) */}
           <div
             style={{
               display: 'flex',
