@@ -19,6 +19,20 @@ const C = {
 const btnGrad = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyBright} 100%)`
 const STEPS   = ['Therapist','Session Type','Date & Time','Confirm']
 
+// ── Glass card palette (bluish-white, frosted) ────────────────────────────
+const GLASS = {
+  base:      'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%)',
+  baseHover: 'linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(198,232,250,0.7) 55%, rgba(255,255,255,0.82) 100%)',
+  active:    'linear-gradient(160deg, rgba(224,247,255,0.9) 0%, rgba(180,224,248,0.72) 60%, rgba(224,247,255,0.85) 100%)',
+  borderIdle:   '1px solid rgba(255,255,255,0.6)',
+  borderHover:  '1px solid rgba(120,190,230,0.7)',
+  borderActive: '1.5px solid rgba(0,191,255,0.75)',
+  shadowIdle:   '0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55)',
+  shadowHover:  '0 14px 32px rgba(0,123,168,0.18), inset 0 1px 0 rgba(255,255,255,0.6)',
+  shadowActive: '0 0 0 3px rgba(0,191,255,0.15), 0 10px 28px rgba(0,123,168,0.2), inset 0 1px 0 rgba(255,255,255,0.65)',
+  blur: 'blur(14px)',
+}
+
 const SESSION_TYPES = [
   { label:'Online Video', icon:'💻', value:'online'    },
   { label:'In-Person',    icon:'🏢', value:'in_person' },
@@ -184,6 +198,8 @@ const [submitting,   setSubmitting]   = useState(false)
 const [dayTaken,      setDayTaken]      = useState(false)
   const [slotCheckErr,  setSlotCheckErr]  = useState('')
   const [checkingSlot,  setCheckingSlot]  = useState(false)
+  const [hoveredTherapist, setHoveredTherapist] = useState(null)
+  const [hoveredType,       setHoveredType]     = useState(null)
   const allSpecializations = ['All', ...Array.from(new Set(therapists.flatMap(t => t.specializations || []))).sort()]
   const filteredTherapists = activeFilter === 'All' ? therapists : therapists.filter(t => (t.specializations||[]).includes(activeFilter))
 
@@ -409,7 +425,7 @@ async function handleConfirm() {
                   {[1,2,3].map(i => <div key={i} style={{ height:90, borderRadius:16, background:'linear-gradient(90deg,#f0f4f8 25%,#e8eef4 50%,#f0f4f8 75%)', backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }}/>)}
                 </div>
               ) : filteredTherapists.length === 0 ? (
-                <div style={{ textAlign:'center', padding:'3rem 1rem', background:C.white, borderRadius:16, border:`1.5px solid ${C.borderFaint}` }}>
+                <div style={{ textAlign:'center', padding:'3rem 1rem', background:'linear-gradient(160deg, rgba(255,255,255,0.8), rgba(224,247,255,0.55))', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)', borderRadius:16, border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle }}>
                   <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>🔍</div>
                   <div style={{ fontFamily:'var(--font-display)', color:C.textDark, fontSize:'1.1rem', marginBottom:'0.4rem' }}>No therapists found</div>
                   <button onClick={() => setActiveFilter('All')} style={{ padding:'0.4rem 1rem', borderRadius:100, border:`1.5px solid ${C.skyBright}`, background:C.skyFaint, color:C.skyDeep, fontSize:'0.8rem', fontWeight:700, cursor:'pointer' }}>Show all</button>
@@ -418,9 +434,25 @@ async function handleConfirm() {
                 <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
                   {filteredTherapists.map(t => {
                     const isActive = selected.therapist?.id === t.id
+                    const isHovered = hoveredTherapist === t.id
                     return (
-                      <div key={t.id} onClick={() => setSelected(s => ({ ...s, therapist:t }))}
-                        style={{ background:isActive?C.skyFaint:C.white, border:`1.5px solid ${isActive?C.skyBright:C.borderFaint}`, borderRadius:16, padding:'1.25rem', cursor:'pointer', boxShadow:isActive?'0 0 0 3px rgba(0,191,255,0.1)':'0 1px 4px rgba(0,0,0,0.04)', transition:'all 0.2s', display:'flex', alignItems:'center', gap:'1rem' }}>
+                      <div key={t.id}
+                        onClick={() => setSelected(s => ({ ...s, therapist:t }))}
+                        onMouseEnter={() => setHoveredTherapist(t.id)}
+                        onMouseLeave={() => setHoveredTherapist(null)}
+                        style={{
+                          background: isActive ? GLASS.active : isHovered ? GLASS.baseHover : GLASS.base,
+                          backdropFilter: GLASS.blur,
+                          WebkitBackdropFilter: GLASS.blur,
+                          border: isActive ? GLASS.borderActive : isHovered ? GLASS.borderHover : GLASS.borderIdle,
+                          borderRadius: 16,
+                          padding: '1.25rem',
+                          cursor: 'pointer',
+                          boxShadow: isActive ? GLASS.shadowActive : isHovered ? GLASS.shadowHover : GLASS.shadowIdle,
+                          transform: isActive || isHovered ? 'translateY(-3px)' : 'translateY(0)',
+                          transition: 'all 0.25s cubic-bezier(0.22,1,0.36,1)',
+                          display: 'flex', alignItems: 'center', gap: '1rem',
+                        }}>
                         <div style={{ width:52, height:52, borderRadius:'50%', flexShrink:0, overflow:'hidden', background:isActive?btnGrad:'#e8f4fb', display:'flex', alignItems:'center', justifyContent:'center' }}>
                           {t.avatar_url ? <img src={t.avatar_url} alt={t.full_name} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.currentTarget.style.display='none'; e.currentTarget.nextElementSibling.style.display='flex' }}/> : null}
                           <span style={{ display:t.avatar_url?'none':'flex', fontSize:'1.4rem', alignItems:'center', justifyContent:'center', width:'100%', height:'100%' }}>👩‍⚕️</span>
@@ -433,7 +465,7 @@ async function handleConfirm() {
                           {(t.specializations||[]).length > 0 && (
                             <div style={{ display:'flex', gap:'0.35rem', marginTop:'0.45rem', flexWrap:'wrap' }}>
                               {t.specializations.map((s,i) => (
-                                <span key={i} style={{ fontSize:'0.68rem', padding:'0.15rem 0.5rem', borderRadius:100, background:isActive?'rgba(0,191,255,0.12)':C.skyFainter, color:isActive?C.skyDeep:C.textMid, fontWeight:500, border:`1px solid ${C.borderFaint}` }}>{s}</span>
+                                <span key={i} style={{ fontSize:'0.68rem', padding:'0.15rem 0.5rem', borderRadius:100, background:isActive?'rgba(0,191,255,0.15)':'rgba(240,251,255,0.8)', color:isActive?C.skyDeep:C.textMid, fontWeight:500, border:`1px solid ${C.borderFaint}` }}>{s}</span>
                               ))}
                             </div>
                           )}
@@ -468,10 +500,26 @@ async function handleConfirm() {
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'1rem', marginBottom:'2rem' }}>
                 {SESSION_TYPES.map(t => {
                   const active = selected.type === t.value
+                  const isHovered = hoveredType === t.value
                   return (
-                    <div key={t.value} onClick={() => setSelected(s => ({ ...s, type:t.value }))}
-                      style={{ border:`1.5px solid ${active?C.skyBright:C.borderFaint}`, borderRadius:16, padding:'1.5rem 1rem', textAlign:'center', cursor:'pointer', background:active?C.skyFaint:C.white, transition:'all 0.2s' }}>
-                      <div style={{ fontSize:'2rem', marginBottom:'0.5rem' }}>{t.icon}</div>
+                    <div key={t.value}
+                      onClick={() => setSelected(s => ({ ...s, type:t.value }))}
+                      onMouseEnter={() => setHoveredType(t.value)}
+                      onMouseLeave={() => setHoveredType(null)}
+                      style={{
+                        background: active ? GLASS.active : isHovered ? GLASS.baseHover : GLASS.base,
+                        backdropFilter: GLASS.blur,
+                        WebkitBackdropFilter: GLASS.blur,
+                        border: active ? GLASS.borderActive : isHovered ? GLASS.borderHover : GLASS.borderIdle,
+                        borderRadius: 16,
+                        padding: '1.5rem 1rem',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        boxShadow: active ? GLASS.shadowActive : isHovered ? GLASS.shadowHover : GLASS.shadowIdle,
+                        transform: active || isHovered ? 'translateY(-4px)' : 'translateY(0)',
+                        transition: 'all 0.25s cubic-bezier(0.22,1,0.36,1)',
+                      }}>
+                      <div style={{ fontSize:'2rem', marginBottom:'0.5rem', transform: active || isHovered ? 'scale(1.1)' : 'scale(1)', transition:'transform 0.25s ease' }}>{t.icon}</div>
                       <div style={{ fontWeight:700, color:active?C.skyDeep:C.textDark }}>{t.label}</div>
                     </div>
                   )
@@ -528,7 +576,21 @@ async function handleConfirm() {
                           <button key={slot.label}
                             disabled={isBooked || isUserBooked || loadingSlots}
                             onClick={() => !isBooked && !isUserBooked && setSelected(s => ({ ...s, time:slot.label }))}
-                            style={{ padding:'0.65rem 0.4rem', border:`1.5px solid ${isBooked?'#fca5a5':isUserBooked?'#fcd34d':isSel?C.skyBright:C.borderFaint}`, borderRadius:10, fontSize:'0.82rem', fontWeight:isSel?700:400, background:isBooked?'#fef2f2':isUserBooked?'#fffbeb':isSel?C.skyFaint:C.white, color:isBooked?'#ef4444':isUserBooked?'#d97706':isSel?C.skyDeep:C.textMid, cursor:isBooked||isUserBooked?'not-allowed':'pointer', transition:'all 0.15s', opacity:loadingSlots?0.6:1 }}>
+                            style={{
+                              padding: '0.65rem 0.4rem',
+                              border: isBooked ? '1.5px solid #fca5a5' : isUserBooked ? '1.5px solid #fcd34d' : isSel ? GLASS.borderActive : GLASS.borderIdle,
+                              borderRadius: 10,
+                              fontSize: '0.82rem',
+                              fontWeight: isSel ? 700 : 400,
+                              background: isBooked ? '#fef2f2' : isUserBooked ? '#fffbeb' : isSel ? GLASS.active : GLASS.base,
+                              backdropFilter: isBooked || isUserBooked ? 'none' : GLASS.blur,
+                              WebkitBackdropFilter: isBooked || isUserBooked ? 'none' : GLASS.blur,
+                              boxShadow: isBooked || isUserBooked ? 'none' : isSel ? GLASS.shadowActive : GLASS.shadowIdle,
+                              color: isBooked ? '#ef4444' : isUserBooked ? '#d97706' : isSel ? C.skyDeep : C.textMid,
+                              cursor: isBooked || isUserBooked ? 'not-allowed' : 'pointer',
+                              transition: 'all 0.2s ease',
+                              opacity: loadingSlots ? 0.6 : 1,
+                            }}>
                             {slot.label}
                             {(isBooked||isUserBooked) && <div style={{ fontSize:'0.6rem', marginTop:2 }}>{isUserBooked?'Your appt':'Booked'}</div>}
                           </button>

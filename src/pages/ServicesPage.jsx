@@ -62,6 +62,14 @@ const allServices = [
 
 const allTags = ['All', ...Array.from(new Set(allServices.flatMap(s => s.specialties)))]
 
+// ── Glass card palette ─────────────────────────────────────────
+const GLASS = {
+  bg:        'linear-gradient(160deg, rgba(255,255,255,0.72) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.68) 100%)',
+  bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(200,232,250,0.68) 55%, rgba(255,255,255,0.78) 100%)',
+  border:    '1px solid rgba(255,255,255,0.55)',
+  borderHov: '1px solid rgba(120,190,230,0.65)',
+}
+
 export default function ServicesPage() {
   const { navigate } = useRouter()
   const [activeTag, setActiveTag] = useState('All')
@@ -160,15 +168,21 @@ export default function ServicesPage() {
                 onMouseLeave={() => setHoveredIdx(null)}
                 style={{
                   position: 'relative',
+                  cursor: 'pointer',
+                  background: isHovered ? GLASS.bgHover : GLASS.bg,
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: isHovered ? GLASS.borderHov : GLASS.border,
                   transform: isHovered ? 'translateY(-8px) scale(1.015)' : 'translateY(0) scale(1)',
                   boxShadow: isHovered
-                    ? '0 20px 40px rgba(0,123,168,0.16), 0 6px 14px rgba(29,158,117,0.12)'
-                    : '0 2px 10px rgba(0,0,0,0.05)',
+                    ? '0 20px 44px rgba(0,123,168,0.22), 0 6px 16px rgba(29,158,117,0.14), inset 0 1px 0 rgba(255,255,255,0.6)'
+                    : '0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.5)',
                   borderRadius: '20px',
-                  transition: 'transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s ease',
+                  transition: 'transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s ease, background 0.35s ease, border 0.35s ease',
                   animation: `fadeSlideIn 0.5s ease both`,
                   animationDelay: `${i * 0.06}s`,
                 }}
+                onClick={() => navigate('/book', { serviceTitle: s.title, serviceSpecialties: s.specialties })}
               >
                 <div
                   className={`service-icon ${s.iconClass}`}
@@ -187,13 +201,15 @@ export default function ServicesPage() {
                   {s.specialties.map(tag => (
                     <span
                       key={tag}
-                      onClick={() => setActiveTag(tag)}
+                      onClick={(e) => { e.stopPropagation(); setActiveTag(tag) }}
                       style={{
                         fontSize: '0.7rem',
                         fontWeight: 600,
                         padding: '0.2rem 0.6rem',
                         borderRadius: '999px',
-                        background: 'rgba(29,158,117,0.08)',
+                        background: 'rgba(29,158,117,0.1)',
+                        backdropFilter: 'blur(4px)',
+                        border: '1px solid rgba(29,158,117,0.15)',
                         color: '#1d9e75',
                         cursor: 'pointer',
                       }}
@@ -214,10 +230,15 @@ export default function ServicesPage() {
 
                 <button
                   className="btn btn-primary service-card-btn"
-                  onClick={() => navigate('/book', {
-                    serviceTitle: s.title,
-                    serviceSpecialties: s.specialties,
-                  })}
+                  style={{
+                    background: 'linear-gradient(135deg, #007ba8 0%, #00bfff 100%)',
+                    boxShadow: '0 6px 18px rgba(0,150,210,0.3)',
+                    border: 'none',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate('/book', { serviceTitle: s.title, serviceSpecialties: s.specialties })
+                  }}
                 >
                   Book This Service
                 </button>

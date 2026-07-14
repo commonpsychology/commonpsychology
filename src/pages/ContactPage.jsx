@@ -17,7 +17,7 @@ const CONTACT_CSS = `
 
   .cp3-card {
     border-radius: 28px;
-    background: linear-gradient(180deg, var(--sky-light, #eaf4fb) 0%, var(--white) 38%);
+    background: linear-gradient(180deg, #c7e3f7 0%, var(--white) 42%);
     border: 1px solid var(--blue-pale);
     box-shadow: var(--shadow-soft, 0 20px 50px rgba(15,52,96,0.08));
     overflow: hidden;
@@ -220,7 +220,7 @@ const CONTACT_CSS = `
   }
   .cp3-success-card {
     border-radius: 28px;
-    background: linear-gradient(180deg, var(--sky-light, #eaf4fb) 0%, var(--white) 60%);
+    background: linear-gradient(180deg, #c7e3f7 0%, var(--white) 62%);
     border: 1px solid var(--blue-pale);
     padding: 3rem 2.5rem;
     box-shadow: var(--shadow-soft, 0 20px 50px rgba(15,52,96,0.08));

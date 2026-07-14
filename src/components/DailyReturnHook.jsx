@@ -136,7 +136,7 @@ export default function DailyReturnHook({ visible = true }) {
         @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
         .drh-root {
-          background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 45%, #ffffff 100%);
+          background: linear-gradient(135deg, #ffffff 0%, #eaf8ff 45%, #ffffff 100%);
           padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 5vw, 2rem);
           font-family: 'DM Sans', sans-serif;
           position: relative;
@@ -148,7 +148,7 @@ export default function DailyReturnHook({ visible = true }) {
           position: absolute;
           top: -120px; right: -120px;
           width: 400px; height: 400px;
-          background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(0,191,255,0.14) 0%, transparent 70%);
           pointer-events: none;
         }
 
@@ -157,7 +157,7 @@ export default function DailyReturnHook({ visible = true }) {
           position: absolute;
           bottom: -80px; left: -80px;
           width: 300px; height: 300px;
-          background: radial-gradient(circle, rgba(186,230,253,0.18) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(0,191,255,0.10) 0%, transparent 70%);
           pointer-events: none;
         }
 
@@ -178,7 +178,7 @@ export default function DailyReturnHook({ visible = true }) {
           font-weight: 600;
           letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: #0284c7;
+          color: #00BFFF;
           margin-bottom: 0.65rem;
           display: flex;
           align-items: center;
@@ -189,24 +189,24 @@ export default function DailyReturnHook({ visible = true }) {
           content: '';
           display: block;
           width: 30px; height: 1px;
-          background: #0284c7;
+          background: #00BFFF;
           opacity: 0.4;
         }
         .drh-title {
           font-family: 'Lora', serif;
           font-size: clamp(1.8rem, 4vw, 2.6rem);
-          color: #0c4a6e;
+          color: #036b96;
           font-weight: 600;
           line-height: 1.25;
           margin: 0 0 0.75rem;
         }
         .drh-title em {
           font-style: italic;
-          color: #0284c7;
+          color: #00BFFF;
         }
         .drh-subtitle {
           font-size: 0.95rem;
-          color: #4a7a9b;
+          color: #5b9bb8;
           max-width: 480px;
           margin: 0 auto;
           line-height: 1.7;
@@ -225,20 +225,20 @@ export default function DailyReturnHook({ visible = true }) {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          background: linear-gradient(135deg, #fff8e6, #fff3cc);
-          border: 1.5px solid #f5c842;
+          background: linear-gradient(135deg, #ffffff, #eaf8ff);
+          border: 1.5px solid #00BFFF;
           border-radius: 100px;
           padding: 0.5rem 1.1rem;
           font-size: 0.85rem;
           font-weight: 600;
-          color: #92400e;
-          box-shadow: 0 2px 12px rgba(245,200,66,0.2);
+          color: #036b96;
+          box-shadow: 0 2px 12px rgba(0,191,255,0.18);
         }
         .drh-streak-num {
           font-family: 'Lora', serif;
           font-size: 1.1rem;
           font-weight: 600;
-          color: #b45309;
+          color: #00BFFF;
         }
 
         /* ── Grid ── */
@@ -254,11 +254,11 @@ export default function DailyReturnHook({ visible = true }) {
 
         /* ── Cards ── */
         .drh-card {
-          background: linear-gradient(145deg, #ffffff, #f0f9ff);
+          background: linear-gradient(145deg, #ffffff, #f2fbff);
           border-radius: 20px;
           padding: 2rem;
-          border: 1.5px solid #bae6fd;
-          box-shadow: 0 4px 24px rgba(186,230,253,0.35);
+          border: 1.5px solid #b8ecff;
+          box-shadow: 0 4px 24px rgba(0,191,255,0.14);
           opacity: 0;
           transform: translateY(24px);
           transition: opacity 0.55s ease, transform 0.55s ease, box-shadow 0.2s ease;
@@ -268,7 +268,7 @@ export default function DailyReturnHook({ visible = true }) {
           transform: translateY(0);
         }
         .drh-card:hover {
-          box-shadow: 0 8px 32px rgba(56,189,248,0.18);
+          box-shadow: 0 8px 32px rgba(0,191,255,0.22);
         }
         .drh-card:nth-child(1) { transition-delay: 0.05s; }
         .drh-card:nth-child(2) { transition-delay: 0.15s; }
@@ -280,13 +280,13 @@ export default function DailyReturnHook({ visible = true }) {
           font-weight: 700;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #7ec8e3;
+          color: #6fd4ff;
           margin-bottom: 1rem;
         }
 
         /* ── Affirmation card ── */
         .drh-affirmation {
-          background: linear-gradient(135deg, #0c4a6e 0%, #0284c7 100%);
+          background: linear-gradient(135deg, #00BFFF 0%, #4fd2ff 100%);
           color: white;
           grid-column: span 2;
           display: flex;
@@ -306,7 +306,7 @@ export default function DailyReturnHook({ visible = true }) {
           top: -20px; left: 20px;
           font-family: 'Lora', serif;
           font-size: 12rem;
-          color: rgba(255,255,255,0.05);
+          color: rgba(255,255,255,0.12);
           line-height: 1;
           pointer-events: none;
         }
@@ -320,23 +320,23 @@ export default function DailyReturnHook({ visible = true }) {
           font-size: clamp(1.1rem, 2.5vw, 1.4rem);
           font-style: italic;
           line-height: 1.55;
-          color: rgba(255,255,255,0.95);
+          color: #ffffff;
           flex: 1;
         }
         .drh-affirmation-author {
           font-size: 0.78rem;
-          color: rgba(255,255,255,0.5);
+          color: rgba(255,255,255,0.75);
           margin-top: 0.6rem;
           font-style: normal;
           font-family: 'DM Sans', sans-serif;
         }
         .drh-day-badge {
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.2);
+          background: rgba(255,255,255,0.18);
+          border: 1px solid rgba(255,255,255,0.35);
           border-radius: 100px;
           padding: 0.3rem 0.9rem;
           font-size: 0.72rem;
-          color: rgba(255,255,255,0.7);
+          color: #ffffff;
           margin-top: 0.75rem;
           display: inline-block;
         }
@@ -357,41 +357,42 @@ export default function DailyReturnHook({ visible = true }) {
           gap: 0.3rem;
           padding: 0.75rem 0.4rem;
           border-radius: 14px;
-          border: 2px solid #bae6fd;
-          background: #f0f9ff;
+          border: 2px solid #b8ecff;
+          background: #ffffff;
           cursor: pointer;
           transition: all 0.18s ease;
           font-family: 'DM Sans', sans-serif;
         }
         .drh-mood-btn:hover {
-          border-color: #0284c7;
-          background: #e0f2fe;
+          border-color: #00BFFF;
+          background: #eaf8ff;
           transform: translateY(-3px);
         }
         .drh-mood-btn.selected {
-          border-color: #0284c7;
-          background: #e0f2fe;
-          box-shadow: 0 4px 16px rgba(2,132,199,0.18);
+          border-color: #00BFFF;
+          background: linear-gradient(135deg, #00BFFF, #4fd2ff);
+          box-shadow: 0 4px 16px rgba(0,191,255,0.3);
           transform: translateY(-3px) scale(1.05);
         }
+        .drh-mood-btn.selected .drh-mood-label { color: #ffffff; }
         .drh-mood-emoji { font-size: 1.5rem; }
-        .drh-mood-label { font-size: 0.62rem; font-weight: 600; color: #4a7a9b; }
+        .drh-mood-label { font-size: 0.62rem; font-weight: 600; color: #5b9bb8; }
         .drh-mood-response {
           margin-top: 1rem;
           padding: 0.85rem 1rem;
-          background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
+          background: linear-gradient(135deg, #eaf8ff, #ffffff);
           border-radius: 12px;
           font-size: 0.85rem;
-          color: #0c4a6e;
+          color: #036b96;
           font-weight: 500;
           line-height: 1.5;
-          border-left: 3px solid #0284c7;
+          border-left: 3px solid #00BFFF;
           animation: fadeSlideIn 0.4s ease;
         }
 
         /* ── Habit ── */
         .drh-habit-today {
-          border: 2px dashed #bae6fd;
+          border: 2px dashed #b8ecff;
           border-radius: 16px;
           padding: 1.25rem;
           display: flex;
@@ -404,14 +405,14 @@ export default function DailyReturnHook({ visible = true }) {
           overflow: hidden;
         }
         .drh-habit-today:hover {
-          border-color: #0284c7;
-          background: #f0f9ff;
+          border-color: #00BFFF;
+          background: #f2fbff;
           transform: translateX(4px);
         }
         .drh-habit-today.done {
           border-style: solid;
-          border-color: #1a7a4a;
-          background: #e8f8f0;
+          border-color: #00BFFF;
+          background: linear-gradient(135deg, #eaf8ff, #ffffff);
         }
         .drh-habit-icon-wrap {
           width: 52px; height: 52px;
@@ -422,13 +423,13 @@ export default function DailyReturnHook({ visible = true }) {
         }
         .drh-habit-name {
           font-weight: 600;
-          color: #0c4a6e;
+          color: #036b96;
           font-size: 0.95rem;
           line-height: 1.3;
         }
         .drh-habit-time {
           font-size: 0.72rem;
-          color: #4a7a9b;
+          color: #5b9bb8;
           margin-top: 0.2rem;
           font-weight: 500;
         }
@@ -436,15 +437,15 @@ export default function DailyReturnHook({ visible = true }) {
           margin-left: auto;
           width: 32px; height: 32px;
           border-radius: 50%;
-          border: 2px solid #bae6fd;
+          border: 2px solid #b8ecff;
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
           transition: all 0.22s ease;
           font-size: 0.9rem;
         }
         .drh-habit-today.done .drh-habit-check {
-          background: #1a7a4a;
-          border-color: #1a7a4a;
+          background: #00BFFF;
+          border-color: #00BFFF;
           color: white;
         }
         .drh-habit-other {
@@ -457,31 +458,31 @@ export default function DailyReturnHook({ visible = true }) {
           display: flex;
           align-items: center;
           gap: 0.35rem;
-          background: #e0f2fe;
+          background: #eaf8ff;
           border-radius: 100px;
           padding: 0.3rem 0.75rem;
           font-size: 0.75rem;
-          color: #0369a1;
+          color: #036b96;
           font-weight: 500;
           cursor: pointer;
-          border: 1px solid #bae6fd;
+          border: 1px solid #b8ecff;
           transition: all 0.15s ease;
         }
         .drh-habit-chip:hover {
-          background: #bae6fd;
-          border-color: #0284c7;
-          color: #0c4a6e;
+          background: #b8ecff;
+          border-color: #00BFFF;
+          color: #036b96;
         }
         .drh-habit-chip.done {
-          background: #e8f8f0;
-          border-color: #1a7a4a;
-          color: #1a7a4a;
+          background: linear-gradient(135deg, #00BFFF, #4fd2ff);
+          border-color: #00BFFF;
+          color: #ffffff;
         }
 
         /* ── Resource card ── */
         .drh-refresh-card {
-          background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
-          border: 1.5px solid #bae6fd;
+          background: linear-gradient(145deg, #ffffff, #eaf8ff);
+          border: 1.5px solid #b8ecff;
         }
         .drh-resource-list {
           display: flex;
@@ -496,15 +497,15 @@ export default function DailyReturnHook({ visible = true }) {
           padding: 0.85rem 1rem;
           background: white;
           border-radius: 12px;
-          border: 1px solid #bae6fd;
+          border: 1px solid #b8ecff;
           cursor: pointer;
           transition: all 0.18s ease;
           text-decoration: none;
         }
         .drh-resource-item:hover {
-          border-color: #0284c7;
+          border-color: #00BFFF;
           transform: translateX(4px);
-          box-shadow: 0 4px 12px rgba(2,132,199,0.12);
+          box-shadow: 0 4px 12px rgba(0,191,255,0.18);
         }
         .drh-resource-icon {
           width: 38px; height: 38px;
@@ -516,17 +517,17 @@ export default function DailyReturnHook({ visible = true }) {
         .drh-resource-title {
           font-size: 0.85rem;
           font-weight: 600;
-          color: #0c4a6e;
+          color: #036b96;
           line-height: 1.3;
         }
         .drh-resource-sub {
           font-size: 0.72rem;
-          color: #4a7a9b;
+          color: #5b9bb8;
           margin-top: 1px;
         }
         .drh-resource-arrow {
           margin-left: auto;
-          color: #7ec8e3;
+          color: #6fd4ff;
           font-size: 0.9rem;
           flex-shrink: 0;
           transition: transform 0.18s;
@@ -545,7 +546,7 @@ export default function DailyReturnHook({ visible = true }) {
         .drh-cta-text {
           font-family: 'Lora', serif;
           font-size: clamp(1rem, 2vw, 1.2rem);
-          color: #0369a1;
+          color: #00BFFF;
           margin-bottom: 1.25rem;
           font-style: italic;
         }
@@ -553,7 +554,7 @@ export default function DailyReturnHook({ visible = true }) {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          background: linear-gradient(135deg, #0c4a6e, #0284c7);
+          background: linear-gradient(135deg, #00BFFF, #4fd2ff);
           color: white;
           border: none;
           border-radius: 100px;
@@ -562,31 +563,31 @@ export default function DailyReturnHook({ visible = true }) {
           font-size: 0.9rem;
           font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 6px 24px rgba(2,132,199,0.3);
+          box-shadow: 0 6px 24px rgba(0,191,255,0.35);
           transition: all 0.2s ease;
           text-decoration: none;
         }
         .drh-cta-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 32px rgba(2,132,199,0.4);
+          box-shadow: 0 10px 32px rgba(0,191,255,0.45);
         }
         .drh-notify-badge {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
           background: white;
-          border: 1.5px solid #bae6fd;
+          border: 1.5px solid #00BFFF;
           border-radius: 100px;
           padding: 0.45rem 1rem;
           font-size: 0.78rem;
-          color: #0369a1;
+          color: #00BFFF;
           font-weight: 500;
           margin-left: 0.75rem;
           cursor: pointer;
           transition: all 0.18s;
           vertical-align: middle;
         }
-        .drh-notify-badge:hover { border-color: #0284c7; background: #e0f2fe; }
+        .drh-notify-badge:hover { border-color: #00BFFF; background: #eaf8ff; }
 
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(8px); }
@@ -599,7 +600,7 @@ export default function DailyReturnHook({ visible = true }) {
         .drh-live-dot {
           width: 7px; height: 7px;
           border-radius: 50%;
-          background: #22c55e;
+          background: #00BFFF;
           display: inline-block;
           animation: pulse-dot 1.8s ease infinite;
           flex-shrink: 0;
@@ -630,7 +631,7 @@ export default function DailyReturnHook({ visible = true }) {
               {streak === 1 ? ' day' : ' day'} visit streak
             </div>
             {streak >= 3 && (
-              <div className="drh-streak-pill" style={{ background: 'linear-gradient(135deg,#e8f8f0,#d1fae5)', borderColor:'#6ee7b7', color:'#065f46' }}>
+              <div className="drh-streak-pill" style={{ background: 'linear-gradient(135deg,#ffffff,#eaf8ff)', borderColor:'#00BFFF', color:'#036b96' }}>
                 🌱 {streak >= 7 ? 'Week warrior!' : streak >= 5 ? 'Building momentum' : 'Great start!'}
               </div>
             )}
@@ -643,7 +644,7 @@ export default function DailyReturnHook({ visible = true }) {
             <div className={`drh-card drh-affirmation ${hasAnimated ? 'animated' : ''}`}>
               <div className="drh-affirmation-icon">🌿</div>
               <div>
-                <div className="drh-card-label" style={{ color:'rgba(255,255,255,0.4)' }}>Today's affirmation</div>
+                <div className="drh-card-label" style={{ color:'rgba(255,255,255,0.7)' }}>Today's affirmation</div>
                 <div className="drh-affirmation-text">
                   "{affirmation.text}"
                   <div className="drh-affirmation-author">{affirmation.author}</div>
@@ -657,10 +658,10 @@ export default function DailyReturnHook({ visible = true }) {
             {/* Card 2 — Mood */}
             <div className={`drh-card ${hasAnimated ? 'animated' : ''}`}>
               <div className="drh-card-label">How are you right now?</div>
-              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#0c4a6e', marginBottom:'0.25rem', fontWeight:600 }}>
+              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#036b96', marginBottom:'0.25rem', fontWeight:600 }}>
                 One tap. No pressure.
               </div>
-              <div style={{ fontSize:'0.8rem', color:'#4a7a9b', marginBottom:'1rem', lineHeight:1.5 }}>
+              <div style={{ fontSize:'0.8rem', color:'#5b9bb8', marginBottom:'1rem', lineHeight:1.5 }}>
                 Tracking your mood, even briefly, rewires your brain toward self-awareness.
               </div>
               <div className="drh-mood-grid">
@@ -685,10 +686,10 @@ export default function DailyReturnHook({ visible = true }) {
             {/* Card 3 — Habit */}
             <div className={`drh-card ${hasAnimated ? 'animated' : ''}`}>
               <div className="drh-card-label">Today's micro-habit</div>
-              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#0c4a6e', marginBottom:'0.25rem', fontWeight:600 }}>
+              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#036b96', marginBottom:'0.25rem', fontWeight:600 }}>
                 Just one tiny thing
               </div>
-              <div style={{ fontSize:'0.8rem', color:'#4a7a9b', marginBottom:'1rem', lineHeight:1.5 }}>
+              <div style={{ fontSize:'0.8rem', color:'#5b9bb8', marginBottom:'1rem', lineHeight:1.5 }}>
                 Tiny habits compound. Do this one thing and your brain logs a win.
               </div>
 
@@ -709,7 +710,7 @@ export default function DailyReturnHook({ visible = true }) {
                 </div>
               </div>
 
-              <div style={{ fontSize:'0.72rem', color:'#7ec8e3', margin:'0.85rem 0 0.4rem', fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>
+              <div style={{ fontSize:'0.72rem', color:'#6fd4ff', margin:'0.85rem 0 0.4rem', fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>
                 Or try another
               </div>
               <div className="drh-habit-other">
@@ -728,17 +729,17 @@ export default function DailyReturnHook({ visible = true }) {
             {/* Card 4 — Resources */}
             <div className={`drh-card drh-refresh-card ${hasAnimated ? 'animated' : ''}`}>
               <div className="drh-card-label">Explore today</div>
-              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#0c4a6e', marginBottom:'0.25rem', fontWeight:600 }}>
+              <div style={{ fontFamily:'Lora, serif', fontSize:'1.05rem', color:'#036b96', marginBottom:'0.25rem', fontWeight:600 }}>
                 New resources, always
               </div>
-              <div style={{ fontSize:'0.8rem', color:'#4a7a9b', marginBottom:'1rem', lineHeight:1.5 }}>
+              <div style={{ fontSize:'0.8rem', color:'#5b9bb8', marginBottom:'1rem', lineHeight:1.5 }}>
                 Something fresh for your mind. Updated weekly.
               </div>
               <div className="drh-resource-list">
                 {[
-                  { icon:'🧠', bg:'#e0f2fe', title:'5-Minute Mindfulness Reset', sub:'Guided · Audio', href:'/resources' },
-                  { icon:'📖', bg:'#e0f2fe', title:'Understanding Anxiety', sub:'Article · 4 min read', href:'/resources' },
-                  { icon:'🩺', bg:'#e0f2fe', title:'Talk to a therapist today', sub:'Book a free 15-min call', href:'/book' },
+                  { icon:'🧠', bg:'#eaf8ff', title:'5-Minute Mindfulness Reset', sub:'Guided · Audio', href:'/resources' },
+                  { icon:'📖', bg:'#eaf8ff', title:'Understanding Anxiety', sub:'Article · 4 min read', href:'/resources' },
+                  { icon:'🩺', bg:'#eaf8ff', title:'Talk to a therapist today', sub:'Book a free 15-min call', href:'/book' },
                 ].map((r, i) => (
                   <a key={i} href={r.href} className="drh-resource-item">
                     <div className="drh-resource-icon" style={{ background: r.bg }}>{r.icon}</div>
