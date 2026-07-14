@@ -82,7 +82,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
           animation: 'noticeIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards',
         }}
       >
-        {/* Faint watermark logo */}
+        {/* Faint watermark logo — center background */}
         <img
           src={HEADER_IMAGE}
           alt=""
@@ -98,6 +98,21 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
             pointerEvents: 'none',
             userSelect: 'none',
             zIndex: 0,
+          }}
+        />
+
+        {/* Top-right corner logo */}
+        <img
+          src={HEADER_IMAGE}
+          alt="logo"
+          style={{
+            position: 'absolute',
+            top: '1.2rem',
+            right: '3.4rem',
+            width: 50,
+            height: 50,
+            objectFit: 'contain',
+            zIndex: 1,
           }}
         />
 
@@ -148,11 +163,11 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
               gap: 18,
-              margin: '0.5rem 0 1.6rem',
-              textAlign: 'center',
-              padding: '1.1rem 1.5rem',
+              margin: '0.5rem 0 1.2rem',
+              textAlign: 'left',
+              padding: '1.1rem 1.5rem 0.4rem 8rem',
             }}
           >
             <img
@@ -173,6 +188,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
                   letterSpacing: '0.01em',
                   color: '#2e7d4f',
                   lineHeight: 1.25,
+                  marginLeft: '-1.4rem',
                 }}
               >
                 {HEADING_NP}
