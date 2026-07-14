@@ -9,6 +9,18 @@ const MOODS = ['😞','😔','😐','🙂','😊','😄','🤩']
 
 const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
+// ── Glass card palette (bluish-white, frosted) — identical to the
+// therapist-card / session-type glass treatment on the Booking page ────────
+const GLASS = {
+  base:      'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%)',
+  baseHover: 'linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(198,232,250,0.7) 55%, rgba(255,255,255,0.82) 100%)',
+  borderIdle:   '1px solid rgba(255,255,255,0.6)',
+  borderHover:  '1px solid rgba(120,190,230,0.7)',
+  shadowIdle:   '0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55)',
+  shadowHover:  '0 14px 32px rgba(0,123,168,0.18), inset 0 1px 0 rgba(255,255,255,0.6)',
+  blur: 'blur(14px)',
+}
+
 /* ─────────────────────────────────────────────────────────────
    CSS  (mobile responsive additions included)
 ───────────────────────────────────────────────────────────── */
@@ -29,10 +41,14 @@ const PORTAL_CSS = `
   .notif-load-more { width:100%; margin-top:8px; font-size:12px; padding:8px; border-radius:8px; border:1px solid var(--blue-pale); background:transparent; color:var(--text-light); cursor:pointer; font-family:var(--font-body); transition:background 0.15s; }
   .notif-load-more:hover { background:var(--off-white); }
 
-  /* ── Portal tab bar: scrolls on desktop, 3-per-row grid on mobile ── */
+  /* ── Portal tab bar: frosted glass, scrolls on desktop, 3-per-row grid on mobile ── */
   .portal-tabbar {
-    background: var(--white);
-    border-bottom: 1px solid var(--blue-pale);
+    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-top: none;
+    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
     padding: 0 clamp(0.5rem,4vw,2rem);
     display: flex;
     gap: 0;
@@ -58,6 +74,7 @@ const PORTAL_CSS = `
     font-weight: 700;
     color: var(--sky);
     border-bottom-color: var(--sky);
+    background: rgba(255,255,255,0.45);
   }
 
   /* ── Notification toolbar ── */
@@ -99,14 +116,14 @@ const PORTAL_CSS = `
       font-size: 0.72rem;
       text-align: center;
       border-bottom: none;
-      border-right: 1px solid var(--blue-pale);
+      border-right: 1px solid rgba(255,255,255,0.6);
       white-space: normal;
       line-height: 1.25;
     }
     /* no right border on every 3rd tab */
     .portal-tab-btn:nth-child(3n) { border-right: none; }
     /* top border for second row */
-    .portal-tab-btn:nth-child(n+4) { border-top: 1px solid var(--blue-pale); }
+    .portal-tab-btn:nth-child(n+4) { border-top: 1px solid rgba(255,255,255,0.6); }
     .portal-tab-btn.active {
       background: var(--sky-light);
       border-bottom: 2.5px solid var(--sky) !important;
@@ -359,16 +376,16 @@ function MessagingPanel() {
       <p style={{ fontSize:'0.85rem', color:'var(--text-light)', marginBottom:'2rem', lineHeight:1.65 }}>Reach out via WhatsApp or Messenger — we typically respond within a few hours during business hours.</p>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:'1.25rem' }}>
         {Object.entries(CONTACT_INFO).map(([key, info]) => (
-          <div key={key} style={{ background:'var(--white)', borderRadius:16, border:'1.5px solid var(--blue-pale)', overflow:'hidden', boxShadow:'0 4px 20px rgba(0,191,255,0.06)', transition:'transform 0.2s, box-shadow 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 28px rgba(0,191,255,0.12)' }}
-            onMouseLeave={e => { e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='0 4px 20px rgba(0,191,255,0.06)' }}>
+          <div key={key} style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:16, border:GLASS.borderIdle, overflow:'hidden', boxShadow:GLASS.shadowIdle, transition:'transform 0.2s, box-shadow 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=GLASS.shadowHover }}
+            onMouseLeave={e => { e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow=GLASS.shadowIdle }}>
             <div style={{ background:info.faint, borderBottom:`1.5px solid ${info.color}22`, padding:'1.5rem 1.5rem 1.25rem', display:'flex', alignItems:'center', gap:'0.85rem' }}>
               <div style={{ width:52, height:52, borderRadius:'50%', background:info.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', flexShrink:0, boxShadow:`0 4px 14px ${info.color}44` }}>{info.emoji}</div>
               <div style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--blue-deep)', fontWeight:700 }}>{info.label}</div>
             </div>
             <div style={{ padding:'1.25rem 1.5rem' }}>
               <div style={{ fontSize:'0.65rem', fontWeight:800, color:'var(--text-light)', textTransform:'uppercase', letterSpacing:'0.09em', marginBottom:'0.5rem' }}>{key==='whatsapp'?'Phone Number':'Page Handle'}</div>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#f8fafc', borderRadius:10, padding:'0.65rem 0.85rem', border:'1px solid var(--blue-pale)', marginBottom:'1.1rem', gap:'0.75rem' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(255,255,255,0.55)', borderRadius:10, padding:'0.65rem 0.85rem', border:GLASS.borderIdle, marginBottom:'1.1rem', gap:'0.75rem' }}>
                 <span style={{ fontFamily:'var(--font-display)', fontSize:'1.05rem', color:'var(--blue-deep)', fontWeight:700 }}>{info.number}</span>
                 <button onClick={() => copyToClipboard(info.number, key)} style={{ padding:'0.3rem 0.8rem', borderRadius:7, border:`1.5px solid ${copied===key?'#22c55e':'var(--blue-pale)'}`, background:copied===key?'#e8fdf0':'var(--white)', color:copied===key?'#065f46':'var(--text-mid)', fontSize:'0.74rem', fontWeight:700, cursor:'pointer', transition:'all 0.18s', whiteSpace:'nowrap', fontFamily:'var(--font-body)' }}>{copied===key?'✓ Copied':'⎘ Copy'}</button>
               </div>
@@ -381,7 +398,7 @@ function MessagingPanel() {
           </div>
         ))}
       </div>
-      <div style={{ marginTop:'2rem', background:'var(--off-white)', borderRadius:12, padding:'1.25rem 1.5rem', border:'1px solid var(--earth-cream)', display:'flex', alignItems:'flex-start', gap:'0.75rem' }}>
+      <div style={{ marginTop:'2rem', background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:12, padding:'1.25rem 1.5rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, display:'flex', alignItems:'flex-start', gap:'0.75rem' }}>
         <span style={{ fontSize:'1.2rem', flexShrink:0, marginTop:2 }}>🕐</span>
         <div>
           <div style={{ fontWeight:700, color:'var(--blue-deep)', fontSize:'0.88rem', marginBottom:'0.3rem' }}>Response Hours</div>
@@ -817,12 +834,12 @@ async function loadLoyaltyStatus() {
           <div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'1rem', marginBottom:'2rem' }}>
             {[
-                { label:'Sessions Completed', val:stats?.sessions??'…',         icon:'✅', color:'var(--sky-light)' },
-                { label:'Next Appointment',   val:stats?.nextSession??'…',      icon:'📅', color:'var(--green-mist)' },
-                { label:'Log Streak',         val:`${stats?.streak??'…'} days`, icon:'🔥', color:'#fff5e6' },
-                { label:'Avg Mood (7 days)',  val:stats?.moodAvg??'…',          icon:'😊', color:'var(--blue-mist)' },
+                { label:'Sessions Completed', val:stats?.sessions??'…',         icon:'✅' },
+                { label:'Next Appointment',   val:stats?.nextSession??'…',      icon:'📅' },
+                { label:'Log Streak',         val:`${stats?.streak??'…'} days`, icon:'🔥' },
+                { label:'Avg Mood (7 days)',  val:stats?.moodAvg??'…',          icon:'😊' },
               ].map((c) => (
-                <div key={c.label} style={{ background:c.color, borderRadius:'var(--radius-md)', padding:'1.25rem', border:'1px solid var(--blue-pale)' }}>
+                <div key={c.label} style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-md)', padding:'1.25rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle }}>
                   <div style={{ fontSize:'1.5rem', marginBottom:'0.4rem' }}>{c.icon}</div>
                   <div style={{ fontFamily:'var(--font-display)', fontSize:'1.3rem', color:'var(--blue-deep)' }}>{c.val}</div>
                   <div style={{ fontSize:'0.75rem', color:'var(--text-light)', fontWeight:600 }}>{c.label}</div>
@@ -841,10 +858,13 @@ async function loadLoyaltyStatus() {
                 <div style={{
                   background: loyaltyStatus.isEligible
                     ? 'linear-gradient(135deg,#fff7e6,#fffbeb)'
-                    : 'var(--white)',
+                    : GLASS.base,
+                  backdropFilter: GLASS.blur,
+                  WebkitBackdropFilter: GLASS.blur,
                   borderRadius: 'var(--radius-lg)',
                   padding: '1.75rem 2rem',
-                  border: `1.5px solid ${loyaltyStatus.isEligible ? '#fbbf24' : 'var(--blue-pale)'}`,
+                  border: loyaltyStatus.isEligible ? '1.5px solid #fbbf24' : GLASS.borderIdle,
+                  boxShadow: loyaltyStatus.isEligible ? 'none' : GLASS.shadowIdle,
                   marginBottom: '1.5rem',
                   position: 'relative',
                   overflow: 'hidden',
@@ -889,7 +909,7 @@ async function loadLoyaltyStatus() {
               )
             })()}
 
-            <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'2rem', border:'1px solid var(--blue-pale)', marginBottom:'1.5rem' }}>
+            <div style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-lg)', padding:'2rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, marginBottom:'1.5rem' }}>
               <div style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', color:'var(--blue-deep)', marginBottom:'1rem' }}>How are you feeling today?</div>
               <div style={{ display:'flex', gap:'0.6rem', flexWrap:'wrap' }}>
                 {MOODS.map((e,i) => (
@@ -919,7 +939,7 @@ async function loadLoyaltyStatus() {
             {loadingAppts ? (
               <p style={{ color:'var(--text-light)' }}>Loading…</p>
             ) : upcoming.length === 0 ? (
-              <div style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'2rem', textAlign:'center', border:'1px solid var(--blue-pale)', marginBottom:'2rem' }}>
+              <div style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-md)', padding:'2rem', textAlign:'center', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, marginBottom:'2rem' }}>
                 <p style={{ color:'var(--text-light)', marginBottom:'1rem' }}>No upcoming appointments.</p>
                 <button className="btn btn-primary" onClick={() => navigate('/book')}>Book Your First Session →</button>
               </div>
@@ -1000,7 +1020,7 @@ async function loadLoyaltyStatus() {
             {showPastAppts && (past.length === 0 ? (
               <p style={{ color:'var(--text-light)' }}>No past sessions yet.</p>
           ) : past.map((a) => (
-              <div key={a.id} style={{ background:'var(--off-white)', borderRadius:'var(--radius-md)', padding:'1rem 1.5rem', border:'1px solid var(--earth-cream)', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.5rem', flexWrap:'wrap', gap:'0.75rem' }}>
+              <div key={a.id} style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-md)', padding:'1rem 1.5rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.5rem', flexWrap:'wrap', gap:'0.75rem' }}>
                 <div>
                   <div style={{ fontWeight:600, color:'var(--text-mid)' }}>{a.therapists?.profiles?.full_name || 'Therapist'} · {fmtDate(a.scheduled_at)}</div>
                   <span style={{ fontSize:'0.75rem', fontWeight:700, textTransform:'uppercase', color:a.status==='completed'?'var(--green-deep)':'#c0392b' }}>{a.status}</span>
@@ -1022,7 +1042,7 @@ async function loadLoyaltyStatus() {
               </div>
 
               {loadingRoomBookings ? (
-                <div style={{ background:'#ffffff', borderRadius:16, border:'1px solid #e0f2fe', padding:'2rem', textAlign:'center' }}>
+                <div style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:16, border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, padding:'2rem', textAlign:'center' }}>
                   <div style={{ display:'inline-flex', alignItems:'center', gap:'0.5rem', color:'#94a3b8', fontSize:'0.85rem' }}>
                     <span style={{ display:'inline-block', width:16, height:16, border:'2.5px solid #e0f2fe', borderTopColor:'#0ea5e9', borderRadius:'50%', animation:'spin 0.7s linear infinite' }}/>
                     Loading your room bookings…
@@ -1066,13 +1086,13 @@ async function loadLoyaltyStatus() {
           <div>
             <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.5rem' }}>Mood Log</h2>
             {moodLogs.length === 0 ? (
-              <div style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'2rem', textAlign:'center', border:'1px solid var(--blue-pale)' }}>
+              <div style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-md)', padding:'2rem', textAlign:'center', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle }}>
                 <p style={{ color:'var(--text-light)', marginBottom:'1rem' }}>No mood logs yet.</p>
                 <button className="btn btn-outline" onClick={() => setTab('Overview')}>Log Mood Now</button>
               </div>
             ) : (
               <>
-                <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'1.5rem', border:'1px solid var(--blue-pale)', marginBottom:'1.5rem' }}>
+                <div style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-lg)', padding:'1.5rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, marginBottom:'1.5rem' }}>
                   <div style={{ fontSize:'0.75rem', fontWeight:700, color:'var(--text-light)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'1rem' }}>Last {Math.min(moodLogs.length,14)} days</div>
                   <div style={{ display:'flex', alignItems:'flex-end', gap:'0.5rem', height:120 }}>
                     {moodLogs.slice(0,14).reverse().map((m,i) => (
@@ -1085,7 +1105,7 @@ async function loadLoyaltyStatus() {
                   </div>
                 </div>
                 {moodLogs.map((m,i) => (
-                  <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'1rem 1.25rem', border:'1px solid var(--blue-pale)', marginBottom:'0.5rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <div key={i} style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-md)', padding:'1rem 1.25rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, marginBottom:'0.5rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
                       <span style={{ fontSize:'1.5rem' }}>{MOODS[Math.min(m.mood_score-1,MOODS.length-1)]}</span>
                       <div>
@@ -1106,13 +1126,13 @@ async function loadLoyaltyStatus() {
         {tab === 'Journal' && (
           <div>
             <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--blue-deep)', marginBottom:'1.5rem' }}>My Journal</h2>
-            <div style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', padding:'1.75rem', border:'1px solid var(--blue-pale)', marginBottom:'2rem' }}>
+            <div style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-lg)', padding:'1.75rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, marginBottom:'2rem' }}>
               <h3 style={{ fontSize:'1rem', color:'var(--blue-deep)', marginBottom:'1rem', fontFamily:'var(--font-display)' }}>✍️ New Entry</h3>
               <input placeholder="Title (optional)" value={newEntry.title} onChange={e => setNewEntry(n => ({ ...n, title:e.target.value }))}
-                style={{ width:'100%', padding:'0.7rem 1rem', border:'1.5px solid var(--blue-pale)', borderRadius:10, fontSize:'0.95rem', marginBottom:'0.75rem', boxSizing:'border-box', outline:'none', fontFamily:'var(--font-body)', color:'#1a3a4a' }}/>
+                style={{ width:'100%', padding:'0.7rem 1rem', border:'1.5px solid var(--blue-pale)', borderRadius:10, fontSize:'0.95rem', marginBottom:'0.75rem', boxSizing:'border-box', outline:'none', fontFamily:'var(--font-body)', color:'#1a3a4a', background:'rgba(255,255,255,0.6)' }}/>
               <textarea placeholder="What's on your mind today? Write freely — this is your private space." value={newEntry.content} rows={5}
                 onChange={e => setNewEntry(n => ({ ...n, content:e.target.value }))}
-                style={{ width:'100%', padding:'0.7rem 1rem', border:'1.5px solid var(--blue-pale)', borderRadius:10, fontSize:'0.9rem', resize:'vertical', boxSizing:'border-box', outline:'none', fontFamily:'var(--font-body)', color:'#1a3a4a', lineHeight:1.7 }}/>
+                style={{ width:'100%', padding:'0.7rem 1rem', border:'1.5px solid var(--blue-pale)', borderRadius:10, fontSize:'0.9rem', resize:'vertical', boxSizing:'border-box', outline:'none', fontFamily:'var(--font-body)', color:'#1a3a4a', lineHeight:1.7, background:'rgba(255,255,255,0.6)' }}/>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'0.85rem' }}>
                 <span style={{ fontSize:'0.75rem', color:'var(--text-light)' }}>{newEntry.content.length} characters</span>
                 <button className="btn btn-primary" onClick={saveJournalEntry} disabled={savingEntry || !newEntry.content.trim()} style={{ opacity:savingEntry||!newEntry.content.trim()?0.6:1 }}>
@@ -1125,9 +1145,9 @@ async function loadLoyaltyStatus() {
             ) : (
               <div style={{ display:'flex', flexDirection:'column', gap:'0.85rem' }}>
                 {entries.map((e,i) => (
-                  <div key={i} onClick={() => setOpenEntry(e)} style={{ background:'var(--white)', borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:'1px solid var(--blue-pale)', cursor:'pointer', transition:'all 0.18s' }}
-                    onMouseEnter={el => { el.currentTarget.style.borderColor='var(--sky)'; el.currentTarget.style.boxShadow='0 4px 16px rgba(0,191,255,0.1)' }}
-                    onMouseLeave={el => { el.currentTarget.style.borderColor='var(--blue-pale)'; el.currentTarget.style.boxShadow='none' }}>
+                  <div key={i} onClick={() => setOpenEntry(e)} style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-md)', padding:'1.25rem 1.5rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, cursor:'pointer', transition:'all 0.18s' }}
+                    onMouseEnter={el => { el.currentTarget.style.background=GLASS.baseHover; el.currentTarget.style.boxShadow=GLASS.shadowHover }}
+                    onMouseLeave={el => { el.currentTarget.style.background=GLASS.base; el.currentTarget.style.boxShadow=GLASS.shadowIdle }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.65rem', gap:'1rem' }}>
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--blue-deep)', fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{e.title||'Untitled Entry'}</div>

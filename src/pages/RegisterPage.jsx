@@ -12,12 +12,15 @@ const CSS = `
     align-items: stretch;
   }
   .reg-left {
-    background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
+    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 3rem 2.5rem;
-    border-right: 1px solid rgba(0,0,0,0.06);
+    border-right: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
   }
   .reg-right {
     display: flex;
@@ -27,12 +30,15 @@ const CSS = `
     overflow-y: auto;
   }
   .reg-card {
-    background: white;
+    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.6);
     border-radius: 20px;
     padding: clamp(1.75rem, 4vw, 2.5rem);
     width: 100%;
     max-width: 460px;
-    box-shadow: 0 8px 48px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
     margin: 1rem 0;
   }
   .reg-input {
@@ -70,13 +76,17 @@ const CSS = `
     display: flex;
     align-items: center;
     gap: 10px;
-    background: white;
+    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.6);
     border-radius: 10px;
     padding: 0.75rem 1rem;
     font-size: 0.85rem;
     color: var(--text-mid);
     font-weight: 500;
     font-family: var(--font-body);
+    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
   }
   .reg-phone-row {
     display: flex;

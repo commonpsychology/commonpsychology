@@ -10,8 +10,30 @@ const C = {
   border: '#b0d4e8', borderFaint: '#e3f2fa',
   danger: '#e0504d', dangerBg: '#fdf1f0', dangerBorder: '#f3c7c5',
 }
-const btnGrad   = `linear-gradient(135deg,#007BA8 0%,#00BFFF 100%)`
-const heroGrad  = `radial-gradient(120% 160% at 15% 0%, #00D2FF 0%, transparent 55%), radial-gradient(100% 140% at 100% 100%, #005C82 0%, transparent 60%), linear-gradient(135deg,#007BA8 0%,#009FD4 45%,#00BFFF 85%,#22d3ee 100%)`
+const btnGrad = `linear-gradient(135deg,#007BA8 0%,#00BFFF 100%)`
+
+// ── Glass card palette — same bluish-white frosted look used across
+//    Services / Store / Booking / Resources / Staff ──
+const GLASS = {
+  bg:        'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%)',
+  border:    '1px solid rgba(255,255,255,0.6)',
+  shadow:    '0 18px 48px -16px rgba(0,123,168,0.24), 0 4px 14px rgba(0,123,168,0.08), inset 0 1px 0 rgba(255,255,255,0.55)',
+  blur:      'blur(18px)',
+}
+// Input surfaces sit one tone lighter than the card, still glassy
+const FIELD_GLASS = {
+  idle:    'rgba(255,255,255,0.55)',
+  focused: 'rgba(255,255,255,0.85)',
+}
+
+// ── Header background — same soft, layered glass hero used on
+//    Services / Booking so the whole account flow feels of a piece ──
+const heroGrad = `
+  radial-gradient(ellipse 80% 60% at 20% 30%, rgba(180,230,210,0.5) 0%, transparent 70%),
+  radial-gradient(ellipse 70% 80% at 85% 10%, rgba(186,220,248,0.55) 0%, transparent 65%),
+  radial-gradient(ellipse 60% 50% at 55% 90%, rgba(254,243,199,0.4) 0%, transparent 60%),
+  linear-gradient(160deg, #eefaf6 0%, #e6f4fb 45%, #fdfbe9 100%)
+`
 
 const STAGES = ['email', 'otp', 'newPassword', 'success']
 const STAGE_META = {
@@ -73,9 +95,10 @@ function Field({ label, value, onChange, placeholder, type = 'text', maxLength, 
         onBlur={() => setFocused(false)}
         style={{
           width: '100%', padding: '0.85rem 1rem',
-          border: `1.5px solid ${focused ? C.skyBright : C.borderFaint}`,
+          border: `1.5px solid ${focused ? C.skyBright : 'rgba(176,212,232,0.55)'}`,
           borderRadius: 12, fontFamily: 'var(--font-body)', fontSize: '0.96rem',
-          color: C.textDark, background: focused ? C.skyGhost : C.skyFainter,
+          color: C.textDark, background: focused ? FIELD_GLASS.focused : FIELD_GLASS.idle,
+          backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
           outline: 'none', boxSizing: 'border-box',
           boxShadow: focused ? `0 0 0 4px rgba(0,191,255,0.12)` : 'none',
           transition: 'all 0.2s ease', letterSpacing: type === 'tel' ? '0.55em' : 'normal',
@@ -114,10 +137,12 @@ function StrengthBar({ password }) {
 function Card({ children, badge }) {
   return (
     <div style={{
-      background: `linear-gradient(180deg, ${C.white} 0%, ${C.skyGhost} 100%)`,
+      background: GLASS.bg,
+      backdropFilter: GLASS.blur,
+      WebkitBackdropFilter: GLASS.blur,
       borderRadius: 22,
-      border: `1.5px solid ${C.borderFaint}`,
-      boxShadow: `0 18px 48px -16px rgba(0,123,168,0.28), 0 4px 14px rgba(0,123,168,0.08)`,
+      border: GLASS.border,
+      boxShadow: GLASS.shadow,
       overflow: 'hidden', position: 'relative',
     }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: btnGrad }} />
@@ -125,9 +150,10 @@ function Card({ children, badge }) {
         {badge && (
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: C.skyFaint, color: C.skyDeep, borderRadius: 100,
+            background: 'rgba(224,247,255,0.75)', color: C.skyDeep, borderRadius: 100,
             padding: '0.3rem 0.85rem', fontFamily: 'var(--font-body)', fontSize: '0.72rem',
             fontWeight: 800, marginBottom: '1.25rem', letterSpacing: '0.02em',
+            border: '1px solid rgba(120,190,230,0.4)',
           }}>
             <span>{badge.icon}</span>{badge.label}
           </div>
@@ -191,20 +217,20 @@ export default function ForgotPasswordPage() {
     <div className="page-wrapper" style={{ margin: 0, padding: 0, display: 'block', background: `linear-gradient(180deg, ${C.skyGhost} 0%, ${C.skyFainter} 100%)`, minHeight: '100vh' }}>
       <style>{`html, body, #root { margin: 0; padding: 0; } .page-wrapper { margin: 0 !important; padding: 0 !important; }`}</style>
       <div style={{ background: heroGrad, padding: '4.5rem 4rem 4.25rem', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: -60, right: -40, width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: -90, left: '12%', width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '35%', right: '22%', width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: -60, right: -40, width: 260, height: 260, borderRadius: '50%', background: 'rgba(0,191,255,0.14)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -90, left: '12%', width: 200, height: 200, borderRadius: '50%', background: 'rgba(29,158,117,0.10)', filter: 'blur(28px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '35%', right: '22%', width: 90, height: 90, borderRadius: '50%', background: 'rgba(254,224,150,0.18)', filter: 'blur(20px)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative' }}>
-          <button onClick={() => navigate('/signin')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.28)', color: 'rgba(255,255,255,0.9)', borderRadius: 100, padding: '0.32rem 1.05rem', fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', marginBottom: '1.5rem', backdropFilter: 'blur(6px)' }}>
+          <button onClick={() => navigate('/signin')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(120,190,230,0.5)', color: C.skyDeep, borderRadius: 100, padding: '0.32rem 1.05rem', fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', marginBottom: '1.5rem', backdropFilter: 'blur(6px)' }}>
             ← Back to Sign In
           </button>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', marginBottom: '1.25rem', backdropFilter: 'blur(6px)' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(120,190,230,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', marginBottom: '1.25rem', backdropFilter: 'blur(6px)' }}>
             🔐
           </div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.7rem,3.2vw,2.3rem)', color: 'white', marginBottom: '0.5rem', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.7rem,3.2vw,2.3rem)', color: C.textDark, marginBottom: '0.5rem', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
             Reset Your Password
           </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.92rem', color: 'rgba(255,255,255,0.78)', maxWidth: 440, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.92rem', color: C.textMid, maxWidth: 440, lineHeight: 1.6 }}>
             {stage === 'email'       && "No worries — we'll send a 6-digit code to your email to get you back in."}
             {stage === 'otp'         && `Enter the code we sent to ${email}.`}
             {stage === 'newPassword' && 'Choose a strong new password for your account.'}
@@ -266,7 +292,7 @@ export default function ForgotPasswordPage() {
 
           {stage === 'success' && (
             <div style={{ textAlign: 'center', padding: '0.5rem 0 0.25rem' }}>
-              <div style={{ width: 80, height: 80, borderRadius: '50%', background: heroGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', fontSize: '2rem', boxShadow: '0 12px 32px rgba(0,191,255,0.38)' }}>🔐</div>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', fontSize: '2rem', boxShadow: '0 12px 32px rgba(0,191,255,0.38)' }}>🔐</div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.55rem', color: C.textDark, marginBottom: '0.65rem', letterSpacing: '-0.01em' }}>Password Reset</h2>
               <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.92rem', color: C.textMid, lineHeight: 1.75, marginBottom: '2rem', maxWidth: 360, margin: '0 auto 2rem' }}>
                 Your password has been changed successfully. Sign in with your new password to continue.

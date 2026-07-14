@@ -10,6 +10,27 @@ import { usePayment } from '../components/PaymentModal'
 import { store as storeApi } from '../services/api'
 import EleventhPaymentPromo from '../components/EleventhPaymentPromo'
 
+// ── Glass card palette — same bluish-white frosted look used across
+//    Services / Resources / Booking / Staff for a consistent design system ──
+const GLASS = {
+  bg:        'linear-gradient(160deg, rgba(255,255,255,0.72) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.68) 100%)',
+  bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(200,232,250,0.68) 55%, rgba(255,255,255,0.78) 100%)',
+  border:    '1px solid rgba(255,255,255,0.55)',
+  borderHov: '1px solid rgba(120,190,230,0.65)',
+  shadow:    '0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.5)',
+  shadowHov: '0 20px 44px rgba(0,123,168,0.22), 0 6px 16px rgba(29,158,117,0.14), inset 0 1px 0 rgba(255,255,255,0.6)',
+}
+
+// Soft, layered glass background for the products section — mirrors the
+// Resources / Services hero treatment so the whole store feels part of
+// the same family.
+const SECTION_BG = `
+  radial-gradient(ellipse 80% 60% at 12% 15%, rgba(180,230,210,0.32) 0%, transparent 70%),
+  radial-gradient(ellipse 70% 80% at 88% 8%, rgba(186,220,248,0.38) 0%, transparent 65%),
+  radial-gradient(ellipse 60% 60% at 50% 100%, rgba(254,243,199,0.28) 0%, transparent 60%),
+  linear-gradient(180deg, #f5fbff 0%, #eef8fc 55%, #f8fcff 100%)
+`
+
 export default function StorePage() {
   const { navigate }    = useRouter()
   const { user }        = useAuth()
@@ -26,6 +47,7 @@ export default function StorePage() {
   const [cartMsg,     setCartMsg]     = useState('')
   const [page,        setPage]        = useState(1)
   const [total,       setTotal]       = useState(0)
+  const [hoveredProduct, setHoveredProduct] = useState(null)
   const [address, setAddress] = useState({
   full_name: '', phone: '', address_line: '', city: '', landmark: '', notes: ''
 })
@@ -261,11 +283,18 @@ async function updateQty(productId, qty) {
         <div style={{ position:'fixed', bottom:'2rem', right:'2rem', background:'var(--green-deep)', color:'white', padding:'0.75rem 1.5rem', borderRadius:10, fontWeight:600, fontSize:'0.9rem', zIndex:1000, boxShadow:'0 4px 20px rgba(0,0,0,0.15)' }}>{cartMsg}</div>
       )}
 
-      {/* Products grid */}
-      <div className="section" style={{ background:'var(--off-white)' }}>
+      {/* Products grid — bluish-white glass cards on a matching glass section background */}
+      <div className="section" style={{ background: SECTION_BG }}>
         {loading ? (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:'1.5rem' }}>
-            {Array.from({length:8}).map((_,i) => <div key={i} style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', minHeight:300, opacity:0.4 }}/>)}
+            {Array.from({length:8}).map((_,i) => (
+              <div key={i} style={{
+                background: GLASS.bg,
+                backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)',
+                border: GLASS.border,
+                borderRadius:'var(--radius-lg)', minHeight:300, opacity:0.5,
+              }}/>
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div style={{ textAlign:'center', padding:'4rem 2rem', color:'var(--text-light)' }}>
@@ -274,10 +303,24 @@ async function updateQty(productId, qty) {
           </div>
         ) : (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:'1.5rem' }}>
-            {products.map(p => (
-<div key={p.id} style={{ background:'var(--white)', borderRadius:'var(--radius-lg)', overflow:'hidden', border:'1px solid var(--earth-cream)', transition:'box-shadow 0.2s' }}                onMouseEnter={e => e.currentTarget.style.boxShadow='var(--shadow-strong)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow='none'}>
-                <div style={{ height:200, background:'var(--green-mist)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3rem', position:'relative' }}>
+            {products.map(p => {
+              const isHovered = hoveredProduct === p.id
+              return (
+              <div key={p.id}
+                onMouseEnter={() => setHoveredProduct(p.id)}
+                onMouseLeave={() => setHoveredProduct(null)}
+                style={{
+                  background: isHovered ? GLASS.bgHover : GLASS.bg,
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: isHovered ? GLASS.borderHov : GLASS.border,
+                  borderRadius: 'var(--radius-lg)',
+                  overflow: 'hidden',
+                  transform: isHovered ? 'translateY(-8px) scale(1.015)' : 'translateY(0) scale(1)',
+                  boxShadow: isHovered ? GLASS.shadowHov : GLASS.shadow,
+                  transition: 'transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s ease, background 0.35s ease, border 0.35s ease',
+                }}>
+                <div style={{ height:200, background:'rgba(224,247,255,0.55)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3rem', position:'relative' }}>
                   {p.images?.[0] ? <img src={p.images[0]} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : '📚'}
                   {p.is_featured && <span style={{ position:'absolute', top:10, left:10, background:'var(--green-deep)', color:'white', fontSize:'0.68rem', fontWeight:800, padding:'0.2rem 0.6rem', borderRadius:'100px', letterSpacing:'0.08em' }}>FEATURED</span>}
                   {p.sale_price && <span style={{ position:'absolute', top:10, right:10, background:'#ef4444', color:'white', fontSize:'0.68rem', fontWeight:800, padding:'0.2rem 0.6rem', borderRadius:'100px' }}>SALE</span>}
@@ -286,7 +329,7 @@ async function updateQty(productId, qty) {
   <div style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:600, marginBottom:'0.4rem' }}>{p.name}</div>
   {p.short_description && <p style={{ fontSize:'0.8rem', color:'var(--text-light)', lineHeight:1.5, marginBottom:'0.75rem' }}>{p.short_description}</p>}
   <div style={{ marginBottom:'0.5rem' }}>
-    {p.tags?.slice(0,2).map((t,i) => <span key={i} style={{ fontSize:'0.7rem', fontWeight:600, background:'var(--green-mist)', color:'var(--green-deep)', padding:'0.15rem 0.5rem', borderRadius:'100px', marginRight:'0.35rem' }}>{t}</span>)}
+    {p.tags?.slice(0,2).map((t,i) => <span key={i} style={{ fontSize:'0.7rem', fontWeight:600, background:'rgba(29,158,117,0.1)', color:'var(--green-deep)', padding:'0.15rem 0.5rem', borderRadius:'100px', marginRight:'0.35rem', border:'1px solid rgba(29,158,117,0.15)' }}>{t}</span>)}
   </div>
   <div style={{ flex:1 }} />
   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'0.75rem' }}>
@@ -306,7 +349,8 @@ async function updateQty(productId, qty) {
                   </button>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
         {totalPages > 1 && (

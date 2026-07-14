@@ -116,7 +116,8 @@ const STEP_BAR_CSS = `
 
   @media (max-width: 600px) {
     .stepbar-item {
-      background: rgba(255,255,255,0.12);
+      background: rgba(0,123,168,0.06);
+      border: 1px solid rgba(255,255,255,0.6);
       border-radius: 10px;
       padding: 0.5rem 0.65rem;
     }
@@ -126,10 +127,10 @@ const STEP_BAR_CSS = `
     flex: 1;
     height: 1.5px;
     margin: 0 0.4rem;
-    background: rgba(255,255,255,0.2);
+    background: rgba(0,123,168,0.15);
   }
   .stepbar-connector.done {
-    background: rgba(255,255,255,0.6);
+    background: rgba(0,123,168,0.45);
   }
 `
 
@@ -154,11 +155,11 @@ function StepBar({ step }) {
             <div className="stepbar-item">
               <div style={{
                 width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                background:  done || active ? btnGrad : 'rgba(255,255,255,0.18)',
-                border:      done || active ? 'none'  : '1.5px solid rgba(255,255,255,0.35)',
+                background:  done || active ? btnGrad : 'rgba(0,123,168,0.10)',
+                border:      done || active ? 'none'  : '1.5px solid rgba(0,123,168,0.25)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '0.68rem', fontWeight: 800,
-                color: done || active ? 'white' : 'rgba(255,255,255,0.6)',
+                color: done || active ? 'white' : C.textLight,
                 transition: 'all 0.25s',
               }}>
                 {done ? '✓' : num}
@@ -167,7 +168,7 @@ function StepBar({ step }) {
                 fontFamily: 'var(--font-body)',
                 fontSize: '0.76rem',
                 fontWeight: active ? 700 : 500,
-                color: active ? 'white' : done ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.5)',
+                color: active ? C.skyDeep : done ? C.textMid : C.textLight,
                 whiteSpace: 'nowrap',
               }}>{label}</span>
             </div>
@@ -374,19 +375,20 @@ async function handleConfirm() {
   position: 'relative',
   overflow: 'hidden',
   padding: '3rem 2rem 2.5rem',
-  color: 'white',
-  borderRadius: '0 0 50% 50% / 0 0 32px 32px',
-  background: `
-    radial-gradient(ellipse 80% 60% at 15% 30%, rgba(0,191,255,0.35) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 70% at 85% 10%, rgba(0,191,255,0.2) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 60% 90%, rgba(0,140,200,0.25) 0%, transparent 55%),
-    linear-gradient(150deg, #004f72 0%, #006a9a 40%, ${C.skyDeep} 100%)
-  `,
+  color: C.textDark,
+  borderRadius: '0 0 32px 32px',
+  background: GLASS.base,
+  backdropFilter: GLASS.blur,
+  WebkitBackdropFilter: GLASS.blur,
+  border: GLASS.borderIdle,
+  borderTop: 'none',
+  boxShadow: GLASS.shadowIdle,
 }}>
-  <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(0,191,255,0.15)', filter:'blur(30px)', top:-40, right:'5%', pointerEvents:'none' }} />
-  <div style={{ position:'absolute', width:130, height:130, borderRadius:'50%', background:'rgba(0,150,220,0.12)', filter:'blur(24px)', bottom:-20, left:'8%', pointerEvents:'none' }} />        <div style={{ maxWidth:800, margin:'0 auto' }}>
-          <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.12em', textTransform:'uppercase', opacity:0.7 }}>Book a Session</span>
-          <h1 style={{ fontFamily:'var(--font-display)', fontSize:'2rem', margin:'0.5rem 0' }}>Schedule Your Therapy</h1>
+  <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(0,191,255,0.12)', filter:'blur(30px)', top:-40, right:'5%', pointerEvents:'none' }} />
+  <div style={{ position:'absolute', width:130, height:130, borderRadius:'50%', background:'rgba(0,150,220,0.10)', filter:'blur(24px)', bottom:-20, left:'8%', pointerEvents:'none' }} />
+  <div style={{ position:'relative', maxWidth:800, margin:'0 auto' }}>
+          <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.12em', textTransform:'uppercase', color:C.skyDeep, opacity:0.85 }}>Book a Session</span>
+          <h1 style={{ fontFamily:'var(--font-display)', fontSize:'2rem', margin:'0.5rem 0', color:C.textDark }}>Schedule Your Therapy</h1>
           <StepBar step={step}/>
         </div>
       </div>
@@ -425,7 +427,7 @@ async function handleConfirm() {
                   {[1,2,3].map(i => <div key={i} style={{ height:90, borderRadius:16, background:'linear-gradient(90deg,#f0f4f8 25%,#e8eef4 50%,#f0f4f8 75%)', backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }}/>)}
                 </div>
               ) : filteredTherapists.length === 0 ? (
-                <div style={{ textAlign:'center', padding:'3rem 1rem', background:'linear-gradient(160deg, rgba(255,255,255,0.8), rgba(224,247,255,0.55))', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)', borderRadius:16, border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle }}>
+                <div style={{ textAlign:'center', padding:'3rem 1rem', background:GLASS.base, backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)', borderRadius:16, border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle }}>
                   <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>🔍</div>
                   <div style={{ fontFamily:'var(--font-display)', color:C.textDark, fontSize:'1.1rem', marginBottom:'0.4rem' }}>No therapists found</div>
                   <button onClick={() => setActiveFilter('All')} style={{ padding:'0.4rem 1rem', borderRadius:100, border:`1.5px solid ${C.skyBright}`, background:C.skyFaint, color:C.skyDeep, fontSize:'0.8rem', fontWeight:700, cursor:'pointer' }}>Show all</button>
@@ -627,7 +629,7 @@ async function handleConfirm() {
           {step === 4 && (
             <div>
               <h2 style={{ fontFamily:'var(--font-display)', color:C.textDark, marginBottom:'1.5rem' }}>Confirm Booking</h2>
-              <div style={{ background:C.white, borderRadius:16, padding:'2rem', border:`1.5px solid ${C.borderFaint}`, marginBottom:'1.5rem' }}>
+              <div style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:16, padding:'2rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, marginBottom:'1.5rem' }}>
                 {[
                   ['Therapist',    selected.therapist?.full_name || '—'],
                   ['Session Type', SESSION_TYPES.find(t => t.value===selected.type)?.label || '—'],

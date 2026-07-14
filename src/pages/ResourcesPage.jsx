@@ -13,6 +13,17 @@ const C = {
 }
 const btnGrad = `linear-gradient(135deg,#007BA8 0%,#00BFFF 100%)`
 
+// ── Glass card palette — same bluish-white frosted look used on
+//    Services / Booking / Staff for a consistent design system ──
+const GLASS = {
+  bg:        'linear-gradient(160deg, rgba(255,255,255,0.72) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.68) 100%)',
+  bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(200,232,250,0.68) 55%, rgba(255,255,255,0.78) 100%)',
+  border:    '1px solid rgba(255,255,255,0.55)',
+  borderHov: '1px solid rgba(120,190,230,0.65)',
+  shadow:    '0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.5)',
+  shadowHov: '0 20px 44px rgba(0,123,168,0.22), 0 6px 16px rgba(29,158,117,0.14), inset 0 1px 0 rgba(255,255,255,0.6)',
+}
+
 /* Soft layered blobs + a faint honeycomb lattice, all in muted sky-blue/white tones.
    Everything sits behind the hero copy at low opacity so it reads as texture, not noise. */
 function HeroBackdrop() {
@@ -154,8 +165,12 @@ function DownloadToast({ resource, onClose }) {
 
 function SkeletonCard() {
   return (
-    <div style={{ background:C.white, borderRadius:16, border:`1px solid ${C.borderFaint}`,
-      padding:'1.5rem', display:'flex', flexDirection:'column', gap:8, minHeight:220 }}>
+    <div style={{
+      background: GLASS.bg,
+      backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)',
+      borderRadius:16, border: GLASS.border,
+      padding:'1.5rem', display:'flex', flexDirection:'column', gap:8, minHeight:220,
+    }}>
       {[35,0,75,90,60].map((w,i) => (
         <div key={i} style={{ height: i===1?48:i===0?12:11, width:i===1?'48px':w+'%',
           borderRadius: i===1?8:6, background: i%2===0?C.skyFaint:C.borderFaint,
@@ -172,6 +187,7 @@ export default function ResourcesPage() {
   const [toast, setToast]           = useState(null)
   const [downloaded, setDownloaded] = useState([])
   const [downloading, setDownloading] = useState([])
+  const [hoveredId, setHoveredId]   = useState(null)
 
   const { data: categories } = useFetch('/resources/categories', {}, [])
   const { data: allResources, loading, error } = useFetch('/resources', {}, [])
@@ -272,16 +288,22 @@ export default function ResourcesPage() {
             : filtered.map(r => {
                 const isDone = downloaded.includes(r.id)
                 const isLoading = downloading.includes(r.id)
+                const isHovered = hoveredId === r.id
                 return (
                   <div key={r.id} className="resource-card"
+                    onMouseEnter={() => setHoveredId(r.id)}
+                    onMouseLeave={() => setHoveredId(null)}
                     style={{
-                      border:`1.5px solid ${isDone?C.skyBright:'transparent'}`,
-                      background: isDone?C.skyFainter:undefined,
-                      transition:'all 0.25s', display:'flex', flexDirection:'column',
+                      background: isHovered ? GLASS.bgHover : GLASS.bg,
+                      backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)',
+                      border: isDone ? `1.5px solid ${C.skyBright}` : (isHovered ? GLASS.borderHov : GLASS.border),
+                      borderRadius: 16,
+                      boxShadow: isHovered ? GLASS.shadowHov : GLASS.shadow,
+                      transform: isHovered ? 'translateY(-8px) scale(1.015)' : 'translateY(0) scale(1)',
+                      transition:'transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s ease, background 0.35s ease, border 0.35s ease',
+                      display:'flex', flexDirection:'column',
                       cursor: 'default',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.transform='translateY(-4px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform='translateY(0)'}>
+                    }}>
                     <span className="resource-type">{r.type}</span>
                     <div className="resource-emoji">{r.emoji}</div>
                     <h4 style={{ margin:'0 0 0.4rem', fontFamily:'var(--font-display)',

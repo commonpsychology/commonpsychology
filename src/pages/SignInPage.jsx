@@ -15,12 +15,15 @@ const CSS = `
     overflow: hidden;
   }
   .signin-left {
-    background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 40%, #a5d6a7 100%);
+    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 3rem 2.5rem;
-    border-right: 1px solid rgba(0,0,0,0.06);
+    border-right: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
     position: relative;
     overflow: hidden;
   }
@@ -30,7 +33,7 @@ const CSS = `
     width: 340px;
     height: 340px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 70%);
+    background: radial-gradient(circle, rgba(0,191,255,0.14) 0%, rgba(255,255,255,0) 70%);
     top: -80px;
     right: -100px;
   }
@@ -42,12 +45,15 @@ const CSS = `
     background: var(--green-mist);
   }
   .signin-card {
-    background: var(--white, #ffffff);
+    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.6);
     border-radius: 20px;
     padding: clamp(1.75rem, 4vw, 2.5rem);
     width: 100%;
     max-width: 440px;
-    box-shadow: 0 8px 48px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
   }
   .signin-input {
     width: 100%;
@@ -79,13 +85,17 @@ const CSS = `
   .signin-btn:hover:not(:disabled) { background: #154a2d; transform: translateY(-1px); }
   .signin-btn:disabled { background: #aaa; cursor: not-allowed; }
   .signin-feature-pill {
-    background: white;
+    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.6);
     border-radius: 10px;
     padding: 0.65rem 1rem;
     font-size: 0.83rem;
     color: var(--text-mid);
     font-weight: 500;
     font-family: var(--font-body);
+    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
   }
 
   /* ── Inclusive welcome / enticing message block ── */

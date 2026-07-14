@@ -9,6 +9,17 @@ const roleColors = {
   staff: { bg: "#4338ca", light: "#e0e7ff", text: "#4338ca", label: "Staff" },
 };
 
+// ── Glass card palette — same bluish-white frosted look used on
+//    Services / Resources / Booking for a consistent design system ──
+const GLASS = {
+  bg:        'linear-gradient(160deg, rgba(255,255,255,0.78) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.74) 100%)',
+  bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(200,232,250,0.7) 55%, rgba(255,255,255,0.84) 100%)',
+  border:    '1px solid rgba(255,255,255,0.6)',
+  borderHov: '1px solid rgba(120,190,230,0.65)',
+  shadow:    '0 8px 32px rgba(30,58,138,0.10), 0 1.5px 4px rgba(30,58,138,0.06), inset 0 1px 0 rgba(255,255,255,0.55)',
+  shadowHov: '0 20px 48px rgba(30,58,138,0.18), 0 6px 16px rgba(0,123,168,0.12), inset 0 1px 0 rgba(255,255,255,0.65)',
+}
+
 function getInitials(name) {
   return (name || "?")
     .split(" ")
@@ -94,27 +105,32 @@ function StaffCard({ member }) {
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.88)",
+        background: GLASS.bg,
         backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
         borderRadius: 20,
         padding: "28px 24px 22px",
-        border: "1px solid rgba(147,197,253,0.45)",
-        boxShadow: "0 8px 32px rgba(30,58,138,0.10), 0 1.5px 4px rgba(30,58,138,0.06)",
+        border: GLASS.border,
+        boxShadow: GLASS.shadow,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
         gap: 0,
-        transition: "transform 0.2s, box-shadow 0.2s",
+        transition: "transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s ease, background 0.25s ease, border 0.25s ease",
         cursor: "default",
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow = "0 16px 48px rgba(30,58,138,0.18), 0 2px 8px rgba(30,58,138,0.10)";
+        e.currentTarget.style.transform = "translateY(-6px) scale(1.01)";
+        e.currentTarget.style.boxShadow = GLASS.shadowHov;
+        e.currentTarget.style.background = GLASS.bgHover;
+        e.currentTarget.style.border = GLASS.borderHov;
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 8px 32px rgba(30,58,138,0.10), 0 1.5px 4px rgba(30,58,138,0.06)";
+        e.currentTarget.style.transform = "translateY(0) scale(1)";
+        e.currentTarget.style.boxShadow = GLASS.shadow;
+        e.currentTarget.style.background = GLASS.bg;
+        e.currentTarget.style.border = GLASS.border;
       }}
     >
       <Avatar src={member.avatar_url} name={member.full_name} size={84} />
