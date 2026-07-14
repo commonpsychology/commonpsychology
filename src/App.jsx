@@ -15,7 +15,7 @@ import AssessmentsPage     from './pages/AssessmentsPage'
 import AssessmentTakePage  from './pages/AssessmentTakePage'
 import ResourcesPage       from './pages/ResourcesPage'
 import VerifyAccountPage   from './pages/VerifyAccountPage'
-import NoticeDemoPage      from './pages/NoticeDemoCheck'
+import NoticeDemoCheck      from './pages/NoticeDemoCheck'
 import OurNews             from './pages/OurNews'
 import DisasterManagement  from './pages/DisasterManagement'
 import NewsDetailPage      from './pages/NewsDetailPage'
@@ -88,7 +88,7 @@ const ROUTES = {
   '/neuro-science':       NeurosciencePage,
   '/mental-fitness':     MentalFitness,
   '/my-orders':          MyOrdersPage,
-  '/notices-demo':       NoticeDemoPage,
+  '/notices-demo':       NoticeDemoCheck,
   '/our-news':           OurNews,
   '/my-bookings':        MyBookings,
   '/staff-detail':      StaffPage,
