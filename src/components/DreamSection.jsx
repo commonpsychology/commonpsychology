@@ -106,27 +106,27 @@ function CosmosBg({ allDreams, myDream }) {
       aria-hidden="true"
     >
       <defs>
-        {/* Pitch-black space sky — no purple undertone */}
-        <radialGradient id="cosmosGrad" cx="50%" cy="50%" r="70%">
-          <stop offset="0%"   stopColor="#0a0a0c" />
-          <stop offset="55%"  stopColor="#050506" />
-          <stop offset="100%" stopColor="#000000" />
+        {/* Bluish-white space sky — deep indigo-blue instead of flat black */}
+        <radialGradient id="cosmosGrad" cx="50%" cy="50%" r="75%">
+          <stop offset="0%"   stopColor="#1a2740" />
+          <stop offset="55%"  stopColor="#0e1830" />
+          <stop offset="100%" stopColor="#060c1c" />
         </radialGradient>
-        {/* Faint grayscale/blue-white nebulae instead of purple/magenta */}
+        {/* Soft blue-white nebulae so the orbs sit on a lit, airy sky */}
         <radialGradient id="neb1" cx="20%" cy="15%" r="45%">
-          <stop offset="0%" stopColor="#3a4a5a" stopOpacity="0.12"/><stop offset="100%" stopColor="#3a4a5a" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#8fb4e0" stopOpacity="0.16"/><stop offset="100%" stopColor="#8fb4e0" stopOpacity="0"/>
         </radialGradient>
         <radialGradient id="neb2" cx="80%" cy="75%" r="40%">
-          <stop offset="0%" stopColor="#2a2f3a" stopOpacity="0.10"/><stop offset="100%" stopColor="#2a2f3a" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#a9c8ee" stopOpacity="0.14"/><stop offset="100%" stopColor="#a9c8ee" stopOpacity="0"/>
         </radialGradient>
         <radialGradient id="neb3" cx="60%" cy="8%"  r="35%">
-          <stop offset="0%" stopColor="#4a6a7a" stopOpacity="0.08"/><stop offset="100%" stopColor="#4a6a7a" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#cfe0f7" stopOpacity="0.12"/><stop offset="100%" stopColor="#cfe0f7" stopOpacity="0"/>
         </radialGradient>
         <radialGradient id="neb4" cx="8%"  cy="82%" r="38%">
-          <stop offset="0%" stopColor="#33383f" stopOpacity="0.08"/><stop offset="100%" stopColor="#33383f" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#7ea3d6" stopOpacity="0.12"/><stop offset="100%" stopColor="#7ea3d6" stopOpacity="0"/>
         </radialGradient>
         <radialGradient id="neb5" cx="92%" cy="28%" r="32%">
-          <stop offset="0%" stopColor="#3d6a80" stopOpacity="0.07"/><stop offset="100%" stopColor="#3d6a80" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#bcd4f2" stopOpacity="0.10"/><stop offset="100%" stopColor="#bcd4f2" stopOpacity="0"/>
         </radialGradient>
 
         {/* Per-dream radial gradient for core glow */}
@@ -260,16 +260,16 @@ function DreamLabels({ allDreams, myDream }) {
           <text
             key={dream.id}
             textAnchor="middle"
-            fill={isMine ? '#a8d8f0' : `hsl(${props.hue}, 30%, 82%)`}
+            fill={isMine ? '#eaf4ff' : `hsl(${props.hue}, 45%, 88%)`}
             fontSize={isMine ? '0.7' : '0.8'}
             fontFamily="Georgia, serif"
             fontStyle="italic"
             fontWeight={isMine ? 'bold' : 'normal'}
-            opacity={isMine ? 0.95 : 0.4}
+            opacity={isMine ? 0.95 : 0.55}
             style={{
               filter: isMine
-                ? `drop-shadow(0 0 1.5px hsl(${props.hue},60%,60%)) drop-shadow(0 0 3px rgba(0,0,0,0.95))`
-                : `drop-shadow(0 0 0.8px rgba(0,0,0,0.9))`,
+                ? 'drop-shadow(0 0 2px rgba(6,12,28,0.85))'
+                : 'drop-shadow(0 0 1.2px rgba(6,12,28,0.75))',
             }}
           >
             <animateMotion dur={props.dur} begin={props.begin} repeatCount="indefinite" rotate="none">
@@ -314,8 +314,8 @@ export default function DreamSection({ user, onRequestLogin, apiBase, authToken 
         100% { box-shadow: 0 0 0 0    rgba(180,190,200,0);    }
       }
       @keyframes glowPulse {
-        0%,100% { text-shadow: 0 0 40px rgba(200,210,220,0.4),  0 0 80px  rgba(120,130,140,0.18);  }
-        50%      { text-shadow: 0 0 80px rgba(220,230,240,0.85), 0 0 150px rgba(150,160,170,0.5);  }
+        0%,100% { text-shadow: 0 0 30px rgba(170,205,240,0.35); }
+        50%      { text-shadow: 0 0 48px rgba(190,215,245,0.55); }
       }
     `
     document.head.appendChild(style)
@@ -406,7 +406,7 @@ export default function DreamSection({ user, onRequestLogin, apiBase, authToken 
       minHeight: '100vh', position: 'relative', overflow: 'hidden',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: '80px 24px', boxSizing: 'border-box', animation: 'cosmosReveal 1.2s ease both',
-      background: '#000000',
+      background: '#060c1c',
     }}>
 
       {/* Cosmos with all floating orbs */}
