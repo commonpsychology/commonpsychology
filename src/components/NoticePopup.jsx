@@ -168,9 +168,9 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
         <div style={{ padding: '2.2rem 2.4rem 2.6rem', position: 'relative', zIndex: 1 }}>
           {/* Reference block (dynamic) */}
           <div style={{ fontSize: 13, lineHeight: 1.9, marginBottom: 4 }}>
-            <div>पत्र संख्या:- {notice.letterNo}</div>
-            <div>प्राप्त पत्र संख्या र मिति:- {notice.receivedNo}</div>
-            <div>च.नं.:- {notice.chNo}</div>
+            <div>पत्र संख्या:-१२७९ {notice.letterNo}</div>
+            <div>प्राप्त पत्र संख्या र मिति:-००००/००/०० {notice.receivedNo}</div>
+            <div>च.नं.:-०००० {notice.chNo}</div>
           </div>
 
           {/* Header (static) */}
