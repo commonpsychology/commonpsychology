@@ -75,7 +75,7 @@ function getWanderPath(seed) {
 function getDreamProps(seed, isMine) {
   const rng = seededRandom(seed + '-props')
   return {
-hue:   isMine ? 210 : Math.floor(rng() * 360),  // 210 = deep sky blue
+    hue:   isMine ? 210 : Math.floor(rng() * 360),  // 210 = deep sky blue
     size:  isMine ? rng() * 0.3 + 2   : rng() * 0.8 + 0.6,   // mine: 4–6, others: 1–1.8
     glowR: isMine ? rng() * 0.1 + 0.6   : rng() * 0.4 + 0.2, // mine: 3–5, others: 0.8–1.6
     dur:   isMine
@@ -106,42 +106,43 @@ function CosmosBg({ allDreams, myDream }) {
       aria-hidden="true"
     >
       <defs>
+        {/* Pitch-black space sky — no purple undertone */}
         <radialGradient id="cosmosGrad" cx="50%" cy="50%" r="70%">
-          <stop offset="0%"   stopColor="#0f0c29" />
-          <stop offset="55%"  stopColor="#1a1040" />
-          <stop offset="100%" stopColor="#060412" />
+          <stop offset="0%"   stopColor="#0a0a0c" />
+          <stop offset="55%"  stopColor="#050506" />
+          <stop offset="100%" stopColor="#000000" />
         </radialGradient>
+        {/* Faint grayscale/blue-white nebulae instead of purple/magenta */}
         <radialGradient id="neb1" cx="20%" cy="15%" r="45%">
-          <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.15"/><stop offset="100%" stopColor="#4f46e5" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#3a4a5a" stopOpacity="0.12"/><stop offset="100%" stopColor="#3a4a5a" stopOpacity="0"/>
         </radialGradient>
         <radialGradient id="neb2" cx="80%" cy="75%" r="40%">
-          <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.12"/><stop offset="100%" stopColor="#7c3aed" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#2a2f3a" stopOpacity="0.10"/><stop offset="100%" stopColor="#2a2f3a" stopOpacity="0"/>
         </radialGradient>
         <radialGradient id="neb3" cx="60%" cy="8%"  r="35%">
-          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.09"/><stop offset="100%" stopColor="#06b6d4" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#4a6a7a" stopOpacity="0.08"/><stop offset="100%" stopColor="#4a6a7a" stopOpacity="0"/>
         </radialGradient>
         <radialGradient id="neb4" cx="8%"  cy="82%" r="38%">
-          <stop offset="0%" stopColor="#a21caf" stopOpacity="0.09"/><stop offset="100%" stopColor="#a21caf" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#33383f" stopOpacity="0.08"/><stop offset="100%" stopColor="#33383f" stopOpacity="0"/>
         </radialGradient>
         <radialGradient id="neb5" cx="92%" cy="28%" r="32%">
-          <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.08"/><stop offset="100%" stopColor="#0ea5e9" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#3d6a80" stopOpacity="0.07"/><stop offset="100%" stopColor="#3d6a80" stopOpacity="0"/>
         </radialGradient>
 
         {/* Per-dream radial gradient for core glow */}
         {dreamData.map(({ id, props, pathId, isMine }) => (
-         // ✅ new — earth blue gradient for mine
-<radialGradient key={id} id={`dg-${pathId}`} cx="40%" cy="35%" r="60%">
-  {isMine ? <>
-    <stop offset="0%"   stopColor="#a8d8f0" stopOpacity="1"   />
-    <stop offset="35%"  stopColor="#3a8fc4" stopOpacity="0.95"/>
-    <stop offset="70%"  stopColor="#1a5a9a" stopOpacity="0.85"/>
-    <stop offset="100%" stopColor="#0a2a5e" stopOpacity="0"   />
-  </> : <>
-    <stop offset="0%"   stopColor={`hsl(${props.hue},70%,72%)`} stopOpacity="0.7" />
-    <stop offset="55%"  stopColor={`hsl(${props.hue},60%,55%)`} stopOpacity="0.4" />
-    <stop offset="100%" stopColor={`hsl(${props.hue},60%,40%)`} stopOpacity="0"   />
-  </>}
-</radialGradient>
+          <radialGradient key={id} id={`dg-${pathId}`} cx="40%" cy="35%" r="60%">
+            {isMine ? <>
+              <stop offset="0%"   stopColor="#a8d8f0" stopOpacity="1"   />
+              <stop offset="35%"  stopColor="#3a8fc4" stopOpacity="0.95"/>
+              <stop offset="70%"  stopColor="#1a5a9a" stopOpacity="0.85"/>
+              <stop offset="100%" stopColor="#0a2a5e" stopOpacity="0"   />
+            </> : <>
+              <stop offset="0%"   stopColor={`hsl(${props.hue},35%,78%)`} stopOpacity="0.6" />
+              <stop offset="55%"  stopColor={`hsl(${props.hue},25%,55%)`} stopOpacity="0.35"/>
+              <stop offset="100%" stopColor={`hsl(${props.hue},20%,35%)`} stopOpacity="0"   />
+            </>}
+          </radialGradient>
         ))}
 
         {/* Motion paths — defined once in defs */}
@@ -177,7 +178,7 @@ function CosmosBg({ allDreams, myDream }) {
             {/* Outer pulse ring — only for mine */}
             {isMine && (
               <circle r={props.glowR * 1.1} fill="none"
-stroke={isMine ? '#5baad4' : `hsl(${props.hue},85%,72%)`}
+                stroke={isMine ? '#5baad4' : `hsl(${props.hue},40%,72%)`}
                 strokeWidth="0.2" strokeOpacity="0.35">
                 <animateMotion dur={props.dur} begin={props.begin} repeatCount="indefinite" rotate="none">
                   <mpath href={href} />
@@ -192,7 +193,7 @@ stroke={isMine ? '#5baad4' : `hsl(${props.hue},85%,72%)`}
 
             {/* Soft mid glow */}
             <circle r={props.size * 0.65}
-              fill={`hsl(${props.hue},${isMine?72:55}%,${isMine?55:45}%)`}
+              fill={`hsl(${props.hue},${isMine?72:30}%,${isMine?55:55}%)`}
               opacity={isMine ? 0.2 : 0.08}>
               <animateMotion dur={props.dur} begin={props.begin} repeatCount="indefinite" rotate="none">
                 <mpath href={href} />
@@ -259,16 +260,16 @@ function DreamLabels({ allDreams, myDream }) {
           <text
             key={dream.id}
             textAnchor="middle"
-fill={isMine ? '#a8d8f0' : `hsl(${props.hue}, 70%, 75%)`}
+            fill={isMine ? '#a8d8f0' : `hsl(${props.hue}, 30%, 82%)`}
             fontSize={isMine ? '0.7' : '0.8'}
             fontFamily="Georgia, serif"
             fontStyle="italic"
             fontWeight={isMine ? 'bold' : 'normal'}
-            opacity={isMine ? 0.95 : 0.45}
+            opacity={isMine ? 0.95 : 0.4}
             style={{
               filter: isMine
-                ? `drop-shadow(0 0 1.5px hsl(${props.hue},75%,55%)) drop-shadow(0 0 3px rgba(0,0,0,0.95))`
-                : `drop-shadow(0 0 0.8px rgba(0,0,0,0.8))`,
+                ? `drop-shadow(0 0 1.5px hsl(${props.hue},60%,60%)) drop-shadow(0 0 3px rgba(0,0,0,0.95))`
+                : `drop-shadow(0 0 0.8px rgba(0,0,0,0.9))`,
             }}
           >
             <animateMotion dur={props.dur} begin={props.begin} repeatCount="indefinite" rotate="none">
@@ -308,13 +309,13 @@ export default function DreamSection({ user, onRequestLogin, apiBase, authToken 
     style.textContent = `
       @keyframes cosmosReveal { from{opacity:0} to{opacity:1} }
       @keyframes pulseRing {
-        0%   { box-shadow: 0 0 0 0    rgba(167,139,250,0.55); }
-        70%  { box-shadow: 0 0 0 18px rgba(167,139,250,0);    }
-        100% { box-shadow: 0 0 0 0    rgba(167,139,250,0);    }
+        0%   { box-shadow: 0 0 0 0    rgba(180,190,200,0.45); }
+        70%  { box-shadow: 0 0 0 18px rgba(180,190,200,0);    }
+        100% { box-shadow: 0 0 0 0    rgba(180,190,200,0);    }
       }
       @keyframes glowPulse {
-        0%,100% { text-shadow: 0 0 40px rgba(167,139,250,0.5),  0 0 80px  rgba(124,58,237,0.2);  }
-        50%      { text-shadow: 0 0 80px rgba(167,139,250,0.95), 0 0 150px rgba(124,58,237,0.6); }
+        0%,100% { text-shadow: 0 0 40px rgba(200,210,220,0.4),  0 0 80px  rgba(120,130,140,0.18);  }
+        50%      { text-shadow: 0 0 80px rgba(220,230,240,0.85), 0 0 150px rgba(150,160,170,0.5);  }
       }
     `
     document.head.appendChild(style)
@@ -405,6 +406,7 @@ export default function DreamSection({ user, onRequestLogin, apiBase, authToken 
       minHeight: '100vh', position: 'relative', overflow: 'hidden',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: '80px 24px', boxSizing: 'border-box', animation: 'cosmosReveal 1.2s ease both',
+      background: '#000000',
     }}>
 
       {/* Cosmos with all floating orbs */}
@@ -419,13 +421,13 @@ export default function DreamSection({ user, onRequestLogin, apiBase, authToken 
       <div style={{ position: 'relative', zIndex: 20, maxWidth: '520px', width: '100%', textAlign: 'center' }}>
 
         <div style={{ marginBottom: '40px' }}>
-          <span style={{ fontFamily: "'Lato',sans-serif", fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#818cf8', fontWeight: 700, display: 'block', marginBottom: '14px' }}>
+          <span style={{ fontFamily: "'Lato',sans-serif", fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#9aa5b1', fontWeight: 700, display: 'block', marginBottom: '14px' }}>
             The Dream Cosmos
           </span>
-          <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 'clamp(28px,4.5vw,48px)', fontWeight: 400, color: '#e0e7ff', margin: '0 0 16px', lineHeight: 1.2, animation: 'glowPulse 4s ease-in-out infinite' }}>
-            Plant Your Dream <em style={{ color: '#a78bfa', fontStyle: 'italic' }}>into the Stars</em>
+          <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 'clamp(28px,4.5vw,48px)', fontWeight: 400, color: '#eef1f5', margin: '0 0 16px', lineHeight: 1.2, animation: 'glowPulse 4s ease-in-out infinite' }}>
+            Plant Your Dream <em style={{ color: '#c7cdd6', fontStyle: 'italic' }}>into the Stars</em>
           </h2>
-          <p style={{ fontFamily: "'Lato',sans-serif", fontSize: '14px', color: '#94a3b8', margin: '0 auto', maxWidth: '400px', lineHeight: 1.8, fontWeight: 300 }}>
+          <p style={{ fontFamily: "'Lato',sans-serif", fontSize: '14px', color: '#8b95a1', margin: '0 auto', maxWidth: '400px', lineHeight: 1.8, fontWeight: 300 }}>
             {hasDream
               ? 'Your dream drifts bright among the others — a constellation of souls.'
               : allDreams.length > 0
@@ -446,19 +448,19 @@ export default function DreamSection({ user, onRequestLogin, apiBase, authToken 
               style={{
                 width: '100%', padding: '18px 20px', borderRadius: '16px',
                 border: hasDream
-                  ? '1.5px solid rgba(167,139,250,0.4)'
+                  ? '1.5px solid rgba(180,190,200,0.35)'
                   : error
                     ? '1.5px solid #f87171'
-                    : '1.5px solid rgba(129,140,248,0.35)',
-                background: 'rgba(15,12,41,0.75)',
+                    : '1.5px solid rgba(150,160,172,0.3)',
+                background: 'rgba(8,8,10,0.75)',
                 backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                color: hasDream ? '#c4b5fd' : '#e0e7ff',
+                color: hasDream ? '#c9cfd6' : '#eef1f5',
                 fontFamily: "'Playfair Display',serif", fontStyle: 'italic',
                 fontSize: '15px', lineHeight: 1.7,
                 resize: 'none', outline: 'none', boxSizing: 'border-box',
                 cursor: hasDream ? 'default' : 'text',
                 transition: 'border-color 0.3s ease',
-                boxShadow: hasDream ? '0 0 24px rgba(167,139,250,0.15)' : '0 4px 24px rgba(0,0,0,0.3)',
+                boxShadow: hasDream ? '0 0 24px rgba(180,190,200,0.12)' : '0 4px 24px rgba(0,0,0,0.5)',
               }}
             />
             {!hasDream && (
@@ -480,38 +482,38 @@ export default function DreamSection({ user, onRequestLogin, apiBase, authToken 
           disabled={hasDream || loading || fetching}
           style={{
             padding: '15px 36px', borderRadius: '999px',
-            border: hasDream ? '1.5px solid rgba(167,139,250,0.35)' : '1.5px solid rgba(129,140,248,0.6)',
+            border: hasDream ? '1.5px solid rgba(180,190,200,0.3)' : '1.5px solid rgba(160,170,182,0.5)',
             background: hasDream
-              ? 'rgba(167,139,250,0.08)'
+              ? 'rgba(180,190,200,0.08)'
               : loading
-                ? 'rgba(99,102,241,0.35)'
-                : 'linear-gradient(135deg,rgba(79,70,229,0.85),rgba(124,58,237,0.85))',
-            color: hasDream ? '#a78bfa' : '#e0e7ff',
+                ? 'rgba(90,98,110,0.35)'
+                : 'linear-gradient(135deg,rgba(30,32,38,0.9),rgba(55,60,70,0.9))',
+            color: hasDream ? '#c9cfd6' : '#eef1f5',
             fontFamily: "'Lato',sans-serif", fontSize: '13px', fontWeight: 700,
             letterSpacing: '0.12em', textTransform: 'uppercase',
             cursor: hasDream || loading || fetching ? 'default' : 'pointer',
             transition: 'all 0.3s ease',
             backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-            boxShadow: hasDream ? 'none' : '0 4px 24px rgba(99,102,241,0.35)',
+            boxShadow: hasDream ? 'none' : '0 4px 24px rgba(0,0,0,0.5)',
             animation: planted ? 'pulseRing 0.7s ease-out' : 'none',
             opacity: fetching ? 0.6 : 1,
           }}
           onMouseEnter={e => {
             if (!hasDream && !loading && !fetching && isLoggedIn) {
               e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = '0 8px 32px rgba(99,102,241,0.5)'
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.65)'
             }
           }}
           onMouseLeave={e => {
             e.currentTarget.style.transform = 'none'
-            e.currentTarget.style.boxShadow = hasDream ? 'none' : '0 4px 24px rgba(99,102,241,0.35)'
+            e.currentTarget.style.boxShadow = hasDream ? 'none' : '0 4px 24px rgba(0,0,0,0.5)'
           }}
         >
           {buttonLabel()}
         </button>
 
         {planted && (
-          <p style={{ marginTop: '20px', fontFamily: "'Playfair Display',serif", fontStyle: 'italic', fontSize: '14px', color: '#a78bfa', textShadow: '0 0 20px rgba(167,139,250,0.6)', animation: 'cosmosReveal 0.6s ease' }}>
+          <p style={{ marginTop: '20px', fontFamily: "'Playfair Display',serif", fontStyle: 'italic', fontSize: '14px', color: '#c9cfd6', textShadow: '0 0 20px rgba(200,210,220,0.5)', animation: 'cosmosReveal 0.6s ease' }}>
             ✦ Your dream now drifts among all the others ✦
           </p>
         )}
@@ -527,10 +529,10 @@ export default function DreamSection({ user, onRequestLogin, apiBase, authToken 
       {mergedDreams.length > 0 && (
         <div style={{
           position: 'absolute', top: '24px', right: '24px', zIndex: 20,
-          background: 'rgba(15,12,41,0.7)', backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(129,140,248,0.25)', borderRadius: '999px',
+          background: 'rgba(8,8,10,0.7)', backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(160,170,182,0.22)', borderRadius: '999px',
           padding: '6px 14px', fontFamily: "'Lato',sans-serif",
-          fontSize: '11px', color: '#818cf8', fontWeight: 700, letterSpacing: '0.08em',
+          fontSize: '11px', color: '#9aa5b1', fontWeight: 700, letterSpacing: '0.08em',
         }}>
           ✦ {mergedDreams.length} dream{mergedDreams.length !== 1 ? 's' : ''} in the cosmos
         </div>
