@@ -606,10 +606,9 @@ const OFFICE = {
   label:    'Common Psychology',
   address:  'Bhaktapur, Nepal',
   hours:    'Sun – Fri  |  9:00 AM – 6:00 PM NPT',
-  embedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.4773846854585!2d85.31525731503832!3d27.71727798279466!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjfCsDQzJzAyLjIiTiA4NcKwMTknMDMuMiJF!5e0!3m2!1sen!2snp!4v1700000000000',
-  gmapsUrl: 'https://maps.google.com/?q=Common+Psychology+Thimi+Bhaktapur+Nepal',
+  embedUrl: 'https://www.google.com/maps?q=27.68056,85.38750&z=16&output=embed',
+  gmapsUrl: 'https://maps.google.com/?q=27.668810,85.390667',
 }
-
 function LocationPopup({ onClose }) {
   usePopupBehavior(onClose)
   return (
@@ -669,7 +668,7 @@ function DonatePopup({ onClose }) {
           <div className="pop-header-dot" style={{ color: '#f97316', background: '#f97316', boxShadow: '0 0 8px rgba(249,115,22,0.8)' }} />
           <div className="pop-header-text">
             <p className="pop-eyebrow" style={{ color: 'rgba(249,115,22,0.75)' }}>Support Our Mission</p>
-            <h2 className="pop-title">Donate to Puja Samargi 🙏</h2>
+            <h2 className="pop-title">Donate to Common Psychology 🙏</h2>
             <p className="pop-subtitle">Every rupee makes a real difference</p>
           </div>
           <button className="pop-close" onClick={onClose} aria-label="Close">✕</button>
