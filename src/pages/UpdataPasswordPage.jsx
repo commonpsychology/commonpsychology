@@ -407,7 +407,7 @@ export default function UpdatePasswordPage() {
       </div>
 
       {/* ---------- Form card, overlapping the hero — frosted glass ---------- */}
-      <div style={{ maxWidth: 600, margin: '0 auto', padding: '0 1.5rem 5rem', marginTop: '-3.6rem', position: 'relative' }}>
+      <div style={{ maxWidth: 600, margin: '0 auto', padding: '0 1.5rem 5rem', marginTop: '-1.75rem', position: 'relative' }}>
         <div className="twp-card" style={{
           background: GLASS.bg,
           backdropFilter: GLASS.blur, WebkitBackdropFilter: GLASS.blur,
