@@ -17,7 +17,7 @@ const MID    = '#4a6a7a'
 
 const TABS = [
   { id:'profile',       icon:'👤', label:'Profile'        },
-  { id:'security',      icon:'🔒', label:'Security'       },
+  { id:'security',      icon:'🔒', label:'Change Password' },
   { id:'sessions',      icon:'📅', label:'Sessions'       },
   { id:'notifications', icon:'🔔', label:'Notifications'  },
   { id:'orders',        icon:'📦', label:'My Orders'      },
