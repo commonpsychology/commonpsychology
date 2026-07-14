@@ -939,7 +939,7 @@ const SIDEBAR = [
     { id:'therapists',          label:'Therapists',        icon:'◎' },
     { id:'community',           label:'Community Groups',  icon:'◉' },
     { id:'community_admin',     label:'Community Admin',   icon:'◆' },
-    { id:'social_work', label:'Social Work', icon:'🤝' },
+    { id:'social_work', label:'Social Work', sicon:'🤝' },
     { id:'product_reviews', label:'Product Reviews', icon:'⭐' },
     { id:'volunteers',          label:'Volunteers',        icon:'✦' },
     { id:'gallery_submissions', label:'Photo Submissions', icon:'▣' },
