@@ -11,13 +11,13 @@ const API_BASE = (import.meta.env.VITE_API_URL || "${import.meta.env.VITE_API_UR
   .replace(/\/api$/, "") // strip /api if already present
   + "/api"               // re-append exactly once
 
-/* ─── DESIGN TOKENS — newspaper palette (matches NewsDetailPage) ─ */
+/* ─── DESIGN TOKENS — bluish-white paper palette ─────────────── */
 const T = {
-  paper:"#f7f1e3", paperDeep:"#efe4cc", paperLine:"#d8c9a3",
-  ink:"#211b14", inkSoft:"#4a4038", inkFaint:"#8a7d68",
-  blueDeep:"#1a3a4a", blueMid:"#2e6080", sky:"#0e7c9c", skyDark:"#095a73",
+  paper:"#eaf6ff", paperDeep:"#d8f0ff", paperLine:"#a9dcf5",
+  ink:"#0f3a52", inkSoft:"#2e6080", inkFaint:"#5b8aa0",
+  blueDeep:"#1a3a4a", blueMid:"#2e6080", sky:"#00BFFF", skyDark:"#009fd4",
   greenDeep:"#2d4a3e", greenMid:"#3d6b5a", greenPale:"#b8d5c8",
-  white:"#ffffff", cardLine:"#e3d7ba",
+  white:"#ffffff", cardLine:"#bfe3fb",
 }
 
 /* ─── STATIC FALLBACK DATA ───────────────────────────────────── */
@@ -279,7 +279,7 @@ export default function OurNews() {
 }
       `}</style>
 
-      <div style={{ paddingTop:72, background:T.paper, minHeight:"100vh" }}>
+      <div style={{ paddingTop:72, background:'linear-gradient(160deg, #d8f0ff 0%, #eaf6ff 40%, #ffffff 100%)', minHeight:"100vh" }}>
         <BreakingTicker />
 
         {/* Masthead / hero header */}
