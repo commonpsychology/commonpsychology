@@ -412,6 +412,8 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
       `}</style>
     </div>
   )
+
+  
 }
 
 export default function StorePage() {
