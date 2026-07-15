@@ -10,11 +10,10 @@
 import { useState, useEffect } from 'react'
 import { useAuth }   from '../context/AuthContext'
 import { useRouter } from '../context/RouterContext'
-
-const API_BASE = import.meta.env?.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+import { store as storeApi } from '../services/api'
 
 const C = {
-  sky:'#007BA8', skyLt:'#e0f7ff', skyDk:'#005580',
+  sky:'#0ea5e9', skyLt:'#e0f2fe', skyDk:'#0369a1',
   white:'#fff', bg:'#f4f8fb', border:'#daeef8',
   mid:'#4a6a7a', slate:'#1a3a4a', green:'#1a7a4a',
   greenLt:'#e8f8f0', red:'#c0392b', redLt:'#fff0f0',
@@ -54,7 +53,11 @@ body { font-family:'DM Sans',system-ui,sans-serif; background:${C.bg}; min-heigh
 .mo-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg,#007BA8 0%,#00BFFF 100%);
+  background: linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(214,238,252,0.7) 55%, rgba(255,255,255,0.88) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(120,190,230,0.4);
+  box-shadow: 0 4px 22px rgba(14,165,233,0.10), inset 0 1px 0 rgba(255,255,255,0.6);
   padding: clamp(1.5rem,5vw,2.5rem);
   padding-top: calc(clamp(1.5rem,5vw,2.5rem) + var(--navbar-height,64px));
 }
@@ -73,11 +76,11 @@ body { font-family:'DM Sans',system-ui,sans-serif; background:${C.bg}; min-heigh
 .mo-hero-inner { position:relative; z-index:1 }
 .mo-hero-inner { max-width:960px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem }
 .mo-hero-left  { display:flex; align-items:center; gap:1rem; flex-wrap:wrap }
-.mo-hero-icon  { width:52px; height:52px; border-radius:14px; background:rgba(255,255,255,.18); border:2px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0 }
-.mo-hero-title { font-family:'Fraunces',Georgia,serif; font-size:clamp(1.3rem,5vw,1.9rem); color:#fff; font-weight:500; line-height:1.1 }
-.mo-hero-sub   { font-size:.8rem; color:rgba(255,255,255,.75); margin-top:.25rem }
-.mo-back-btn   { padding:.45rem 1rem; border-radius:9px; border:1.5px solid rgba(255,255,255,.35); background:rgba(255,255,255,.12); color:#fff; font-size:.8rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; flex-shrink:0; white-space:nowrap }
-.mo-back-btn:hover { background:rgba(255,255,255,.22) }
+.mo-hero-icon  { width:52px; height:52px; border-radius:14px; background:rgba(14,165,233,.10); border:2px solid rgba(14,165,233,.25); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0 }
+.mo-hero-title { font-family:'Fraunces',Georgia,serif; font-size:clamp(1.3rem,5vw,1.9rem); color:#0f3a52; font-weight:500; line-height:1.1 }
+.mo-hero-sub   { font-size:.8rem; color:#5a7c8f; margin-top:.25rem }
+.mo-back-btn   { padding:.45rem 1rem; border-radius:9px; border:1.5px solid rgba(14,165,233,.3); background:rgba(255,255,255,.55); color:#0369a1; font-size:.8rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; flex-shrink:0; white-space:nowrap }
+.mo-back-btn:hover { background:rgba(255,255,255,.85) }
 
 /* ── Stats ── */
 .mo-stats { background:#fff; border-bottom:1px solid ${C.border}; padding:.75rem clamp(1rem,4vw,2rem) }
@@ -99,13 +102,13 @@ body { font-family:'DM Sans',system-ui,sans-serif; background:${C.bg}; min-heigh
 .mo-main { max-width:960px; margin:0 auto; padding:clamp(1rem,4vw,2rem) }
 
 /* ── Order card ── */
-.mo-card { background:${C.white}; border:1.5px solid ${C.border}; border-radius:14px; overflow:hidden; margin-bottom:.85rem; transition:all .2s }
-.mo-card.open { border-color:#b0d4e8; box-shadow:0 4px 18px rgba(0,191,255,.08) }
+.mo-card { background:linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.8) 100%); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.6); border-radius:14px; overflow:hidden; margin-bottom:.85rem; box-shadow:0 4px 18px rgba(14,165,233,0.10), inset 0 1px 0 rgba(255,255,255,0.55); transition:all .2s }
+.mo-card.open { border-color:rgba(14,165,233,0.4); box-shadow:0 8px 26px rgba(14,165,233,.14), inset 0 1px 0 rgba(255,255,255,0.6) }
 .mo-card-header { display:flex; align-items:center; justify-content:space-between; padding:.95rem 1.1rem; cursor:pointer; flex-wrap:wrap; gap:.5rem; transition:background .15s }
-.mo-card-header:hover { background:#f8fcff }
-.mo-card-header.open  { background:#f0fbff }
-.mo-card-icon { width:38px; height:38px; border-radius:10px; background:${C.bg}; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; transition:all .2s }
-.mo-card-icon.open { background:linear-gradient(135deg,${C.sky} 0%,#00BFFF 100%) }
+.mo-card-header:hover { background:rgba(255,255,255,0.3) }
+.mo-card-header.open  { background:rgba(255,255,255,0.4) }
+.mo-card-icon { width:38px; height:38px; border-radius:10px; background:rgba(255,255,255,0.6); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; transition:all .2s }
+.mo-card-icon.open { background:linear-gradient(135deg,${C.sky} 0%,#7dd3fc 100%) }
 
 /* ── Timeline ── */
 .mo-timeline { display:flex; align-items:center; padding:.85rem 1.1rem .65rem; border-top:1px solid ${C.border}; background:${C.bg}; overflow-x:auto; scrollbar-width:none }
@@ -507,14 +510,6 @@ function OrderCard({ order, onShowQR, onCODConfirm }) {
   )
 }
 
-/* ── Demo data ── */
-// const DEMO_ORDERS = [
-//   { id:'ord-abc12345', order_number:'ORD-2024-0042', created_at:new Date(Date.now()-86400000*2).toISOString(), status:'shipped',   payment_status:'paid',     payment_method:'eSewa',  payment_admin_note:'Payment verified by admin on Apr 1.', total_amount:4850, subtotal:4350, shipping_amount:500, order_items:[{id:'i1',product_name:'Himalayan Herb Oil',unit_price:2200,quantity:1,total_price:2200},{id:'i2',product_name:'Wellness Tea Pack',unit_price:2150,quantity:1,total_price:2150}], coupon_code:'SAVE10', discount_amount:430 },
-//   { id:'ord-def67890', order_number:'ORD-2024-0038', created_at:new Date(Date.now()-86400000*7).toISOString(), status:'pending',   payment_status:'pending',  payment_method:'COD',    payment_admin_note:'', total_amount:1200, order_items:[{id:'i3',product_name:'Aromatherapy Candle',unit_price:1200,quantity:1,total_price:1200}] },
-//   { id:'ord-ghi11111', order_number:'ORD-2024-0031', created_at:new Date(Date.now()-86400000*14).toISOString(), status:'delivered', payment_status:'paid',    payment_method:'Khalti', payment_admin_note:'Confirmed & delivered. Thank you!', total_amount:7500, subtotal:7500, order_items:[{id:'i4',product_name:'Puja Kit Premium',unit_price:5000,quantity:1,total_price:5000},{id:'i5',product_name:'Incense Set',unit_price:2500,quantity:1,total_price:2500}] },
-//   { id:'ord-jkl22222', order_number:'ORD-2024-0019', created_at:new Date(Date.now()-86400000*30).toISOString(), status:'cancelled', payment_status:'refunded', payment_method:'eSewa',  payment_admin_note:'Refund issued — item out of stock.', total_amount:2800, order_items:[{id:'i6',product_name:'Ritual Copper Pot',unit_price:2800,quantity:1,total_price:2800}] },
-// ]
-
 /* ═══════════════════════════════════════════════════════════
    MAIN PAGE
    Auth flow (mirrors useAuthGuard from AuthContext):
@@ -541,6 +536,7 @@ export default function MyOrdersPage() {
   const [tab,      setTab]      = useState('orders')
   const [orders,   setOrders]   = useState([])
   const [loading,  setLoading]  = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [qrOrder,  setQrOrder]  = useState(null)
   const [codOrder, setCodOrder] = useState(null)
   const [codDone,        setCodDone]        = useState({})
@@ -551,19 +547,20 @@ const [showPastOrders, setShowPastOrders] = useState(false)
     if (!authLoading && user) fetchOrders()
   }, [user, authLoading])
 
+  // Uses the shared API client (storeApi.orders) instead of a raw fetch() —
+  // that client already has the correct base URL, auth headers, and
+  // token-refresh handling, so this can't drift out of sync with it again.
   async function fetchOrders() {
     setLoading(true)
+    setLoadError(null)
     try {
-      const token = localStorage.getItem('accessToken')
-const res = await fetch(`${API_BASE}/store/orders?limit=50`, {
-        headers: { 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) },
-      })
-      if (!res.ok) throw new Error()
-      const data    = await res.json()
+      const data = await storeApi.orders({ limit: 50 })
       const fetched = data.orders || data.data || data.items || []
-      setOrders(fetched.length ? fetched : DEMO_ORDERS)
-    } catch {
-      setOrders(DEMO_ORDERS)
+      setOrders(fetched)
+    } catch (err) {
+      console.error('Failed to load orders:', err)
+      setOrders([])
+      setLoadError(err.message || 'Could not load your orders. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -591,14 +588,14 @@ const res = await fetch(`${API_BASE}/store/orders?limit=50`, {
   return (
     <div className="mo-wrap">
       <div className="mo-hero">
-        <svg className="mo-hero-blob mo-hero-blob-1" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path fill="rgba(255,255,255,0.10)" d="M300,80 C420,60 540,150 540,280 C540,410 430,500 300,500 C170,500 60,420 60,290 C60,150 180,100 300,80Z" />
+<svg className="mo-hero-blob mo-hero-blob-1" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="rgba(14,165,233,0.10)" d="M300,80 C420,60 540,150 540,280 C540,410 430,500 300,500 C170,500 60,420 60,290 C60,150 180,100 300,80Z" />
         </svg>
         <svg className="mo-hero-blob mo-hero-blob-2" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path fill="rgba(255,255,255,0.14)" d="M280,40 C400,10 520,110 500,250 C480,390 360,470 230,460 C100,450 0,350 20,220 C40,90 160,70 280,40Z" />
+          <path fill="rgba(125,211,252,0.18)" d="M280,40 C400,10 520,110 500,250 C480,390 360,470 230,460 C100,450 0,350 20,220 C40,90 160,70 280,40Z" />
         </svg>
         <svg className="mo-hero-blob mo-hero-blob-3" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path fill="rgba(0,60,90,0.16)" d="M320,60 C450,90 530,210 500,330 C470,450 340,520 220,490 C100,460 30,340 60,220 C90,100 190,30 320,60Z" />
+          <path fill="rgba(14,165,233,0.14)" d="M320,60 C450,90 530,210 500,330 C470,450 340,520 220,490 C100,460 30,340 60,220 C90,100 190,30 320,60Z" />
         </svg>
         <div className="mo-hero-inner">
           <div className="mo-hero-left">
@@ -606,8 +603,7 @@ const res = await fetch(`${API_BASE}/store/orders?limit=50`, {
             <div>
               <h1 className="mo-hero-title">My Orders</h1>
               <p className="mo-hero-sub">
-                Signed in as <strong style={{ color:'rgba(255,255,255,.95)' }}>
-                  {user.fullName || user.full_name || user.name || user.email}
+Signed in as <strong style={{ color:'#0369a1' }}>                  {user.fullName || user.full_name || user.name || user.email}
                 </strong>
               </p>
             </div>
@@ -658,7 +654,15 @@ const res = await fetch(`${API_BASE}/store/orders?limit=50`, {
                 <p style={{ color:C.mid, fontSize:'.85rem' }}>Loading your orders…</p>
               </div>
             )}
-            {!loading && orders.length === 0 && (
+            {!loading && loadError && (
+              <div className="mo-empty">
+                <div className="mo-empty-icon">⚠️</div>
+                <p style={{ color:C.red, marginBottom:'.5rem', fontFamily:"'Fraunces',Georgia,serif", fontSize:'1.05rem' }}>Couldn't load your orders</p>
+                <p style={{ color:'#7a9aaa', fontSize:'.85rem', marginBottom:'1.5rem' }}>{loadError}</p>
+                <button className="mo-btn-primary" onClick={fetchOrders}>Try Again</button>
+              </div>
+            )}
+            {!loading && !loadError && orders.length === 0 && (
               <div className="mo-empty">
                 <div className="mo-empty-icon">📦</div>
                 <p style={{ color:C.mid, marginBottom:'.5rem', fontFamily:"'Fraunces',Georgia,serif", fontSize:'1.05rem' }}>No orders yet</p>
@@ -666,7 +670,7 @@ const res = await fetch(`${API_BASE}/store/orders?limit=50`, {
                 <button className="mo-btn-primary" onClick={() => navigate('/shop')}>Browse Shop →</button>
               </div>
             )}
-            {!loading && (() => {
+            {!loading && !loadError && orders.length > 0 && (() => {
   const activeStatuses = ['pending', 'confirmed', 'processing', 'shipped']
   const activeOrders = orders.filter(o => activeStatuses.includes((o.status || '').toLowerCase()))
   const pastOrders   = orders.filter(o => !activeStatuses.includes((o.status || '').toLowerCase()))
@@ -709,7 +713,7 @@ const res = await fetch(`${API_BASE}/store/orders?limit=50`, {
 })()}
           </>
         )}
-{tab === 'payment' && !loading && (() => {
+{tab === 'payment' && !loading && !loadError && (() => {
   const activeStatuses = ['pending', 'confirmed', 'processing', 'shipped']
   const activeOrders = orders.filter(o => activeStatuses.includes((o.status || '').toLowerCase()))
   const pastOrders   = orders.filter(o => !activeStatuses.includes((o.status || '').toLowerCase()))
@@ -739,6 +743,12 @@ const res = await fetch(`${API_BASE}/store/orders?limit=50`, {
           <div className="mo-empty">
             <div style={{ fontSize:'2rem', opacity:.3, marginBottom:'1rem' }}>💳</div>
             <p style={{ color:C.mid, fontSize:'.85rem' }}>Loading…</p>
+          </div>
+        )}
+        {tab === 'payment' && loadError && !loading && (
+          <div className="mo-empty">
+            <div className="mo-empty-icon">⚠️</div>
+            <p style={{ color:C.red, fontSize:'.85rem' }}>{loadError}</p>
           </div>
         )}
       </div>
