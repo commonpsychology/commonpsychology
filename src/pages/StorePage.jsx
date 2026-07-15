@@ -190,6 +190,12 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
   const [submitting, setSubmitting] = useState(false)
   const [reviewMsg, setReviewMsg] = useState('')
 
+  const [reviews, setReviews] = useState([])
+  const [reviewsPage, setReviewsPage] = useState(1)
+  const [reviewsHasMore, setReviewsHasMore] = useState(false)
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewsLoadingMore, setReviewsLoadingMore] = useState(false)
+
   // Fresh product fetch + reset image index whenever a different product is opened.
   useEffect(() => {
     let cancelled = false
@@ -203,6 +209,68 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
     return () => { cancelled = true }
   }, [productSummary.id])
 
+  // Load first page of reviews independently — avoids fetching all reviews
+  // up front, which doesn't scale once a product has hundreds/thousands.
+  useEffect(() => {
+    let cancelled = false
+    setReviewsLoading(true)
+    setReviews([])
+    setReviewsPage(1)
+    storeApi.getReviews(productSummary.id, 1, 10)
+      .then(d => {
+        if (cancelled) return
+        setReviews(d.reviews || [])
+        setReviewsHasMore(!!d.pagination?.hasMore)
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setReviewsLoading(false) })
+    return () => { cancelled = true }
+  }, [productSummary.id])
+
+  function loadMoreReviews() {
+    const nextPage = reviewsPage + 1
+    setReviewsLoadingMore(true)
+    storeApi.getReviews(productSummary.id, nextPage, 10)
+      .then(d => {
+        setReviews(prev => [...prev, ...(d.reviews || [])])
+        setReviewsHasMore(!!d.pagination?.hasMore)
+        setReviewsPage(nextPage)
+      })
+      .catch(() => {})
+      .finally(() => setReviewsLoadingMore(false))
+  }
+
+  // Load first page of reviews independently — avoids fetching all reviews
+  // up front, which doesn't scale once a product has hundreds/thousands.
+  useEffect(() => {
+    let cancelled = false
+    setReviewsLoading(true)
+    setReviews([])
+    setReviewsPage(1)
+    storeApi.getReviews(productSummary.id, 1, 10)
+      .then(d => {
+        if (cancelled) return
+        setReviews(d.reviews || [])
+        setReviewsHasMore(!!d.pagination?.hasMore)
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setReviewsLoading(false) })
+    return () => { cancelled = true }
+  }, [productSummary.id])
+
+  function loadMoreReviews() {
+    const nextPage = reviewsPage + 1
+    setReviewsLoadingMore(true)
+    storeApi.getReviews(productSummary.id, nextPage, 10)
+      .then(d => {
+        setReviews(prev => [...prev, ...(d.reviews || [])])
+        setReviewsHasMore(!!d.pagination?.hasMore)
+        setReviewsPage(nextPage)
+      })
+      .catch(() => {})
+      .finally(() => setReviewsLoadingMore(false))
+  }
+
   useEffect(() => {
     const onKey = e => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
@@ -211,7 +279,8 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
 
   const images = extractImages(product)
   const price = product.sale_price ?? product.price ?? 0
-  const { avg: liveRating, count: liveReviewCount } = ratingFromProduct(product)
+  const liveRating = Number(product.rating) || 0
+  const liveReviewCount = Number(product.reviews_count) || 0
 
   // Pointer-based swipe (covers touch on mobile AND mouse/trackpad drag on desktop).
   const dragX = useRef(null)
@@ -232,8 +301,14 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
     setSubmitting(true); setReviewMsg('')
     try {
       await storeApi.addReview(product.id, { rating: myRating, comment: myComment, author_name: myName || undefined })
-      const fresh = await storeApi.product(product.id)
-      setProduct(fresh.product)
+      const [freshProduct, freshReviews] = await Promise.all([
+        storeApi.product(product.id),
+        storeApi.getReviews(product.id, 1, 10),
+      ])
+      setProduct(freshProduct.product)
+      setReviews(freshReviews.reviews || [])
+      setReviewsHasMore(!!freshReviews.pagination?.hasMore)
+      setReviewsPage(1)
       setMyRating(0); setMyComment(''); setMyName('')
       setReviewMsg('Thanks for your review!')
     } catch (e) {
@@ -351,20 +426,28 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
           <div style={{ marginBottom:'1.25rem', borderTop:'1px solid rgba(255,255,255,0.6)', paddingTop:'1rem' }}>
             <h3 style={{ fontSize:'0.78rem', fontWeight:800, color:'var(--text-mid)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.6rem' }}>Customer Reviews</h3>
 
-            {loading ? (
+            {reviewsLoading ? (
               <div style={{ fontSize:'0.78rem', color:'var(--text-light)' }}>Loading reviews…</div>
-            ) : (product.reviews?.length ? (
-              <div style={{ display:'flex', flexDirection:'column', gap:'0.6rem', maxHeight:170, overflowY:'auto', marginBottom:'0.9rem' }}>
-                {product.reviews.map((r,i) => (
-                  <div key={i} style={{ background:'rgba(255,255,255,0.55)', borderRadius:10, padding:'0.6rem 0.8rem' }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.2rem' }}>
-                      <span style={{ fontSize:'0.78rem', fontWeight:700, color:'var(--text-mid)' }}>{r.author_name || 'Anonymous'}</span>
-                      <Stars value={r.rating} size={12} />
+            ) : (reviews.length ? (
+              <>
+                <div style={{ display:'flex', flexDirection:'column', gap:'0.6rem', maxHeight:280, overflowY:'auto', marginBottom:'0.6rem' }}>
+                  {reviews.map((r,i) => (
+                    <div key={r.id || i} style={{ background:'rgba(255,255,255,0.55)', borderRadius:10, padding:'0.6rem 0.8rem' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.2rem' }}>
+                        <span style={{ fontSize:'0.78rem', fontWeight:700, color:'var(--text-mid)' }}>{r.author_name || 'Anonymous'}</span>
+                        <Stars value={r.rating} size={12} />
+                      </div>
+                      {r.comment && <p style={{ fontSize:'0.78rem', color:'var(--text-light)', lineHeight:1.5, margin:0 }}>{r.comment}</p>}
                     </div>
-                    {r.comment && <p style={{ fontSize:'0.78rem', color:'var(--text-light)', lineHeight:1.5, margin:0 }}>{r.comment}</p>}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {reviewsHasMore && (
+                  <button onClick={loadMoreReviews} disabled={reviewsLoadingMore}
+                    style={{ fontSize:'0.76rem', fontWeight:700, color:'var(--green-deep)', background:'none', border:'none', cursor: reviewsLoadingMore ? 'default' : 'pointer', marginBottom:'0.9rem', padding:0 }}>
+                    {reviewsLoadingMore ? 'Loading…' : `Show more reviews (${liveReviewCount - reviews.length} remaining)`}
+                  </button>
+                )}
+              </>
             ) : (
               <p style={{ fontSize:'0.78rem', color:'var(--text-light)', marginBottom:'0.9rem' }}>No reviews yet — be the first!</p>
             ))}

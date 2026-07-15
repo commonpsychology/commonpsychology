@@ -180,6 +180,7 @@ export const store = {
   categories:         ()                               => get('/store/categories'),
   products:           (params = {})                    => { const q = new URLSearchParams(params).toString(); return get(`/store/products${q ? `?${q}` : ''}`) },
   product:            (id)                             => get(`/store/products/${id}`),
+  getReviews:         (productId, page = 1, limit = 10) => get(`/store/products/${productId}/reviews?page=${page}&limit=${limit}`),
   addReview:          (productId, body)                => post(`/store/products/${productId}/reviews`, body),
   getCart:            ()                               => get('/store/cart'),
   addToCart:          (productId, variantId, quantity)  => post('/store/cart', { productId, variantId, quantity }),
