@@ -409,7 +409,7 @@ export default function StorePage() {
         <div style={{ display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.6rem' }}>
           <input placeholder="Search products…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
             style={{ flex:1, minWidth:0, padding:'0.45rem 0.75rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.82rem', outline:'none' }} />
-          <button onClick={() => navigate('/store/cart')}
+          <button onClick={() => navigate('/cart')}
             style={{ flexShrink:0, display:'flex', alignItems:'center', gap:4, padding:'0.45rem 0.85rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:8, fontSize:'0.78rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
             🛒 Cart
             {cartCount > 0 && <span style={{ background:'#f97316', borderRadius:'50%', width:18, height:18, fontSize:'0.6rem', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800 }}>{cartCount}</span>}
