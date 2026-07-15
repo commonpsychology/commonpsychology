@@ -5,7 +5,7 @@
 // Checkout: instead of typed address fields, the user drops a pin on an
 // embedded Leaflet/OpenStreetMap picker (no API key needed); lat/lng +
 // reverse-geocoded address are sent to the backend and stored on the
-// order for the delivery rider to use.
+
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter }  from '../context/RouterContext'
@@ -23,6 +23,8 @@ const GLASS = {
   shadow:    '0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.5)',
   shadowHov: '0 20px 44px rgba(0,123,168,0.22), 0 6px 16px rgba(29,158,117,0.14), inset 0 1px 0 rgba(255,255,255,0.6)',
 }
+
+
 
 const CARD = {
   bg: '#ffffff', bgHover: '#ffffff',
