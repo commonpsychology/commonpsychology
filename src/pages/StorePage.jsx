@@ -97,7 +97,6 @@ function Lightbox({ images, index, onClose, onNav }) {
   )
 }
 
-// ─── Product Quick-View Modal (glass, image slider, ratings, reviews) ──────
 function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
   const [product, setProduct] = useState(productSummary)
   const [loading, setLoading] = useState(true)
