@@ -1,16 +1,14 @@
 // src/pages/StorePage.jsx
 // Products/categories/cart come from the backend (Supabase-backed).
-// Quick-view: glass blue-white card, 4-image slider that expands to a
-// fullscreen lightbox, ratings + reviews (fetched fresh per product).
-// Checkout: instead of typed address fields, the user drops a pin on an
-// embedded Leaflet/OpenStreetMap picker (no API key needed); lat/lng +
-// reverse-geocoded address are sent to the backend and stored on the
+// Quick-view: glass blue-white card, 4-image slider (swipeable on touch
+// AND mouse/trackpad) that expands to a fullscreen lightbox, ratings +
+// reviews (fetched fresh per product).
+// Cart/checkout now lives on its own route — see CartPage.jsx — reached
+// by clicking the cart button.
 
-
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter }  from '../context/RouterContext'
 import { useAuth }    from '../context/AuthContext'
-import { usePayment } from '../components/PaymentModal'
 import { store as storeApi } from '../services/api'
 import EleventhPaymentPromo from '../components/EleventhPaymentPromo'
 
@@ -23,8 +21,6 @@ const GLASS = {
   shadow:    '0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.5)',
   shadowHov: '0 20px 44px rgba(0,123,168,0.22), 0 6px 16px rgba(29,158,117,0.14), inset 0 1px 0 rgba(255,255,255,0.6)',
 }
-
-
 
 const CARD = {
   bg: '#ffffff', bgHover: '#ffffff',
@@ -81,6 +77,15 @@ function Lightbox({ images, index, onClose, onNav }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose, onNav])
 
+  const dragX = useRef(null)
+  function onPointerDown(e) { dragX.current = e.clientX }
+  function onPointerUp(e) {
+    if (dragX.current == null) return
+    const dx = e.clientX - dragX.current
+    if (Math.abs(dx) > 40) onNav(dx < 0 ? 1 : -1)
+    dragX.current = null
+  }
+
   return (
     <div style={{ position:'fixed', inset:0, zIndex:1400, background:'rgba(6,10,20,0.92)', display:'flex', alignItems:'center', justifyContent:'center' }}
       onClick={onClose}>
@@ -88,7 +93,11 @@ function Lightbox({ images, index, onClose, onNav }) {
       {images.length > 1 && (
         <button onClick={e => { e.stopPropagation(); onNav(-1) }} style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', width:44, height:44, borderRadius:'50%', border:'none', background:'rgba(255,255,255,0.12)', color:'#fff', fontSize:'1.4rem', cursor:'pointer' }}>‹</button>
       )}
-      <img src={images[index]} alt="" onClick={e => e.stopPropagation()} style={{ maxWidth:'92vw', maxHeight:'88vh', objectFit:'contain', borderRadius:12, boxShadow:'0 20px 70px rgba(0,0,0,0.5)' }} />
+      <img src={images[index]} alt="" draggable={false}
+        onClick={e => e.stopPropagation()}
+        onPointerDown={e => { e.stopPropagation(); onPointerDown(e) }}
+        onPointerUp={e => { e.stopPropagation(); onPointerUp(e) }}
+        style={{ maxWidth:'92vw', maxHeight:'88vh', objectFit:'contain', borderRadius:12, boxShadow:'0 20px 70px rgba(0,0,0,0.5)', cursor:'grab', touchAction:'pan-y' }} />
       {images.length > 1 && (
         <button onClick={e => { e.stopPropagation(); onNav(1) }} style={{ position:'absolute', right:16, top:'50%', transform:'translateY(-50%)', width:44, height:44, borderRadius:'50%', border:'none', background:'rgba(255,255,255,0.12)', color:'#fff', fontSize:'1.4rem', cursor:'pointer' }}>›</button>
       )}
@@ -114,9 +123,12 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
   const [submitting, setSubmitting] = useState(false)
   const [reviewMsg, setReviewMsg] = useState('')
 
+  // Fresh product fetch + reset image index whenever a different product is opened.
   useEffect(() => {
     let cancelled = false
     setLoading(true)
+    setActiveImg(0)
+    setLightboxOpen(false)
     storeApi.product(productSummary.id)
       .then(d => { if (!cancelled) setProduct(d.product || productSummary) })
       .catch(() => {})
@@ -133,13 +145,27 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
   const images = (product.images?.length ? product.images : product.image_url ? [product.image_url] : []).slice(0, 4)
   const price = product.sale_price ?? product.price ?? 0
 
+  // Pointer-based swipe (covers touch on mobile AND mouse/trackpad drag on desktop).
+  const dragX = useRef(null)
+  const dragging = useRef(false)
+  function navImg(dir) { setActiveImg(i => (images.length ? (i + dir + images.length) % images.length : 0)) }
+  function onImgPointerDown(e) { dragX.current = e.clientX; dragging.current = true }
+  function onImgPointerUp(e) {
+    if (!dragging.current || dragX.current == null) { dragging.current = false; return }
+    const dx = e.clientX - dragX.current
+    if (Math.abs(dx) > 40) navImg(dx < 0 ? 1 : -1)
+    dragX.current = null
+    dragging.current = false
+  }
+  function onImgPointerLeave() { dragX.current = null; dragging.current = false }
+
   async function submitReview() {
     if (!myRating) { setReviewMsg('Pick a star rating first.'); return }
     setSubmitting(true); setReviewMsg('')
     try {
       await storeApi.addReview(product.id, { rating: myRating, comment: myComment, author_name: myName || undefined })
-const fresh = await storeApi.product(product.id)      
-setProduct(fresh.product)
+      const fresh = await storeApi.product(product.id)
+      setProduct(fresh.product)
       setMyRating(0); setMyComment(''); setMyName('')
       setReviewMsg('Thanks for your review!')
     } catch (e) {
@@ -161,12 +187,15 @@ setProduct(fresh.product)
         <button onClick={onClose} style={{ position:'absolute', top:14, right:14, zIndex:2, width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.08)', color:'var(--text-mid)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
 
         <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem', padding:'1.5rem 1.5rem 0' }}>
-          <div style={{ position:'relative' }}
-            onTouchStart={onImgTouchStart} onTouchEnd={onImgTouchEnd}>
-            <div onClick={() => images[activeImg] && setLightboxOpen(true)}
-              style={{ width:'100%', aspectRatio:'1/1', borderRadius:14, overflow:'hidden', background:'rgba(255,255,255,0.5)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3.5rem', cursor: images.length ? 'zoom-in' : 'default', touchAction:'pan-y' }}>
+          <div style={{ position:'relative' }}>
+            <div
+              onClick={() => !dragging.current && images[activeImg] && setLightboxOpen(true)}
+              onPointerDown={onImgPointerDown}
+              onPointerUp={onImgPointerUp}
+              onPointerLeave={onImgPointerLeave}
+              style={{ width:'100%', aspectRatio:'1/1', borderRadius:14, overflow:'hidden', background:'rgba(255,255,255,0.5)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3.5rem', cursor: images.length ? 'grab' : 'default', touchAction:'pan-y', userSelect:'none' }}>
               {images[activeImg]
-                ? <img src={images[activeImg]} alt={product.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+                ? <img src={images[activeImg]} alt={product.name} draggable={false} style={{ width:'100%', height:'100%', objectFit:'cover', pointerEvents:'none' }}/>
                 : '📚'}
             </div>
             {images.length > 1 && (
@@ -188,7 +217,7 @@ setProduct(fresh.product)
               {images.map((img,i) => (
                 <button key={i} onClick={() => setActiveImg(i)}
                   style={{ flex:1, aspectRatio:'1/1', borderRadius:9, overflow:'hidden', padding:0, cursor:'pointer', border:`2px solid ${i===activeImg?'var(--green-deep)':'rgba(255,255,255,0.6)'}`, opacity:i===activeImg?1:0.7 }}>
-                  <img src={img} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+                  <img src={img} alt="" draggable={false} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
                 </button>
               ))}
             </div>
@@ -290,131 +319,9 @@ setProduct(fresh.product)
   )
 }
 
-const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'
-const LEAFLET_JS  = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'
-const DEFAULT_CENTER = [27.7172, 85.3240] // Kathmandu fallback
-
-function useLeafletLoader() {
-  const [ready, setReady] = useState(!!window.L)
-  useEffect(() => {
-    if (window.L) { setReady(true); return }
-    if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
-      const link = document.createElement('link')
-      link.rel = 'stylesheet'; link.href = LEAFLET_CSS
-      document.head.appendChild(link)
-    }
-    let script = document.querySelector(`script[src="${LEAFLET_JS}"]`)
-    if (!script) {
-      script = document.createElement('script')
-      script.src = LEAFLET_JS; script.async = true
-      document.body.appendChild(script)
-    }
-    const onLoad = () => setReady(true)
-    script.addEventListener('load', onLoad)
-    if (window.L) setReady(true)
-    return () => script.removeEventListener('load', onLoad)
-  }, [])
-  return ready
-}
-
-function MapPicker({ onLocationChange }) {
-  const leafletReady = useLeafletLoader()
-  const mapEl = useRef(null)
-  const mapRef = useRef(null)
-  const markerRef = useRef(null)
-  const [status, setStatus] = useState('Locating you…')
-
-  const lastGeocodeRef = useRef(0)
-
-  const reverseGeocode = useCallback(async (lat, lng) => {
-    setStatus('Looking up address…')
-
-    // Nominatim caps requests at ~1/sec. If the initial geolocation lookup
-    // and a map click land close together, throttle so we don't get
-    // rate-limited — which otherwise looks identical to a network failure.
-    const wait = Math.max(0, 1100 - (Date.now() - lastGeocodeRef.current))
-    if (wait > 0) await new Promise(r => setTimeout(r, wait))
-    lastGeocodeRef.current = Date.now()
-
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=en`
-      )
-      if (!res.ok) throw new Error(`Nominatim returned ${res.status}`)
-      const data = await res.json()
-      if (!data || data.error) throw new Error(data?.error || 'No address found')
-
-      const formatted = data.display_name || ''
-      const addr = data.address || {}
-      const city = addr.city || addr.town || addr.village || addr.county || ''
-      onLocationChange({
-        latitude: lat, longitude: lng,
-        formatted_address: formatted,
-        address_line: [addr.road, addr.suburb].filter(Boolean).join(', ') || formatted,
-        city,
-      })
-      setStatus(formatted || 'Pin placed — drag to adjust')
-    } catch {
-      // lat/lng are still sent to the backend — they're what the rider
-      // actually uses. The address text is a convenience label only.
-      onLocationChange({ latitude: lat, longitude: lng, formatted_address: '', address_line: '', city: '' })
-      setStatus('Exact location saved — address text unavailable right now. Drag the pin to retry.')
-    }
-  }, [onLocationChange])
-
-  useEffect(() => {
-    if (!leafletReady || mapRef.current) return
-    const L = window.L
-    const map = L.map(mapEl.current).setView(DEFAULT_CENTER, 14)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors', maxZoom: 19,
-    }).addTo(map)
-
-    const marker = L.marker(DEFAULT_CENTER, { draggable: true }).addTo(map)
-    marker.on('dragend', () => {
-      const { lat, lng } = marker.getLatLng()
-      reverseGeocode(lat, lng)
-    })
-    map.on('click', e => {
-      marker.setLatLng(e.latlng)
-      reverseGeocode(e.latlng.lat, e.latlng.lng)
-    })
-
-    mapRef.current = map
-    markerRef.current = marker
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          const { latitude, longitude } = pos.coords
-          map.setView([latitude, longitude], 15)
-          marker.setLatLng([latitude, longitude])
-          reverseGeocode(latitude, longitude)
-        },
-        () => reverseGeocode(DEFAULT_CENTER[0], DEFAULT_CENTER[1]),
-        { timeout: 6000 }
-      )
-    } else {
-      reverseGeocode(DEFAULT_CENTER[0], DEFAULT_CENTER[1])
-    }
-
-    setTimeout(() => map.invalidateSize(), 200)
-  }, [leafletReady, reverseGeocode])
-
-  return (
-    <div>
-      <div ref={mapEl} style={{ width:'100%', height:220, borderRadius:10, overflow:'hidden', border:'1.5px solid var(--earth-cream)' }} />
-      <p style={{ fontSize:'0.72rem', color:'var(--text-light)', marginTop:'0.4rem' }}>
-        📍 {status} — tap the map or drag the pin to set your exact delivery location.
-      </p>
-    </div>
-  )
-}
-
 export default function StorePage() {
   const { navigate }    = useRouter()
   const { user }        = useAuth()
-  const { openPayment } = usePayment()
 
   const [products,    setProducts]    = useState([])
   const [categories,  setCategories]  = useState([])
@@ -422,7 +329,6 @@ export default function StorePage() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [search,      setSearch]      = useState('')
   const [loading,     setLoading]     = useState(true)
-  const [cartOpen,    setCartOpen]    = useState(false)
   const [adding,      setAdding]      = useState(null)
   const [cartMsg,     setCartMsg]     = useState('')
   const [page,        setPage]        = useState(1)
@@ -430,9 +336,6 @@ export default function StorePage() {
   const [hoveredProduct, setHoveredProduct] = useState(null)
   const [quickViewProduct, setQuickViewProduct] = useState(null)
 
-  const [contact, setContact] = useState({ full_name:'', phone:'', landmark:'', notes:'' })
-  const [location, setLocation] = useState(null)
-  const [addrErr, setAddrErr] = useState('')
   const LIMIT = 12
 
   useEffect(() => {
@@ -477,68 +380,7 @@ export default function StorePage() {
     } finally { setAdding(null) }
   }
 
-  async function removeFromCart(productId) {
-    setCart(prev => prev.filter(i => (i.products?.id || i.product_id) !== productId))
-    try { await storeApi.removeFromCart(productId) }
-    catch { storeApi.getCart().then(d => setCart(d.cart || [])).catch(() => {}) }
-  }
-
-  async function updateQty(productId, qty) {
-    if (qty < 1) { removeFromCart(productId); return }
-    setCart(prev => prev.map(i => (i.products?.id || i.product_id) === productId ? { ...i, quantity: qty } : i))
-    try { await storeApi.updateCart(productId, qty) }
-    catch { storeApi.getCart().then(d => setCart(d.cart || [])).catch(() => {}) }
-  }
-
-  async function handleCheckout() {
-    if (!user) { navigate('/signin'); return }
-    if (!contact.full_name.trim())  return setAddrErr('Full name is required.')
-    if (!contact.phone.trim())      return setAddrErr('Phone number is required.')
-    if (!location)                  return setAddrErr('Please drop a pin on the map for delivery.')
-    setAddrErr('')
-
-    const itemLines = cart.map(item => {
-      const p = item.products || {}
-      const price = p.sale_price ?? p.price ?? 0
-      return { label: `${p.name} × ${item.quantity || 1}`, amount: price * (item.quantity || 1) }
-    })
-
-    setCartOpen(false)
-
-    let orderId
-    try {
-      const orderData = await storeApi.createOrder({ location: { ...contact, ...location } })
-      orderId = orderData.order?.id
-    } catch (err) {
-      alert('Could not create order: ' + (err.message || 'Please try again.'))
-      return
-    }
-
-    const result = await openPayment({
-      type: 'order',
-      amount: cartTotal,
-      title: `Store Order #${String(orderId).slice(-8).toUpperCase()}`,
-      description: `${cartCount} item${cartCount !== 1 ? 's' : ''} from Common Psychology Store`,
-      itemLines,
-      couponEnabled: true,
-      allowedGateways: ['esewa', 'khalti', 'fonepay', 'stripe', 'bank_transfer', 'cash'],
-      metadata: { order_id: orderId, item_count: cartCount, category: 'order' },
-    })
-
-    if (result.success) {
-      try { await storeApi.clearCart() } catch {}
-      setCart([]); setContact({ full_name:'', phone:'', landmark:'', notes:'' }); setLocation(null)
-      navigate('/portal')
-    } else if (!result.cancelled) {
-      alert('Payment was not completed. Your order is saved — you can complete payment from your portal.')
-    }
-  }
-
   const cartCount = cart.reduce((s,i) => s + (i.quantity || 1), 0)
-  const cartTotal = cart.reduce((s,i) => {
-    const p = i.products || {}
-    return s + (p.sale_price ?? p.price ?? 0) * (i.quantity || 1)
-  }, 0)
   const totalPages = Math.ceil(total / LIMIT)
 
   return (
@@ -567,7 +409,7 @@ export default function StorePage() {
         <div style={{ display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.6rem' }}>
           <input placeholder="Search products…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
             style={{ flex:1, minWidth:0, padding:'0.45rem 0.75rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.82rem', outline:'none' }} />
-          <button onClick={() => setCartOpen(true)}
+          <button onClick={() => navigate('/store/cart')}
             style={{ flexShrink:0, display:'flex', alignItems:'center', gap:4, padding:'0.45rem 0.85rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:8, fontSize:'0.78rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
             🛒 Cart
             {cartCount > 0 && <span style={{ background:'#f97316', borderRadius:'50%', width:18, height:18, fontSize:'0.6rem', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800 }}>{cartCount}</span>}
@@ -657,90 +499,6 @@ export default function StorePage() {
       {quickViewProduct && (
         <ProductQuickView productSummary={quickViewProduct} onClose={() => setQuickViewProduct(null)} onAddToCart={addToCart} adding={adding} />
       )}
-
-      {cartOpen && (
-        <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.4)' }} onClick={e => e.target===e.currentTarget && setCartOpen(false)}>
-          <div style={{ position:'absolute', right:0, top:0, bottom:0, width:'100%', maxWidth:420, background:'var(--white)', boxShadow:'-4px 0 24px rgba(0,0,0,0.12)', display:'flex', flexDirection:'column' }}>
-            <div style={{ padding:'1.5rem', borderBottom:'1px solid var(--earth-cream)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--green-deep)' }}>Your Cart ({cartCount})</h2>
-              <button onClick={() => setCartOpen(false)} style={{ background:'none', border:'none', fontSize:'1.25rem', cursor:'pointer', color:'var(--text-light)' }}>✕</button>
-            </div>
-            <div style={{ flex:1, minHeight:0, overflowY:'auto', padding:'1rem 1.5rem' }}>
-              {cart.length === 0 ? (
-                <div style={{ textAlign:'center', padding:'3rem 0', color:'var(--text-light)' }}><div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>🛒</div><p>Your cart is empty.</p></div>
-              ) : cart.map((item, i) => {
-                const p = item.products || {}
-                const price = p.sale_price ?? p.price ?? 0
-                const img = p.images?.[0] || p.image_url
-                const touchStartX = useRef(null)
-  const navImg = (dir) => setActiveImg(i => images.length ? (i + dir + images.length) % images.length : 0)
-  function onImgTouchStart(e) { touchStartX.current = e.touches[0].clientX }
-  function onImgTouchEnd(e) {
-    if (touchStartX.current == null) return
-    const dx = e.changedTouches[0].clientX - touchStartX.current
-    if (Math.abs(dx) > 40) navImg(dx < 0 ? 1 : -1)
-    touchStartX.current = null
-  }
-                return (
-                  <div key={i} style={{ display:'flex', gap:'1rem', padding:'1rem 0', borderBottom:'1px solid var(--earth-cream)', alignItems:'center' }}>
-                    <div style={{ width:56, height:56, borderRadius:8, background:'var(--green-mist)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', flexShrink:0, overflow:'hidden' }}>
-                      {img ? <img src={img} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : '📚'}
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontWeight:600, fontSize:'0.88rem', color:'var(--green-deep)' }}>{p.name}</div>
-                      <div style={{ fontSize:'0.8rem', color:'var(--text-light)' }}>NPR {price.toLocaleString()} each</div>
-                    </div>
-                    <div style={{ display:'flex', alignItems:'center', gap:'0.4rem' }}>
-                      <button onClick={() => updateQty(p.id,(item.quantity||1)-1)} style={{ width:28, height:28, borderRadius:'50%', border:'1.5px solid var(--earth-cream)', background:'none', cursor:'pointer', fontWeight:700 }}>−</button>
-                      <span style={{ minWidth:20, textAlign:'center', fontWeight:700, fontSize:'0.9rem' }}>{item.quantity||1}</span>
-                      <button onClick={() => updateQty(p.id,(item.quantity||1)+1)} style={{ width:28, height:28, borderRadius:'50%', border:'1.5px solid var(--earth-cream)', background:'none', cursor:'pointer', fontWeight:700 }}>+</button>
-                    </div>
-                    <button onClick={() => removeFromCart(p.id)} style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:'1rem' }}>🗑</button>
-                  </div>
-                )
-              })}
-            </div>
-
-            {cart.length > 0 && (
-              <div style={{ padding:'1.5rem', borderTop:'1px solid var(--earth-cream)' }}>
-                <div style={{ marginBottom:'1rem' }}>
-                  <h3 style={{ fontSize:'0.82rem', fontWeight:700, color:'var(--green-deep)', marginBottom:'0.6rem' }}>Delivery Location</h3>
-                  <MapPicker onLocationChange={setLocation} />
-                  <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem', marginTop:'0.6rem' }}>
-                    <input placeholder="Full name *" value={contact.full_name} onChange={e => setContact(c => ({ ...c, full_name:e.target.value }))}
-                      style={{ padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem' }} />
-                    <input placeholder="Phone number *" value={contact.phone} onChange={e => setContact(c => ({ ...c, phone:e.target.value }))}
-                      style={{ padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem' }} />
-                    <input placeholder="Landmark (optional)" value={contact.landmark} onChange={e => setContact(c => ({ ...c, landmark:e.target.value }))}
-                      style={{ padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem' }} />
-                    <textarea placeholder="Delivery notes (optional)" value={contact.notes} onChange={e => setContact(c => ({ ...c, notes:e.target.value }))} rows={2}
-                      style={{ padding:'0.5rem 0.7rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.8rem', resize:'vertical' }} />
-                  </div>
-                  {addrErr && <p style={{ color:'#ef4444', fontSize:'0.75rem', marginTop:'0.4rem', fontWeight:600 }}>{addrErr}</p>}
-                </div>
-
-                </div>
-            )}
-          </div>
-
-          {cart.length > 0 && (
-            <div style={{ padding:'1rem 1.5rem 1.25rem', borderTop:'1px solid var(--earth-cream)', background:'var(--white)', flexShrink:0 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.85rem' }}>
-                <span style={{ fontWeight:600, color:'var(--text-mid)' }}>Total</span>
-                <span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {cartTotal.toLocaleString()}</span>
-              </div>
-              <button onClick={handleCheckout} style={{ width:'100%', padding:'0.9rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:10, fontWeight:700, fontSize:'0.95rem', cursor:'pointer' }}>
-                Choose Payment Method →
-              </button>
-              <p style={{ fontFamily:'var(--font-body)', fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.5rem' }}>
-                eSewa · Khalti · QR · Card · Bank Transfer · Cash on Delivery
-              </p>
-            </div>
-          )}
-        </div>
-      
-    )}
     </div>
   )
 }
-

@@ -32,6 +32,7 @@ import ForgotPasswordPage   from './pages/ForgotPasswordPage'
 import RegisterPage        from './pages/RegisterPage'
 import StorePage           from './pages/StorePage'
 import OnlineCourses      from './pages/OnlineCourses'
+import CartPage            from './pages/CartPage'
 import MessagesPage        from './pages/MessagesPage'
 import PrivacyPage         from './pages/PrivacyPage'
 import OurPlacePage        from './pages/OurplacePage'
@@ -73,6 +74,7 @@ const ROUTES = {
   '/services':           ServicesPage,
   '/therapists':         TherapistsPage,
   '/book':               BookingPage,
+  '/cart':               CartPage,
   '/payment':            PaymentPage,
   '/payment-info':       PaymentEthicsPage,
   '/assessments':        AssessmentsPage,
