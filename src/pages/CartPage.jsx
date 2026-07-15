@@ -32,7 +32,11 @@ const PAGE_BG = `
 `
 
 const HEADER_BG = `
-  linear-gradient(120deg, rgba(30,64,175,0.92) 0%, rgba(37,99,235,0.88) 45%, rgba(56,189,248,0.85) 100%)
+  linear-gradient(135deg,
+    rgba(0,105,148,0.95) 0%,
+    rgba(0,158,214,0.92) 32%,
+    rgba(0,191,255,0.88) 58%,
+    rgba(210,244,255,0.82) 100%)
 `
 
 // ── Leaflet / OpenStreetMap (no API key needed) ──
@@ -263,17 +267,58 @@ export default function CartPage() {
 
   return (
     <div className="page-wrapper" style={{ minHeight:'100vh', background: PAGE_BG }}>
-      {/* Header */}
-      <div style={{ position:'sticky', top:0, zIndex:20, background: HEADER_BG, backdropFilter:'blur(10px)', WebkitBackdropFilter:'blur(10px)', padding:'1.1rem 1.25rem', boxShadow:'0 4px 20px rgba(30,64,175,0.18)' }}>
-        <div style={{ maxWidth:1080, margin:'0 auto', display:'flex', alignItems:'center', gap:'0.9rem' }}>
-          <button onClick={() => navigate('/store')}
-            style={{ width:36, height:36, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.35)', background:'rgba(255,255,255,0.15)', color:'#fff', fontSize:'1.05rem', cursor:'pointer', flexShrink:0 }}>←</button>
-          <div>
-            <h1 style={{ fontFamily:'var(--font-display)', fontSize:'1.25rem', color:'#fff', fontWeight:700, margin:0 }}>Your Cart</h1>
-            <p style={{ fontSize:'0.75rem', color:'rgba(255,255,255,0.78)', margin:0 }}>{cartCount} item{cartCount !== 1 ? 's' : ''}</p>
-          </div>
-        </div>
-      </div>
+     {/* Header */}
+<div style={{
+  position:'sticky', top:0, zIndex:20,
+  background: HEADER_BG,
+  backdropFilter:'blur(16px) saturate(160%)',
+  WebkitBackdropFilter:'blur(16px) saturate(160%)',
+  padding:'1.1rem 1.25rem',
+  boxShadow:'0 8px 30px rgba(0,191,255,0.32), inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(255,255,255,0.12)',
+  borderBottom:'1px solid rgba(255,255,255,0.55)',
+  position:'sticky', overflow:'hidden',
+}}>
+  {/* glossy diagonal shine */}
+  <div style={{
+    position:'absolute', inset:0, pointerEvents:'none',
+    background:'linear-gradient(115deg, transparent 28%, rgba(255,255,255,0.38) 46%, rgba(255,255,255,0.06) 58%, transparent 72%)',
+  }} />
+
+  {/* brittle-glass crack facets */}
+  <svg
+    style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:0.25, pointerEvents:'none' }}
+    preserveAspectRatio="none" viewBox="0 0 400 90"
+  >
+    <polyline points="0,8 38,24 66,6 118,30" stroke="white" strokeWidth="0.55" fill="none" />
+    <polyline points="118,30 156,14 198,34" stroke="white" strokeWidth="0.5" fill="none" />
+    <polyline points="248,0 258,22 298,10 322,42" stroke="white" strokeWidth="0.5" fill="none" />
+    <polyline points="326,52 358,28 400,54" stroke="white" strokeWidth="0.45" fill="none" />
+    <polyline points="0,58 28,80 58,52 92,88" stroke="white" strokeWidth="0.4" fill="none" />
+    <polyline points="190,90 210,62 240,86" stroke="white" strokeWidth="0.35" fill="none" />
+  </svg>
+
+  <div style={{ maxWidth:1080, margin:'0 auto', display:'flex', alignItems:'center', gap:'0.9rem', position:'relative', zIndex:1 }}>
+    <button onClick={() => navigate('/store')}
+      style={{
+        width:36, height:36, borderRadius:'50%',
+        border:'1px solid rgba(255,255,255,0.55)',
+        background:'rgba(255,255,255,0.18)',
+        backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)',
+        color:'#fff', fontSize:'1.05rem', cursor:'pointer', flexShrink:0,
+        boxShadow:'inset 0 1px 0 rgba(255,255,255,0.4)',
+      }}>←</button>
+    <div>
+      <h1 style={{
+        fontFamily:'var(--font-display)', fontSize:'1.25rem', color:'#fff',
+        fontWeight:700, margin:0, textShadow:'0 1px 6px rgba(0,60,90,0.35)',
+      }}>Your Cart</h1>
+      <p style={{
+        fontSize:'0.75rem', color:'rgba(255,255,255,0.88)', margin:0,
+        textShadow:'0 1px 4px rgba(0,60,90,0.3)',
+      }}>{cartCount} item{cartCount !== 1 ? 's' : ''}</p>
+    </div>
+  </div>
+</div>
 
       <div style={{ maxWidth:1080, margin:'0 auto', padding:'1.5rem 1.25rem 4rem' }}>
         {loading ? (
