@@ -416,6 +416,7 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
   
 }
 
+
 export default function StorePage() {
   const { navigate }    = useRouter()
   const { user }        = useAuth()
