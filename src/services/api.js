@@ -71,7 +71,6 @@ let data
   } catch {
     data = { message: `Server error (${res.status}). Please try again.` }
   }
-  
 
 if (!res.ok) {
     const err = new Error(data.message || 'Request failed')
