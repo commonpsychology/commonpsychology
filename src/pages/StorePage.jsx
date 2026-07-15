@@ -267,7 +267,6 @@ setProduct(fresh.product)
   )
 }
 
-// ─── Embedded Leaflet map  (loads Leaflet from CDN, no npm install) ──
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'
 const LEAFLET_JS  = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'
 const DEFAULT_CENTER = [27.7172, 85.3240] // Kathmandu fallback
