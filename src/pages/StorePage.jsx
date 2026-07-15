@@ -37,33 +37,100 @@ const SECTION_BG = `
   linear-gradient(180deg, #f5fbff 0%, #eef8fc 55%, #f8fcff 100%)
 `
 
-// ─── Star rating (read-only) ───────────────────────────────────────────────
-function Stars({ value = 0, size = '0.85rem' }) {
-  const full = Math.round(value)
+// ─── SVG star glyph — fill is drawn via SVG `fill`, not text `color`, so it
+// can't be silently overridden by a global CSS rule resetting text color
+// on buttons/spans (a common cause of "stars look uncolored"). ────────────
+function StarGlyph({ filled, size = 16 }) {
   return (
-    <span style={{ color:'#f59e0b', fontSize:size, letterSpacing:1 }}>
-      {'★'.repeat(full)}{'☆'.repeat(5 - full)}
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{ display:'block', flexShrink:0 }}>
+      <path d="M12 2.6l2.86 6.1 6.54.78-4.86 4.56 1.27 6.56L12 17.65l-5.81 3.05 1.27-6.56L2.6 9.48l6.54-.78L12 2.6z"
+        fill={filled ? '#f59e0b' : 'none'}
+        stroke={filled ? '#f59e0b' : '#cbd5e1'}
+        strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+// ─── Star rating (read-only, fractional fill e.g. 3.7/5) ───────────────────
+function Stars({ value = 0, size = 15, showValue = false }) {
+  const pct = Math.max(0, Math.min(1, value / 5)) * 100
+  return (
+    <span style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+      <span style={{ position:'relative', display:'inline-block', lineHeight:0 }}>
+        <span style={{ display:'flex', gap:1 }}>
+          {[0,1,2,3,4].map(i => <StarGlyph key={i} filled={false} size={size} />)}
+        </span>
+        <span style={{ position:'absolute', inset:0, overflow:'hidden', width:`${pct}%`, display:'flex', gap:1 }}>
+          {[0,1,2,3,4].map(i => <StarGlyph key={i} filled={true} size={size} />)}
+        </span>
+      </span>
+      {showValue && value > 0 && <span style={{ fontSize:size*0.66, color:'var(--text-light)', fontWeight:700 }}>{value.toFixed(1)}</span>}
     </span>
   )
 }
 
-// ─── Interactive star picker (for writing a review) ────────────────────────
-function StarPicker({ value, onChange }) {
+// ─── Interactive star picker (for writing a review) — click to select,
+// hover to preview, filled amber via SVG so it's always visibly colored. ───
+function StarPicker({ value, onChange, size = 30 }) {
+  const [hover, setHover] = useState(0)
+  const display = hover || value
   return (
-    <div style={{ display:'flex', gap:2 }}>
+    <div style={{ display:'flex', gap:2 }} onMouseLeave={() => setHover(0)}>
       {[1,2,3,4,5].map(n => (
         <button key={n} type="button"
           onClick={e => { e.stopPropagation(); onChange(n) }}
+          onMouseEnter={() => setHover(n)}
           aria-label={`${n} star${n > 1 ? 's' : ''}`}
-          style={{ background:'none', border:'none', cursor:'pointer', fontSize:'1.5rem', lineHeight:1,
-            color: n <= value ? '#f59e0b' : '#d1d5db', padding:'6px', margin:'-6px',
-            touchAction:'manipulation', transform: n <= value ? 'scale(1.05)' : 'scale(1)',
-            transition:'color 0.15s, transform 0.15s' }}>
-          ★
+          style={{ background:'none', border:'none', cursor:'pointer', lineHeight:0, padding:6, margin:-6,
+            touchAction:'manipulation', transform: n <= display ? 'scale(1.08)' : 'scale(1)',
+            transition:'transform 0.12s' }}>
+          <StarGlyph filled={n <= display} size={size} />
         </button>
       ))}
     </div>
   )
+}
+
+// ─── Pull a product's rating + count from its live reviews when available,
+// falling back to backend-provided rating/reviews_count. Computing it from
+// the reviews array we already fetched means the average is always correct
+// and updates the instant a new review is submitted, instead of depending
+// on the backend having recalculated `rating` before it responds. ─────────
+function ratingFromProduct(product) {
+  const reviews = product?.reviews
+  if (Array.isArray(reviews) && reviews.length) {
+    const avg = reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0) / reviews.length
+    return { avg, count: reviews.length }
+  }
+  return { avg: Number(product?.rating) || 0, count: Number(product?.reviews_count) || 0 }
+}
+
+// ─── Normalize a product's images into a flat array of URLs, regardless of
+// which shape the backend returns them in. Supabase setups commonly join
+// a separate images table, which comes back as an array of ROW OBJECTS
+// (e.g. `product_images: [{ image_url }, ...]`) rather than plain strings —
+// that shape is handled here too. If images still only show one after this,
+// check what field your `storeApi.product()` response actually uses for
+// the gallery and add it to the `raw` list below. ──────────────────────────
+function extractImages(product) {
+  if (!product) return []
+  const raw =
+    product.images ??
+    product.gallery ??
+    product.photos ??
+    product.image_urls ??
+    product.additional_images ??
+    product.product_images ??
+    null
+
+  let list = []
+  if (Array.isArray(raw)) {
+    list = raw
+      .map(item => (typeof item === 'string' ? item : item?.image_url || item?.url || item?.src))
+      .filter(Boolean)
+  }
+  if (!list.length && product.image_url) list = [product.image_url]
+  return list.slice(0, 4)
 }
 
 function Lightbox({ images, index, onClose, onNav }) {
@@ -142,8 +209,9 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const images = (product.images?.length ? product.images : product.image_url ? [product.image_url] : []).slice(0, 4)
+  const images = extractImages(product)
   const price = product.sale_price ?? product.price ?? 0
+  const { avg: liveRating, count: liveReviewCount } = ratingFromProduct(product)
 
   // Pointer-based swipe (covers touch on mobile AND mouse/trackpad drag on desktop).
   const dragX = useRef(null)
@@ -234,9 +302,9 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
           <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.4rem', color:'var(--green-deep)', fontWeight:700, marginBottom:'0.4rem' }}>{product.name}</h2>
 
           <div style={{ display:'flex', alignItems:'center', gap:'0.4rem', marginBottom:'0.6rem' }}>
-            <Stars value={product.rating || 0} />
+            <Stars value={liveRating} size={17} />
             <span style={{ fontSize:'0.78rem', color:'var(--text-light)' }}>
-              {product.rating ? Number(product.rating).toFixed(1) : 'No ratings yet'} {product.reviews_count ? `(${product.reviews_count} review${product.reviews_count===1?'':'s'})` : ''}
+              {liveReviewCount ? `${liveRating.toFixed(1)} (${liveReviewCount} review${liveReviewCount===1?'':'s'})` : 'No ratings yet'}
             </span>
           </div>
 
@@ -268,7 +336,7 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
                   <div key={i} style={{ background:'rgba(255,255,255,0.55)', borderRadius:10, padding:'0.6rem 0.8rem' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.2rem' }}>
                       <span style={{ fontSize:'0.78rem', fontWeight:700, color:'var(--text-mid)' }}>{r.author_name || 'Anonymous'}</span>
-                      <Stars value={r.rating} size="0.72rem" />
+                      <Stars value={r.rating} size={12} />
                     </div>
                     {r.comment && <p style={{ fontSize:'0.78rem', color:'var(--text-light)', lineHeight:1.5, margin:0 }}>{r.comment}</p>}
                   </div>
@@ -409,7 +477,7 @@ export default function StorePage() {
         <div style={{ display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.6rem' }}>
           <input placeholder="Search products…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
             style={{ flex:1, minWidth:0, padding:'0.45rem 0.75rem', border:'1.5px solid var(--earth-cream)', borderRadius:8, fontSize:'0.82rem', outline:'none' }} />
-          <button onClick={() => navigate('/cart')}
+          <button onClick={() => navigate('/store/cart')}
             style={{ flexShrink:0, display:'flex', alignItems:'center', gap:4, padding:'0.45rem 0.85rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:8, fontSize:'0.78rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
             🛒 Cart
             {cartCount > 0 && <span style={{ background:'#f97316', borderRadius:'50%', width:18, height:18, fontSize:'0.6rem', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800 }}>{cartCount}</span>}
@@ -428,8 +496,6 @@ export default function StorePage() {
       {cartMsg && (
         <div style={{ position:'fixed', bottom:'2rem', right:'2rem', background:'var(--green-deep)', color:'white', padding:'0.75rem 1.5rem', borderRadius:10, fontWeight:600, fontSize:'0.9rem', zIndex:1000, boxShadow:'0 4px 20px rgba(0,0,0,0.15)' }}>{cartMsg}</div>
       )}
-
-      
 
       <div style={{ background: SECTION_BG }}>
         <div className="section">
@@ -459,10 +525,12 @@ export default function StorePage() {
                     </div>
                     <div style={{ padding:'1.25rem', display:'flex', flexDirection:'column', height:'calc(100% - 200px)' }}>
                       <div style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:600, marginBottom:'0.3rem' }}>{p.name}</div>
+                      {(() => { const { avg, count } = ratingFromProduct(p); return (
                       <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:'0.4rem' }}>
-                        <Stars value={p.rating || 0} size="0.72rem" />
-                        {p.reviews_count > 0 && <span style={{ fontSize:'0.68rem', color:'var(--text-light)' }}>({p.reviews_count})</span>}
+                        <Stars value={avg} size={13} />
+                        {count > 0 && <span style={{ fontSize:'0.68rem', color:'var(--text-light)' }}>({count})</span>}
                       </div>
+                      )})()}
                       {p.short_description && <p style={{ fontSize:'0.8rem', color:'var(--text-light)', lineHeight:1.5, marginBottom:'0.75rem' }}>{p.short_description}</p>}
                       <div style={{ marginBottom:'0.5rem' }}>
                         {p.tags?.slice(0,2).map((t,i) => <span key={i} style={{ fontSize:'0.7rem', fontWeight:600, background:'rgba(29,158,117,0.1)', color:'var(--green-deep)', padding:'0.15rem 0.5rem', borderRadius:100, marginRight:'0.35rem', border:'1px solid rgba(29,158,117,0.15)' }}>{t}</span>)}
