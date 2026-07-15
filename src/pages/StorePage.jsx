@@ -63,7 +63,6 @@ function StarPicker({ value, onChange }) {
   )
 }
 
-// ─── Fullscreen image lightbox ──────────────────────────────────────────────
 function Lightbox({ images, index, onClose, onNav }) {
   useEffect(() => {
     const onKey = e => {
