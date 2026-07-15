@@ -340,72 +340,42 @@ export default function CartPage() {
           </div>
         ) : (
           <div className="cart-grid" style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr)', gap:'1.5rem', alignItems:'start' }}>
-            {/* Right column: order summary (sticky) — now shown first */}
+            {/* Left column: items only */}
             <div style={{
               background: GLASS.bg, border: GLASS.border, boxShadow: GLASS.shadow, borderRadius:20,
               padding:'1.5rem', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
-              position:'sticky', top:88,
-            }} className="cart-summary">
-              <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:700, marginBottom:'1rem' }}>Order Summary</h2>
-
-              <div style={{ display:'flex', flexDirection:'column', gap:'0.55rem', marginBottom:'1rem' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem', color:'var(--text-mid)' }}>
-                  <span>Subtotal ({cartCount} item{cartCount!==1?'s':''})</span>
-                  <span>NPR {cartTotal.toLocaleString()}</span>
-                </div>
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem', color:'var(--text-light)' }}>
-                  <span>Delivery</span>
-                  <span>Calculated at gateway</span>
-                </div>
+            }}>
+              <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:700, marginBottom:'1rem' }}>Items</h2>
+              <div style={{ display:'flex', flexDirection:'column', gap:'0.9rem' }}>
+                {cart.map((item, i) => {
+                  const p = item.products || {}
+                  const price = p.sale_price ?? p.price ?? 0
+                  const img = p.images?.[0] || p.image_url
+                  const pid = p.id || item.product_id
+                  const lineTotal = price * (item.quantity || 1)
+                  return (
+                    <div key={i} style={{ display:'flex', gap:'1rem', alignItems:'center', background:PANEL.bg, border:PANEL.border, boxShadow:PANEL.shadow, borderRadius:14, padding:'0.85rem', opacity: busyId===pid ? 0.5 : 1, transition:'opacity 0.2s' }}>
+                      <div style={{ width:64, height:64, borderRadius:10, background:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.6rem', flexShrink:0, overflow:'hidden' }}>
+                        {img ? <img src={img} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : '📚'}
+                      </div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontWeight:700, fontSize:'0.9rem', color:'var(--green-deep)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name}</div>
+                        <div style={{ fontSize:'0.78rem', color:'var(--text-light)' }}>NPR {price.toLocaleString()} each</div>
+                      </div>
+                      <QtyStepper value={item.quantity || 1} onChange={qty => updateQty(pid, qty)} />
+                      <div style={{ width:88, textAlign:'right', fontWeight:700, fontSize:'0.88rem', color:'var(--green-deep)' }}>
+                        NPR {lineTotal.toLocaleString()}
+                      </div>
+                      <button onClick={() => removeItem(pid)} title="Remove"
+                        style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:'1rem', flexShrink:0 }}>🗑</button>
+                    </div>
+                  )
+                })}
               </div>
-
-              <div style={{ borderTop:'1px solid rgba(120,190,230,0.35)', paddingTop:'0.85rem', marginBottom:'1.25rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <span style={{ fontWeight:700, color:'var(--text-mid)' }}>Total</span>
-                <span style={{ fontFamily:'var(--font-display)', fontSize:'1.25rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {cartTotal.toLocaleString()}</span>
-              </div>
-
-              <button onClick={handleCheckout} disabled={placingOrder}
-                style={{ width:'100%', padding:'0.9rem', background: placingOrder ? '#94a3b8' : 'var(--green-deep)', color:'white', border:'none', borderRadius:12, fontWeight:700, fontSize:'0.92rem', cursor: placingOrder ? 'not-allowed' : 'pointer', boxShadow:'0 8px 22px rgba(29,158,117,0.25)' }}>
-                {placingOrder ? 'Placing order…' : 'Choose Payment Method →'}
-              </button>
-              <p style={{ fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.6rem' }}>
-                eSewa · Khalti · QR · Card · Bank Transfer · Cash on Delivery
-              </p>
             </div>
 
-            {/* Left column: items + delivery form — now shown second */}
+            {/* Right column: delivery details (map + form) on top, order summary below */}
             <div style={{ display:'flex', flexDirection:'column', gap:'1.5rem', minWidth:0 }}>
-
-              {/* Line items */}
-              <div style={{ background:GLASS.bg, border:GLASS.border, boxShadow:GLASS.shadow, borderRadius:20, padding:'1.5rem', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)' }}>
-                <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:700, marginBottom:'1rem' }}>Items</h2>
-                <div style={{ display:'flex', flexDirection:'column', gap:'0.9rem' }}>
-                  {cart.map((item, i) => {
-                    const p = item.products || {}
-                    const price = p.sale_price ?? p.price ?? 0
-                    const img = p.images?.[0] || p.image_url
-                    const pid = p.id || item.product_id
-                    const lineTotal = price * (item.quantity || 1)
-                    return (
-                      <div key={i} style={{ display:'flex', gap:'1rem', alignItems:'center', background:PANEL.bg, border:PANEL.border, boxShadow:PANEL.shadow, borderRadius:14, padding:'0.85rem', opacity: busyId===pid ? 0.5 : 1, transition:'opacity 0.2s' }}>
-                        <div style={{ width:64, height:64, borderRadius:10, background:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.6rem', flexShrink:0, overflow:'hidden' }}>
-                          {img ? <img src={img} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : '📚'}
-                        </div>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontWeight:700, fontSize:'0.9rem', color:'var(--green-deep)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name}</div>
-                          <div style={{ fontSize:'0.78rem', color:'var(--text-light)' }}>NPR {price.toLocaleString()} each</div>
-                        </div>
-                        <QtyStepper value={item.quantity || 1} onChange={qty => updateQty(pid, qty)} />
-                        <div style={{ width:88, textAlign:'right', fontWeight:700, fontSize:'0.88rem', color:'var(--green-deep)' }}>
-                          NPR {lineTotal.toLocaleString()}
-                        </div>
-                        <button onClick={() => removeItem(pid)} title="Remove"
-                          style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:'1rem', flexShrink:0 }}>🗑</button>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
 
               {/* Delivery location + contact */}
               <div style={{ background:GLASS.bg, border:GLASS.border, boxShadow:GLASS.shadow, borderRadius:20, padding:'1.5rem', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)' }}>
@@ -425,6 +395,38 @@ export default function CartPage() {
                 </div>
                 {addrErr && <p style={{ color:'#ef4444', fontSize:'0.76rem', marginTop:'0.6rem', fontWeight:600 }}>{addrErr}</p>}
               </div>
+
+              {/* Order summary — now below map + form */}
+              <div style={{
+                background: GLASS.bg, border: GLASS.border, boxShadow: GLASS.shadow, borderRadius:20,
+                padding:'1.5rem', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
+              }} className="cart-summary">
+                <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:700, marginBottom:'1rem' }}>Order Summary</h2>
+
+                <div style={{ display:'flex', flexDirection:'column', gap:'0.55rem', marginBottom:'1rem' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem', color:'var(--text-mid)' }}>
+                    <span>Subtotal ({cartCount} item{cartCount!==1?'s':''})</span>
+                    <span>NPR {cartTotal.toLocaleString()}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem', color:'var(--text-light)' }}>
+                    <span>Delivery</span>
+                    <span>Calculated at gateway</span>
+                  </div>
+                </div>
+
+                <div style={{ borderTop:'1px solid rgba(120,190,230,0.35)', paddingTop:'0.85rem', marginBottom:'1.25rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontWeight:700, color:'var(--text-mid)' }}>Total</span>
+                  <span style={{ fontFamily:'var(--font-display)', fontSize:'1.25rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {cartTotal.toLocaleString()}</span>
+                </div>
+
+                <button onClick={handleCheckout} disabled={placingOrder}
+                  style={{ width:'100%', padding:'0.9rem', background: placingOrder ? '#94a3b8' : 'var(--green-deep)', color:'white', border:'none', borderRadius:12, fontWeight:700, fontSize:'0.92rem', cursor: placingOrder ? 'not-allowed' : 'pointer', boxShadow:'0 8px 22px rgba(29,158,117,0.25)' }}>
+                  {placingOrder ? 'Placing order…' : 'Choose Payment Method →'}
+                </button>
+                <p style={{ fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.6rem' }}>
+                  eSewa · Khalti · QR · Card · Bank Transfer · Cash on Delivery
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -433,9 +435,6 @@ export default function CartPage() {
       <style>{`
         @media (min-width: 860px) {
           .cart-grid { grid-template-columns: 1fr 1.6fr !important; }
-        }
-        @media (max-width: 859px) {
-          .cart-summary { position: static !important; }
         }
       `}</style>
     </div>
