@@ -10,8 +10,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth }   from '../context/AuthContext'
 import { useRouter } from '../context/RouterContext'
-
-const API_BASE = import.meta.env?.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+import { store as storeApi } from '../services/api'
 
 const C = {
   sky:'#0ea5e9', skyLt:'#e0f2fe', skyDk:'#0369a1',
@@ -511,14 +510,6 @@ function OrderCard({ order, onShowQR, onCODConfirm }) {
   )
 }
 
-/* ── Demo data ── */
-// const DEMO_ORDERS = [
-//   { id:'ord-abc12345', order_number:'ORD-2024-0042', created_at:new Date(Date.now()-86400000*2).toISOString(), status:'shipped',   payment_status:'paid',     payment_method:'eSewa',  payment_admin_note:'Payment verified by admin on Apr 1.', total_amount:4850, subtotal:4350, shipping_amount:500, order_items:[{id:'i1',product_name:'Himalayan Herb Oil',unit_price:2200,quantity:1,total_price:2200},{id:'i2',product_name:'Wellness Tea Pack',unit_price:2150,quantity:1,total_price:2150}], coupon_code:'SAVE10', discount_amount:430 },
-//   { id:'ord-def67890', order_number:'ORD-2024-0038', created_at:new Date(Date.now()-86400000*7).toISOString(), status:'pending',   payment_status:'pending',  payment_method:'COD',    payment_admin_note:'', total_amount:1200, order_items:[{id:'i3',product_name:'Aromatherapy Candle',unit_price:1200,quantity:1,total_price:1200}] },
-//   { id:'ord-ghi11111', order_number:'ORD-2024-0031', created_at:new Date(Date.now()-86400000*14).toISOString(), status:'delivered', payment_status:'paid',    payment_method:'Khalti', payment_admin_note:'Confirmed & delivered. Thank you!', total_amount:7500, subtotal:7500, order_items:[{id:'i4',product_name:'Puja Kit Premium',unit_price:5000,quantity:1,total_price:5000},{id:'i5',product_name:'Incense Set',unit_price:2500,quantity:1,total_price:2500}] },
-//   { id:'ord-jkl22222', order_number:'ORD-2024-0019', created_at:new Date(Date.now()-86400000*30).toISOString(), status:'cancelled', payment_status:'refunded', payment_method:'eSewa',  payment_admin_note:'Refund issued — item out of stock.', total_amount:2800, order_items:[{id:'i6',product_name:'Ritual Copper Pot',unit_price:2800,quantity:1,total_price:2800}] },
-// ]
-
 /* ═══════════════════════════════════════════════════════════
    MAIN PAGE
    Auth flow (mirrors useAuthGuard from AuthContext):
@@ -545,6 +536,7 @@ export default function MyOrdersPage() {
   const [tab,      setTab]      = useState('orders')
   const [orders,   setOrders]   = useState([])
   const [loading,  setLoading]  = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [qrOrder,  setQrOrder]  = useState(null)
   const [codOrder, setCodOrder] = useState(null)
   const [codDone,        setCodDone]        = useState({})
@@ -555,19 +547,20 @@ const [showPastOrders, setShowPastOrders] = useState(false)
     if (!authLoading && user) fetchOrders()
   }, [user, authLoading])
 
+  // Uses the shared API client (storeApi.orders) instead of a raw fetch() —
+  // that client already has the correct base URL, auth headers, and
+  // token-refresh handling, so this can't drift out of sync with it again.
   async function fetchOrders() {
     setLoading(true)
+    setLoadError(null)
     try {
-      const token = localStorage.getItem('accessToken')
-const res = await fetch(`${API_BASE}/store/orders?limit=50`, {
-        headers: { 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) },
-      })
-      if (!res.ok) throw new Error()
-      const data    = await res.json()
+      const data = await storeApi.orders({ limit: 50 })
       const fetched = data.orders || data.data || data.items || []
-      setOrders(fetched.length ? fetched : DEMO_ORDERS)
-    } catch {
-      setOrders(DEMO_ORDERS)
+      setOrders(fetched)
+    } catch (err) {
+      console.error('Failed to load orders:', err)
+      setOrders([])
+      setLoadError(err.message || 'Could not load your orders. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -661,7 +654,15 @@ Signed in as <strong style={{ color:'#0369a1' }}>                  {user.fullNam
                 <p style={{ color:C.mid, fontSize:'.85rem' }}>Loading your orders…</p>
               </div>
             )}
-            {!loading && orders.length === 0 && (
+            {!loading && loadError && (
+              <div className="mo-empty">
+                <div className="mo-empty-icon">⚠️</div>
+                <p style={{ color:C.red, marginBottom:'.5rem', fontFamily:"'Fraunces',Georgia,serif", fontSize:'1.05rem' }}>Couldn't load your orders</p>
+                <p style={{ color:'#7a9aaa', fontSize:'.85rem', marginBottom:'1.5rem' }}>{loadError}</p>
+                <button className="mo-btn-primary" onClick={fetchOrders}>Try Again</button>
+              </div>
+            )}
+            {!loading && !loadError && orders.length === 0 && (
               <div className="mo-empty">
                 <div className="mo-empty-icon">📦</div>
                 <p style={{ color:C.mid, marginBottom:'.5rem', fontFamily:"'Fraunces',Georgia,serif", fontSize:'1.05rem' }}>No orders yet</p>
@@ -669,7 +670,7 @@ Signed in as <strong style={{ color:'#0369a1' }}>                  {user.fullNam
                 <button className="mo-btn-primary" onClick={() => navigate('/shop')}>Browse Shop →</button>
               </div>
             )}
-            {!loading && (() => {
+            {!loading && !loadError && orders.length > 0 && (() => {
   const activeStatuses = ['pending', 'confirmed', 'processing', 'shipped']
   const activeOrders = orders.filter(o => activeStatuses.includes((o.status || '').toLowerCase()))
   const pastOrders   = orders.filter(o => !activeStatuses.includes((o.status || '').toLowerCase()))
@@ -712,7 +713,7 @@ Signed in as <strong style={{ color:'#0369a1' }}>                  {user.fullNam
 })()}
           </>
         )}
-{tab === 'payment' && !loading && (() => {
+{tab === 'payment' && !loading && !loadError && (() => {
   const activeStatuses = ['pending', 'confirmed', 'processing', 'shipped']
   const activeOrders = orders.filter(o => activeStatuses.includes((o.status || '').toLowerCase()))
   const pastOrders   = orders.filter(o => !activeStatuses.includes((o.status || '').toLowerCase()))
@@ -742,6 +743,12 @@ Signed in as <strong style={{ color:'#0369a1' }}>                  {user.fullNam
           <div className="mo-empty">
             <div style={{ fontSize:'2rem', opacity:.3, marginBottom:'1rem' }}>💳</div>
             <p style={{ color:C.mid, fontSize:'.85rem' }}>Loading…</p>
+          </div>
+        )}
+        {tab === 'payment' && loadError && !loading && (
+          <div className="mo-empty">
+            <div className="mo-empty-icon">⚠️</div>
+            <p style={{ color:C.red, fontSize:'.85rem' }}>{loadError}</p>
           </div>
         )}
       </div>
