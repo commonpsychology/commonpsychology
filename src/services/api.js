@@ -239,7 +239,6 @@ export const community = {
   myGroups:        ()         => get('/community/my-groups'),
   checkMembership: (id)       => get(`/community/groups/${id}/membership`),
 
-  // joinGroup now accepts full body including payment fields
   joinGroup:       (id, body) => post(`/community/groups/${id}/join`, body),
   leaveGroup:      (id)       => del(`/community/groups/${id}/leave`),
 
@@ -302,6 +301,8 @@ export const admin = {
     ).toString()
     return get(`/admin/payments${q ? `?${q}` : ''}`)
   },
+
+
 
   createProduct: (body)     => post('/admin/products', body),
   updateProduct: (id, body) => patch(`/admin/products/${id}`, body),

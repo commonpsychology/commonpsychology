@@ -209,9 +209,12 @@ function AvatarDropdown({ onNavigate }) {
         <UserAvatar user={user} size={36} />
       </button>
 
-      <div style={{ position:'absolute', top:'calc(100% + 12px)', right:0, width:224,
-        background:'var(--white)', borderRadius:14, border:'1px solid var(--blue-pale)',
-        boxShadow:'0 20px 56px rgba(15,52,96,0.14)', padding:'0.4rem', zIndex:400,
+      <div style={{ position:'absolute', top:'calc(100% + 12px)', right:0, width:232,
+        background:'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.85) 100%)',
+        backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
+        borderRadius:16, border:'1px solid rgba(255,255,255,0.6)',
+        boxShadow:'0 24px 60px rgba(0,60,90,0.18), inset 0 1px 0 rgba(255,255,255,0.6)',
+        padding:'0.45rem', zIndex:400,
         opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none',
         transform: open ? 'translateY(0)' : 'translateY(-8px)',
         transition:'opacity 0.16s ease, transform 0.16s ease' }}>
@@ -259,11 +262,21 @@ function AvatarDropdown({ onNavigate }) {
         ].map(item => (
           <button key={item.path} onClick={() => { setOpen(false); onNavigate(item.path) }}
             style={{ display:'flex', alignItems:'center', gap:'0.6rem', width:'100%',
-              padding:'0.6rem 0.8rem', borderRadius:8, border:'none',
-              background:'transparent', cursor:'pointer', textAlign:'left', transition:'background 0.14s' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--off-white)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            <span style={{ width:28, height:28, borderRadius:7, background:item.bg,
+              padding:'0.55rem 0.7rem', borderRadius:11, marginBottom:4,
+              background:'linear-gradient(160deg, rgba(255,255,255,0.4) 0%, rgba(224,242,254,0.22) 100%)',
+              border:'1px solid rgba(255,255,255,0.4)', cursor:'pointer', textAlign:'left',
+              transition:'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s ease, background 0.2s ease' }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'linear-gradient(160deg, rgba(255,255,255,0.7) 0%, rgba(186,230,253,0.45) 100%)'
+              e.currentTarget.style.transform = 'translateY(-1px)'
+              e.currentTarget.style.boxShadow = '0 8px 18px rgba(0,123,168,0.14)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'linear-gradient(160deg, rgba(255,255,255,0.4) 0%, rgba(224,242,254,0.22) 100%)'
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}>
+            <span style={{ width:28, height:28, borderRadius:8, background:item.bg,
               display:'flex', alignItems:'center', justifyContent:'center',
               fontSize:'0.82rem', flexShrink:0 }}>{item.icon}</span>
             <span style={{ fontFamily:'var(--font-body)', fontSize:'0.83rem',
@@ -329,18 +342,21 @@ function DropdownItem({ group, currentPath, onNavigate, lang }) {
       {open && <div style={{ position:'absolute', top:'100%', left:'-20px', right:'-20px',
         height:18, background:'transparent', zIndex:299 }} />}
 
-      <div style={{ position:'absolute', top:'calc(100% + 16px)', left:'50%', minWidth:256,
-        background:'var(--white)', borderRadius:'var(--radius-lg)',
-        border:'1px solid var(--blue-pale)', boxShadow:'0 20px 56px rgba(26,58,74,0.13)',
-        padding:'0.45rem', zIndex:300,
+      <div style={{ position:'absolute', top:'calc(100% + 16px)', left:'50%', minWidth:272,
+        background:'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.85) 100%)',
+        backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
+        borderRadius:18, border:'1px solid rgba(255,255,255,0.6)',
+        boxShadow:'0 24px 60px rgba(0,123,168,0.16), inset 0 1px 0 rgba(255,255,255,0.6)',
+        padding:'0.5rem', zIndex:300,
         opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none',
         transform: open ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-8px)',
         transition:'opacity 0.16s ease, transform 0.16s ease' }}>
         <div style={{ position:'absolute', top:-7, left:'50%', transform:'translateX(-50%)',
           width:14, height:8, overflow:'hidden' }}>
-          <div style={{ width:10, height:10, background:'var(--white)',
-            border:'1px solid var(--blue-pale)', transform:'rotate(45deg)', margin:'3px auto 0' }} />
+          <div style={{ width:10, height:10, background:'rgba(255,255,255,0.9)',
+            border:'1px solid rgba(255,255,255,0.6)', transform:'rotate(45deg)', margin:'3px auto 0' }} />
         </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:'0.3rem' }}>
         {group.children.map(item => {
           const active = currentPath === item.path
           const iLabel = lang === 'NP' ? (item.labelNP || item.label) : item.label
@@ -349,13 +365,31 @@ function DropdownItem({ group, currentPath, onNavigate, lang }) {
             <button key={item.path + item.label}
               onClick={() => { onNavigate(item.path); setOpen(false) }}
               style={{ display:'flex', alignItems:'center', gap:'0.7rem', width:'100%',
-                padding:'0.6rem 0.8rem', borderRadius:'var(--radius-md)',
-                background: active ? 'var(--sky-light)' : 'transparent',
-                border:'none', cursor:'pointer', textAlign:'left', transition:'background 0.14s' }}
-              onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--off-white)' }}
-              onMouseLeave={e => { if (!active) e.currentTarget.style.background = active ? 'var(--sky-light)' : 'transparent' }}>
-              <span style={{ width:32, height:32, borderRadius:8, flexShrink:0,
-                background: active ? 'var(--sky)' : 'var(--blue-mist)',
+                padding:'0.6rem 0.75rem', borderRadius:12,
+                background: active
+                  ? 'linear-gradient(160deg, rgba(186,230,253,0.6) 0%, rgba(224,242,254,0.4) 100%)'
+                  : 'linear-gradient(160deg, rgba(255,255,255,0.5) 0%, rgba(224,242,254,0.28) 100%)',
+                border: active ? '1px solid rgba(41,128,185,0.32)' : '1px solid rgba(255,255,255,0.45)',
+                boxShadow: active ? '0 4px 14px rgba(0,123,168,0.12)' : '0 1px 3px rgba(0,60,90,0.04)',
+                cursor:'pointer', textAlign:'left',
+                transition:'transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease, background 0.22s ease, border-color 0.22s ease' }}
+              onMouseEnter={e => {
+                if (active) return
+                e.currentTarget.style.background = 'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(186,230,253,0.5) 100%)'
+                e.currentTarget.style.borderColor = 'rgba(120,190,230,0.5)'
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow = '0 10px 24px rgba(0,123,168,0.16)'
+              }}
+              onMouseLeave={e => {
+                if (active) return
+                e.currentTarget.style.background = 'linear-gradient(160deg, rgba(255,255,255,0.5) 0%, rgba(224,242,254,0.28) 100%)'
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.45)'
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,60,90,0.04)'
+              }}>
+              <span style={{ width:32, height:32, borderRadius:9, flexShrink:0,
+                background: active ? 'var(--sky)' : 'rgba(255,255,255,0.75)',
+                border: active ? 'none' : '1px solid rgba(255,255,255,0.6)',
                 display:'flex', alignItems:'center', justifyContent:'center',
                 fontSize:'0.88rem' }}>{item.icon}</span>
               <div style={{ flex:1 }}>
@@ -368,6 +402,7 @@ function DropdownItem({ group, currentPath, onNavigate, lang }) {
             </button>
           )
         })}
+        </div>
       </div>
     </div>
   )
