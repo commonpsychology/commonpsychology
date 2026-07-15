@@ -69,10 +69,12 @@ function MapPicker({ onLocationChange }) {
   const mapRef = useRef(null)
   const markerRef = useRef(null)
   const [status, setStatus] = useState('Locating you…')
+  const [coords, setCoords] = useState(null)
   const lastGeocodeRef = useRef(0)
 
   const reverseGeocode = useCallback(async (lat, lng) => {
     setStatus('Looking up address…')
+    setCoords({ lat, lng })
 
     // Nominatim caps requests at ~1/sec. If the initial geolocation lookup
     // and a map click land close together, throttle so we don't get
@@ -137,7 +139,7 @@ function MapPicker({ onLocationChange }) {
           reverseGeocode(latitude, longitude)
         },
         () => reverseGeocode(DEFAULT_CENTER[0], DEFAULT_CENTER[1]),
-        { timeout: 6000 }
+        { timeout: 8000, enableHighAccuracy: true, maximumAge: 0 }
       )
     } else {
       reverseGeocode(DEFAULT_CENTER[0], DEFAULT_CENTER[1])
@@ -152,6 +154,11 @@ function MapPicker({ onLocationChange }) {
       <p style={{ fontSize:'0.74rem', color:'var(--text-light)', marginTop:'0.5rem' }}>
         📍 {status} — tap the map or drag the pin to set your exact delivery location.
       </p>
+      {coords && (
+        <p style={{ fontSize:'0.7rem', color:'var(--green-deep)', fontWeight:600, marginTop:'0.15rem', fontFamily:'monospace' }}>
+          Exact pin: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
+        </p>
+      )}
     </div>
   )
 }
