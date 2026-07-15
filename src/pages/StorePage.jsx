@@ -254,37 +254,60 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
       }} className="qv-grid">
         <button onClick={onClose} style={{ position:'absolute', top:14, right:14, zIndex:2, width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.08)', color:'var(--text-mid)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
 
-        <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem', padding:'1.5rem 1.5rem 0' }}>
-          <div style={{ position:'relative' }}>
-            <div
-              onClick={() => !dragging.current && images[activeImg] && setLightboxOpen(true)}
-              onPointerDown={onImgPointerDown}
-              onPointerUp={onImgPointerUp}
-              onPointerLeave={onImgPointerLeave}
-              style={{ width:'100%', aspectRatio:'1/1', borderRadius:14, overflow:'hidden', background:'rgba(255,255,255,0.5)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3.5rem', cursor: images.length ? 'grab' : 'default', touchAction:'pan-y', userSelect:'none' }}>
-              {images[activeImg]
-                ? <img src={images[activeImg]} alt={product.name} draggable={false} style={{ width:'100%', height:'100%', objectFit:'cover', pointerEvents:'none' }}/>
-                : '📚'}
-            </div>
+        <div style={{ padding:'1.5rem 1.5rem 0' }}>
+          <div style={{ display:'flex', gap:'0.65rem' }}>
+
             {images.length > 1 && (
-              <>
-                <button onClick={e => { e.stopPropagation(); navImg(-1) }}
-                  style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.5)', color:'#fff', fontSize:'1.1rem', cursor:'pointer' }}>‹</button>
-                <button onClick={e => { e.stopPropagation(); navImg(1) }}
-                  style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.5)', color:'#fff', fontSize:'1.1rem', cursor:'pointer' }}>›</button>
-                <div style={{ position:'absolute', bottom:10, left:'50%', transform:'translateX(-50%)', display:'flex', gap:5 }}>
-                  {images.map((_, i) => (
-                    <span key={i} style={{ width:6, height:6, borderRadius:'50%', background: i===activeImg ? '#fff' : 'rgba(255,255,255,0.4)' }} />
-                  ))}
-                </div>
-              </>
+              <div className="qv-thumbs-col" style={{ display:'flex', flexDirection:'column', gap:'0.5rem', width:60, flexShrink:0 }}>
+                {images.map((img, i) => (
+                  <button key={i} onClick={() => setActiveImg(i)}
+                    style={{
+                      width:60, height:60, borderRadius:10, overflow:'hidden', padding:0, cursor:'pointer',
+                      border:`2px solid ${i===activeImg ? 'var(--green-deep)' : 'rgba(255,255,255,0.7)'}`,
+                      opacity: i===activeImg ? 1 : 0.6, transition:'opacity 0.2s, border-color 0.2s',
+                    }}>
+                    <img src={img} alt="" draggable={false} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+                  </button>
+                ))}
+              </div>
             )}
+
+            <div style={{ position:'relative', flex:1, minWidth:0 }}>
+              <div
+                onClick={() => !dragging.current && images[activeImg] && setLightboxOpen(true)}
+                onPointerDown={onImgPointerDown}
+                onPointerUp={onImgPointerUp}
+                onPointerLeave={onImgPointerLeave}
+                style={{ width:'100%', aspectRatio:'1/1', borderRadius:14, overflow:'hidden', background:'rgba(255,255,255,0.5)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3.5rem', cursor: images.length ? 'zoom-in' : 'default', touchAction:'pan-y', userSelect:'none' }}>
+                {images[activeImg]
+                  ? <img src={images[activeImg]} alt={product.name} draggable={false} style={{ width:'100%', height:'100%', objectFit:'cover', pointerEvents:'none' }}/>
+                  : '📚'}
+              </div>
+
+              {images.length > 1 && (
+                <>
+                  <button onClick={e => { e.stopPropagation(); navImg(-1) }}
+                    style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.5)', color:'#fff', fontSize:'1.1rem', cursor:'pointer' }}>‹</button>
+                  <button onClick={e => { e.stopPropagation(); navImg(1) }}
+                    style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.5)', color:'#fff', fontSize:'1.1rem', cursor:'pointer' }}>›</button>
+                </>
+              )}
+
+              {images.length > 0 && (
+                <span style={{ position:'absolute', bottom:10, right:10, background:'rgba(15,23,42,0.55)', color:'#fff', fontSize:'0.65rem', fontWeight:700, padding:'0.25rem 0.55rem', borderRadius:100, pointerEvents:'none' }}>
+                  🔍 {images.length > 1 ? `${activeImg+1}/${images.length}` : 'Zoom'}
+                </span>
+              )}
+            </div>
           </div>
+
           {images.length > 1 && (
-            <div style={{ display:'flex', gap:'0.5rem' }}>
-              {images.map((img,i) => (
+            <div className="qv-thumbs-row" style={{ display:'none', gap:'0.5rem', marginTop:'0.75rem' }}>
+              {images.map((img, i) => (
                 <button key={i} onClick={() => setActiveImg(i)}
-                  style={{ flex:1, aspectRatio:'1/1', borderRadius:9, overflow:'hidden', padding:0, cursor:'pointer', border:`2px solid ${i===activeImg?'var(--green-deep)':'rgba(255,255,255,0.6)'}`, opacity:i===activeImg?1:0.7 }}>
+                  style={{ flex:1, aspectRatio:'1/1', borderRadius:9, overflow:'hidden', padding:0, cursor:'pointer',
+                    border:`2px solid ${i===activeImg ? 'var(--green-deep)' : 'rgba(255,255,255,0.6)'}`,
+                    opacity: i===activeImg ? 1 : 0.7 }}>
                   <img src={img} alt="" draggable={false} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
                 </button>
               ))}
@@ -381,6 +404,10 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
       <style>{`
         @media (min-width: 720px) {
           .qv-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 719px) {
+          .qv-thumbs-col { display: none !important; }
+          .qv-thumbs-row { display: flex !important; }
         }
       `}</style>
     </div>
