@@ -133,8 +133,8 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
     setSubmitting(true); setReviewMsg('')
     try {
       await storeApi.addReview(product.id, { rating: myRating, comment: myComment, author_name: myName || undefined })
-      const fresh = await storeApi.productDetail(product.id)
-      setProduct(fresh.product)
+const fresh = await storeApi.product(product.id)      
+setProduct(fresh.product)
       setMyRating(0); setMyComment(''); setMyName('')
       setReviewMsg('Thanks for your review!')
     } catch (e) {
