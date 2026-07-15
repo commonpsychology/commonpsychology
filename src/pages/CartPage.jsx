@@ -340,7 +340,40 @@ export default function CartPage() {
           </div>
         ) : (
           <div className="cart-grid" style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr)', gap:'1.5rem', alignItems:'start' }}>
-            {/* Left column: items + delivery form */}
+            {/* Right column: order summary (sticky) — now shown first */}
+            <div style={{
+              background: GLASS.bg, border: GLASS.border, boxShadow: GLASS.shadow, borderRadius:20,
+              padding:'1.5rem', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
+              position:'sticky', top:88,
+            }} className="cart-summary">
+              <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:700, marginBottom:'1rem' }}>Order Summary</h2>
+
+              <div style={{ display:'flex', flexDirection:'column', gap:'0.55rem', marginBottom:'1rem' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem', color:'var(--text-mid)' }}>
+                  <span>Subtotal ({cartCount} item{cartCount!==1?'s':''})</span>
+                  <span>NPR {cartTotal.toLocaleString()}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem', color:'var(--text-light)' }}>
+                  <span>Delivery</span>
+                  <span>Calculated at gateway</span>
+                </div>
+              </div>
+
+              <div style={{ borderTop:'1px solid rgba(120,190,230,0.35)', paddingTop:'0.85rem', marginBottom:'1.25rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span style={{ fontWeight:700, color:'var(--text-mid)' }}>Total</span>
+                <span style={{ fontFamily:'var(--font-display)', fontSize:'1.25rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {cartTotal.toLocaleString()}</span>
+              </div>
+
+              <button onClick={handleCheckout} disabled={placingOrder}
+                style={{ width:'100%', padding:'0.9rem', background: placingOrder ? '#94a3b8' : 'var(--green-deep)', color:'white', border:'none', borderRadius:12, fontWeight:700, fontSize:'0.92rem', cursor: placingOrder ? 'not-allowed' : 'pointer', boxShadow:'0 8px 22px rgba(29,158,117,0.25)' }}>
+                {placingOrder ? 'Placing order…' : 'Choose Payment Method →'}
+              </button>
+              <p style={{ fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.6rem' }}>
+                eSewa · Khalti · QR · Card · Bank Transfer · Cash on Delivery
+              </p>
+            </div>
+
+            {/* Left column: items + delivery form — now shown second */}
             <div style={{ display:'flex', flexDirection:'column', gap:'1.5rem', minWidth:0 }}>
 
               {/* Line items */}
@@ -393,46 +426,13 @@ export default function CartPage() {
                 {addrErr && <p style={{ color:'#ef4444', fontSize:'0.76rem', marginTop:'0.6rem', fontWeight:600 }}>{addrErr}</p>}
               </div>
             </div>
-
-            {/* Right column: order summary (sticky) */}
-            <div style={{
-              background: GLASS.bg, border: GLASS.border, boxShadow: GLASS.shadow, borderRadius:20,
-              padding:'1.5rem', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
-              position:'sticky', top:88,
-            }} className="cart-summary">
-              <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:700, marginBottom:'1rem' }}>Order Summary</h2>
-
-              <div style={{ display:'flex', flexDirection:'column', gap:'0.55rem', marginBottom:'1rem' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem', color:'var(--text-mid)' }}>
-                  <span>Subtotal ({cartCount} item{cartCount!==1?'s':''})</span>
-                  <span>NPR {cartTotal.toLocaleString()}</span>
-                </div>
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem', color:'var(--text-light)' }}>
-                  <span>Delivery</span>
-                  <span>Calculated at gateway</span>
-                </div>
-              </div>
-
-              <div style={{ borderTop:'1px solid rgba(120,190,230,0.35)', paddingTop:'0.85rem', marginBottom:'1.25rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <span style={{ fontWeight:700, color:'var(--text-mid)' }}>Total</span>
-                <span style={{ fontFamily:'var(--font-display)', fontSize:'1.25rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {cartTotal.toLocaleString()}</span>
-              </div>
-
-              <button onClick={handleCheckout} disabled={placingOrder}
-                style={{ width:'100%', padding:'0.9rem', background: placingOrder ? '#94a3b8' : 'var(--green-deep)', color:'white', border:'none', borderRadius:12, fontWeight:700, fontSize:'0.92rem', cursor: placingOrder ? 'not-allowed' : 'pointer', boxShadow:'0 8px 22px rgba(29,158,117,0.25)' }}>
-                {placingOrder ? 'Placing order…' : 'Choose Payment Method →'}
-              </button>
-              <p style={{ fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.6rem' }}>
-                eSewa · Khalti · QR · Card · Bank Transfer · Cash on Delivery
-              </p>
-            </div>
           </div>
         )}
       </div>
 
       <style>{`
         @media (min-width: 860px) {
-          .cart-grid { grid-template-columns: 1.6fr 1fr !important; }
+          .cart-grid { grid-template-columns: 1fr 1.6fr !important; }
         }
         @media (max-width: 859px) {
           .cart-summary { position: static !important; }
