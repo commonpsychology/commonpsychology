@@ -432,24 +432,31 @@ function MobileGroup({ group, currentPath, onNavigate, lang }) {
         </svg>
       </button>
       {open && (
-        <ul style={{ listStyle:'none', paddingLeft:'0.5rem',
-          paddingBottom:'0.4rem', borderBottom:'1px solid var(--earth-cream)' }}>
+        <ul style={{ listStyle:'none', padding:'0.4rem 0.3rem 0.6rem',
+          display:'flex', flexDirection:'column', gap:'0.35rem',
+          borderBottom:'1px solid var(--earth-cream)' }}>
           {group.children.map(item => {
             const iLabel = lang === 'NP' ? (item.labelNP || item.label) : item.label
+            const active = currentPath === item.path
             return (
-              <li key={item.path + item.label}>
+              <li key={item.path + item.label} style={{ listStyle:'none' }}>
                 <a href={item.path} onClick={e => { e.preventDefault(); onNavigate(item.path) }}
-                  className={currentPath === item.path ? 'nav-active' : ''}
                   style={{ display:'flex', alignItems:'center', gap:'0.65rem',
-                    padding:'0.55rem 0', borderBottom:'1px solid rgba(0,0,0,0.04)',
-                    textDecoration:'none' }}>
-                  <span style={{ width:28, height:28, borderRadius:6, flexShrink:0,
-                    background: currentPath===item.path ? 'var(--sky)' : 'var(--blue-mist)',
+                    padding:'0.6rem 0.75rem', borderRadius:12,
+                    background: active
+                      ? 'linear-gradient(160deg, rgba(186,230,253,0.55) 0%, rgba(224,242,254,0.35) 100%)'
+                      : 'linear-gradient(160deg, rgba(255,255,255,0.55) 0%, rgba(224,242,254,0.28) 100%)',
+                    border: active ? '1px solid rgba(41,128,185,0.3)' : '1px solid rgba(255,255,255,0.5)',
+                    boxShadow: active ? '0 4px 12px rgba(0,123,168,0.1)' : '0 1px 3px rgba(0,60,90,0.04)',
+                    textDecoration:'none', transition:'background 0.16s ease, transform 0.16s ease' }}>
+                  <span style={{ width:28, height:28, borderRadius:8, flexShrink:0,
+                    background: active ? 'var(--sky)' : 'rgba(255,255,255,0.8)',
+                    border: active ? 'none' : '1px solid rgba(255,255,255,0.7)',
                     display:'flex', alignItems:'center', justifyContent:'center',
                     fontSize:'0.78rem' }}>{item.icon}</span>
                   <span style={{ fontFamily:'var(--font-body)', fontSize:'0.88rem',
-                    fontWeight: currentPath===item.path ? 700 : 500,
-                    color: currentPath===item.path ? 'var(--sky)' : 'var(--text-mid)' }}>{iLabel}</span>
+                    fontWeight: active ? 700 : 500,
+                    color: active ? 'var(--sky)' : 'var(--text-mid)' }}>{iLabel}</span>
                 </a>
               </li>
             )
@@ -467,8 +474,21 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen]   = useState(false)
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (!menuOpen) return
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.overflow = ''
+      window.scrollTo(0, scrollY)
+    }
   }, [menuOpen])
 
   useEffect(() => {

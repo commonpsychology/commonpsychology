@@ -52,10 +52,15 @@ function Stars({ value = 0, size = '0.85rem' }) {
 // ─── Interactive star picker (for writing a review) ────────────────────────
 function StarPicker({ value, onChange }) {
   return (
-    <div style={{ display:'flex', gap:4 }}>
+    <div style={{ display:'flex', gap:2 }}>
       {[1,2,3,4,5].map(n => (
-        <button key={n} type="button" onClick={() => onChange(n)}
-          style={{ background:'none', border:'none', cursor:'pointer', fontSize:'1.3rem', color: n <= value ? '#f59e0b' : '#d1d5db', padding:0, lineHeight:1 }}>
+        <button key={n} type="button"
+          onClick={e => { e.stopPropagation(); onChange(n) }}
+          aria-label={`${n} star${n > 1 ? 's' : ''}`}
+          style={{ background:'none', border:'none', cursor:'pointer', fontSize:'1.5rem', lineHeight:1,
+            color: n <= value ? '#f59e0b' : '#d1d5db', padding:'6px', margin:'-6px',
+            touchAction:'manipulation', transform: n <= value ? 'scale(1.05)' : 'scale(1)',
+            transition:'color 0.15s, transform 0.15s' }}>
           ★
         </button>
       ))}
@@ -154,11 +159,27 @@ setProduct(fresh.product)
         <button onClick={onClose} style={{ position:'absolute', top:14, right:14, zIndex:2, width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.08)', color:'var(--text-mid)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
 
         <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem', padding:'1.5rem 1.5rem 0' }}>
-          <div onClick={() => images[activeImg] && setLightboxOpen(true)}
-            style={{ width:'100%', aspectRatio:'1/1', borderRadius:14, overflow:'hidden', background:'rgba(255,255,255,0.5)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3.5rem', cursor: images.length ? 'zoom-in' : 'default' }}>
-            {images[activeImg]
-              ? <img src={images[activeImg]} alt={product.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
-              : '📚'}
+          <div style={{ position:'relative' }}
+            onTouchStart={onImgTouchStart} onTouchEnd={onImgTouchEnd}>
+            <div onClick={() => images[activeImg] && setLightboxOpen(true)}
+              style={{ width:'100%', aspectRatio:'1/1', borderRadius:14, overflow:'hidden', background:'rgba(255,255,255,0.5)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3.5rem', cursor: images.length ? 'zoom-in' : 'default', touchAction:'pan-y' }}>
+              {images[activeImg]
+                ? <img src={images[activeImg]} alt={product.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+                : '📚'}
+            </div>
+            {images.length > 1 && (
+              <>
+                <button onClick={e => { e.stopPropagation(); navImg(-1) }}
+                  style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.5)', color:'#fff', fontSize:'1.1rem', cursor:'pointer' }}>‹</button>
+                <button onClick={e => { e.stopPropagation(); navImg(1) }}
+                  style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', width:34, height:34, borderRadius:'50%', border:'none', background:'rgba(15,23,42,0.5)', color:'#fff', fontSize:'1.1rem', cursor:'pointer' }}>›</button>
+                <div style={{ position:'absolute', bottom:10, left:'50%', transform:'translateX(-50%)', display:'flex', gap:5 }}>
+                  {images.map((_, i) => (
+                    <span key={i} style={{ width:6, height:6, borderRadius:'50%', background: i===activeImg ? '#fff' : 'rgba(255,255,255,0.4)' }} />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
           {images.length > 1 && (
             <div style={{ display:'flex', gap:'0.5rem' }}>
@@ -301,11 +322,26 @@ function MapPicker({ onLocationChange }) {
   const markerRef = useRef(null)
   const [status, setStatus] = useState('Locating you…')
 
+  const lastGeocodeRef = useRef(0)
+
   const reverseGeocode = useCallback(async (lat, lng) => {
     setStatus('Looking up address…')
+
+    // Nominatim caps requests at ~1/sec. If the initial geolocation lookup
+    // and a map click land close together, throttle so we don't get
+    // rate-limited — which otherwise looks identical to a network failure.
+    const wait = Math.max(0, 1100 - (Date.now() - lastGeocodeRef.current))
+    if (wait > 0) await new Promise(r => setTimeout(r, wait))
+    lastGeocodeRef.current = Date.now()
+
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=en`
+      )
+      if (!res.ok) throw new Error(`Nominatim returned ${res.status}`)
       const data = await res.json()
+      if (!data || data.error) throw new Error(data?.error || 'No address found')
+
       const formatted = data.display_name || ''
       const addr = data.address || {}
       const city = addr.city || addr.town || addr.village || addr.county || ''
@@ -317,8 +353,10 @@ function MapPicker({ onLocationChange }) {
       })
       setStatus(formatted || 'Pin placed — drag to adjust')
     } catch {
+      // lat/lng are still sent to the backend — they're what the rider
+      // actually uses. The address text is a convenience label only.
       onLocationChange({ latitude: lat, longitude: lng, formatted_address: '', address_line: '', city: '' })
-      setStatus('Pin placed (could not fetch address — drag to retry)')
+      setStatus('Exact location saved — address text unavailable right now. Drag the pin to retry.')
     }
   }, [onLocationChange])
 
@@ -625,13 +663,22 @@ export default function StorePage() {
               <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--green-deep)' }}>Your Cart ({cartCount})</h2>
               <button onClick={() => setCartOpen(false)} style={{ background:'none', border:'none', fontSize:'1.25rem', cursor:'pointer', color:'var(--text-light)' }}>✕</button>
             </div>
-            <div style={{ flex:1, overflowY:'auto', padding:'1rem 1.5rem' }}>
+            <div style={{ flex:1, minHeight:0, overflowY:'auto', padding:'1rem 1.5rem' }}>
               {cart.length === 0 ? (
                 <div style={{ textAlign:'center', padding:'3rem 0', color:'var(--text-light)' }}><div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>🛒</div><p>Your cart is empty.</p></div>
               ) : cart.map((item, i) => {
                 const p = item.products || {}
                 const price = p.sale_price ?? p.price ?? 0
                 const img = p.images?.[0] || p.image_url
+                const touchStartX = useRef(null)
+  const navImg = (dir) => setActiveImg(i => images.length ? (i + dir + images.length) % images.length : 0)
+  function onImgTouchStart(e) { touchStartX.current = e.touches[0].clientX }
+  function onImgTouchEnd(e) {
+    if (touchStartX.current == null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 40) navImg(dx < 0 ? 1 : -1)
+    touchStartX.current = null
+  }
                 return (
                   <div key={i} style={{ display:'flex', gap:'1rem', padding:'1rem 0', borderBottom:'1px solid var(--earth-cream)', alignItems:'center' }}>
                     <div style={{ width:56, height:56, borderRadius:8, background:'var(--green-mist)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', flexShrink:0, overflow:'hidden' }}>
@@ -670,22 +717,27 @@ export default function StorePage() {
                   {addrErr && <p style={{ color:'#ef4444', fontSize:'0.75rem', marginTop:'0.4rem', fontWeight:600 }}>{addrErr}</p>}
                 </div>
 
-                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'1rem' }}>
-                  <span style={{ fontWeight:600, color:'var(--text-mid)' }}>Total</span>
-                  <span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {cartTotal.toLocaleString()}</span>
                 </div>
-
-                <button onClick={handleCheckout} style={{ width:'100%', padding:'0.9rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:10, fontWeight:700, fontSize:'0.95rem', cursor:'pointer' }}>
-                  Choose Payment Method →
-                </button>
-                <p style={{ fontFamily:'var(--font-body)', fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.5rem' }}>
-                  eSewa · Khalti · QR · Card · Bank Transfer · Cash on Delivery
-                </p>
-              </div>
             )}
           </div>
+
+          {cart.length > 0 && (
+            <div style={{ padding:'1rem 1.5rem 1.25rem', borderTop:'1px solid var(--earth-cream)', background:'var(--white)', flexShrink:0 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.85rem' }}>
+                <span style={{ fontWeight:600, color:'var(--text-mid)' }}>Total</span>
+                <span style={{ fontFamily:'var(--font-display)', fontSize:'1.1rem', fontWeight:700, color:'var(--green-deep)' }}>NPR {cartTotal.toLocaleString()}</span>
+              </div>
+              <button onClick={handleCheckout} style={{ width:'100%', padding:'0.9rem', background:'var(--green-deep)', color:'white', border:'none', borderRadius:10, fontWeight:700, fontSize:'0.95rem', cursor:'pointer' }}>
+                Choose Payment Method →
+              </button>
+              <p style={{ fontFamily:'var(--font-body)', fontSize:'0.7rem', color:'var(--text-light)', textAlign:'center', marginTop:'0.5rem' }}>
+                eSewa · Khalti · QR · Card · Bank Transfer · Cash on Delivery
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      
+    )}
     </div>
   )
 }
