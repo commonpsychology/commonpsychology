@@ -42,8 +42,8 @@ const NAV = [
     { label: 'Our Values',       labelNP: 'हाम्रा वाचा',   path: '/our-values',   icon: '🌱', desc: 'What we stand for',          descNP: 'हामी के मा विश्वास गर्छौं' },
   ]},
 
-  { label: 'Ashram', labelNP: 'आश्रम', path: '/ashram', children: [
-    { label: 'Ashram',           labelNP: 'आश्रम',             path: '/ashram',       icon: '🏠', desc: 'Place to connect',           descNP: 'जोडिने स्थान' },
+  { label: 'Connect', labelNP: 'आश्रम', path: '/ashram', children: [
+    { label: 'Connect',           labelNP: 'आश्रम',             path: '/ashram',       icon: '🏠', desc: 'Place to connect',           descNP: 'जोडिने स्थान' },
   ]},
 ]
 

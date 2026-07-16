@@ -143,24 +143,29 @@ const HEART_CSS = `
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Cloud puff morph — organic curling shape-shift ── */
-  @keyframes cloud-drift {
-    0%   { border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%; }
-    25%  { border-radius: 58% 42% 45% 55% / 45% 55% 45% 55%; }
-    50%  { border-radius: 40% 60% 55% 45% / 55% 45% 60% 40%; }
-    75%  { border-radius: 55% 45% 40% 60% / 48% 52% 55% 45%; }
-    100% { border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%; }
+  /* ── Whole-cloud float — small left/right + up/down drift, contained ── */
+  @keyframes cloud-puff-bob {
+    0%   { transform: translate(0px, 0px)   scale(1);     }
+    20%  { transform: translate(3px, -2px)  scale(1.012); }
+    40%  { transform: translate(-2px, -3px) scale(0.99);  }
+    60%  { transform: translate(-3px, 2px)  scale(1.015); }
+    80%  { transform: translate(2px, 3px)   scale(0.995); }
+    100% { transform: translate(0px, 0px)   scale(1);     }
   }
 
-  /* ── Blob float — small left/right + up/down drift, contained
-        within the cloud's own padding so it never overlaps the text ── */
-  @keyframes cloud-puff-bob {
-    0%   { transform: translate(0px, 0px)     scale(1);     }
-    20%  { transform: translate(3px, -2px)    scale(1.012); }
-    40%  { transform: translate(-2px, -3px)   scale(0.99);  }
-    60%  { transform: translate(-3px, 2px)    scale(1.015); }
-    80%  { transform: translate(2px, 3px)     scale(0.995); }
-    100% { transform: translate(0px, 0px)     scale(1);     }
+  /* ── Individual puff jiggle — each cloud bump breathes on its own
+        timing, so the outline feels soft and alive, not rigid ── */
+  @keyframes cloud-jiggle-a {
+    0%,100% { transform: scale(1) translateY(0); }
+    50%     { transform: scale(1.07) translateY(-1.5px); }
+  }
+  @keyframes cloud-jiggle-b {
+    0%,100% { transform: scale(1) translateY(0); }
+    50%     { transform: scale(0.94) translateY(1.5px); }
+  }
+  @keyframes cloud-jiggle-c {
+    0%,100% { transform: scale(1) translateY(0); }
+    50%     { transform: scale(1.05) translateY(-1px); }
   }
 
   @media (min-width: 1024px) {
@@ -251,37 +256,27 @@ const HEART_CSS = `
     padding: 6px 16px;
     animation: h1-fade-up 0.7s 0.4s cubic-bezier(0.22,1,0.36,1) both;
   }
-  .hero-tagline-cloud-bg {
+  .hero-tagline-cloud-svg {
     position: absolute;
-    inset: -8px -14px;
+    inset: -14px -20px;
     z-index: 0;
-    background: linear-gradient(135deg, #ffffff 0%, #eaf6ff 45%, #cdeafb 100%);
-    border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%;
-    box-shadow: 0 5px 14px rgba(120,180,220,0.26), inset 0 1px 0 rgba(255,255,255,0.75);
-    animation: cloud-drift 6s ease-in-out infinite, cloud-puff-bob 4.2s ease-in-out infinite;
+    width: calc(100% + 40px);
+    height: calc(100% + 28px);
+    overflow: visible;
+    filter: drop-shadow(0 5px 12px rgba(120,180,220,0.30));
+    animation: cloud-puff-bob 4.2s ease-in-out infinite;
     pointer-events: none;
   }
-  /* Small puff bumps to sell the "cloud" silhouette, thin + tucked close */
-  .hero-tagline-cloud-bg::before,
-  .hero-tagline-cloud-bg::after {
-    content: '';
-    position: absolute;
-    background: inherit;
-    border-radius: 50%;
-    z-index: -1;
+  .hero-tagline-cloud-svg .cloud-puff {
+    transform-box: fill-box;
+    transform-origin: center;
   }
-  .hero-tagline-cloud-bg::before {
-    width: 34%;
-    height: 60%;
-    top: -22%;
-    left: 14%;
-  }
-  .hero-tagline-cloud-bg::after {
-    width: 26%;
-    height: 50%;
-    top: -16%;
-    right: 18%;
-  }
+  .hero-tagline-cloud-svg .cloud-puff-1 { animation: cloud-jiggle-a 2.6s ease-in-out infinite; }
+  .hero-tagline-cloud-svg .cloud-puff-2 { animation: cloud-jiggle-b 3.1s ease-in-out infinite 0.3s; }
+  .hero-tagline-cloud-svg .cloud-puff-3 { animation: cloud-jiggle-c 2.3s ease-in-out infinite 0.6s; }
+  .hero-tagline-cloud-svg .cloud-puff-4 { animation: cloud-jiggle-a 2.9s ease-in-out infinite 0.9s; }
+  .hero-tagline-cloud-svg .cloud-puff-5 { animation: cloud-jiggle-b 2.5s ease-in-out infinite 1.2s; }
+  .hero-tagline-cloud-svg .cloud-puff-base { animation: cloud-jiggle-c 3.4s ease-in-out infinite 0.4s; }
   .hero-tagline-text {
     position: relative;
     z-index: 1;
@@ -301,7 +296,8 @@ const HEART_CSS = `
     .hero-tagline-text { white-space: normal; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .hero-tagline-cloud-bg { animation: none !important; }
+    .hero-tagline-cloud-svg,
+    .hero-tagline-cloud-svg .cloud-puff { animation: none !important; }
   }
 
   /* ══════════════════════════════════════
@@ -805,7 +801,21 @@ export default function Hero() {
         </h1>
 
         <div className={`hero-tagline-wrap${lang === 'NP' ? ' lang-np' : ''}`}>
-          <span className="hero-tagline-cloud-bg" aria-hidden="true" />
+          <svg className="hero-tagline-cloud-svg" viewBox="0 0 240 100" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="taglineCloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stopColor="#ffffff" />
+                <stop offset="55%"  stopColor="#eaf6ff" />
+                <stop offset="100%" stopColor="#cdeafb" />
+              </linearGradient>
+            </defs>
+            <rect className="cloud-puff cloud-puff-base" x="14" y="52" width="212" height="40" rx="20" fill="url(#taglineCloudGrad)" />
+            <circle className="cloud-puff cloud-puff-1" cx="42"  cy="54" r="26" fill="url(#taglineCloudGrad)" />
+            <circle className="cloud-puff cloud-puff-2" cx="80"  cy="36" r="30" fill="url(#taglineCloudGrad)" />
+            <circle className="cloud-puff cloud-puff-3" cx="122" cy="28" r="34" fill="url(#taglineCloudGrad)" />
+            <circle className="cloud-puff cloud-puff-4" cx="164" cy="37" r="29" fill="url(#taglineCloudGrad)" />
+            <circle className="cloud-puff cloud-puff-5" cx="200" cy="56" r="23" fill="url(#taglineCloudGrad)" />
+          </svg>
           <span className="hero-tagline-text">{c.tagline}</span>
         </div>
 
