@@ -143,10 +143,19 @@ const HEART_CSS = `
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Cloud-tint blob drift — subtle ambient motion ── */
+  /* ── Cloud puff morph — organic curling shape-shift, stays put ── */
   @keyframes cloud-drift {
-    0%,100% { border-radius: 46% 54% 51% 49% / 56% 44% 56% 44%; }
-    50%     { border-radius: 54% 46% 44% 56% / 48% 56% 44% 52%; }
+    0%   { border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%; }
+    25%  { border-radius: 58% 42% 45% 55% / 45% 55% 45% 55%; }
+    50%  { border-radius: 40% 60% 55% 45% / 55% 45% 60% 40%; }
+    75%  { border-radius: 55% 45% 40% 60% / 48% 52% 55% 45%; }
+    100% { border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%; }
+  }
+
+  /* ── Tiny puff bob — vertical micro-float, contained (≤3px) ── */
+  @keyframes cloud-puff-bob {
+    0%,100% { transform: translateY(0) scale(1); }
+    50%     { transform: translateY(-2px) scale(1.015); }
   }
 
   @media (min-width: 1024px) {
@@ -233,27 +242,48 @@ const HEART_CSS = `
   .hero-tagline-wrap {
     position: relative;
     display: inline-block;
-    margin: 4px 0 26px;
-    padding: 10px 22px;
+    margin: 2px 0 20px;
+    padding: 6px 16px;
     animation: h1-fade-up 0.7s 0.4s cubic-bezier(0.22,1,0.36,1) both;
   }
   .hero-tagline-cloud-bg {
     position: absolute;
-    inset: -8px -16px;
+    inset: -5px -10px;
     z-index: 0;
-    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 45%, #bfe3f8 100%);
-    border-radius: 46% 54% 51% 49% / 56% 44% 56% 44%;
-    box-shadow: 0 8px 22px rgba(120,180,220,0.30), inset 0 1px 0 rgba(255,255,255,0.7);
-    animation: cloud-drift 7s ease-in-out infinite;
+    background: linear-gradient(135deg, #ffffff 0%, #eaf6ff 45%, #cdeafb 100%);
+    border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%;
+    box-shadow: 0 5px 14px rgba(120,180,220,0.26), inset 0 1px 0 rgba(255,255,255,0.75);
+    animation: cloud-drift 6s ease-in-out infinite, cloud-puff-bob 3.4s ease-in-out infinite;
     pointer-events: none;
+  }
+  /* Small puff bumps to sell the "cloud" silhouette, thin + tucked close */
+  .hero-tagline-cloud-bg::before,
+  .hero-tagline-cloud-bg::after {
+    content: '';
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
+    z-index: -1;
+  }
+  .hero-tagline-cloud-bg::before {
+    width: 34%;
+    height: 60%;
+    top: -22%;
+    left: 14%;
+  }
+  .hero-tagline-cloud-bg::after {
+    width: 26%;
+    height: 50%;
+    top: -16%;
+    right: 18%;
   }
   .hero-tagline-text {
     position: relative;
     z-index: 1;
     font-family: 'Playfair Display', Georgia, serif;
     font-style: italic;
-    font-weight: 700;
-    font-size: clamp(0.95rem, 2.4vw, 1.35rem);
+    font-weight: 600;
+    font-size: clamp(0.68rem, 1.6vw, 0.92rem);
     letter-spacing: 0.02em;
     color: #0c4a70;
     white-space: nowrap;
