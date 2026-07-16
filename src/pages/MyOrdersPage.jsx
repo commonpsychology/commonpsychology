@@ -31,12 +31,12 @@ const ORDER_STATUS_COLORS = {
 }
 
 const PAYMENT_STATUS_COLORS = {
-  pending:   { bg:'#fff9e6', color:'#8a5a1a', icon:'⏳' },
-  paid:      { bg:'#e8f8f0', color:'#1a7a4a', icon:'✅' },
-  failed:    { bg:'#fff0f0', color:'#c0392b', icon:'❌' },
-  refunded:  { bg:'#f0f4f8', color:'#4a6a7a', icon:'↩️' },
-  partial:   { bg:'#fff8e6', color:'#92600a', icon:'⚡' },
-  cancelled: { bg:'#fff0f0', color:'#c0392b', icon:'✕' },
+  unpaid:      { bg:'#f0f4f8', color:'#4a6a7a', icon:'—' },
+  pending:     { bg:'#fff9e6', color:'#8a5a1a', icon:'⏳' },
+  pending_cod: { bg:'#fff8e6', color:'#92600a', icon:'💵' },
+  completed:   { bg:'#e8f8f0', color:'#1a7a4a', icon:'✅' },
+  failed:      { bg:'#fff0f0', color:'#c0392b', icon:'❌' },
+  refunded:    { bg:'#f0f4f8', color:'#4a6a7a', icon:'↩️' },
 }
 
 const STATUS_STEPS = ['pending', 'confirmed', 'processing', 'shipped', 'delivered']
@@ -339,7 +339,7 @@ function PaymentStatusTab({ orders }) {
           const ps          = (order.payment_status || 'pending').toLowerCase()
           const os          = (order.status || 'pending').toLowerCase()
           const s           = PAYMENT_STATUS_COLORS[ps] || PAYMENT_STATUS_COLORS.pending
-          const currentStep = ps === 'paid' ? 3 : ps === 'pending' ? 0 : ps === 'failed' ? -1 : 1
+          const currentStep = ps === 'completed' ? 3 : ps === 'pending_cod' ? 2 : ps === 'pending' ? 0 : ps === 'failed' ? -1 : 1
           return (
             <div className="ps-card" key={order.id}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'.5rem' }}>
