@@ -193,6 +193,7 @@ export default function CartPage() {
   const [contact, setContact] = useState({ full_name:'', phone:'', landmark:'', notes:'' })
   const [location, setLocation] = useState(null)
   const [addrErr, setAddrErr] = useState('')
+  const [pendingOrderId, setPendingOrderId] = useState(null)
 
   useEffect(() => {
     if (!user) { navigate('/signin'); return }
@@ -223,6 +224,7 @@ export default function CartPage() {
   }, 0)
 
   async function handleCheckout() {
+    if (placingOrder) return  // guard against double-fire on fast double-clicks
     if (!contact.full_name.trim())  return setAddrErr('Full name is required.')
     if (!contact.phone.trim())      return setAddrErr('Phone number is required.')
     if (!location)                  return setAddrErr('Please drop a pin on the map for delivery.')
@@ -235,14 +237,20 @@ export default function CartPage() {
     })
 
     setPlacingOrder(true)
-    let orderId
-    try {
-      const orderData = await storeApi.createOrder({ location: { ...contact, ...location } })
-      orderId = orderData.order?.id
-    } catch (err) {
-      setPlacingOrder(false)
-      alert('Could not create order: ' + (err.message || 'Please try again.'))
-      return
+    // Reuse the order from a previous attempt instead of creating a new one —
+    // this is what was causing duplicate orders when a payment failed/was
+    // cancelled and the user retried checkout with the same cart.
+    let orderId = pendingOrderId
+    if (!orderId) {
+      try {
+        const orderData = await storeApi.createOrder({ location: { ...contact, ...location } })
+        orderId = orderData.order?.id
+        setPendingOrderId(orderId)
+      } catch (err) {
+        setPlacingOrder(false)
+        alert('Could not create order: ' + (err.message || 'Please try again.'))
+        return
+      }
     }
 
     const result = await openPayment({
@@ -260,6 +268,7 @@ export default function CartPage() {
     if (result.success) {
       try { await storeApi.clearCart() } catch {}
       setCart([])
+      setPendingOrderId(null)
       navigate('/portal')
     } else if (!result.cancelled) {
       alert('Payment was not completed. Your order is saved — you can complete payment from your portal.')
