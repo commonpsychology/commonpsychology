@@ -15,9 +15,9 @@ const HERO_COPY = {
     h1_your:         ', Your ',
     h1_choice:       'Choice',
     tagline:         "YOU EXPECT? DON'T COME.",
-desc: 'You alone are responsible for your healing—we make no promises or claims to cure anyone. We simply provide a safe space and energy if you choose to connect with us. Our approach is not easy, but for those who are prepared, it can be a deeply meaningful journey.',    
-btn_book:   'Book Consultation →',
-  btn_assess: 'Take an Assessment',
+    desc:            'You are responsible for noone but yourself. We dont promise,direct,help,or cure. You yourself do. We just provide a space and energy if you want to connect with us. We have our own way of healing and its not easy. If you feel we can help and understand you, only then connect with us.',
+    btn_book:        'Book Consultation →',
+    btn_assess:      'Take an Assessment',
     stat_clients:    'Clients Helped',
     stat_therapists: 'Expert Therapists',
     stat_rating:     'Average Rating',
@@ -35,13 +35,6 @@ btn_book:   'Book Consultation →',
     hours:           'Sun \u2013 Fri \u00a0|\u00a0 9:00 AM \u2013 6:00 PM NPT',
     open_maps:       'Open in Google Maps',
   },
-
-  
-
-
-  
-
-  
   NP: {
     badge:           'विश्व शान्तिका लागि कार्यरत',
     h1_our:          'हाम्रो ',
@@ -49,9 +42,9 @@ btn_book:   'Book Consultation →',
     h1_your:         ', तपाईंको ',
     h1_choice:       'रोजाइ',
     tagline:         'अपेक्षा राख्नुहुन्छ? नआउनुहोस्।',
-desc: 'तपाईंको उपचारको जिम्मेवारी तपाईं स्वयंको हो। हामी कसैलाई निको पार्ने कुनै वाचा वा दाबी गर्दैनौं। यदि तपाईं हामीसँग जोडिन चाहनुहुन्छ भने, हामी केवल सुरक्षित वातावरण र साथ प्रदान गर्छौं। हाम्रो यात्रा सजिलो छैन, तर तयार मन भएका व्यक्तिहरूका लागि यो गहिरो र अर्थपूर्ण अनुभव हुन सक्छ।',
-  btn_book:   ' परामर्श बुक गर्नुहोस् →',
-  btn_assess: 'मूल्यांकन गर्नुहोस्',
+    desc:            'व्यावसायिक थेरापी, स्व-मूल्यांकन उपकरण र स्वास्थ्य सम्पदाहरू — एउटै करुणाशील ठाउँमा। प्रमाणित थेरापिस्टहरूसँग आफ्नै घरको आरामबाट जोडिनुहोस्।यदि हामी तपाईंलाई सहयोग गर्न र बुझ्न सक्छौं जस्तो लाग्छ भने मात्र जोडिनुहोस्।',
+    btn_book:        ' परामर्श बुक गर्नुहोस् →',
+    btn_assess:      'मूल्यांकन गर्नुहोस्',
     stat_clients:    'सहयोग पाएका ग्राहकहरू',
     stat_therapists: 'विशेषज्ञ थेरापिस्टहरू',
     stat_rating:     'औसत मूल्यांकन',
@@ -834,7 +827,6 @@ export default function Hero() {
           </button>
           <button className="btn btn-outline btn-lg" onClick={() => navigate('/assessments')}>
             {c.btn_assess}
-
           </button>
         </div>
 
