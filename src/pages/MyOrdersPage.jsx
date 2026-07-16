@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth }   from '../context/AuthContext'
 import { useRouter } from '../context/RouterContext'
-import { store as storeApi } from '../services/api'
+import { store as storeApi, payments as paymentsApi } from '../services/api'
 
 const C = {
   sky:'#0ea5e9', skyLt:'#e0f2fe', skyDk:'#0369a1',
@@ -278,10 +278,21 @@ function QRModal({ order, onClose }) {
 /* ── COD Confirmation Modal ── */
 function CODConfirmModal({ order, onConfirm, onClose }) {
   const [confirming, setConfirming] = useState(false)
+  const [error, setError] = useState(null)
   async function handleConfirm() {
     setConfirming(true)
-    await new Promise(r => setTimeout(r, 900))
-    onConfirm()
+    setError(null)
+    try {
+      await paymentsApi.initiate({
+        order_id: order.id,
+        amount: order.total_amount,
+        method: 'cod',
+      })
+      onConfirm()
+    } catch (err) {
+      setError(err.message || 'Could not confirm COD order.')
+      setConfirming(false)
+    }
   }
   return (
     <div className="cod-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -308,6 +319,9 @@ function CODConfirmModal({ order, onConfirm, onClose }) {
             ))}
           </div>
         </div>
+        {error && (
+          <div style={{ padding:'0 1.5rem', marginTop:'-.5rem', marginBottom:'.75rem', fontSize:'.78rem', color:C.red }}>{error}</div>
+        )}
         <div className="cod-actions">
           <button className="mo-btn-cancel" onClick={onClose} disabled={confirming}>Cancel</button>
           <button className="mo-btn-danger" onClick={handleConfirm} disabled={confirming}>
@@ -329,7 +343,7 @@ function PaymentStatusTab({ orders }) {
     </div>
   )
 
-  
+
   return (
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.25rem', flexWrap:'wrap', gap:'.5rem' }}>
@@ -759,7 +773,7 @@ Signed in as <strong style={{ color:'#0369a1' }}>                  {user.fullNam
       {codOrder && (
         <CODConfirmModal
           order={codOrder}
-          onConfirm={() => { setCodDone(d => ({ ...d, [codOrder.id]:true })); setCodOrder(null) }}
+          onConfirm={() => { setCodOrder(null); fetchOrders() }}
           onClose={() => setCodOrder(null)}
         />
       )}
