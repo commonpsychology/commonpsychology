@@ -12,6 +12,7 @@ import FAQ              from '../components/Faq'
 import Umbrella         from '../components/Umbrella'
 import EleventhPaymentPromoHome from '../components/EleventhPaymentPromoHome'
 import NewsSection      from '../components/Newssection'
+import ComeAsYouWant     from '../components/ComeAsYouWant'
 import Testimonials     from '../components/Testimonials'
 import PsychologicalEye from '../components/PsychologicalEye'
 import Crisis           from '../components/Crisis'
@@ -82,6 +83,7 @@ export default function HomePage() {
 
       {/* Page sections */}
       <HeroEmotional />
+      <ComeAsYouWant />
       <EleventhPaymentPromoHome />
       <TrustBar />
       <NoticeSection />
