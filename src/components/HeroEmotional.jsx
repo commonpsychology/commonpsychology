@@ -16,7 +16,8 @@ const HERO_COPY = {
     h1_choice:       'Choice',
     tagline:         "YOU EXPECT? DON'T COME.",
 desc: 'You alone are responsible for your healing—we make no promises or claims to cure anyone. We simply provide a safe space and energy if you choose to connect with us. Our approach is not easy, but for those who are prepared, it can be a deeply meaningful journey.',    
-btn_assess:      'Take an Assessment',
+btn_book:   'Book Consultation →',
+  btn_assess: 'Take an Assessment',
     stat_clients:    'Clients Helped',
     stat_therapists: 'Expert Therapists',
     stat_rating:     'Average Rating',
@@ -46,7 +47,8 @@ btn_assess:      'Take an Assessment',
     tagline:         'अपेक्षा राख्नुहुन्छ? नआउनुहोस्।',
 desc: 'तपाईंको उपचारको लागि तपाईं एक्लै जिम्मेवार हुनुहुन्छ—हामी कसैलाई ठीक गर्ने कुनै वाचा वा दाबी गर्दैनौं। यदि तपाईं हामीसँग जोडिन रोज्नुहुन्छ भने हामी केवल सुरक्षित ठाउँ र ऊर्जा प्रदान गर्दछौं। हाम्रो दृष्टिकोण सजिलो छैन, तर तयार हुनेहरूका लागि, यो गहिरो अर्थपूर्ण यात्रा हुन सक्छ।',    
 
-btn_assess:      'मूल्यांकन गर्नुहोस्',
+  btn_book:   ' परामर्श बुक गर्नुहोस् →',
+  btn_assess: 'मूल्यांकन गर्नुहोस्',
     stat_clients:    'सहयोग पाएका ग्राहकहरू',
     stat_therapists: 'विशेषज्ञ थेरापिस्टहरू',
     stat_rating:     'औसत मूल्यांकन',
@@ -829,6 +831,7 @@ export default function Hero() {
           </button>
           <button className="btn btn-outline btn-lg" onClick={() => navigate('/assessments')}>
             {c.btn_assess}
+
           </button>
         </div>
 
