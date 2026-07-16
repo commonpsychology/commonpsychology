@@ -352,10 +352,10 @@ function PaymentStatusTab({ orders }) {
       </div>
       <div className="ps-grid">
         {orders.map(order => {
-          const ps          = (order.payment_status || 'pending').toLowerCase()
+          const ps          = (order.payment_status || 'unpaid').toLowerCase()
           const os          = (order.status || 'pending').toLowerCase()
           const s           = PAYMENT_STATUS_COLORS[ps] || PAYMENT_STATUS_COLORS.pending
-          const currentStep = ps === 'completed' ? 3 : ps === 'pending_cod' ? 2 : ps === 'pending' ? 0 : ps === 'failed' ? -1 : 1
+          const currentStep = ps === 'completed' ? 3 : ps === 'pending_cod' ? 2 : ps === 'pending' ? 0 : ps === 'unpaid' ? -1 : ps === 'failed' ? -1 : 1
           return (
             <div className="ps-card" key={order.id}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'.5rem' }}>
