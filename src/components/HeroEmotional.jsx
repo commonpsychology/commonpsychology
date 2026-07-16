@@ -15,7 +15,7 @@ const HERO_COPY = {
     h1_your:         ', Your ',
     h1_choice:       'Choice',
     tagline:         "YOU EXPECT? DON'T COME.",
-    desc:            'Professional therapy, self-assessment tools, and wellness resources , all in one compassionate space. Connect with certified therapists from the comfort of your home.Connect if you feel we can help and understand you.',
+    desc:            'You are responsible for noone but yourself. We dont promise,direct,help,or cure. You yourself do. We just provide a space and energy if you want to connect with us. We have our own way of healing',
     btn_book:        'Book Consultation →',
     btn_assess:      'Take an Assessment',
     stat_clients:    'Clients Helped',
