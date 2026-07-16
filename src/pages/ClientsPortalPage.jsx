@@ -1,5 +1,5 @@
 // src/pages/ClientsPortalPage.jsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useAuth } from '../context/AuthContext'
 import { appointments, wellness, notifications } from '../services/api'
@@ -155,6 +155,32 @@ function injectCSS(id, css) {
   const el = document.createElement('style')
   el.id = id; el.textContent = css
   document.head.appendChild(el)
+}
+
+// ── Notification chime (synthesized, no audio file needed) ──
+const NOTIF_POLL_MS = 30000 // check for new notifications every 30s
+
+function playNotificationChime() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext
+    const ctx = new Ctx()
+    const now = ctx.currentTime
+    // two quick ascending tones — a soft "ding-ding"
+    ;[[880, now, 0.12], [1108.73, now + 0.13, 0.18]].forEach(([freq, start, dur]) => {
+      const osc  = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.value = freq
+      gain.gain.setValueAtTime(0.0001, start)
+      gain.gain.exponentialRampToValueAtTime(0.22, start + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + dur + 0.03)
+    })
+    setTimeout(() => ctx.close(), 600)
+  } catch {}
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -465,11 +491,24 @@ const [notifs,      setNotifs]      = useState([])
 
   const [loyaltyStatus, setLoyaltyStatus] = useState(null) // { completedCount, upcomingPaymentNumber, isEligible }
 
+  // ── Notification chime tracking ──
+  // null until the first successful load establishes a baseline of known IDs
+  const seenNotifIds = useRef(null)
+  const pollTimerRef = useRef(null)
+
   useEffect(() => { injectCSS('portal-css', PORTAL_CSS) }, [])
 useEffect(() => {
     if (!user) { navigate('/signin'); return }
     loadOverview()
     loadLoyaltyStatus()
+    loadNotifications() // prime unread count + chime baseline on portal load
+  }, [user])
+
+  // ── Poll for new notifications regardless of which tab is open ──
+  useEffect(() => {
+    if (!user) return
+    pollTimerRef.current = setInterval(() => { loadNotifications(true) }, NOTIF_POLL_MS)
+    return () => clearInterval(pollTimerRef.current)
   }, [user])
 
   useEffect(() => {
@@ -565,11 +604,28 @@ async function loadLoyaltyStatus() {
     try { const res = await wellness.getJournal({ limit:20 }); setEntries(res.entries || []) } catch {}
   }
 
-  async function loadNotifications() {
+  async function loadNotifications(isPoll = false) {
     try {
-      const res = await notifications.list({ limit:50 })
-      setNotifs(res.notifications || [])
-      setUnreadCount(res.unreadCount || 0)
+      const res    = await notifications.list({ limit:50 })
+      const list   = res.notifications  || []
+      const unread = res.unreadCount    || 0
+
+      if (seenNotifIds.current === null) {
+        // First load ever this visit — establish baseline.
+        // If there are already unread notifs waiting, chime once.
+        seenNotifIds.current = new Set(list.map(n => n.id))
+        if (unread > 0) playNotificationChime()
+      } else {
+        // Subsequent loads (polls or tab switches) — chime only for
+        // notifications we haven't seen the ID of before, and only
+        // if they're actually unread.
+        const freshUnread = list.filter(n => !n.is_read && !seenNotifIds.current.has(n.id))
+        if (freshUnread.length > 0) playNotificationChime()
+        seenNotifIds.current = new Set(list.map(n => n.id))
+      }
+
+      setNotifs(list)
+      setUnreadCount(unread)
     } catch {}
   }
 
