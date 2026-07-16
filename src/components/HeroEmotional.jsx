@@ -40,6 +40,8 @@ btn_book:   'Book Consultation →',
 
 
   
+
+  
   NP: {
     badge:           'विश्व शान्तिका लागि कार्यरत',
     h1_our:          'हाम्रो ',
