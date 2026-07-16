@@ -35,6 +35,7 @@ const HERO_COPY = {
     hours:           'Sun \u2013 Fri \u00a0|\u00a0 9:00 AM \u2013 6:00 PM NPT',
     open_maps:       'Open in Google Maps',
   },
+  
   NP: {
     badge:           'विश्व शान्तिका लागि कार्यरत',
     h1_our:          'हाम्रो ',
