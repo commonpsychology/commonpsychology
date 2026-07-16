@@ -510,67 +510,14 @@ export default function WellspringFlask() {
           display: block;
         }
 
-        /* ── Cloud puff morph — organic curling shape-shift, stays put ── */
-        @keyframes wfCloudMorph {
-          0%   { border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%; }
-          25%  { border-radius: 58% 42% 45% 55% / 45% 55% 45% 55%; }
-          50%  { border-radius: 40% 60% 55% 45% / 55% 45% 60% 40%; }
-          75%  { border-radius: 55% 45% 40% 60% / 48% 52% 55% 45%; }
-          100% { border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%; }
-        }
-        @keyframes wfCloudBob {
-          0%,100% { transform: translateY(0) scale(1); }
-          50%     { transform: translateY(-3px) scale(1.012); }
-        }
-
-        .wf-stats-cloud-wrap {
-          position: relative;
-          display: inline-block;
-          margin: 8px auto 34px;
-          padding: 20px 30px;
-        }
-        .wf-stats-cloud-bg {
-          position: absolute;
-          inset: -14px -22px;
-          z-index: 0;
-          background: linear-gradient(135deg, #ffffff 0%, #eaf6ff 45%, #cdeafb 100%);
-          border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%;
-          box-shadow: 0 8px 22px rgba(0,123,168,0.16), inset 0 1px 0 rgba(255,255,255,0.75);
-          animation: wfCloudMorph 6.5s ease-in-out infinite, wfCloudBob 3.6s ease-in-out infinite;
-          pointer-events: none;
-        }
-        .wf-stats-cloud-bg::before,
-        .wf-stats-cloud-bg::after {
-          content: "";
-          position: absolute;
-          background: inherit;
-          border-radius: 50%;
-          z-index: -1;
-        }
-        .wf-stats-cloud-bg::before {
-          width: 22%;
-          height: 55%;
-          top: -20%;
-          left: 12%;
-        }
-        .wf-stats-cloud-bg::after {
-          width: 16%;
-          height: 46%;
-          top: -15%;
-          right: 16%;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .wf-stats-cloud-bg { animation: none !important; }
-        }
-
         .wf-stats {
-          position: relative;
-          z-index: 1;
           display: flex;
           flex-direction: row;
           justify-content: center;
           align-items: stretch;
           gap: 12px;
+          margin-top: 20px;
+          margin-bottom: 34px;
           flex-wrap: wrap;
         }
         .wf-stat {
@@ -763,16 +710,13 @@ export default function WellspringFlask() {
       <div className="wf-inner">
         <FlaskVisual onGive={openModal} />
 
-        <div className="wf-stats-cloud-wrap">
-          <span className="wf-stats-cloud-bg" aria-hidden="true" />
-          <div className="wf-stats">
-            {stats.map(([num, label]) => (
-              <div key={label} className="wf-stat" tabIndex={0}>
-                <div className="wf-stat-num">{num}</div>
-                <div className="wf-stat-label">{label}</div>
-              </div>
-            ))}
-          </div>
+        <div className="wf-stats">
+          {stats.map(([num, label]) => (
+            <div key={label} className="wf-stat" tabIndex={0}>
+              <div className="wf-stat-num">{num}</div>
+              <div className="wf-stat-label">{label}</div>
+            </div>
+          ))}
         </div>
 
         {error && (

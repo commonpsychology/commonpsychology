@@ -143,7 +143,7 @@ const HEART_CSS = `
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Cloud puff morph — organic curling shape-shift, stays put ── */
+  /* ── Cloud puff morph — organic curling shape-shift ── */
   @keyframes cloud-drift {
     0%   { border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%; }
     25%  { border-radius: 58% 42% 45% 55% / 45% 55% 45% 55%; }
@@ -152,10 +152,15 @@ const HEART_CSS = `
     100% { border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%; }
   }
 
-  /* ── Tiny puff bob — vertical micro-float, contained (≤3px) ── */
+  /* ── Blob float — small left/right + up/down drift, contained
+        within the cloud's own padding so it never overlaps the text ── */
   @keyframes cloud-puff-bob {
-    0%,100% { transform: translateY(0) scale(1); }
-    50%     { transform: translateY(-2px) scale(1.015); }
+    0%   { transform: translate(0px, 0px)     scale(1);     }
+    20%  { transform: translate(3px, -2px)    scale(1.012); }
+    40%  { transform: translate(-2px, -3px)   scale(0.99);  }
+    60%  { transform: translate(-3px, 2px)    scale(1.015); }
+    80%  { transform: translate(2px, 3px)     scale(0.995); }
+    100% { transform: translate(0px, 0px)     scale(1);     }
   }
 
   @media (min-width: 1024px) {
@@ -248,12 +253,12 @@ const HEART_CSS = `
   }
   .hero-tagline-cloud-bg {
     position: absolute;
-    inset: -5px -10px;
+    inset: -8px -14px;
     z-index: 0;
     background: linear-gradient(135deg, #ffffff 0%, #eaf6ff 45%, #cdeafb 100%);
     border-radius: 44% 56% 60% 40% / 60% 50% 50% 40%;
     box-shadow: 0 5px 14px rgba(120,180,220,0.26), inset 0 1px 0 rgba(255,255,255,0.75);
-    animation: cloud-drift 6s ease-in-out infinite, cloud-puff-bob 3.4s ease-in-out infinite;
+    animation: cloud-drift 6s ease-in-out infinite, cloud-puff-bob 4.2s ease-in-out infinite;
     pointer-events: none;
   }
   /* Small puff bumps to sell the "cloud" silhouette, thin + tucked close */
