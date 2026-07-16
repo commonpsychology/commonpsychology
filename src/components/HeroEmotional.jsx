@@ -14,7 +14,7 @@ const HERO_COPY = {
     h1_help:         'Help',
     h1_your:         ', Your ',
     h1_choice:       'Choice',
-    tagline:         "DON'T EXPECT US TO TREAT — WE TREAT",
+    tagline:         "YOU EXPECT? DON'T COME.",
     desc:            'Professional therapy, self-assessment tools, and wellness resources , all in one compassionate space. Connect with certified therapists from the comfort of your home.Connect if you feel we can help and understand you.',
     btn_book:        'Book Consultation →',
     btn_assess:      'Take an Assessment',
@@ -41,7 +41,7 @@ const HERO_COPY = {
     h1_help:         'सहयोग',
     h1_your:         ', तपाईंको ',
     h1_choice:       'रोजाइ',
-    tagline:         'हामी उपचार गर्छौं — पर्खनु पर्दैन',
+    tagline:         'अपेक्षा राख्नुहुन्छ? नआउनुहोस्।',
     desc:            'व्यावसायिक थेरापी, स्व-मूल्यांकन उपकरण र स्वास्थ्य सम्पदाहरू — एउटै करुणाशील ठाउँमा। प्रमाणित थेरापिस्टहरूसँग आफ्नै घरको आरामबाट जोडिनुहोस्।यदि हामी तपाईंलाई सहयोग गर्न र बुझ्न सक्छौं जस्तो लाग्छ भने मात्र जोडिनुहोस्।',
     btn_book:        ' परामर्श बुक गर्नुहोस् →',
     btn_assess:      'मूल्यांकन गर्नुहोस्',
@@ -143,6 +143,12 @@ const HEART_CSS = `
     to   { opacity: 1; transform: translateY(0); }
   }
 
+  /* ── Cloud-tint blob drift — subtle ambient motion ── */
+  @keyframes cloud-drift {
+    0%,100% { border-radius: 46% 54% 51% 49% / 56% 44% 56% 44%; }
+    50%     { border-radius: 54% 46% 44% 56% / 48% 56% 44% 52%; }
+  }
+
   @media (min-width: 1024px) {
     .hero-clock-wrapper {
       display: block !important;
@@ -217,6 +223,50 @@ const HEART_CSS = `
   }
   .hero-heading.lang-np .h1-accent-choice::after {
     display: none;
+  }
+
+  /* ══════════════════════════════════════
+     TAGLINE — soft cloud-tint backdrop, sized
+     to fully cover the text (works for any
+     text length, EN or NP)
+  ══════════════════════════════════════ */
+  .hero-tagline-wrap {
+    position: relative;
+    display: inline-block;
+    margin: 4px 0 26px;
+    padding: 10px 22px;
+    animation: h1-fade-up 0.7s 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .hero-tagline-cloud-bg {
+    position: absolute;
+    inset: -8px -16px;
+    z-index: 0;
+    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 45%, #bfe3f8 100%);
+    border-radius: 46% 54% 51% 49% / 56% 44% 56% 44%;
+    box-shadow: 0 8px 22px rgba(120,180,220,0.30), inset 0 1px 0 rgba(255,255,255,0.7);
+    animation: cloud-drift 7s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .hero-tagline-text {
+    position: relative;
+    z-index: 1;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: clamp(0.95rem, 2.4vw, 1.35rem);
+    letter-spacing: 0.02em;
+    color: #0c4a70;
+    white-space: nowrap;
+  }
+  .hero-tagline-wrap.lang-np .hero-tagline-text {
+    font-family: var(--font-display), 'Noto Sans Devanagari', serif;
+    white-space: normal;
+  }
+  @media (max-width: 480px) {
+    .hero-tagline-text { white-space: normal; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-tagline-cloud-bg { animation: none !important; }
   }
 
   /* ══════════════════════════════════════
@@ -718,6 +768,11 @@ export default function Hero() {
           <span className="h1-plain">{c.h1_your}</span>
           <span className="h1-accent-choice">{c.h1_choice}</span>
         </h1>
+
+        <div className={`hero-tagline-wrap${lang === 'NP' ? ' lang-np' : ''}`}>
+          <span className="hero-tagline-cloud-bg" aria-hidden="true" />
+          <span className="hero-tagline-text">{c.tagline}</span>
+        </div>
 
         <p className="hero-desc">{c.desc}</p>
 
