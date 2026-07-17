@@ -234,12 +234,17 @@ export default function NoticeSection() {
                 onMouseLeave={() => setHovered(null)}
                 style={{
                   display: 'flex', gap: '1rem', alignItems: 'flex-start',
-                  padding: '1.5rem', background: 'var(--white)',
-                  border: `1.5px solid ${open ? 'var(--blue-pale)' : 'var(--earth-cream)'}`,
+                  padding: '1.5rem',
+                  background: open
+                    ? 'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.85) 100%)'
+                    : 'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(240,244,248,0.4) 60%, rgba(255,255,255,0.7) 100%)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: `1px solid ${open ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.4)'}`,
                   borderRadius: 'var(--radius-lg)',
                   boxShadow: isHovered
-                    ? '0 14px 32px rgba(15,52,96,0.12)'
-                    : '0 4px 14px rgba(15,52,96,0.05)',
+                    ? '0 20px 44px rgba(0,123,168,0.16), inset 0 1px 0 rgba(255,255,255,0.6)'
+                    : '0 8px 24px rgba(15,52,96,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
                   transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
                   transition: 'box-shadow 0.2s ease, transform 0.2s ease',
                 }}
@@ -248,8 +253,13 @@ export default function NoticeSection() {
                   width: 42, height: 42, flexShrink: 0, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '1.15rem',
-                  background: open ? 'var(--sky-light)' : 'var(--off-white)',
-                  border: `1.5px solid ${open ? 'var(--blue-pale)' : 'var(--earth-cream)'}`,
+                  background: open
+                    ? 'linear-gradient(135deg, rgba(224,242,254,0.9) 0%, rgba(186,230,253,0.7) 100%)'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,244,248,0.6) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: `1.5px solid ${open ? 'rgba(120,190,230,0.5)' : 'rgba(255,255,255,0.6)'}`,
+                  boxShadow: '0 2px 8px rgba(0,60,90,0.06)',
                 }}>
                   {c.icon}
                 </span>
