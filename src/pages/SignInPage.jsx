@@ -1,5 +1,5 @@
 // src/pages/SignInPage.jsx
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useAuth, useAuthGuard } from '../context/AuthContext'
 
@@ -342,6 +342,7 @@ function injectCSS() {
   s.id = 'signin-css'; s.textContent = CSS
   document.head.appendChild(s)
 }
+injectCSS() // run at module evaluation time — before this component ever renders
 
 // ── Smooth redirect overlay ───────────────────────────────────
 function StaffRedirectOverlay({ role }) {
@@ -364,7 +365,6 @@ function StaffRedirectOverlay({ role }) {
 }
 
 export default function SignInPage() {
-  useEffect(() => { injectCSS() }, [])
   useAuthGuard()
 
   const { navigate }               = useRouter()
