@@ -6,12 +6,13 @@
 // See integrateController.js / integrateRoutes.js for that side.
 //
 // Needs:
-//   - /watermark.png    (the "eyes covered" community mark — put it in /public)
-//   - /qrpayment.png    (your payment QR code — put it in /public)
+//   - /watermark.png     (the "eyes covered" community mark — put it in /public)
+//   - /payment-qr.png    (your payment QR code — put it in /public)
 //
-// Design: deep-navy → blue glass, matching the umbrella hero it's linked from.
-// Signature element: the watermark figure sits large and faint behind the glass,
-// echoing the "we are one" idea — you join before you're fully seen, and that's fine.
+// Design: light blue-white glass, matching the app's existing signin-card /
+// header language (rgba(255,255,255,..) + rgba(214,238,252,..) gradient,
+// backdrop-blur, glossy rgba(0,191,255,..) highlights) rather than a separate
+// dark theme — so this page feels native to the rest of the product.
 
 import React, { useState } from 'react'
 
@@ -116,52 +117,56 @@ export default function IntegratePage() {
 
         .integrate-input {
           width: 100%;
-          background: rgba(8, 18, 36, 0.55);
-          border: 1px solid rgba(147, 197, 253, 0.18);
+          background: rgba(255, 255, 255, 0.55);
+          border: 1.5px solid rgba(255, 255, 255, 0.7);
           border-radius: 10px;
           padding: 12px 14px;
-          color: #eaf2ff;
+          color: #0f3050;
           font-family: 'Inter', sans-serif;
           font-size: 14px;
           outline: none;
-          transition: border-color 0.2s ease, background 0.2s ease;
+          box-shadow: inset 0 1px 2px rgba(14,165,233,0.06);
+          transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
         }
-        .integrate-input::placeholder { color: #5c7699; }
+        .integrate-input::placeholder { color: #7ba3c4; }
         .integrate-input:focus {
-          border-color: #60a5fa;
-          background: rgba(8, 18, 36, 0.8);
+          border-color: #00bfff;
+          background: rgba(255, 255, 255, 0.85);
+          box-shadow: 0 0 0 3px rgba(0,191,255,0.14);
         }
-        .integrate-input.has-error { border-color: #f2795a; }
+        .integrate-input.has-error { border-color: #e2694f; }
 
         .integrate-select {
           appearance: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2360a5fa'/%3E%3C/svg%3E");
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300a8d8'/%3E%3C/svg%3E");
           background-repeat: no-repeat;
           background-position: right 14px center;
         }
 
         .integrate-btn {
           font-family: 'Inter', sans-serif;
-          font-weight: 600;
+          font-weight: 700;
           font-size: 15px;
           letter-spacing: 0.2px;
-          color: #0a1220;
-          background: linear-gradient(135deg, #f5d06a, #f5a623);
-          border: none;
+          color: #ffffff;
+          background: linear-gradient(160deg, #4fd6ff 0%, #00bfff 55%, #0ea5e9 100%);
+          border: 1px solid rgba(255,255,255,0.55);
           border-radius: 999px;
           padding: 14px 28px;
           cursor: pointer;
-          box-shadow: 0 8px 24px rgba(245, 166, 35, 0.25);
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 8px 26px rgba(0,191,255,0.32), inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(255,255,255,0.12);
           transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
         }
-        .integrate-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(245, 166, 35, 0.35); }
+        .integrate-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(0,191,255,0.4), inset 0 1px 0 rgba(255,255,255,0.7); }
         .integrate-btn:active { transform: translateY(0); }
         .integrate-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
         .integrate-field-error {
           font-family: 'JetBrains Mono', monospace;
           font-size: 11.5px;
-          color: #f2795a;
+          color: #d9563d;
           margin-top: 5px;
         }
 
@@ -173,7 +178,7 @@ export default function IntegratePage() {
 
       {/* Ambient gradient orbs */}
       <div style={styles.orbBlue} />
-      <div style={styles.orbGold} />
+      <div style={styles.orbSky} />
 
       {/* Background watermark */}
       <img
@@ -184,6 +189,9 @@ export default function IntegratePage() {
       />
 
       <main style={styles.card}>
+        {/* glossy diagonal shine, matching the rest of the app's glass surfaces */}
+        <div style={styles.shine} />
+
         <header style={styles.header}>
           <p style={styles.eyebrow}>हामी एक हौँ · under one umbrella</p>
           <h1 style={styles.title}>Let's Integrate</h1>
@@ -287,7 +295,7 @@ export default function IntegratePage() {
             <aside className="integrate-qr-col" style={styles.qrCol}>
               <div style={styles.qrCard}>
                 <p style={styles.qrLabel}>Scan to contribute</p>
-                <img src="/qrpayment.png" alt="Payment QR code" style={styles.qrImg} />
+                <img src="/payment-qr.png" alt="Payment QR code" style={styles.qrImg} />
                 <p style={styles.qrHint}>Give what feels right — $0 or a billion, we welcome you either way.</p>
 
                 <Field label="Contribution amount (optional)" error={errors.contribution}>
@@ -336,44 +344,46 @@ const styles = {
     position: 'relative',
     minHeight: '100vh',
     width: '100%',
-    background: 'radial-gradient(ellipse at top, #0d1e36 0%, #060d1a 55%, #04080f 100%)',
+    background: 'linear-gradient(175deg, #eef8ff 0%, #dff1fb 35%, #f3fbff 70%, #ffffff 100%)',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    padding: '48px 20px',
+    // Generous top padding so this doesn't butt up against a fixed/sticky header —
+    // tune the clamp() max if your header is taller/shorter than ~96px.
+    padding: 'clamp(6.5rem, 14vh, 9rem) 20px 64px',
     overflow: 'hidden',
     fontFamily: "'Inter', sans-serif",
   },
   orbBlue: {
     position: 'absolute',
-    top: '-10%',
-    left: '-8%',
-    width: 420,
-    height: 420,
+    top: '-8%',
+    left: '-10%',
+    width: 440,
+    height: 440,
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(59,130,246,0.25), transparent 70%)',
-    filter: 'blur(10px)',
+    background: 'radial-gradient(circle, rgba(0,191,255,0.16), transparent 70%)',
+    filter: 'blur(6px)',
     pointerEvents: 'none',
   },
-  orbGold: {
+  orbSky: {
     position: 'absolute',
     bottom: '-12%',
-    right: '-6%',
-    width: 380,
-    height: 380,
+    right: '-8%',
+    width: 400,
+    height: 400,
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(245,166,35,0.16), transparent 70%)',
-    filter: 'blur(10px)',
+    background: 'radial-gradient(circle, rgba(214,238,252,0.9), transparent 70%)',
+    filter: 'blur(6px)',
     pointerEvents: 'none',
   },
   watermark: {
     position: 'absolute',
     right: '-6%',
-    bottom: '-8%',
+    bottom: '-6%',
     width: 560,
     maxWidth: '70vw',
-    opacity: 0.06,
-    filter: 'grayscale(1) brightness(1.4)',
+    opacity: 0.05,
+    filter: 'grayscale(1)',
     pointerEvents: 'none',
     userSelect: 'none',
   },
@@ -381,20 +391,31 @@ const styles = {
     position: 'relative',
     width: '100%',
     maxWidth: 860,
-    background: 'rgba(255, 255, 255, 0.04)',
-    border: '1px solid rgba(147, 197, 253, 0.14)',
+    background: 'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid rgba(255,255,255,0.6)',
     borderRadius: 24,
-    backdropFilter: 'blur(22px)',
-    WebkitBackdropFilter: 'blur(22px)',
-    boxShadow: '0 24px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)',
+    boxShadow: '0 8px 30px rgba(0,123,168,0.14), inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(255,255,255,0.12)',
     padding: '40px 36px 36px',
+    overflow: 'hidden',
   },
-  header: { marginBottom: 30, textAlign: 'center' },
+  shine: {
+    position: 'absolute',
+    top: '-60%',
+    left: '-20%',
+    width: '70%',
+    height: '220%',
+    background: 'linear-gradient(115deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 55%)',
+    transform: 'rotate(8deg)',
+    pointerEvents: 'none',
+  },
+  header: { marginBottom: 30, textAlign: 'center', position: 'relative' },
   eyebrow: {
     fontFamily: "'JetBrains Mono', monospace",
     fontSize: 11.5,
     letterSpacing: 1.5,
-    color: '#7aa8e0',
+    color: '#0284c7',
     textTransform: 'uppercase',
     marginBottom: 10,
   },
@@ -402,13 +423,13 @@ const styles = {
     fontFamily: "'Fraunces', serif",
     fontWeight: 600,
     fontSize: 'clamp(32px, 5vw, 44px)',
-    color: '#f2f6ff',
+    color: '#0c2d4d',
     margin: 0,
     letterSpacing: 0.2,
   },
   subtitle: {
     marginTop: 10,
-    color: '#9fb8d9',
+    color: '#4c7595',
     fontSize: 14.5,
     maxWidth: 460,
     marginLeft: 'auto',
@@ -416,6 +437,7 @@ const styles = {
     lineHeight: 1.55,
   },
   grid: {
+    position: 'relative',
     display: 'grid',
     gridTemplateColumns: '1.15fr 0.85fr',
     gap: 28,
@@ -425,17 +447,18 @@ const styles = {
   row: { display: 'flex', gap: 14 },
   qrCol: { display: 'flex', flexDirection: 'column', gap: 14 },
   qrCard: {
-    background: 'rgba(8, 18, 36, 0.5)',
-    border: '1px solid rgba(147, 197, 253, 0.16)',
+    background: 'rgba(255, 255, 255, 0.55)',
+    border: '1px solid rgba(255, 255, 255, 0.7)',
     borderRadius: 16,
     padding: 20,
     textAlign: 'center',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
   },
   qrLabel: {
     fontFamily: "'JetBrains Mono', monospace",
     fontSize: 11,
     letterSpacing: 1,
-    color: '#7aa8e0',
+    color: '#0284c7',
     textTransform: 'uppercase',
     marginBottom: 12,
   },
@@ -449,10 +472,11 @@ const styles = {
     padding: 10,
     margin: '0 auto',
     display: 'block',
+    boxShadow: '0 4px 16px rgba(0,123,168,0.12)',
   },
   qrHint: {
     fontSize: 12.5,
-    color: '#8fa8cc',
+    color: '#5c85a3',
     marginTop: 12,
     marginBottom: 16,
     lineHeight: 1.5,
@@ -460,34 +484,36 @@ const styles = {
   serverError: {
     fontFamily: "'JetBrains Mono', monospace",
     fontSize: 12,
-    color: '#f2795a',
+    color: '#d9563d',
     textAlign: 'center',
     margin: 0,
   },
   successBox: {
     textAlign: 'center',
     padding: '30px 10px 10px',
+    position: 'relative',
   },
   successGlyph: {
     width: 52,
     height: 52,
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #f5d06a, #f5a623)',
-    color: '#0a1220',
+    background: 'linear-gradient(160deg, #4fd6ff 0%, #00bfff 55%, #0ea5e9 100%)',
+    color: '#ffffff',
     fontSize: 24,
     fontWeight: 700,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     margin: '0 auto 18px',
+    boxShadow: '0 8px 22px rgba(0,191,255,0.32)',
   },
   successTitle: {
     fontFamily: "'Fraunces', serif",
     fontSize: 26,
-    color: '#f2f6ff',
+    color: '#0c2d4d',
     margin: '0 0 8px',
   },
-  successText: { color: '#9fb8d9', fontSize: 14, marginBottom: 22 },
+  successText: { color: '#4c7595', fontSize: 14, marginBottom: 22 },
 }
 
 const fieldStyles = {
@@ -496,6 +522,6 @@ const fieldStyles = {
     fontFamily: "'JetBrains Mono', monospace",
     fontSize: 11,
     letterSpacing: 0.4,
-    color: '#7aa8e0',
+    color: '#0284c7',
   },
 }
