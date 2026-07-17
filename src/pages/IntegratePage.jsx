@@ -1,17 +1,23 @@
 // IntegratePage.jsx
 // Route this at /integrate (e.g. React Router: <Route path="/integrate" element={<IntegratePage />} />)
 //
+// This posts to your existing backend (same pattern as AuthContext's loginRaw),
+// which does the actual Supabase write server-side with the service-role key.
+// See integrateController.js / integrateRoutes.js for that side.
+//
 // Needs:
-//   - ./supabaseClient.js         (createClient export named `supabase`)
-//   - /watermark.png              (the "eyes covered" community mark — put it in /public)
-//   - /qrpayment.png              (your payment QR code — put it in /public)
+//   - /watermark.png    (the "eyes covered" community mark — put it in /public)
+//   - /qrpayment.png    (your payment QR code — put it in /public)
 //
 // Design: deep-navy → blue glass, matching the umbrella hero it's linked from.
 // Signature element: the watermark figure sits large and faint behind the glass,
 // echoing the "we are one" idea — you join before you're fully seen, and that's fine.
 
 import React, { useState } from 'react'
-import { supabase } from './supabaseClient'
+
+// Mirrors the constant in AuthContext.jsx — consider moving both to a shared
+// src/config.js so there's only one source of truth for API_BASE.
+const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
 const SEX_OPTIONS = ['Female', 'Male', 'Non-binary', 'Prefer not to say']
 
@@ -67,29 +73,40 @@ export default function IntegratePage() {
     if (!validate()) return
 
     setStatus('submitting')
-    const { error } = await supabase.from('integrate').insert({
-      full_name: form.fullName.trim(),
-      age: Number(form.age),
-      sex: form.sex,
-      email: form.email.trim().toLowerCase(),
-      phone: form.phone.trim() || null,
-      country: form.country.trim() || null,
-      message: form.message.trim() || null,
-      contribution_amount: form.contribution === '' ? 0 : Number(form.contribution),
-    })
+    try {
+      const res = await fetch(`${API_BASE}/integrate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: form.fullName.trim(),
+          age: Number(form.age),
+          sex: form.sex,
+          email: form.email.trim().toLowerCase(),
+          phone: form.phone.trim() || undefined,
+          country: form.country.trim() || undefined,
+          message: form.message.trim() || undefined,
+          contribution: form.contribution === '' ? 0 : Number(form.contribution),
+        }),
+      })
 
-    if (error) {
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setStatus('error')
+        setServerError(
+          res.status === 409
+            ? 'That email already joined — welcome back.'
+            : data.message || 'Something went wrong. Please try again.'
+        )
+        return
+      }
+
+      setStatus('success')
+      setForm(initialForm)
+    } catch {
       setStatus('error')
-      setServerError(
-        error.code === '23505'
-          ? 'That email already joined — welcome back.'
-          : 'Something went wrong. Please try again.'
-      )
-      return
+      setServerError('Could not reach the server. Please try again.')
     }
-
-    setStatus('success')
-    setForm(initialForm)
   }
 
   return (
