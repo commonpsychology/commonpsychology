@@ -67,7 +67,7 @@ export default function NoticeSection() {
           position: relative;
           overflow: hidden;
           padding: 5rem 1.5rem;
-          background: linear-gradient(180deg, var(--white) 0%, var(--sky-light) 100%);
+          background: linear-gradient(160deg, #eaf6ff 0%, #d6eefc 45%, #eef8ff 100%);
         }
         .cp-notice-blob {
           position: absolute;
@@ -91,6 +91,40 @@ export default function NoticeSection() {
           display: flex;
           gap: 0.75rem;
           flex-wrap: wrap;
+        }
+
+        /* ── Eyebrow — glassy pill ── */
+        .cp-notice-eyebrow-badge {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          padding: 0.3rem 0.85rem; margin-bottom: 1.4rem;
+          background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.5) 100%);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1.5px solid rgba(255,255,255,0.6);
+          border-radius: 100px;
+          font-family: var(--font-body);
+          font-size: 0.7rem; font-weight: 700;
+          letter-spacing: 0.06em; text-transform: uppercase;
+          color: #0369a1;
+          box-shadow: 0 4px 14px rgba(14,165,233,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+
+        /* ── Clause cards — glassy bluish-white ── */
+        .cp-notice-card {
+          display: flex; gap: 1rem; align-items: flex-start;
+          padding: 1.5rem;
+          border-radius: var(--radius-lg);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+        }
+        .cp-notice-icon-badge {
+          width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1.15rem;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          box-shadow: 0 2px 8px rgba(0,60,90,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
         }
 
         /* ── Spotlight banner ── */
@@ -120,9 +154,11 @@ export default function NoticeSection() {
           position: relative;
           border-radius: var(--radius-lg);
           padding: 2.6rem 2.4rem;
-          background: linear-gradient(135deg, #ffffff 0%, #eef8ff 40%, #d7f0fd 75%, #bfe6fb 100%);
-          border: 1.5px solid var(--blue-pale);
-          box-shadow: 0 12px 34px rgba(15,52,96,0.1);
+          background: linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.8) 100%);
+          backdrop-filter: blur(22px);
+          -webkit-backdrop-filter: blur(22px);
+          border: 1.5px solid rgba(255,255,255,0.6);
+          box-shadow: 0 24px 60px rgba(0,123,168,0.16), inset 0 1px 0 rgba(255,255,255,0.65);
           opacity: 0;
           transform: translateY(18px) scale(0.985);
           transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
@@ -149,7 +185,7 @@ export default function NoticeSection() {
           100% { background-position: 160% 160%; }
         }
         .cp-notice-eyebrow {
-          display: inline-flex; align-items: center; gap: '0.4rem';
+          display: inline-flex; align-items: center; gap: 0.4rem;
           font-family: var(--font-body);
           font-size: 0.72rem; font-weight: 700;
           letter-spacing: 0.1em; text-transform: uppercase;
@@ -166,6 +202,19 @@ export default function NoticeSection() {
           color: rgba(41,128,185,0.14);
           user-select: none;
           pointer-events: none;
+        }
+        .cp-notice-cta-btn {
+          padding: 0.85rem 1.5rem; border: 1.5px solid rgba(255,255,255,0.5); border-radius: 100px;
+          background: linear-gradient(135deg, #0ea5e9 0%, #00BFFF 100%);
+          color: #fff;
+          font-family: var(--font-body); font-weight: 700; font-size: 0.9rem;
+          cursor: pointer; white-space: nowrap;
+          box-shadow: 0 10px 26px rgba(14,165,233,0.32), inset 0 1px 0 rgba(255,255,255,0.4);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .cp-notice-cta-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 14px 32px rgba(14,165,233,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
         }
 
         @media (max-width: 760px) {
@@ -194,14 +243,7 @@ export default function NoticeSection() {
       <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', zIndex: 1 }}>
 
         {/* eyebrow */}
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-          padding: '0.3rem 0.85rem', marginBottom: '1.4rem',
-          border: '1.5px solid var(--green-pale)', borderRadius: 100,
-          fontFamily: 'var(--font-body)', fontSize: '0.7rem', fontWeight: 700,
-          letterSpacing: '0.06em', textTransform: 'uppercase',
-          color: 'var(--green-deep)', background: 'var(--green-mist)',
-        }}>
+        <div className="cp-notice-eyebrow-badge">
           📌 {isNP ? 'सूचना — विज्ञापन होइन' : 'A Notice — Not a Pitch'}
         </div>
 
@@ -230,37 +272,29 @@ export default function NoticeSection() {
             return (
               <div
                 key={i}
+                className="cp-notice-card"
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 style={{
-                  display: 'flex', gap: '1rem', alignItems: 'flex-start',
-                  padding: '1.5rem',
                   background: open
                     ? 'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.85) 100%)'
-                    : 'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(240,244,248,0.4) 60%, rgba(255,255,255,0.7) 100%)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: `1px solid ${open ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.4)'}`,
-                  borderRadius: 'var(--radius-lg)',
+                    : 'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(224,242,254,0.35) 60%, rgba(255,255,255,0.72) 100%)',
+                  border: `1px solid ${open ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.45)'}`,
                   boxShadow: isHovered
                     ? '0 20px 44px rgba(0,123,168,0.16), inset 0 1px 0 rgba(255,255,255,0.6)'
                     : '0 8px 24px rgba(15,52,96,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
                   transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
-                  transition: 'box-shadow 0.2s ease, transform 0.2s ease',
                 }}
               >
-                <span style={{
-                  width: 42, height: 42, flexShrink: 0, borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.15rem',
-                  background: open
-                    ? 'linear-gradient(135deg, rgba(224,242,254,0.9) 0%, rgba(186,230,253,0.7) 100%)'
-                    : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,244,248,0.6) 100%)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  border: `1.5px solid ${open ? 'rgba(120,190,230,0.5)' : 'rgba(255,255,255,0.6)'}`,
-                  boxShadow: '0 2px 8px rgba(0,60,90,0.06)',
-                }}>
+                <span
+                  className="cp-notice-icon-badge"
+                  style={{
+                    background: open
+                      ? 'linear-gradient(135deg, rgba(224,242,254,0.9) 0%, rgba(186,230,253,0.7) 100%)'
+                      : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,244,248,0.6) 100%)',
+                    border: `1.5px solid ${open ? 'rgba(120,190,230,0.5)' : 'rgba(255,255,255,0.6)'}`,
+                  }}
+                >
                   {c.icon}
                 </span>
                 <p style={{
@@ -282,12 +316,7 @@ export default function NoticeSection() {
           className={`cp-notice-spotlight${bannerVisible ? ' is-visible' : ''}`}
         >
           <div className="cp-notice-glow" />
-          <div
-            className="cp-notice-banner"
-            style={{
-              background: 'linear-gradient(135deg, #00BFFF 0%, #4fc9f2 20%, #a9dff5 45%, #d7f0fd 65%, #f0f8f4 85%, #f8fcfa 100%)',
-            }}
-          >
+          <div className="cp-notice-banner">
             <span className="cp-notice-quote-mark" aria-hidden="true">"</span>
             <div className="cp-notice-closing" style={{ position: 'relative' }}>
               <div style={{ flex: '1 1 380px' }}>
@@ -306,21 +335,8 @@ export default function NoticeSection() {
                 </p>
               </div>
 
-            
-            
-            
-
               <div className="cp-notice-cta">
-                <button
-                  onClick={() => go('/book')}
-                  style={{
-                    padding: '0.85rem 1.5rem', border: 'none', borderRadius: 100,
-                    background: '#00BFFF', color: 'var(--white)',
-                    fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.9rem',
-                    cursor: 'pointer', whiteSpace: 'nowrap',
-                    boxShadow: '0 8px 20px rgba(15,52,96,0.28)',
-                  }}
-                >
+                <button className="cp-notice-cta-btn" onClick={() => go('/book')}>
                   {isNP ? 'सत्र बुक गर्नुहोस् →' : 'Book a Session →'}
                 </button>
               </div>
@@ -332,4 +348,3 @@ export default function NoticeSection() {
     </section>
   )
 }
-
