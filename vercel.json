@@ -11,6 +11,18 @@
           "value": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://www.gstatic.com https://clients5.google.com; style-src 'self' 'unsafe-inline' https://translate.googleapis.com https://translate-pa.googleapis.com https://fonts.googleapis.com https://www.gstatic.com; font-src 'self' https://fonts.gstatic.com https://www.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: https://agtzdsoadxzxmzwtifjw.supabase.co; connect-src 'self' blob: https://puja-backend-gamma.vercel.app https://agtzdsoadxzxmzwtifjw.supabase.co https://translate.googleapis.com https://translate-pa.googleapis.com https://www.gstatic.com https://clients5.google.com; frame-src 'self' https://www.google.com https://www.youtube.com https://puja-backend-gamma.vercel.app; worker-src 'self' blob:;"
         }
       ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
     }
   ]
 }
