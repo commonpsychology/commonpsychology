@@ -946,6 +946,7 @@ const SIDEBAR = [
     { id:'workshops',           label:'Workshops',         icon:'◈' },
   ]},
 { group:'System', items:[
+    { id:'integrate',     label:'Integrate',     icon:'🤍' },
     { id:'hero_stats',    label:'Hero Stats',    icon:'✦' },
     { id:'faqs',          label:'FAQs',          icon:'◎' },
     { id:'coupons',       label:'Coupons',       icon:'◆' },
@@ -2513,6 +2514,181 @@ function ProductReviewsSection() {
           </tr>
         ))}
       />
+    </div>
+  )
+}
+
+// ─── INTEGRATE (MEMBERS) SECTION ─────────────────────────────────────────────
+function IntegrateSection() {
+  const [members, setMembers] = useState([])
+  const [total, setTotal]     = useState(0)
+  const [page, setPage]       = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [search, setSearch]   = useState('')
+  const [detail, setDetail]   = useState(null)
+  const I_LIMIT = 12
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const d = await apiFetch(`/integrate?page=${page}&pageSize=${I_LIMIT}`)
+      setMembers(d.members || [])
+      setTotal(d.total || 0)
+    } catch (e) { console.error('integrate load:', e.message) }
+    finally { setLoading(false) }
+  }, [page])
+
+  useEffect(() => { load() }, [load])
+
+  const filtered = search
+    ? members.filter(m =>
+        (m.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (m.email || '').toLowerCase().includes(search.toLowerCase()))
+    : members
+
+  const pageContribution = members.reduce((s, m) => s + Number(m.contribution_amount || 0), 0)
+  const pageContributors = members.filter(m => Number(m.contribution_amount) > 0).length
+
+  return (
+    <div>
+      <style>{`
+        .glass-wrap {
+          background: linear-gradient(135deg, #eef6ff 0%, #ffffff 55%, #eaf7ff 100%);
+          border-radius: 20px; padding: 1.4rem;
+          border: 1px solid rgba(59,130,246,.15);
+          box-shadow: 0 8px 32px rgba(59,130,246,.08);
+          position: relative; overflow: hidden;
+        }
+        .glass-wrap::before {
+          content: ''; position: absolute; top: -60px; right: -60px;
+          width: 220px; height: 220px;
+          background: radial-gradient(circle, rgba(59,130,246,.16), transparent 70%);
+          border-radius: 50%;
+        }
+        .glass-card {
+          background: rgba(255,255,255,.7);
+          backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+          border: 1px solid rgba(255,255,255,.6);
+          border-radius: 16px;
+          box-shadow: 0 4px 24px rgba(30,64,175,.08);
+        }
+        .glass-stat {
+          background: linear-gradient(135deg, rgba(59,130,246,.10), rgba(255,255,255,.5));
+          border: 1px solid rgba(59,130,246,.16);
+          border-radius: 14px; padding: 1rem 1.1rem;
+          backdrop-filter: blur(8px);
+        }
+        .glass-table thead th { background: rgba(239,246,255,.75) !important; backdrop-filter: blur(6px); }
+        .glass-row:hover td { background: rgba(59,130,246,.055) !important; }
+      `}</style>
+
+      <SectionHeader
+        title="Integrate — Members"
+        count={total}
+        sub="People who submitted the membership / integration form"
+      >
+        <input
+          className="inp" value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Search name / email…" style={{ width: 200 }}
+        />
+        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
+      </SectionHeader>
+
+      <div className="glass-wrap" style={{ marginBottom: '1.25rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '.85rem' }}>
+          <div className="glass-stat">
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1d4ed8' }}>{total}</div>
+            <div style={{ fontSize: '.64rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '.06em', marginTop: '.2rem' }}>Total Members</div>
+          </div>
+          <div className="glass-stat">
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1d4ed8' }}>{pageContributors}</div>
+            <div style={{ fontSize: '.64rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '.06em', marginTop: '.2rem' }}>Contributors (page)</div>
+          </div>
+          <div className="glass-stat">
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1d4ed8' }}>NPR {pageContribution.toLocaleString()}</div>
+            <div style={{ fontSize: '.64rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '.06em', marginTop: '.2rem' }}>Contributions (page)</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-card" style={{ overflow: 'hidden' }}>
+        <div className="tbl-scroll">
+          <table className="tbl glass-table">
+            <thead>
+              <tr>{['Name', 'Age', 'Sex', 'Email', 'Phone', 'Country', 'Contribution', 'Joined', ''].map(h => <th key={h}>{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {loading
+                ? <tr><td className="tbl-loading" colSpan={9}><span className="spinner" /> Loading…</td></tr>
+                : filtered.length === 0
+                  ? <tr><td colSpan={9}><div className="empty-state"><div className="empty-icon">🤍</div><div className="empty-text">No members found</div></div></td></tr>
+                  : filtered.map(m => (
+                    <tr key={m.id} className="glass-row" style={{ cursor: 'pointer' }} onClick={() => setDetail(m)}>
+                      <td style={{ fontWeight: 600, fontSize: '.82rem' }}>{m.full_name}</td>
+                      <td style={{ fontSize: '.78rem' }}>{m.age}</td>
+                      <td style={{ fontSize: '.78rem' }}>{m.sex}</td>
+                      <td style={{ fontSize: '.74rem', color: 'var(--text-muted)' }}>{m.email}</td>
+                      <td style={{ fontSize: '.76rem' }}>{m.phone || '—'}</td>
+                      <td style={{ fontSize: '.76rem' }}>{m.country || '—'}</td>
+                      <td>
+                        {Number(m.contribution_amount) > 0
+                          ? <span className="pay-badge" style={{ background: '#eff6ff', color: '#1d4ed8' }}>NPR {Number(m.contribution_amount).toLocaleString()}</span>
+                          : <span style={{ fontSize: '.72rem', color: 'var(--text-muted)' }}>—</span>}
+                      </td>
+                      <td style={{ fontSize: '.72rem', color: 'var(--text-muted)' }}>{fmt(m.created_at)}</td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <button className="btn btn-ghost btn-sm btn-icon" onClick={() => setDetail(m)}>👁</button>
+                      </td>
+                    </tr>
+                  ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <Pager page={page} set={setPage} total={total} limit={I_LIMIT} />
+
+      {detail && (
+        <div className="overlay" onClick={() => setDetail(null)}>
+          <div className="modal glass-card" onClick={e => e.stopPropagation()} style={{ background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(20px)' }}>
+            <div className="modal-head">
+              <span className="modal-head-title">🤍 {detail.full_name}</span>
+              <button className="btn btn-ghost btn-sm" onClick={() => setDetail(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-grid" style={{ padding: 0 }}>
+                <div className="detail-card">
+                  <div className="detail-card-title">Personal</div>
+                  {[['Age', detail.age], ['Sex', detail.sex], ['Country', detail.country || '—']].map(([k, v]) => (
+                    <div key={k} className="detail-row-item"><span className="detail-row-key">{k}</span><span className="detail-row-val">{v}</span></div>
+                  ))}
+                </div>
+                <div className="detail-card">
+                  <div className="detail-card-title">Contact</div>
+                  {[['Email', detail.email], ['Phone', detail.phone || '—']].map(([k, v]) => (
+                    <div key={k} className="detail-row-item"><span className="detail-row-key">{k}</span><span className="detail-row-val">{v}</span></div>
+                  ))}
+                </div>
+                <div className="detail-card">
+                  <div className="detail-card-title">Contribution</div>
+                  <div className="detail-row-item"><span className="detail-row-key">Amount</span><span className="detail-row-val">{Number(detail.contribution_amount) > 0 ? `NPR ${Number(detail.contribution_amount).toLocaleString()}` : '—'}</span></div>
+                  <div className="detail-row-item"><span className="detail-row-key">Joined</span><span className="detail-row-val">{fmt(detail.created_at)}</span></div>
+                </div>
+              </div>
+              {detail.message && (
+                <div className="glass-stat" style={{ marginTop: '.85rem' }}>
+                  <div style={{ fontSize: '.64rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '.4rem' }}>Message</div>
+                  <div style={{ fontSize: '.8rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{detail.message}</div>
+                </div>
+              )}
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={() => setDetail(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -4211,6 +4387,7 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
 {tab === 'social_work' && <SocialWorkAdminSection />}
               {tab === 'delivery_riders' && <AdminDeliveryRidersSection />}
               {tab === 'product_reviews' && <ProductReviewsSection />}
+              {tab === 'integrate' && <IntegrateSection />}
 
           {/* ═══ FAQs ═══ */}
           {tab === 'faqs' && (
