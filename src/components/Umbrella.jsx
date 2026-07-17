@@ -311,15 +311,7 @@ export default function UmbrellaPage({ onNavigate }) {
         <ellipse cx="340" cy="675" rx="210" ry="7" fill="#05101e" opacity="0.5"/>
 
         {/* Tiny call-to-action label, only visible on hover, sits just under the figures */}
-        <text
-          x="340" y="605"
-          fontFamily="Georgia,'Times New Roman',serif"
-          fontSize="11" fill="#f5d06a" textAnchor="middle" letterSpacing="1"
-          opacity={hovering ? 0.95 : 0}
-          style={{ transition: 'opacity 0.3s ease' }}
-        >
-          tap to join us →
-        </text>
+      
       </svg>
     </section>
   )
