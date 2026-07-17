@@ -1,7 +1,28 @@
 // UmbrellaPage.jsx — paste the <svg> block inside your component's return
-import React from 'react'
+// CHANGES FROM ORIGINAL:
+//   1. Whole scene is now a clickable link to /integrate (keyboard accessible too).
+//   2. The center figure + umbrella group gets an extra hover "lift" so it visibly
+//      reads as the thing you're meant to click.
+import React, { useState } from 'react'
 
-export default function UmbrellaPage() {
+export default function UmbrellaPage({ onNavigate }) {
+  const [hovering, setHovering] = useState(false)
+
+  const goToIntegrate = () => {
+    if (onNavigate) {
+      onNavigate('/integrate')
+    } else if (typeof window !== 'undefined') {
+      window.location.href = '/integrate'
+    }
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      goToIntegrate()
+    }
+  }
+
   return (
     <section style={{
       width: '100%',
@@ -16,9 +37,14 @@ export default function UmbrellaPage() {
         width="100%"
         viewBox="0 0 680 700"
         xmlns="http://www.w3.org/2000/svg"
-        style={{ maxWidth: 820 }}
-        role="img"
-        aria-label="हामी एक हौँ — Three figures sheltering together under one umbrella in a stormy night"
+        style={{ maxWidth: 820, cursor: 'pointer' }}
+        role="link"
+        tabIndex={0}
+        aria-label="हामी एक हौँ — join the community. Three figures sheltering together under one umbrella in a stormy night. Activate to go to the integration page."
+        onClick={goToIntegrate}
+        onKeyDown={handleKeyDown}
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
       >
         <defs>
           <style>{`
@@ -45,10 +71,16 @@ export default function UmbrellaPage() {
               0%,100% { opacity: 0.18; }
               50%     { opacity: 0.28; }
             }
+            @keyframes ctaPulse {
+              0%,100% { opacity: 0.22; }
+              50%     { opacity: 0.4; }
+            }
             .rdrop { animation: fall linear infinite; }
-            .umb   { transform-origin: 340px 350px; animation: sway 5s ease-in-out infinite; }
+            .umb   { transform-origin: 340px 350px; animation: sway 5s ease-in-out infinite; transition: transform 0.35s ease; }
             .lamp  { animation: flicker 7s ease-in-out infinite; }
             .glow  { animation: lightpulse 3s ease-in-out infinite; }
+            .cta-ring { animation: ctaPulse 2.4s ease-in-out infinite; transition: opacity 0.3s ease; }
+            .center-figure { transition: transform 0.35s ease; transform-origin: 340px 450px; }
           `}</style>
 
           <radialGradient id="warmGlow" cx="50%" cy="100%" r="60%">
@@ -58,6 +90,10 @@ export default function UmbrellaPage() {
           <radialGradient id="umbGlow" cx="50%" cy="60%" r="55%">
             <stop offset="0%"   stopColor="#1a3a6e" stopOpacity="0.4"/>
             <stop offset="100%" stopColor="#0a1628" stopOpacity="0"/>
+          </radialGradient>
+          <radialGradient id="ctaGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stopColor="#f5d06a" stopOpacity="0.55"/>
+            <stop offset="100%" stopColor="#f5d06a" stopOpacity="0"/>
           </radialGradient>
           <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stopColor="#060d1a"/>
@@ -168,6 +204,14 @@ export default function UmbrellaPage() {
         <ellipse cx="340" cy="555" rx="80" ry="11" fill="url(#puddleGrad)" opacity="0.5"/>
         <ellipse cx="501" cy="545" rx="38" ry="8"  fill="url(#puddleGrad)" opacity="0.6"/>
 
+        {/* Soft gold "click me" halo behind the center figure — brightens on hover */}
+        <ellipse
+          cx="340" cy="470" rx="150" ry="150"
+          fill="url(#ctaGlow)"
+          className="cta-ring"
+          opacity={hovering ? 0.55 : 0.22}
+        />
+
         {/* Left figure */}
         <g stroke="#d4824a" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="252" cy="450" r="16" fill="#c47040" stroke="#d4824a"/>
@@ -180,21 +224,26 @@ export default function UmbrellaPage() {
           <ellipse cx="274" cy="561" rx="14" ry="5" fill="#0d2238" stroke="none"/>
         </g>
 
-        {/* Center figure — right arm raised to grip handle */}
-        <g stroke="#f0a030" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="340" cy="438" r="20" fill="#e08820" stroke="#f0a030"/>
-          <path d="M320,442 Q322,418 340,414 Q358,418 360,442" fill="#1a4a8a" stroke="#1a4a8a"/>
-          <path d="M322,456 Q308,488 306,524 Q316,534 340,536 Q364,534 374,524 Q372,488 358,456 Z" fill="#1a4a8a" stroke="#1a4a8a"/>
-          <circle cx="340" cy="472" r="2.5" fill="#7aa8e0" stroke="none"/>
-          <circle cx="340" cy="487" r="2.5" fill="#7aa8e0" stroke="none"/>
-          {/* Right arm raised up to grip handle at 340,428 */}
-          <path d="M355,456 Q358,440 340,430" stroke="#e08820" strokeWidth="3"/>
-          {/* Left arm — unchanged */}
-          <path d="M322,462 Q295,478 278,488" stroke="#e08820" strokeWidth="2.8"/>
-          <path d="M322,532 Q316,550 312,562" stroke="#0d2238" strokeWidth="6" strokeLinecap="round"/>
-          <path d="M358,532 Q364,550 368,562" stroke="#0d2238" strokeWidth="6" strokeLinecap="round"/>
-          <ellipse cx="310" cy="565" rx="16" ry="5.5" fill="#0d2238" stroke="none"/>
-          <ellipse cx="370" cy="565" rx="16" ry="5.5" fill="#0d2238" stroke="none"/>
+        {/* Center figure — the community's "join" figure. Lifts slightly on hover. */}
+        <g
+          className="center-figure"
+          style={{ transform: hovering ? 'translateY(-6px) scale(1.03)' : 'none' }}
+        >
+          <g stroke="#f0a030" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="340" cy="438" r="20" fill="#e08820" stroke="#f0a030"/>
+            <path d="M320,442 Q322,418 340,414 Q358,418 360,442" fill="#1a4a8a" stroke="#1a4a8a"/>
+            <path d="M322,456 Q308,488 306,524 Q316,534 340,536 Q364,534 374,524 Q372,488 358,456 Z" fill="#1a4a8a" stroke="#1a4a8a"/>
+            <circle cx="340" cy="472" r="2.5" fill="#7aa8e0" stroke="none"/>
+            <circle cx="340" cy="487" r="2.5" fill="#7aa8e0" stroke="none"/>
+            {/* Right arm raised up to grip handle at 340,428 */}
+            <path d="M355,456 Q358,440 340,430" stroke="#e08820" strokeWidth="3"/>
+            {/* Left arm — unchanged */}
+            <path d="M322,462 Q295,478 278,488" stroke="#e08820" strokeWidth="2.8"/>
+            <path d="M322,532 Q316,550 312,562" stroke="#0d2238" strokeWidth="6" strokeLinecap="round"/>
+            <path d="M358,532 Q364,550 368,562" stroke="#0d2238" strokeWidth="6" strokeLinecap="round"/>
+            <ellipse cx="310" cy="565" rx="16" ry="5.5" fill="#0d2238" stroke="none"/>
+            <ellipse cx="370" cy="565" rx="16" ry="5.5" fill="#0d2238" stroke="none"/>
+          </g>
         </g>
 
         {/* Right figure */}
@@ -216,8 +265,8 @@ export default function UmbrellaPage() {
         {/* Hand gripping umbrella shaft */}
         <ellipse cx="340" cy="428" rx="9" ry="6" fill="#e08820" stroke="#f0a030" strokeWidth="1.5"/>
 
-        {/* Umbrella — lifted ~90px vs original */}
-        <g className="umb">
+        {/* Umbrella — lifted ~90px vs original, "opens" slightly wider on hover */}
+        <g className="umb" style={{ transform: hovering ? 'scale(1.02)' : 'none' }}>
           <ellipse cx="340" cy="350" rx="190" ry="38" fill="url(#umbGlow)" opacity="0.5" filter="url(#softBlur)"/>
           {/* Canopy: tip at y=241, hem at y=350 */}
           <path d="M158,350 Q188,258 340,242 Q492,258 522,350 Z" fill="url(#umbTop)"/>
@@ -260,6 +309,17 @@ export default function UmbrellaPage() {
         </text>
         <line x1="230" y1="662" x2="450" y2="662" stroke="#1a3a6e" strokeWidth="0.8" opacity="0.6"/>
         <ellipse cx="340" cy="675" rx="210" ry="7" fill="#05101e" opacity="0.5"/>
+
+        {/* Tiny call-to-action label, only visible on hover, sits just under the figures */}
+        <text
+          x="340" y="605"
+          fontFamily="Georgia,'Times New Roman',serif"
+          fontSize="11" fill="#f5d06a" textAnchor="middle" letterSpacing="1"
+          opacity={hovering ? 0.95 : 0}
+          style={{ transition: 'opacity 0.3s ease' }}
+        >
+          tap to join us →
+        </text>
       </svg>
     </section>
   )

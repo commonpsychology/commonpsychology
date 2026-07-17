@@ -37,7 +37,7 @@ import MessagesPage        from './pages/MessagesPage'
 import PrivacyPage         from './pages/PrivacyPage'
 import OurPlacePage        from './pages/OurplacePage'
 import BookingDebugPanel from './components/BookingDebugPanel'
-
+import IntegratePage from './pages/IntegratePage'
 import Storepage     from './pages/StorePage'
 import NoticePage    from './pages/NoticePage'
 import StaffportalPage      from './pages/StaffportalPage'
@@ -99,6 +99,7 @@ const ROUTES = {
   '/payment/esewa/failure':      EsewaFailurePage,
   '/courses-videos':     OnlineCourses,
   '/register':           RegisterPage,
+  '/integrate':          IntegratePage,
   '/disaster-management': DisasterManagement,
   '/store':              StorePage,
   '/portal':             ClientPortalPage,
