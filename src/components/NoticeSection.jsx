@@ -220,7 +220,8 @@ export default function NoticeSection() {
         @media (max-width: 760px) {
           .cp-notice { padding: 3.5rem 1.25rem; }
           .cp-notice-grid { grid-template-columns: 1fr; }
-          .cp-notice-closing { flex-direction: column; align-items: flex-start; }
+          .cp-notice-closing { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+          .cp-notice-closing-text { flex: none !important; width: 100%; }
           .cp-notice-banner { padding: 2rem 1.5rem; }
           .cp-notice-quote-mark { font-size: 3.6rem; top: 0.3rem; left: 1rem; }
 
@@ -331,7 +332,7 @@ export default function NoticeSection() {
           <div className="cp-notice-banner">
             <span className="cp-notice-quote-mark" aria-hidden="true">"</span>
             <div className="cp-notice-closing" style={{ position: 'relative' }}>
-              <div style={{ flex: '1 1 380px' }}>
+              <div className="cp-notice-closing-text" style={{ flex: '1 1 380px' }}>
                 <div className="cp-notice-eyebrow">
                   ✦ {isNP ? 'सबैभन्दा महत्त्वपूर्ण कुरा' : 'The One Thing to Remember'}
                 </div>

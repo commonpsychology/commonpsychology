@@ -408,6 +408,12 @@ export default function DreamSection({ user, onRequestLogin, apiBase, authToken 
       padding: '80px 24px', boxSizing: 'border-box', animation: 'cosmosReveal 1.2s ease both',
       background: '#060c1c',
     }}>
+      {/* Fade toward the light Therapists section below */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: '16%',
+        background: 'linear-gradient(to bottom, transparent 0%, #f8fafc 100%)',
+        pointerEvents: 'none', zIndex: 15,
+      }} />
 
       {/* Cosmos with all floating orbs */}
       <CosmosBg allDreams={mergedDreams} myDream={existingDream} />
