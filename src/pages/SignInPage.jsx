@@ -7,24 +7,36 @@ const STAFF_ROLES = new Set(['admin', 'staff', 'therapist'])
 const CSS = `
   .signin-root {
     min-height: 100vh;
-    background: var(--green-mist);
+    background: linear-gradient(160deg, #eaf9ff 0%, #f5fcff 50%, #eef8fb 100%);
     display: grid;
     grid-template-columns: 420px 1fr;
     align-items: stretch;
     overflow: hidden;
+    position: relative;
+  }
+  .signin-root::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cpath d='M20 30 L130 95 L90 210 M130 95 L260 65 M90 210 L190 290 M40 250 L120 210' stroke='%2300BFFF' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+    background-size: 320px 320px;
   }
   .signin-left {
-    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: linear-gradient(160deg, rgba(255,255,255,0.7) 0%, rgba(0,191,255,0.10) 50%, rgba(255,255,255,0.68) 100%);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 3rem 2.5rem;
-    border-right: 1px solid rgba(255,255,255,0.6);
-    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
+    border-right: 1px solid rgba(0,191,255,0.18);
+    box-shadow: 0 4px 24px rgba(0,191,255,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
     position: relative;
     overflow: hidden;
+    z-index: 1;
   }
   .signin-left::before {
     content: '';
@@ -41,18 +53,20 @@ const CSS = `
     align-items: center;
     justify-content: center;
     padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem);
-    background: var(--green-mist);
+    background: transparent;
+    position: relative;
+    z-index: 1;
   }
   .signin-card {
-    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255,255,255,0.6);
+    background: linear-gradient(160deg, rgba(255,255,255,0.72) 0%, rgba(0,191,255,0.08) 55%, rgba(255,255,255,0.7) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0,191,255,0.22);
     border-radius: 20px;
     padding: clamp(1.75rem, 4vw, 2.5rem);
     width: 100%;
     max-width: 440px;
-    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
+    box-shadow: 0 12px 40px rgba(0,191,255,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
   }
   .signin-input {
     width: 100%;
@@ -60,6 +74,7 @@ const CSS = `
     border: 2px solid var(--earth-cream, #e8e0d0);
     border-radius: 10px;
     font-family: var(--font-body);
+
     font-size: 0.95rem;
     outline: none;
     color: var(--text-dark);
@@ -71,42 +86,43 @@ const CSS = `
   .signin-btn {
     width: 100%;
     padding: 0.9rem;
-    background: var(--green-deep, #1a5c38);
+    background: linear-gradient(135deg, #00BFFF 0%, #5dd8ff 100%);
     color: white;
-    border: none;
+    border: 1px solid rgba(255,255,255,0.4);
     border-radius: 10px;
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s, transform 0.15s;
+    transition: box-shadow 0.2s, transform 0.15s;
     font-family: var(--font-body);
+    box-shadow: 0 6px 18px rgba(0,191,255,0.28), inset 0 1px 0 rgba(255,255,255,0.4);
   }
-  .signin-btn:hover:not(:disabled) { background: #154a2d; transform: translateY(-1px); }
-  .signin-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .signin-btn:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(0,191,255,0.4), inset 0 1px 0 rgba(255,255,255,0.5); transform: translateY(-1px); }
+  .signin-btn:disabled { background: #b8d8e8; box-shadow: none; cursor: not-allowed; }
   .signin-feature-pill {
-    background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.7) 100%);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255,255,255,0.6);
+    background: linear-gradient(160deg, rgba(255,255,255,0.7) 0%, rgba(0,191,255,0.09) 55%, rgba(255,255,255,0.65) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0,191,255,0.18);
     border-radius: 10px;
     padding: 0.65rem 1rem;
     font-size: 0.83rem;
     color: var(--text-mid);
     font-weight: 500;
     font-family: var(--font-body);
-    box-shadow: 0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
+    box-shadow: 0 4px 18px rgba(0,191,255,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
   }
 
 /* ── Inclusive welcome / enticing message block — compact glass card ── */
   .signin-welcome {
-    background: linear-gradient(160deg, rgba(255,255,255,0.8) 0%, rgba(214,238,252,0.6) 55%, rgba(255,255,255,0.75) 100%);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255,255,255,0.65);
+    background: linear-gradient(160deg, rgba(255,255,255,0.78) 0%, rgba(0,191,255,0.10) 55%, rgba(255,255,255,0.72) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0,191,255,0.2);
     border-radius: 14px;
     padding: 0.85rem 1rem;
     margin: 1rem 0;
-    box-shadow: 0 4px 16px rgba(14,165,233,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
+    box-shadow: 0 4px 16px rgba(0,191,255,0.12), inset 0 1px 0 rgba(255,255,255,0.55);
     text-align: left;
   }
   .signin-welcome-eyebrow {
@@ -256,16 +272,19 @@ const CSS = `
     align-items: center;
     justify-content: center;
     gap: 0.3rem;
-    background: var(--earth-cream, #f5f1e8);
-    border: 1px solid rgba(0,0,0,0.05);
+    background: rgba(0,191,255,0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0,191,255,0.16);
     border-radius: 12px;
     padding: 0.65rem 0.4rem;
     cursor: pointer;
     font-family: var(--font-body);
-    transition: background 0.2s, transform 0.15s;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   }
   .signin-portal-card:hover {
-    background: #ece3cf;
+    background: rgba(0,191,255,0.12);
+    box-shadow: 0 6px 16px rgba(0,191,255,0.15);
     transform: translateY(-2px);
   }
   .signin-portal-card-icon { font-size: 1.15rem; }
