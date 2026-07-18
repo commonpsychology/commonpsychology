@@ -272,6 +272,18 @@ export default function BalanceWithin() {
           padding: "72px 20px 88px", position: "relative", overflow: "hidden", boxSizing: "border-box",
         }}
       >
+        {/* Fade in from the Services section above */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: '10%',
+          background: 'linear-gradient(to top, transparent 0%, var(--white) 100%)',
+          pointerEvents: 'none', zIndex: 5,
+        }} />
+        {/* Fade toward the dark cosmos section below (DreamSection) */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: '14%',
+          background: 'linear-gradient(to bottom, transparent 0%, #060c1c 100%)',
+          pointerEvents: 'none', zIndex: 5,
+        }} />
         {[
           { top: "-100px", left: "-100px", size: "420px", color: "#bfdbfe44" },
           { bottom: "-120px", right: "-80px", size: "380px", color: "#c7d2fe38" },

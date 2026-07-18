@@ -32,7 +32,20 @@ export default function UmbrellaPage({ onNavigate }) {
       flexDirection: 'column',
       alignItems: 'center',
       overflow: 'hidden',
+      position: 'relative',
     }}>
+      {/* Fade in from the light News section above */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '14%',
+        background: 'linear-gradient(to top, transparent 0%, var(--blue-mist) 100%)',
+        pointerEvents: 'none', zIndex: 5,
+      }} />
+      {/* Fade toward the light Services section below */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: '18%',
+        background: 'linear-gradient(to bottom, transparent 0%, var(--white) 100%)',
+        pointerEvents: 'none', zIndex: 5,
+      }} />
       <svg
         width="100%"
         viewBox="0 0 680 700"

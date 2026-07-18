@@ -163,7 +163,13 @@ export default function NewsSection() {
   useEffect(() => { injectNewsCSS() }, [])
 
   return (
-    <section className="section" id="news" style={{ background: 'var(--blue-mist)' }}>
+    <section className="section" id="news" style={{ background: 'var(--blue-mist)', position: 'relative' }}>
+      {/* Fade toward the dark Umbrella section below */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: '14%',
+        background: 'linear-gradient(to bottom, transparent 0%, #060d1a 100%)',
+        pointerEvents: 'none', zIndex: 5,
+      }} />
 
       {/* Header */}
       <div className="news-section-header">

@@ -56,7 +56,19 @@ export default function Services() {
   const { navigate } = useRouter()
 
   return (
-    <section className="section services" id="services">
+    <section className="section services" id="services" style={{ position: 'relative' }}>
+      {/* Fade in from the dark Umbrella section above */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '10%',
+        background: 'linear-gradient(to top, transparent 0%, #060d1a 100%)',
+        pointerEvents: 'none', zIndex: 5,
+      }} />
+      {/* Fade toward the Balance section's light-blue start below */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: '10%',
+        background: 'linear-gradient(to bottom, transparent 0%, #dbeafe 100%)',
+        pointerEvents: 'none', zIndex: 5,
+      }} />
       <div className="section-header">
         <div>
           <span className="section-tag">What We Offer</span>
