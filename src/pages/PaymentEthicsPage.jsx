@@ -217,11 +217,12 @@ export default function PaymentEthicsPage() {
 
   return (
     <div className="page-wrapper" style={{ background:C.skyGhost }}>
+      <style>{`.pe-tabbar::-webkit-scrollbar{display:none}`}</style>
 
       {/* ── Hero ── */}
 <div style={{
   position:'relative', overflow:'hidden',
-  padding:'5rem 4rem 4rem',
+  padding:'clamp(2.5rem,8vw,5rem) clamp(1.25rem,6vw,4rem) clamp(2rem,6vw,4rem)',
   borderRadius: '0 0 50% 50% / 0 0 32px 32px',
     background: `
     radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
@@ -258,8 +259,8 @@ export default function PaymentEthicsPage() {
       </div>
 
       {/* ── Tab bar ── */}
-      <div style={{ background:`linear-gradient(to right,${C.skyFaint} 0%,${C.mint} 50%,${C.skyFainter} 100%)`,
-        borderBottom:`1px solid ${C.borderFaint}`, padding:'0 4rem', display:'flex', gap:0 }}>
+      <div className="pe-tabbar" style={{ background:`linear-gradient(to right,${C.skyFaint} 0%,${C.mint} 50%,${C.skyFainter} 100%)`,
+        borderBottom:`1px solid ${C.borderFaint}`, padding:'0 clamp(1rem,5vw,4rem)', display:'flex', gap:0, overflowX:'auto', scrollbarWidth:'none' }}>
         {TABS.map(t => (
           <button key={t} onClick={() => setActiveTab(t)} style={{
             padding:'1rem 1.75rem', border:'none', background:'none',
@@ -272,7 +273,7 @@ export default function PaymentEthicsPage() {
         ))}
       </div>
 
-      <div style={{ maxWidth:1200, margin:'0 auto', padding:'3.5rem 4rem' }}>
+      <div style={{ maxWidth:1200, margin:'0 auto', padding:'clamp(1.75rem,6vw,3.5rem) clamp(1.25rem,5vw,4rem)' }}>
 
         {/* ─── PRICING ─── */}
         {activeTab === 'Pricing' && (
@@ -460,7 +461,7 @@ export default function PaymentEthicsPage() {
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem' }}>
                 {docs.map((item, i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center',
+                  <div key={i} style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:'0.75rem',
                     justifyContent:'space-between', padding:'0.85rem 1rem', borderRadius:10,
                     background:sectionGrad, border:`1px solid ${C.borderFaint}` }}>
                     <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>

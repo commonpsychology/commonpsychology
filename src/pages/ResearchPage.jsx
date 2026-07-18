@@ -83,7 +83,7 @@ export default function ResearchPage() {
       {/* Hero */}
 <div style={{
   position: 'relative', overflow: 'hidden',
-  padding: '5rem 5rem 4rem',
+  padding: 'clamp(2.5rem,8vw,5rem) clamp(1.25rem,6vw,5rem) clamp(2rem,6vw,4rem)',
   borderRadius: '0 0 50% 50% / 0 0 32px 32px',
   background: `
  radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
@@ -129,7 +129,7 @@ export default function ResearchPage() {
 
       {/* Filter tabs */}
       <div style={{ background: C.white, borderBottom: `1px solid ${C.borderFaint}`, position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 5rem', overflowX: 'auto', display: 'flex', gap: '0.25rem', scrollbarWidth: 'none' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(1rem,5vw,5rem)', overflowX: 'auto', display: 'flex', gap: '0.25rem', scrollbarWidth: 'none' }}>
           {TYPES.map(t => (
             <button key={t} onClick={() => { setType(t); setPage(1) }}
               style={{ padding: '0.85rem 1.1rem', border: 'none', borderBottom: `2.5px solid ${type === t ? C.skyBright : 'transparent'}`, background: 'transparent', color: type === t ? C.skyDeep : C.textLight, fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: type === t ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
@@ -140,7 +140,7 @@ export default function ResearchPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '3rem 5rem' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(1.5rem,6vw,3rem) clamp(1rem,5vw,5rem)' }}>
 
         {loading && (
           <div style={{ textAlign: 'center', padding: '5rem 0' }}>
@@ -171,6 +171,7 @@ export default function ResearchPage() {
               const tc = TYPE_COLORS[paper.type] || { bg: C.skyFaint, text: C.skyMid }
               return (
                 <div key={paper.id} onClick={() => navigate(`/research/${paper.id}`)}
+                  className="rp-paper-card"
                   style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.borderFaint}`, padding: '1.75rem', cursor: 'pointer', display: 'grid', gridTemplateColumns: '1fr auto', gap: '1.5rem', alignItems: 'start', boxShadow: '0 2px 12px rgba(0,191,255,0.04)', transition: 'transform 0.18s, box-shadow 0.18s' }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 32px rgba(0,191,255,0.12)' }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,191,255,0.04)' }}
@@ -237,7 +238,13 @@ export default function ResearchPage() {
           </div>
         )}
       </div>
-      <style>{`input::placeholder{color:rgba(255,255,255,0.55)}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        input::placeholder{color:rgba(255,255,255,0.55)}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @media (max-width: 640px) {
+          .rp-paper-card { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   )
 }
