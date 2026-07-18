@@ -62,10 +62,27 @@ const CONTACT_CSS = `
     line-height: 1.65;
   }
 
-  /* ── main layout: form fills the whole left half, right half splits into info (top) + map (bottom) ── */
+  /* ── glassy blue-white gradient, shared by all three panels ── */
+  .cp3-glass {
+    position: relative;
+    background: linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.82) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.65);
+    box-shadow: 0 10px 34px rgba(0,123,168,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+    box-sizing: border-box;
+  }
+
+  /* ── main layout using grid-template-areas so mobile order is independent of DOM order ──
+     Desktop: form on the left spanning both rows, info top-right, map bottom-right.
+     Mobile:  info, then form, then map, stacked. */
   .cp3-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "form info"
+      "form map";
     align-items: stretch;
     gap: 2.5rem;
     padding: 0.5rem 3rem 3rem;
@@ -74,16 +91,22 @@ const CONTACT_CSS = `
     .cp3-body { gap: 2rem; padding: 0.5rem 2rem 2.5rem; }
   }
   @media (max-width: 800px) {
-    .cp3-body { grid-template-columns: 1fr; padding: 0.5rem 1.25rem 2rem; gap: 1.75rem; }
+    .cp3-body {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+      grid-template-areas:
+        "info"
+        "form"
+        "map";
+      padding: 0.5rem 1.25rem 2rem;
+      gap: 1.75rem;
+    }
   }
 
-  /* ── left: form, full height of the row ── */
+  /* ── form panel (left, spans both rows on desktop) ── */
   .cp3-form-panel {
-    height: 100%;
-    box-sizing: border-box;
-    background: var(--white);
+    grid-area: form;
     border-radius: 22px;
-    border: 1px solid var(--blue-pale);
     padding: 2.25rem 2.5rem;
     display: flex;
     flex-direction: column;
@@ -122,13 +145,14 @@ const CONTACT_CSS = `
     font-family: var(--font-body);
     font-size: 0.97rem;
     color: var(--text-dark);
-    background: var(--white);
+    background: rgba(255,255,255,0.75);
     outline: none;
     transition: border-color 0.18s;
     box-sizing: border-box;
   }
   .cp3-input:focus, .cp3-select:focus, .cp3-textarea:focus {
     border-color: var(--sky);
+    background: var(--white);
   }
   .cp3-textarea { resize: vertical; min-height: 160px; flex: 1; }
 
@@ -175,19 +199,10 @@ const CONTACT_CSS = `
     color: var(--text-light);
   }
 
-  /* ── right: stacked column, info on top / map on bottom, fills the row height ── */
-  .cp3-right {
-    display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-    min-width: 0;
-    height: 100%;
-  }
-
+  /* ── info panel (top-right on desktop, first on mobile) ── */
   .cp3-info {
-    background: var(--white);
+    grid-area: info;
     border-radius: 22px;
-    border: 1px solid var(--blue-pale);
     padding: 1.75rem 2rem;
   }
   @media (max-width: 600px) {
@@ -205,11 +220,11 @@ const CONTACT_CSS = `
 
   .cp3-info-item {
     padding: 0.95rem 0;
-    border-bottom: 1px solid var(--blue-pale);
+    border-bottom: 1px solid rgba(15,52,96,0.12);
   }
   .cp3-info-grid .cp3-info-item:nth-last-child(-n+2) { border-bottom: none; }
   @media (max-width: 480px) {
-    .cp3-info-grid .cp3-info-item:nth-last-child(-n+2) { border-bottom: 1px solid var(--blue-pale); }
+    .cp3-info-grid .cp3-info-item:nth-last-child(-n+2) { border-bottom: 1px solid rgba(15,52,96,0.12); }
     .cp3-info-grid .cp3-info-item:last-child { border-bottom: none; }
   }
 
@@ -233,8 +248,8 @@ const CONTACT_CSS = `
     margin-top: 1.25rem;
     padding: 1rem 1.15rem;
     border-radius: 16px;
-    background: var(--off-white);
-    border: 1px solid var(--blue-pale);
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.7);
   }
   .cp3-crisis-label {
     font-family: var(--font-body);
@@ -254,23 +269,16 @@ const CONTACT_CSS = `
   }
   .cp3-crisis-text strong { color: var(--text-dark); }
 
-  /* ── map panel: fills remaining bottom space of the right column ── */
+  /* ── map panel (bottom-right on desktop, last on mobile) ── */
   .cp3-map-panel {
-    position: relative;
-    flex: 1;
-    min-height: 260px;
+    grid-area: map;
     border-radius: 22px;
     padding: 1.1rem 1.25rem;
-    background: linear-gradient(160deg, rgba(255,255,255,0.8) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.78) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.65);
-    box-shadow: 0 10px 34px rgba(0,123,168,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
-    box-sizing: border-box;
+    min-height: 260px;
   }
   .cp3-map-panel-cracks {
     position: absolute;
@@ -346,10 +354,6 @@ const CONTACT_CSS = `
     flex: 0 0 auto;
   }
   .cp3-map-coords strong { color: var(--text-mid); font-family: monospace; }
-
-  @media (max-width: 800px) {
-    .cp3-map-panel { min-height: 260px; }
-  }
 
   /* ── success ── */
   .cp3-success-wrap {
@@ -464,8 +468,8 @@ export default function ContactPage() {
 
           <div className="cp3-body">
 
-            {/* ── Left: form, full height ── */}
-            <div className="cp3-form-panel">
+            {/* ── Form: left on desktop, 2nd on mobile ── */}
+            <div className="cp3-form-panel cp3-glass">
               {error && <div className="cp3-error">{error}</div>}
 
               <form onSubmit={handleSubmit}>
@@ -522,68 +526,67 @@ export default function ContactPage() {
               </form>
             </div>
 
-            {/* ── Right: info on top, map on bottom ── */}
-            <div className="cp3-right">
-              <div className="cp3-info">
-                <div className="cp3-info-grid">
-                  <div className="cp3-info-item">
-                    <div className="cp3-info-label">Address</div>
-                    <div className="cp3-info-val">Thimi, Bhaktapur, Nepal</div>
-                  </div>
-                  <div className="cp3-info-item">
-                    <div className="cp3-info-label">Phone</div>
-                    <div className="cp3-info-val">+977 01-4412345</div>
-                  </div>
-                  <div className="cp3-info-item">
-                    <div className="cp3-info-label">Email</div>
-                    <div className="cp3-info-val">noreplypsychology@gmail.com</div>
-                  </div>
-                  <div className="cp3-info-item">
-                    <div className="cp3-info-label">Hours</div>
-                    <div className="cp3-info-val">Sun – Fri, 9:00 AM – 6:00 PM</div>
-                  </div>
+            {/* ── Info: top-right on desktop, 1st on mobile ── */}
+            <div className="cp3-info cp3-glass">
+              <div className="cp3-info-grid">
+                <div className="cp3-info-item">
+                  <div className="cp3-info-label">Address</div>
+                  <div className="cp3-info-val">Thimi, Bhaktapur, Nepal</div>
                 </div>
-
-                <div className="cp3-crisis">
-                  <div className="cp3-crisis-label">If this is urgent</div>
-                  <p className="cp3-crisis-text">
-                    Call <strong>TPO Nepal: 1660-01-11002</strong>, free and available 24/7.
-                  </p>
+                <div className="cp3-info-item">
+                  <div className="cp3-info-label">Phone</div>
+                  <div className="cp3-info-val">+977 01-4412345</div>
+                </div>
+                <div className="cp3-info-item">
+                  <div className="cp3-info-label">Email</div>
+                  <div className="cp3-info-val">noreplypsychology@gmail.com</div>
+                </div>
+                <div className="cp3-info-item">
+                  <div className="cp3-info-label">Hours</div>
+                  <div className="cp3-info-val">Sun – Fri, 9:00 AM – 6:00 PM</div>
                 </div>
               </div>
 
-              <div className="cp3-map-panel">
-                <svg className="cp3-map-panel-cracks" viewBox="0 0 300 260" preserveAspectRatio="none">
-                  <polyline points="0,20 40,45 70,18 120,50" stroke="white" strokeWidth="0.6" fill="none" />
-                  <polyline points="120,50 160,28 200,55" stroke="white" strokeWidth="0.5" fill="none" />
-                  <polyline points="0,180 35,210 65,175 100,225" stroke="white" strokeWidth="0.5" fill="none" />
-                  <polyline points="200,150 235,120 300,155" stroke="white" strokeWidth="0.5" fill="none" />
-                  <polyline points="150,230 175,195 220,235" stroke="white" strokeWidth="0.4" fill="none" />
-                </svg>
+              <div className="cp3-crisis">
+                <div className="cp3-crisis-label">If this is urgent</div>
+                <p className="cp3-crisis-text">
+                  Call <strong>TPO Nepal: 1660-01-11002</strong>, free and available 24/7.
+                </p>
+              </div>
+            </div>
 
-                <div className="cp3-map-label">📍 Find Our Office</div>
+            {/* ── Map: bottom-right on desktop, last on mobile ── */}
+            <div className="cp3-map-panel cp3-glass">
+              <svg className="cp3-map-panel-cracks" viewBox="0 0 300 260" preserveAspectRatio="none">
+                <polyline points="0,20 40,45 70,18 120,50" stroke="white" strokeWidth="0.6" fill="none" />
+                <polyline points="120,50 160,28 200,55" stroke="white" strokeWidth="0.5" fill="none" />
+                <polyline points="0,180 35,210 65,175 100,225" stroke="white" strokeWidth="0.5" fill="none" />
+                <polyline points="200,150 235,120 300,155" stroke="white" strokeWidth="0.5" fill="none" />
+                <polyline points="150,230 175,195 220,235" stroke="white" strokeWidth="0.4" fill="none" />
+              </svg>
 
-                <div className="cp3-map-frame-wrap">
-                  <iframe
-                    title="Office location"
-                    src="https://www.google.com/maps?q=85.28,25.5&z=15&output=embed"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                  <a
-                    className="cp3-map-click-overlay"
-                    href="https://www.google.com/maps?q=85.28,25.5"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Open location in Google Maps"
-                  >
-                    <span className="cp3-map-open-pill">🧭 Open in Google Maps →</span>
-                  </a>
-                </div>
+              <div className="cp3-map-label">📍 Find Our Office</div>
 
-                <div className="cp3-map-coords">
-                  Exact pin: <strong>85.28, 25.5</strong>
-                </div>
+              <div className="cp3-map-frame-wrap">
+                <iframe
+                  title="Office location"
+                  src="https://www.google.com/maps?q=85.28,25.5&z=15&output=embed"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+                <a
+                  className="cp3-map-click-overlay"
+                  href="https://www.google.com/maps?q=85.28,25.5"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open location in Google Maps"
+                >
+                  <span className="cp3-map-open-pill">🧭 Open in Google Maps →</span>
+                </a>
+              </div>
+
+              <div className="cp3-map-coords">
+                Exact pin: <strong>85.28, 25.5</strong>
               </div>
             </div>
 
