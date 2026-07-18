@@ -468,13 +468,13 @@ export default function ContactPage() {
                 <div className="cp3-map-frame-wrap">
                   <iframe
                     title="Office location"
-                    src="https://www.google.com/maps?q=25.88,85.5&z=15&output=embed"
+                    src="https://www.google.com/maps?q=85.58,25.5&z=15&output=embed"
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                   />
                   <a
                     className="cp3-map-click-overlay"
-                    href="https://www.google.com/maps?q=25.88,85.5"
+                    href="https://www.google.com/maps?q=85.58,25.5"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Open location in Google Maps"
