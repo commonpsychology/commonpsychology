@@ -67,6 +67,17 @@ const CSS = `
     width: 100%;
     max-width: 440px;
     box-shadow: 0 12px 40px rgba(0,191,255,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+    position: relative;
+  }
+  .signin-card-logo {
+    position: absolute;
+    top: clamp(1.1rem, 3vw, 1.5rem);
+    right: clamp(1.1rem, 3vw, 1.5rem);
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    border-radius: 50%;
+    z-index: 2;
   }
   .signin-input {
     width: 100%;
@@ -351,6 +362,7 @@ const CSS = `
     .signin-right { padding: 1.5rem 1rem; align-items: flex-start; padding-top: 2.5rem; }
     .signin-card  { border-radius: 16px; max-width: 100%; }
     .signin-portal-grid { grid-template-columns: repeat(3, 1fr); }
+    .signin-card-logo { width: 36px; height: 36px; top: 1rem; right: 1rem; }
   }
 `
 
@@ -462,7 +474,8 @@ export default function SignInPage() {
       {/* ── Right form ── */}
       <div className="signin-right">
         <div className="signin-card">
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--green-deep)', marginBottom: '0.3rem' }}>
+          <img src="/header.png" alt="" className="signin-card-logo" />
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--green-deep)', marginBottom: '0.3rem', paddingRight: '3rem' }}>
             Welcome back
           </h1>
           <p style={{ color: 'var(--text-light)', fontSize: '0.88rem', marginBottom: '1.75rem', fontFamily: 'var(--font-body)' }}>

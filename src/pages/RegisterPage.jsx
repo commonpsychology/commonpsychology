@@ -26,9 +26,10 @@ const CSS = `
   }
   .reg-left-header-img {
     display: block;
-    max-width: 78%;
+    width: 128px;
     height: auto;
-    margin: 0 auto 1.5rem;
+    object-fit: contain;
+    margin: 0 auto 1.25rem;
   }
   .reg-right {
     display: flex;
@@ -183,7 +184,10 @@ const FIELDS = [
 ]
 
 export default function RegisterPage() {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('reg-css')?.remove()
+}, [])
   const { navigate } = useRouter()
   const { register } = useAuth()
 
