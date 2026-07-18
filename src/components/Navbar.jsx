@@ -414,27 +414,33 @@ function MobileGroup({ group, currentPath, onNavigate, lang }) {
   const label    = lang === 'NP' ? (group.labelNP || group.label) : group.label
 
   return (
-    <li>
+    <li style={{ listStyle:'none', marginBottom:'0.5rem' }}>
       <button onClick={() => setOpen(o => !o)}
         style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-          width:'100%', padding:'0.8rem 0', background:'none', border:'none',
-          borderBottom: open ? 'none' : '1px solid var(--earth-cream)',
-          fontFamily:'var(--font-body)', fontSize:'0.98rem',
+          width:'100%', padding:'0.85rem 1rem',
+          background: open
+            ? 'linear-gradient(160deg, rgba(186,230,253,0.6) 0%, rgba(224,242,254,0.4) 100%)'
+            : 'linear-gradient(160deg, rgba(255,255,255,0.72) 0%, rgba(214,238,252,0.42) 100%)',
+          backdropFilter:'blur(10px)', WebkitBackdropFilter:'blur(10px)',
+          border: `1px solid ${open ? 'rgba(41,128,185,0.35)' : 'rgba(255,255,255,0.6)'}`,
+          borderRadius:14,
+          boxShadow: open ? '0 6px 18px rgba(0,123,168,0.16)' : '0 2px 10px rgba(0,60,90,0.05)',
+          fontFamily:'var(--font-body)', fontSize:'0.95rem',
           fontWeight: isActive ? 700 : 600,
-          color: isActive ? 'var(--sky)' : 'var(--text-mid)',
-          cursor:'pointer', textAlign:'left' }}>
+          color: isActive ? 'var(--sky)' : 'var(--text-dark)',
+          cursor:'pointer', textAlign:'left', transition:'all 0.2s ease' }}>
         {label}
         <svg width="14" height="14" viewBox="0 0 12 12" fill="none"
-          style={{ opacity:0.4, flexShrink:0, transition:'transform 0.2s',
+          style={{ opacity: open ? 0.7 : 0.4, flexShrink:0, transition:'transform 0.2s',
+            color: open ? 'var(--sky)' : 'currentColor',
             transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
           <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8"
             strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
       {open && (
-        <ul style={{ listStyle:'none', padding:'0.4rem 0.3rem 0.6rem',
-          display:'flex', flexDirection:'column', gap:'0.35rem',
-          borderBottom:'1px solid var(--earth-cream)' }}>
+        <ul style={{ listStyle:'none', padding:'0.5rem 0.3rem 0.2rem',
+          display:'flex', flexDirection:'column', gap:'0.35rem' }}>
           {group.children.map(item => {
             const iLabel = lang === 'NP' ? (item.labelNP || item.label) : item.label
             const active = currentPath === item.path
@@ -506,6 +512,50 @@ export default function Navbar() {
 
   return (
     <>
+      <style>{`
+        @media (max-width: 768px) {
+          .mobile-menu {
+            background:
+              radial-gradient(circle at 12% 0%, rgba(14,165,233,0.12), transparent 55%),
+              radial-gradient(circle at 100% 100%, rgba(41,128,185,0.10), transparent 55%),
+              linear-gradient(160deg, rgba(255,255,255,0.94) 0%, rgba(214,238,252,0.8) 55%, rgba(255,255,255,0.94) 100%) !important;
+            backdrop-filter: blur(22px) !important;
+            -webkit-backdrop-filter: blur(22px) !important;
+            border-left: 1px solid rgba(255,255,255,0.6) !important;
+            box-shadow: -14px 0 44px rgba(0,60,90,0.2) !important;
+          }
+          .mobile-user-card {
+            background: linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(214,238,252,0.55) 100%);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,123,168,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+            padding: 0.85rem 1rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+          }
+          .mobile-footer-item {
+            background: linear-gradient(160deg, rgba(255,255,255,0.65) 0%, rgba(224,242,254,0.38) 100%) !important;
+            border: 1px solid rgba(255,255,255,0.55) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 2px 10px rgba(0,60,90,0.06) !important;
+            padding: 0.65rem 0.85rem !important;
+            margin-bottom: 0.45rem !important;
+            transition: all 0.2s ease !important;
+          }
+          .mobile-footer-item:active {
+            background: linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(186,230,253,0.55) 100%) !important;
+            transform: scale(0.98);
+          }
+          .mobile-icon-badge {
+            width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+            background: rgba(255,255,255,0.75);
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 2px 8px rgba(0,60,90,0.06);
+          }
+        }
+      `}</style>
       <nav className="navbar">
         <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}>
           <div className="navbar-logo" onClick={() => go('/')} style={{ cursor:'pointer',gap: 0 }}>
@@ -569,14 +619,13 @@ export default function Navbar() {
 
       {menuOpen && (
         <div className="mobile-overlay" onClick={() => setMenuOpen(false)}
-          style={{ opacity:1, pointerEvents:'all' }} />
+          style={{ opacity:1, pointerEvents:'all', background:'rgba(6,20,34,0.35)', backdropFilter:'blur(2px)', WebkitBackdropFilter:'blur(2px)' }} />
       )}
 
       <div className={`mobile-menu ${menuOpen ? 'mobile-menu-open' : ''}`}>
         {user && (
-          <div style={{ display:'flex', alignItems:'center', gap:'0.75rem',
-            padding:'0.75rem 0 1rem', borderBottom:'1px solid var(--earth-cream)',
-            marginBottom:'0.5rem' }}>
+          <div className="mobile-user-card" style={{ display:'flex', alignItems:'center', gap:'0.75rem',
+            marginBottom:'1rem' }}>
             <UserAvatar user={user} size={40} />
             <div>
               <div style={{ fontFamily:'var(--font-body)', fontWeight:700,
@@ -597,34 +646,34 @@ export default function Navbar() {
         <div style={{ padding:'0.75rem 0', borderTop:'1px solid var(--earth-cream)', marginBottom:'0.75rem' }}>
           {user ? (
             <>
-              <button onClick={() => go('/account')} style={{ display:'flex', alignItems:'center',
-                gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
-                <span style={{ fontSize:'1rem' }}>👤</span>
-                <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-mid)' }}>{t('myAccount')}</span>
+              <button onClick={() => go('/account')} className="mobile-footer-item" style={{ display:'flex', alignItems:'center',
+                gap:'0.7rem', width:'100%', cursor:'pointer' }}>
+                <span className="mobile-icon-badge">👤</span>
+                <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-dark)' }}>{t('myAccount')}</span>
               </button>
-              <button onClick={() => go('/portal')} style={{ display:'flex', alignItems:'center',
-                gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
-                <span style={{ fontSize:'1rem' }}>🔐</span>
-                <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-mid)' }}>{t('myPortal')}</span>
+              <button onClick={() => go('/portal')} className="mobile-footer-item" style={{ display:'flex', alignItems:'center',
+                gap:'0.7rem', width:'100%', cursor:'pointer' }}>
+                <span className="mobile-icon-badge">🔐</span>
+                <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-dark)' }}>{t('myPortal')}</span>
               </button>
-              <button onClick={handleMobileLogout} style={{ display:'flex', alignItems:'center',
-                gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
-                <span style={{ fontSize:'1rem' }}>🚪</span>
+              <button onClick={handleMobileLogout} className="mobile-footer-item" style={{ display:'flex', alignItems:'center',
+                gap:'0.7rem', width:'100%', cursor:'pointer' }}>
+                <span className="mobile-icon-badge" style={{ background:'#fff0f0' }}>🚪</span>
                 <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'#e53e3e' }}>{t('logOut')}</span>
               </button>
             </>
           ) : (
-            <button onClick={() => go('/signin')} style={{ display:'flex', alignItems:'center',
-              gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
-              <span style={{ fontSize:'1rem' }}>🔑</span>
-              <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-mid)' }}>{t('signIn')}</span>
+            <button onClick={() => go('/signin')} className="mobile-footer-item" style={{ display:'flex', alignItems:'center',
+              gap:'0.7rem', width:'100%', cursor:'pointer' }}>
+              <span className="mobile-icon-badge">🔑</span>
+              <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--text-dark)' }}>{t('signIn')}</span>
             </button>
           )}
 
           {/* ── Mobile language toggle ── */}
-          <button onClick={toggle} style={{ display:'flex', alignItems:'center',
-            gap:'0.65rem', width:'100%', padding:'0.6rem 0', background:'none', border:'none', cursor:'pointer' }}>
-            <span style={{ fontSize:'1rem' }}>🌐</span>
+          <button onClick={toggle} className="mobile-footer-item" style={{ display:'flex', alignItems:'center',
+            gap:'0.7rem', width:'100%', cursor:'pointer' }}>
+            <span className="mobile-icon-badge">🌐</span>
             <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:600, color:'var(--green-deep)' }}>
               {lang === 'EN' ? 'नेपालीमा हेर्नुहोस्' : 'View in English'}
             </span>
