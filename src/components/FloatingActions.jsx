@@ -866,7 +866,10 @@ const ACTIONS = [
 // MAIN COMPONENT
 // ─────────────────────────────────────────────
 export default function FloatingActions({ user }) {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('fa-css')?.remove()
+}, [])
 
   const { navigate } = useRouter()
   const [open, setOpen]         = useState(false)

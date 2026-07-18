@@ -399,7 +399,10 @@ function useCountdown(initialSeconds) {
 
 // ── Main Page ──────────────────────────────────────────────────
 export default function VerifyAccountPage() {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('vfy-css2')?.remove()
+}, [])
 
  const { navigate, params } = useRouter()
   const payload = (params && params.email) ? params : JSON.parse(sessionStorage.getItem('verify_payload') || '{}')

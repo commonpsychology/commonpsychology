@@ -346,7 +346,10 @@ function DeliveryOTPModal({ email, name, user_id, onSuccess, onCancel }) {
 
 // ── Main page ─────────────────────────────────────────────────
 export default function DeliveryLoginPage() {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('dlv-login-css')?.remove()
+}, [])
 
   const { navigate } = useRouter()
 

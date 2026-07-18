@@ -1,8 +1,7 @@
 // src/pages/SignInPage.jsx
 import { useState } from 'react'
 import { useRouter } from '../context/RouterContext'
-import { useAuth, useAuthGuard } from '../context/AuthContext'
-
+import { useAuth } from '../context/AuthContext'
 const STAFF_ROLES = new Set(['admin', 'staff', 'therapist'])
 
 const CSS = `
@@ -365,8 +364,6 @@ function StaffRedirectOverlay({ role }) {
 }
 
 export default function SignInPage() {
-  useAuthGuard()
-
   const { navigate }               = useRouter()
   const { loginRaw, login, logout } = useAuth()
   const [form, setForm]            = useState({ email: '', password: '' })

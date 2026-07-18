@@ -716,8 +716,11 @@ function ValueCard({ v, delay }) {
 export default function MessagesPage() {
 
   useEffect(() => {
+ useEffect(() => {
     injectCSS('messages-page-css', PAGE_CSS)
-    document.querySelectorAll('.mp-photo-img').forEach(img => {
+    return () => document.getElementById('messages-page-css')?.remove()
+  }, [])    
+  document.querySelectorAll('.mp-photo-img').forEach(img => {
       if (img.complete && img.naturalWidth > 0) {
         const ph = img.nextSibling
         if (ph) ph.style.display = 'none'

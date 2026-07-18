@@ -2695,7 +2695,10 @@ function IntegrateSection() {
 
 // ─── MAIN EXPORT ─────────────────────────────────────────────────────────────
 export default function AdminDashboardPage() {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('adm-v2-css')?.remove()
+}, [])
 
   const { navigate }                           = useRouter()
   const { user, loading: authLoading, logout } = useAuth()

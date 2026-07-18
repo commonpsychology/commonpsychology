@@ -496,8 +496,11 @@ const [notifs,      setNotifs]      = useState([])
   const seenNotifIds = useRef(null)
   const pollTimerRef = useRef(null)
 
-  useEffect(() => { injectCSS('portal-css', PORTAL_CSS) }, [])
-useEffect(() => {
+ useEffect(() => {
+    injectCSS('portal-css', PORTAL_CSS)
+    return () => document.getElementById('portal-css')?.remove()
+  }, [])
+  useEffect(() => {
     if (!user) { navigate('/signin'); return }
     loadOverview()
     loadLoyaltyStatus()

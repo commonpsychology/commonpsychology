@@ -341,8 +341,10 @@ function PinModal({ courseTitle, onSuccess, onCancel }) {
 // MAIN PAGE
 // ═════════════════════════════════════════════════════════════════════════════
 export default function CoursesPage() {
-  useEffect(() => { injectCSS('courses-css', COURSES_CSS) }, [])
-
+ useEffect(() => {
+    injectCSS('courses-css', COURSES_CSS)
+    return () => document.getElementById('courses-css')?.remove()
+  }, [])
   const { navigate }    = useRouter()
   const { openPayment } = usePayment()
 

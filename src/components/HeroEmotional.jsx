@@ -770,7 +770,8 @@ export default function Hero() {
   const c = HERO_COPY[lang] ?? HERO_COPY.EN
 
   useEffect(() => {
-    injectCSS('hb-heart-css', HEART_CSS)
+     injectCSS('hb-heart-css', HEART_CSS)
+    return () => document.getElementById('hb-heart-css')?.remove()
     const t  = setTimeout(() => setLabelVisible(true),  1200)
     const t2 = setTimeout(() => setLabelVisible(false), 3500)
     return () => { clearTimeout(t); clearTimeout(t2) }
