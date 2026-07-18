@@ -500,7 +500,12 @@ const [notifs,      setNotifs]      = useState([])
     injectCSS('portal-css', PORTAL_CSS)
     return () => document.getElementById('portal-css')?.remove()
   }, [])
-  useEffect(() => {
+  useEffect(() => {useEffect(() => {
+    if (!user) { navigate('/signin'); return }
+    loadOverview()
+    if (user.role !== 'admin') loadLoyaltyStatus() // ✅ admins don't get loyalty rewards
+    loadNotifications() // prime unread count + chime baseline on portal load
+  }, [user])
     if (!user) { navigate('/signin'); return }
     loadOverview()
     loadLoyaltyStatus()
@@ -899,7 +904,7 @@ async function loadLoyaltyStatus() {
               ))}
             </div>
 
-            {loyaltyStatus && (() => {
+            {loyaltyStatus && user?.role !== 'admin' && (() => {
               const completed     = loyaltyStatus.completedCount || 0
               const nextMilestone = Math.ceil((completed + 1) / 10) * 10 + 1 // e.g. 11, 21, 31...
               const inCycleCount  = completed % 10                            // 0..9 payments since last reward
