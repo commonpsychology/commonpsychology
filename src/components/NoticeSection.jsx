@@ -223,6 +223,18 @@ export default function NoticeSection() {
           .cp-notice-closing { flex-direction: column; align-items: flex-start; }
           .cp-notice-banner { padding: 2rem 1.5rem; }
           .cp-notice-quote-mark { font-size: 3.6rem; top: 0.3rem; left: 1rem; }
+
+          /* ── Header block: center + resize, matching large-screen feel ── */
+          .cp-notice-header-item {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .cp-notice-eyebrow-badge {
+            font-size: 0.62rem;
+            padding: 0.28rem 0.7rem;
+            margin-bottom: 1rem;
+          }
         }
         @media (prefers-reduced-motion: reduce) {
           .cp-notice-banner, .cp-notice-glow { transition: opacity 0.4s ease; animation: none !important; }
@@ -243,21 +255,21 @@ export default function NoticeSection() {
       <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', zIndex: 1 }}>
 
         {/* eyebrow */}
-        <div className="cp-notice-eyebrow-badge">
+        <div className="cp-notice-eyebrow-badge cp-notice-header-item">
           📌 {isNP ? 'सूचना — विज्ञापन होइन' : 'A Notice — Not a Pitch'}
         </div>
 
         {/* title */}
-        <h2 style={{
+        <h2 className="cp-notice-header-item" style={{
           fontFamily: 'var(--font-display)', fontWeight: 800,
-          fontSize: 'clamp(1.9rem, 4.2vw, 2.9rem)', lineHeight: 1.2,
+          fontSize: 'clamp(1.5rem, 4.2vw, 2.9rem)', lineHeight: 1.25,
           color: 'var(--text-dark)', margin: '0 0 0.6rem',
         }}>
           {isNP ? 'हामी सबैका लागि होइनौं' : 'We Are Not For Everyone'}
         </h2>
-        <p style={{
+        <p className="cp-notice-header-item" style={{
           fontFamily: 'var(--font-body)', fontSize: '1.02rem',
-          color: 'var(--text-mid)', maxWidth: 620, margin: '0 0 2.4rem', lineHeight: 1.6,
+          color: 'var(--text-mid)', maxWidth: 620, margin: '0 auto 2.4rem', lineHeight: 1.6,
         }}>
           {isNP
             ? 'कमन साइकोलोजीमा आउनुअघि, यी केही कुरा हामी स्पष्ट राख्न चाहन्छौं।'
