@@ -8,7 +8,10 @@ import { appointments } from '../services/api'
 import SmartDatePicker from '../components/SmartDatePicker'
 import { logBookingStep } from '../components/BookingDebugPanel'
 
-const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+// NOTE: fixed — the original fallback referenced VITE_API_URL inside a
+// single-quoted string, so `${...}` was never interpolated. Adjust this
+// fallback to your actual API host.
+const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
 const C = {
   skyDeep:'#007BA8', skyBright:'#00BFFF', skyFaint:'#E0F7FF', skyFainter:'#F0FBFF',
@@ -182,6 +185,60 @@ function StepBar({ step }) {
   )
 }
 
+// ── Post-payment confirmation modal ──────────────────────────────────────
+// Shown once payment succeeds and the appointment record has been updated.
+// Deliberately a separate, centered popup (not an inline banner in Step 4)
+// so it reads as a clear, calm confirmation rather than an error or a
+// step-flow message. Only dismissible via the button, so the person
+// actually registers that admin confirmation is still pending.
+function PaymentConfirmedModal({ onGoToPortal }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 2000,
+      background: 'rgba(15,58,82,0.45)',
+      backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '1.5rem',
+    }}>
+      <div style={{
+        background: GLASS.active,
+        backdropFilter: GLASS.blur,
+        WebkitBackdropFilter: GLASS.blur,
+        border: GLASS.borderActive,
+        borderRadius: 20,
+        boxShadow: GLASS.shadowActive,
+        maxWidth: 420,
+        width: '100%',
+        padding: '2.25rem 2rem',
+        textAlign: 'center',
+      }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: '50%', margin: '0 auto 1.25rem',
+          background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '1.8rem', color: 'white', boxShadow: '0 8px 24px rgba(0,123,168,0.35)',
+        }}>✓</div>
+        <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.25rem', color:C.textDark, margin:'0 0 0.75rem' }}>
+          Payment Received
+        </h2>
+        <p style={{ fontSize:'0.9rem', color:C.textMid, lineHeight:1.65, margin:'0 0 1.75rem' }}>
+          Your payment will be confirmed by our admin team shortly. You can check the status anytime in the <strong>Appointments</strong> section of your portal. Thank you!
+        </p>
+        <button
+          onClick={onGoToPortal}
+          style={{
+            width: '100%', padding: '0.85rem 1rem', borderRadius: 12, border: 'none',
+            background: btnGrad, color: 'white', fontWeight: 700, fontSize: '0.95rem',
+            cursor: 'pointer', boxShadow: '0 6px 20px rgba(0,123,168,0.3)',
+            fontFamily: 'var(--font-body)',
+          }}
+        >
+          Go to Portal →
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function BookingPage() {
   const { params, navigate }   = useRouter()
   const { user }               = useAuth()
@@ -193,14 +250,15 @@ export default function BookingPage() {
   const [bookedSlots,  setBookedSlots]  = useState([])
   const [userSlots,    setUserSlots]    = useState([])
   const [loadingSlots, setLoadingSlots] = useState(false)
-const [submitting,   setSubmitting]   = useState(false)
+  const [submitting,   setSubmitting]   = useState(false)
   const [error,        setError]        = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
-const [dayTaken,      setDayTaken]      = useState(false)
+  const [dayTaken,      setDayTaken]      = useState(false)
   const [slotCheckErr,  setSlotCheckErr]  = useState('')
   const [checkingSlot,  setCheckingSlot]  = useState(false)
   const [hoveredTherapist, setHoveredTherapist] = useState(null)
   const [hoveredType,       setHoveredType]     = useState(null)
+  const [showConfirmedModal, setShowConfirmedModal] = useState(false)
   const allSpecializations = ['All', ...Array.from(new Set(therapists.flatMap(t => t.specializations || []))).sort()]
   const filteredTherapists = activeFilter === 'All' ? therapists : therapists.filter(t => (t.specializations||[]).includes(activeFilter))
 
@@ -229,13 +287,13 @@ const [dayTaken,      setDayTaken]      = useState(false)
     finally { setLoadingSlots(false) }
   }, [selected.therapist, selected.date, user])
 
-useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist?.id, selected.date])
+  useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist?.id, selected.date])
 
   useEffect(() => {
     if (!selected.date || !user) { setDayTaken(false); return }
     let cancelled = false
     const token = localStorage.getItem('accessToken')
- logBookingStep('check-day request', { date: selected.date })
+    logBookingStep('check-day request', { date: selected.date })
     fetch(`${API_BASE}/bookings/check-day?date=${selected.date}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -244,6 +302,7 @@ useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist
       .catch(e => logBookingStep('check-day ERROR', { message: e.message }))
     return () => { cancelled = true }
   }, [selected.date, user])
+
   function getSlotStatus(label) {
     const norm = s => s.replace(/\s+/g,'').toUpperCase()
     const nl = norm(label)
@@ -259,7 +318,7 @@ useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist
     try {
       const token = localStorage.getItem('accessToken')
       const scheduledAt = slotToISO(selected.date, selected.time)
-     const url = `${API_BASE}/appointments/can-book?therapistId=${selected.therapist.id}&scheduledAt=${encodeURIComponent(scheduledAt)}`
+      const url = `${API_BASE}/appointments/can-book?therapistId=${selected.therapist.id}&scheduledAt=${encodeURIComponent(scheduledAt)}`
       logBookingStep('can-book request', { url })
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       const data = await res.json()
@@ -279,7 +338,8 @@ useEffect(() => { if (step === 3) loadBookedSlots() }, [step, selected.therapist
       setCheckingSlot(false)
     }
   }
-async function handleConfirm() {
+
+  async function handleConfirm() {
     if (!user) { navigate('/signin'); return }
     if (!selected.therapist || !selected.date || !selected.time) { setError('Please complete all required fields.'); return }
     const status = getSlotStatus(selected.time)
@@ -297,7 +357,7 @@ async function handleConfirm() {
       const therapistName = selected.therapist.full_name || 'Therapist'
       const sessionLabel = SESSION_TYPES.find(t => t.value === selected.type)?.label || selected.type
 
-  // Best-effort cleanup if the person closes/reloads the tab while the
+      // Best-effort cleanup if the person closes/reloads the tab while the
       // payment modal is open — sendBeacon can fire during unload when normal
       // fetch calls would be aborted.
       const releaseOnUnload = () => {
@@ -321,7 +381,7 @@ async function handleConfirm() {
         metadata:{ appointment_id:appointmentId, therapist_id:therapistId, therapist_name:therapistName, session_type:selected.type, scheduled_at:dateTime, client_name:user.fullName||user.full_name||user.name||'', client_email:user.email||'', category:'appointment' },
       })
 
- window.removeEventListener('pagehide', releaseOnUnload)
+      window.removeEventListener('pagehide', releaseOnUnload)
 
       if (result.success) {
         try {
@@ -337,7 +397,11 @@ async function handleConfirm() {
           setSubmitting(false)
           return
         }
-        navigate('/portal')
+        // Payment recorded — show the confirmation popup instead of
+        // navigating straight away. The "Go to Portal" button in the
+        // modal is what actually takes the person to /portal.
+        setSubmitting(false)
+        setShowConfirmedModal(true)
         return
       }
 
@@ -353,7 +417,7 @@ async function handleConfirm() {
           : 'Payment was not completed. The time slot has been released — please book again when ready.'
       )
       await loadBookedSlots()
-  } catch (err) {
+    } catch (err) {
       if (err.code === 'ONE_BOOKING_PER_DAY') {
         setError(err.message || 'You already have a booking on this day.')
         setStep(3)
@@ -371,20 +435,24 @@ async function handleConfirm() {
 
   return (
     <div className="page-wrapper">
-<div style={{
-  position: 'relative',
-  overflow: 'hidden',
-  padding: '3rem 2rem 2.5rem',
-  color: C.textDark,
-  borderRadius: '0 0 32px 32px',
-  background: 'linear-gradient(135deg, #00BFFF 0%, #00BFFF 2%, #e8f3ee 40%, #f0f8f4 60%, #f8fcfa 80%, #f8fcfa 100%)',
-  backdropFilter: GLASS.blur,
-  WebkitBackdropFilter: GLASS.blur,
-  border: GLASS.borderIdle,
-  borderTop: 'none',
-  boxShadow: GLASS.shadowIdle,
-}}>
-  <div style={{ position:'relative', maxWidth:800, margin:'0 auto' }}>
+      {showConfirmedModal && (
+        <PaymentConfirmedModal onGoToPortal={() => navigate('/portal')} />
+      )}
+
+      <div style={{
+        position: 'relative',
+        overflow: 'hidden',
+        padding: '3rem 2rem 2.5rem',
+        color: C.textDark,
+        borderRadius: '0 0 32px 32px',
+        background: 'linear-gradient(135deg, #00BFFF 0%, #00BFFF 2%, #e8f3ee 40%, #f0f8f4 60%, #f8fcfa 80%, #f8fcfa 100%)',
+        backdropFilter: GLASS.blur,
+        WebkitBackdropFilter: GLASS.blur,
+        border: GLASS.borderIdle,
+        borderTop: 'none',
+        boxShadow: GLASS.shadowIdle,
+      }}>
+        <div style={{ position:'relative', maxWidth:800, margin:'0 auto' }}>
           <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.12em', textTransform:'uppercase', color:C.skyDeep, opacity:0.85 }}>Book a Session</span>
           <h1 style={{ fontFamily:'var(--font-display)', fontSize:'2rem', margin:'0.5rem 0', color:C.textDark }}>Schedule Your Therapy</h1>
           <StepBar step={step}/>
@@ -538,13 +606,13 @@ async function handleConfirm() {
               <h2 style={{ fontFamily:'var(--font-display)', color:C.textDark, marginBottom:'1.5rem' }}>Pick a Date &amp; Time</h2>
               <div style={{ marginBottom:'1.5rem' }}>
                 <label style={{ display:'block', fontSize:'0.82rem', fontWeight:700, color:C.textLight, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>Date</label>
-             <SmartDatePicker
+                <SmartDatePicker
                   value={selected.date}
                   minDate={minDate}
                   disabledDay={d => d.getDay() === 6}
                   onChange={val => setSelected(s => ({ ...s, date: val, time: '' }))}
                 />
-              <div style={{ fontSize:'0.75rem', color:C.textLight, marginTop:'0.35rem' }}>
+                <div style={{ fontSize:'0.75rem', color:C.textLight, marginTop:'0.35rem' }}>
                   📅 Saturdays are unavailable — please select any other day.
                 </div>
                 {dayTaken && (
@@ -606,7 +674,7 @@ async function handleConfirm() {
                 <textarea value={selected.notes} onChange={e => setSelected(s => ({ ...s, notes:e.target.value }))} placeholder="Share anything relevant…" rows={3}
                   style={{ width:'100%', padding:'0.75rem 1rem', border:`1.5px solid ${C.borderFaint}`, borderRadius:10, fontSize:'0.88rem', color:C.textDark, outline:'none', resize:'vertical', boxSizing:'border-box' }}/>
               </div>
-           {slotCheckErr && (
+              {slotCheckErr && (
                 <div style={{ background:C.redFaint, border:'1.5px solid #f5a0a0', borderRadius:8, padding:'0.75rem 1rem', marginBottom:'1rem', color:C.red, fontSize:'0.875rem' }}>
                   ⚠️ {slotCheckErr}
                 </div>
