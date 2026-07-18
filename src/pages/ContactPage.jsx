@@ -179,8 +179,8 @@ const CONTACT_CSS = `
 
   .cp3-submit {
     padding: 0.95rem 1.9rem;
-    background: linear-gradient(135deg, #2980b9 0%, #2980b9 100%);
-    color: var(--white);
+    background: #38bdf8;
+    color: #ffffff;
     border: none;
     border-radius: 100px;
     font-family: var(--font-body);
