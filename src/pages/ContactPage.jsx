@@ -570,13 +570,13 @@ export default function ContactPage() {
               <div className="cp3-map-frame-wrap">
                 <iframe
                   title="Office location"
-                  src="https://www.google.com/maps?q=85.28,25.5&z=15&output=embed"
+                  src="https://www.google.com/maps?q=27.669082,85.390668&z=16&output=embed"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
                 <a
                   className="cp3-map-click-overlay"
-                  href="https://www.google.com/maps?q=85.28,25.5"
+                  href="https://www.google.com/maps?q=27.669082,85.390668"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Open location in Google Maps"
@@ -586,11 +586,9 @@ export default function ContactPage() {
               </div>
 
               <div className="cp3-map-coords">
-                Exact pin: <strong>85.28, 25.5</strong>
+                Exact pin: <strong>27.669082, 85.390668</strong>
               </div>
             </div>
-
-
 
           </div>
         </div>
