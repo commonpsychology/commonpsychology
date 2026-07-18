@@ -1,7 +1,7 @@
 // src/pages/ContactPage.jsx
 import { useState } from 'react'
 
-const API = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+const API = import.meta.env.VITE_API_URL || '/api'
 
 const CONTACT_CSS = `
   .cp3 {
@@ -64,12 +64,17 @@ const CONTACT_CSS = `
 
   .cp3-body {
     display: grid;
-    grid-template-columns: 1fr 1.35fr;
-    gap: 0;
+    grid-template-columns: 0.85fr 1.15fr 0.95fr;
+    gap: 1.75rem;
     padding: 0.5rem 3rem 3rem;
   }
+  @media (max-width: 1100px) {
+    .cp3-body { grid-template-columns: 1fr 1.2fr; }
+    .cp3-map-panel { grid-column: 1 / -1; }
+  }
   @media (max-width: 760px) {
-    .cp3-body { grid-template-columns: 1fr; padding: 0.5rem 1.5rem 2rem; gap: 2rem; }
+    .cp3-body { grid-template-columns: 1fr; padding: 0.5rem 1.5rem 2rem; gap: 1.75rem; }
+    .cp3-map-panel { grid-column: auto; }
   }
 
   /* ── info column: blends into the same card, no hard divider ── */
@@ -126,6 +131,93 @@ const CONTACT_CSS = `
     margin: 0;
   }
   .cp3-crisis-text strong { color: var(--text-dark); }
+
+  /* ── map column: bluish-white glassy "brittle" panel ── */
+  .cp3-map-panel {
+    position: relative;
+    border-radius: 22px;
+    padding: 1.1rem;
+    background: linear-gradient(160deg, rgba(255,255,255,0.8) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.78) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.65);
+    box-shadow: 0 10px 34px rgba(0,123,168,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .cp3-map-panel-cracks {
+    position: absolute;
+    inset: 0;
+    opacity: 0.22;
+    pointer-events: none;
+  }
+  .cp3-map-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--sky);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: relative;
+    z-index: 1;
+  }
+  .cp3-map-frame-wrap {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid rgba(120,190,230,0.55);
+    box-shadow: 0 4px 18px rgba(0,90,140,0.10);
+    height: 220px;
+    z-index: 1;
+  }
+  .cp3-map-frame-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    filter: saturate(1.05);
+  }
+  .cp3-map-click-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 0.75rem;
+    background: linear-gradient(to top, rgba(15,52,96,0.35) 0%, transparent 45%);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease;
+  }
+  .cp3-map-click-overlay:hover {
+    background: linear-gradient(to top, rgba(15,52,96,0.5) 0%, transparent 50%);
+  }
+  .cp3-map-open-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,255,255,0.92);
+    color: var(--text-dark);
+    font-family: var(--font-body);
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+  .cp3-map-coords {
+    font-family: var(--font-body);
+    font-size: 0.74rem;
+    color: var(--text-light);
+    position: relative;
+    z-index: 1;
+  }
+  .cp3-map-coords strong { color: var(--text-mid); font-family: monospace; }
 
   /* ── form column ── */
   .cp3-form-panel {
@@ -288,7 +380,7 @@ export default function ContactPage() {
       setSuccess(true)
     } catch (err) {
       console.error(err)
-      setSuccess(true)
+      setError('Something went wrong sending your message. Please try again in a moment.')
     } finally {
       setLoading(false)
     }
@@ -347,6 +439,41 @@ export default function ContactPage() {
                 <p className="cp3-crisis-text">
                   Call <strong>TPO Nepal: 1660-01-11002</strong>, free and available 24/7.
                 </p>
+              </div>
+            </div>
+
+            {/* ── Map column ── */}
+            <div className="cp3-map-panel">
+              <svg className="cp3-map-panel-cracks" viewBox="0 0 300 260" preserveAspectRatio="none">
+                <polyline points="0,20 40,45 70,18 120,50" stroke="white" strokeWidth="0.6" fill="none" />
+                <polyline points="120,50 160,28 200,55" stroke="white" strokeWidth="0.5" fill="none" />
+                <polyline points="0,180 35,210 65,175 100,225" stroke="white" strokeWidth="0.5" fill="none" />
+                <polyline points="200,150 235,120 300,155" stroke="white" strokeWidth="0.5" fill="none" />
+                <polyline points="150,230 175,195 220,235" stroke="white" strokeWidth="0.4" fill="none" />
+              </svg>
+
+              <div className="cp3-map-label">📍 Find Our Office</div>
+
+              <div className="cp3-map-frame-wrap">
+                <iframe
+                  title="Office location"
+                  src="https://www.google.com/maps?q=25.88,85.5&z=15&output=embed"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+                <a
+                  className="cp3-map-click-overlay"
+                  href="https://www.google.com/maps?q=25.88,85.5"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open location in Google Maps"
+                >
+                  <span className="cp3-map-open-pill">🧭 Open in Google Maps →</span>
+                </a>
+              </div>
+
+              <div className="cp3-map-coords">
+                Exact pin: <strong>25.88, 85.5</strong>
               </div>
             </div>
 
