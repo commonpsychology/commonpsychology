@@ -53,20 +53,12 @@ const CSS = `
     overflow: hidden;
   }
 .reg-card-watermark {
-    position: absolute;
-    top: 85%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 62%;
+    display: block;
+    width: 96px;
     height: auto;
-    opacity: 0.06;
+    margin: 0 auto 1rem;
     pointer-events: none;
-    z-index: 0;
     user-select: none;
-  }
-  .reg-card > * {
-    position: relative;
-    z-index: 1;
   }
 .reg-input {
     width: 100%;
