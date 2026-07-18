@@ -137,6 +137,15 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
             to   { opacity:1; transform:scale(1) translateY(0); }
           }
           .cp-glow-btn:hover { transform: translateY(-1px); }
+
+          @media (max-width: 480px) {
+            .cp-notice-header {
+              flex-direction: column;
+              text-align: center;
+              gap: 8px !important;
+            }
+            .cp-notice-heading-text { text-align: center; }
+          }
         `}</style>
 
         {/* Close button */}
