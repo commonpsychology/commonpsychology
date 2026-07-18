@@ -9,19 +9,16 @@ const CONTACT_CSS = `
     color: var(--text-dark);
   }
 
+  /* ── full-width page, no side gutters ── */
   .cp3-wrap {
-    max-width: 1440px;
-    margin: 3rem auto;
-    padding: 0 2rem;
-  }
-  @media (max-width: 700px) {
-    .cp3-wrap { padding: 0 1rem; margin: 1.5rem auto; }
+    width: 100%;
+    margin: 0 auto;
+    padding: 0;
   }
 
   .cp3-card {
-    border-radius: 28px;
     background: linear-gradient(180deg, #c7e3f7 0%, var(--white) 42%);
-    border: 1px solid var(--blue-pale);
+    border-bottom: 1px solid var(--blue-pale);
     box-shadow: var(--shadow-soft, 0 20px 50px rgba(15,52,96,0.08));
     overflow: hidden;
   }
@@ -65,27 +62,156 @@ const CONTACT_CSS = `
     line-height: 1.65;
   }
 
-  /* ── main layout: narrow info sidebar + wide right side (map + form) ── */
+  /* ── main layout: form fills the whole left half, right half splits into info (top) + map (bottom) ── */
   .cp3-body {
     display: grid;
-    grid-template-columns: 300px 1fr;
-    align-items: start;
-    gap: 2rem;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    gap: 2.5rem;
     padding: 0.5rem 3rem 3rem;
   }
   @media (max-width: 1100px) {
-    .cp3-body { grid-template-columns: 260px 1fr; gap: 1.5rem; padding: 0.5rem 2rem 2.5rem; }
+    .cp3-body { gap: 2rem; padding: 0.5rem 2rem 2.5rem; }
   }
   @media (max-width: 800px) {
-    .cp3-body { grid-template-columns: 1fr; padding: 0.5rem 1.5rem 2rem; gap: 1.75rem; }
+    .cp3-body { grid-template-columns: 1fr; padding: 0.5rem 1.25rem 2rem; gap: 1.75rem; }
   }
 
-  /* ── info sidebar ── */
+  /* ── left: form, full height of the row ── */
+  .cp3-form-panel {
+    height: 100%;
+    box-sizing: border-box;
+    background: var(--white);
+    border-radius: 22px;
+    border: 1px solid var(--blue-pale);
+    padding: 2.25rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 600px) {
+    .cp3-form-panel { padding: 1.5rem; }
+  }
+
+  .cp3-form-panel form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .cp3-field { margin-bottom: 1.35rem; }
+  .cp3-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 520px) {
+    .cp3-row2 { grid-template-columns: 1fr; }
+  }
+
+  .cp3-label {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--text-mid);
+    margin-bottom: 0.45rem;
+  }
+  .cp3-label .opt { font-weight: 400; color: var(--text-light); }
+
+  .cp3-input, .cp3-select, .cp3-textarea {
+    width: 100%;
+    padding: 0.9rem 1.1rem;
+    border: 1.5px solid var(--blue-pale);
+    border-radius: 12px;
+    font-family: var(--font-body);
+    font-size: 0.97rem;
+    color: var(--text-dark);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.18s;
+    box-sizing: border-box;
+  }
+  .cp3-input:focus, .cp3-select:focus, .cp3-textarea:focus {
+    border-color: var(--sky);
+  }
+  .cp3-textarea { resize: vertical; min-height: 160px; flex: 1; }
+
+  .cp3-message-field { flex: 1; display: flex; flex-direction: column; }
+  .cp3-message-field .cp3-textarea { flex: 1; }
+
+  .cp3-error {
+    background: #fdf1f1;
+    border: 1px solid #f0bcbc;
+    border-radius: 12px;
+    padding: 0.75rem 1.1rem;
+    color: #c0392b;
+    font-size: 0.86rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .cp3-submit-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .cp3-submit {
+    padding: 0.95rem 1.9rem;
+    background: linear-gradient(135deg, #0f3460 0%, #2980b9 100%);
+    color: var(--white);
+    border: none;
+    border-radius: 100px;
+    font-family: var(--font-body);
+    font-size: 0.96rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.18s, transform 0.18s;
+  }
+  .cp3-submit:hover:not(:disabled) { opacity: 0.92; }
+  .cp3-submit:active:not(:disabled) { transform: translateY(1px); }
+  .cp3-submit:disabled { background: var(--text-light); cursor: not-allowed; }
+
+  .cp3-reassure {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--text-light);
+  }
+
+  /* ── right: stacked column, info on top / map on bottom, fills the row height ── */
+  .cp3-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .cp3-info {
+    background: var(--white);
+    border-radius: 22px;
+    border: 1px solid var(--blue-pale);
+    padding: 1.75rem 2rem;
+  }
+  @media (max-width: 600px) {
+    .cp3-info { padding: 1.5rem; }
+  }
+
+  .cp3-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  @media (max-width: 480px) {
+    .cp3-info-grid { grid-template-columns: 1fr; }
+  }
+
   .cp3-info-item {
     padding: 0.95rem 0;
     border-bottom: 1px solid var(--blue-pale);
   }
-  .cp3-info-item:last-of-type { border-bottom: none; }
+  .cp3-info-grid .cp3-info-item:nth-last-child(-n+2) { border-bottom: none; }
+  @media (max-width: 480px) {
+    .cp3-info-grid .cp3-info-item:nth-last-child(-n+2) { border-bottom: 1px solid var(--blue-pale); }
+    .cp3-info-grid .cp3-info-item:last-child { border-bottom: none; }
+  }
 
   .cp3-info-label {
     font-family: var(--font-body);
@@ -104,7 +230,7 @@ const CONTACT_CSS = `
   }
 
   .cp3-crisis {
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
     padding: 1rem 1.15rem;
     border-radius: 16px;
     background: var(--off-white);
@@ -128,17 +254,11 @@ const CONTACT_CSS = `
   }
   .cp3-crisis-text strong { color: var(--text-dark); }
 
-  /* ── right side: map on top, roomy form below ── */
-  .cp3-right {
-    display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-    min-width: 0;
-  }
-
-  /* ── map panel ── */
+  /* ── map panel: fills remaining bottom space of the right column ── */
   .cp3-map-panel {
     position: relative;
+    flex: 1;
+    min-height: 260px;
     border-radius: 22px;
     padding: 1.1rem 1.25rem;
     background: linear-gradient(160deg, rgba(255,255,255,0.8) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.78) 100%);
@@ -170,6 +290,7 @@ const CONTACT_CSS = `
     letter-spacing: 0.05em;
     position: relative;
     z-index: 1;
+    flex: 0 0 auto;
   }
   .cp3-map-frame-wrap {
     position: relative;
@@ -177,11 +298,9 @@ const CONTACT_CSS = `
     overflow: hidden;
     border: 1.5px solid rgba(120,190,230,0.55);
     box-shadow: 0 4px 18px rgba(0,90,140,0.10);
-    height: 260px;
+    flex: 1 1 auto;
+    min-height: 180px;
     z-index: 1;
-  }
-  @media (max-width: 800px) {
-    .cp3-map-frame-wrap { height: 220px; }
   }
   .cp3-map-frame-wrap iframe {
     width: 100%;
@@ -224,92 +343,12 @@ const CONTACT_CSS = `
     color: var(--text-light);
     position: relative;
     z-index: 1;
+    flex: 0 0 auto;
   }
   .cp3-map-coords strong { color: var(--text-mid); font-family: monospace; }
 
-  /* ── form panel: now full width of the right column, so fields get room ── */
-  .cp3-form-panel {
-    background: var(--white);
-    border-radius: 22px;
-    border: 1px solid var(--blue-pale);
-    padding: 2rem 2.25rem;
-  }
-  @media (max-width: 600px) {
-    .cp3-form-panel { padding: 1.5rem; }
-  }
-
-  .cp3-field { margin-bottom: 1.25rem; }
-  .cp3-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-  @media (max-width: 520px) {
-    .cp3-row2 { grid-template-columns: 1fr; }
-  }
-
-  .cp3-label {
-    display: block;
-    font-family: var(--font-body);
-    font-size: 0.84rem;
-    font-weight: 600;
-    color: var(--text-mid);
-    margin-bottom: 0.4rem;
-  }
-  .cp3-label .opt { font-weight: 400; color: var(--text-light); }
-
-  .cp3-input, .cp3-select, .cp3-textarea {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border: 1.5px solid var(--blue-pale);
-    border-radius: 12px;
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-    color: var(--text-dark);
-    background: var(--white);
-    outline: none;
-    transition: border-color 0.18s;
-    box-sizing: border-box;
-  }
-  .cp3-input:focus, .cp3-select:focus, .cp3-textarea:focus {
-    border-color: var(--sky);
-  }
-  .cp3-textarea { resize: vertical; min-height: 130px; }
-
-  .cp3-error {
-    background: #fdf1f1;
-    border: 1px solid #f0bcbc;
-    border-radius: 12px;
-    padding: 0.7rem 1rem;
-    color: #c0392b;
-    font-size: 0.84rem;
-    margin-bottom: 1.1rem;
-  }
-
-  .cp3-submit-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 0.4rem;
-  }
-
-  .cp3-submit {
-    padding: 0.9rem 1.8rem;
-    background: linear-gradient(135deg, #0f3460 0%, #2980b9 100%);
-    color: var(--white);
-    border: none;
-    border-radius: 100px;
-    font-family: var(--font-body);
-    font-size: 0.94rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.18s, transform 0.18s;
-  }
-  .cp3-submit:hover:not(:disabled) { opacity: 0.92; }
-  .cp3-submit:active:not(:disabled) { transform: translateY(1px); }
-  .cp3-submit:disabled { background: var(--text-light); cursor: not-allowed; }
-
-  .cp3-reassure {
-    font-family: var(--font-body);
-    font-size: 0.8rem;
-    color: var(--text-light);
+  @media (max-width: 800px) {
+    .cp3-map-panel { min-height: 260px; }
   }
 
   /* ── success ── */
@@ -425,35 +464,94 @@ export default function ContactPage() {
 
           <div className="cp3-body">
 
-            {/* ── Left: narrow info sidebar ── */}
-            <div className="cp3-info">
-              <div className="cp3-info-item">
-                <div className="cp3-info-label">Address</div>
-                <div className="cp3-info-val">Thimi, Bhaktapur, Nepal</div>
-              </div>
-              <div className="cp3-info-item">
-                <div className="cp3-info-label">Phone</div>
-                <div className="cp3-info-val">+977 01-4412345</div>
-              </div>
-              <div className="cp3-info-item">
-                <div className="cp3-info-label">Email</div>
-                <div className="cp3-info-val">noreplypsychology@gmail.com</div>
-              </div>
-              <div className="cp3-info-item">
-                <div className="cp3-info-label">Hours</div>
-                <div className="cp3-info-val">Sun – Fri, 9:00 AM – 6:00 PM</div>
-              </div>
+            {/* ── Left: form, full height ── */}
+            <div className="cp3-form-panel">
+              {error && <div className="cp3-error">{error}</div>}
 
-              <div className="cp3-crisis">
-                <div className="cp3-crisis-label">If this is urgent</div>
-                <p className="cp3-crisis-text">
-                  Call <strong>TPO Nepal: 1660-01-11002</strong>, free and available 24/7.
-                </p>
-              </div>
+              <form onSubmit={handleSubmit}>
+                <div className="cp3-row2">
+                  <div className="cp3-field">
+                    <label className="cp3-label" htmlFor="cp3-name">Full name *</label>
+                    <input id="cp3-name" className="cp3-input" type="text" value={form.name}
+                      placeholder="Your name" onChange={e=>update('name', e.target.value)} />
+                  </div>
+                  <div className="cp3-field">
+                    <label className="cp3-label" htmlFor="cp3-email">Email *</label>
+                    <input id="cp3-email" className="cp3-input" type="email" value={form.email}
+                      placeholder="you@example.com" onChange={e=>update('email', e.target.value)} />
+                  </div>
+                </div>
+
+                <div className="cp3-row2">
+                  <div className="cp3-field">
+                    <label className="cp3-label" htmlFor="cp3-phone">Phone <span className="opt">(optional)</span></label>
+                    <input id="cp3-phone" className="cp3-input" type="tel" value={form.phone}
+                      placeholder="98XXXXXXXX" onChange={e=>update('phone', e.target.value)} />
+                  </div>
+                  <div className="cp3-field">
+                    <label className="cp3-label" htmlFor="cp3-type">Type</label>
+                    <select id="cp3-type" className="cp3-select" value={form.type}
+                      onChange={e=>update('type', e.target.value)}>
+                      <option value="general">General inquiry</option>
+                      <option value="appointment">Book appointment</option>
+                      <option value="support">Support</option>
+                      <option value="complaint">Complaint</option>
+                      <option value="feedback">Feedback</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="cp3-field">
+                  <label className="cp3-label" htmlFor="cp3-subject">Subject <span className="opt">(optional)</span></label>
+                  <input id="cp3-subject" className="cp3-input" type="text" value={form.subject}
+                    placeholder="What is this about?" onChange={e=>update('subject', e.target.value)} />
+                </div>
+
+                <div className="cp3-field cp3-message-field">
+                  <label className="cp3-label" htmlFor="cp3-message">Message *</label>
+                  <textarea id="cp3-message" className="cp3-textarea" value={form.message}
+                    placeholder="Tell us how we can help you…" onChange={e=>update('message', e.target.value)} />
+                </div>
+
+                <div className="cp3-submit-row">
+                  <button type="submit" className="cp3-submit" disabled={loading}>
+                    {loading ? 'Sending…' : 'Send message'}
+                  </button>
+                  <span className="cp3-reassure">We typically reply within 24 hours.</span>
+                </div>
+              </form>
             </div>
 
-            {/* ── Right: map on top, full-width form below ── */}
+            {/* ── Right: info on top, map on bottom ── */}
             <div className="cp3-right">
+              <div className="cp3-info">
+                <div className="cp3-info-grid">
+                  <div className="cp3-info-item">
+                    <div className="cp3-info-label">Address</div>
+                    <div className="cp3-info-val">Thimi, Bhaktapur, Nepal</div>
+                  </div>
+                  <div className="cp3-info-item">
+                    <div className="cp3-info-label">Phone</div>
+                    <div className="cp3-info-val">+977 01-4412345</div>
+                  </div>
+                  <div className="cp3-info-item">
+                    <div className="cp3-info-label">Email</div>
+                    <div className="cp3-info-val">noreplypsychology@gmail.com</div>
+                  </div>
+                  <div className="cp3-info-item">
+                    <div className="cp3-info-label">Hours</div>
+                    <div className="cp3-info-val">Sun – Fri, 9:00 AM – 6:00 PM</div>
+                  </div>
+                </div>
+
+                <div className="cp3-crisis">
+                  <div className="cp3-crisis-label">If this is urgent</div>
+                  <p className="cp3-crisis-text">
+                    Call <strong>TPO Nepal: 1660-01-11002</strong>, free and available 24/7.
+                  </p>
+                </div>
+              </div>
+
               <div className="cp3-map-panel">
                 <svg className="cp3-map-panel-cracks" viewBox="0 0 300 260" preserveAspectRatio="none">
                   <polyline points="0,20 40,45 70,18 120,50" stroke="white" strokeWidth="0.6" fill="none" />
@@ -468,13 +566,13 @@ export default function ContactPage() {
                 <div className="cp3-map-frame-wrap">
                   <iframe
                     title="Office location"
-                    src="https://www.google.com/maps?q=85.58,25.5&z=15&output=embed"
+                    src="https://www.google.com/maps?q=25.88,85.5&z=15&output=embed"
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                   />
                   <a
                     className="cp3-map-click-overlay"
-                    href="https://www.google.com/maps?q=85.58,25.5"
+                    href="https://www.google.com/maps?q=25.88,85.5"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Open location in Google Maps"
@@ -486,63 +584,6 @@ export default function ContactPage() {
                 <div className="cp3-map-coords">
                   Exact pin: <strong>25.88, 85.5</strong>
                 </div>
-              </div>
-
-              <div className="cp3-form-panel">
-                {error && <div className="cp3-error">{error}</div>}
-
-                <form onSubmit={handleSubmit}>
-                  <div className="cp3-row2">
-                    <div className="cp3-field">
-                      <label className="cp3-label" htmlFor="cp3-name">Full name *</label>
-                      <input id="cp3-name" className="cp3-input" type="text" value={form.name}
-                        placeholder="Your name" onChange={e=>update('name', e.target.value)} />
-                    </div>
-                    <div className="cp3-field">
-                      <label className="cp3-label" htmlFor="cp3-email">Email *</label>
-                      <input id="cp3-email" className="cp3-input" type="email" value={form.email}
-                        placeholder="you@example.com" onChange={e=>update('email', e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="cp3-row2">
-                    <div className="cp3-field">
-                      <label className="cp3-label" htmlFor="cp3-phone">Phone <span className="opt">(optional)</span></label>
-                      <input id="cp3-phone" className="cp3-input" type="tel" value={form.phone}
-                        placeholder="98XXXXXXXX" onChange={e=>update('phone', e.target.value)} />
-                    </div>
-                    <div className="cp3-field">
-                      <label className="cp3-label" htmlFor="cp3-type">Type</label>
-                      <select id="cp3-type" className="cp3-select" value={form.type}
-                        onChange={e=>update('type', e.target.value)}>
-                        <option value="general">General inquiry</option>
-                        <option value="appointment">Book appointment</option>
-                        <option value="support">Support</option>
-                        <option value="complaint">Complaint</option>
-                        <option value="feedback">Feedback</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="cp3-field">
-                    <label className="cp3-label" htmlFor="cp3-subject">Subject <span className="opt">(optional)</span></label>
-                    <input id="cp3-subject" className="cp3-input" type="text" value={form.subject}
-                      placeholder="What is this about?" onChange={e=>update('subject', e.target.value)} />
-                  </div>
-
-                  <div className="cp3-field">
-                    <label className="cp3-label" htmlFor="cp3-message">Message *</label>
-                    <textarea id="cp3-message" className="cp3-textarea" value={form.message}
-                      placeholder="Tell us how we can help you…" onChange={e=>update('message', e.target.value)} />
-                  </div>
-
-                  <div className="cp3-submit-row">
-                    <button type="submit" className="cp3-submit" disabled={loading}>
-                      {loading ? 'Sending…' : 'Send message'}
-                    </button>
-                    <span className="cp3-reassure">We typically reply within 24 hours.</span>
-                  </div>
-                </form>
               </div>
             </div>
 
