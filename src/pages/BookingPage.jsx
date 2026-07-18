@@ -415,8 +415,7 @@ export default function BookingPage() {
           setSubmitting(false)
           return
         }
-        // Payment recorded — show the confirmation popup instead of
-        // navigating straight away. The "Go to Portal" button in the
+
         // modal is what actually takes the person to /portal.
         setSubmitting(false)
         setShowConfirmedModal(true)
