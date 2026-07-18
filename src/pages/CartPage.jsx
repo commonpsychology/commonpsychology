@@ -363,20 +363,22 @@ export default function CartPage() {
                   const pid = p.id || item.product_id
                   const lineTotal = price * (item.quantity || 1)
                   return (
-                    <div key={i} style={{ display:'flex', gap:'1rem', alignItems:'center', background:PANEL.bg, border:PANEL.border, boxShadow:PANEL.shadow, borderRadius:14, padding:'0.85rem', opacity: busyId===pid ? 0.5 : 1, transition:'opacity 0.2s' }}>
-                      <div style={{ width:64, height:64, borderRadius:10, background:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.6rem', flexShrink:0, overflow:'hidden' }}>
+                    <div key={i} className="cart-item-row" style={{ display:'flex', gap:'1rem', alignItems:'center', flexWrap:'wrap', background:PANEL.bg, border:PANEL.border, boxShadow:PANEL.shadow, borderRadius:14, padding:'0.85rem', opacity: busyId===pid ? 0.5 : 1, transition:'opacity 0.2s' }}>
+                      <div className="cart-item-thumb" style={{ width:64, height:64, borderRadius:10, background:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.6rem', flexShrink:0, overflow:'hidden' }}>
                         {img ? <img src={img} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : '📚'}
                       </div>
-                      <div style={{ flex:1, minWidth:0 }}>
+                      <div className="cart-item-info" style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontWeight:700, fontSize:'0.9rem', color:'var(--green-deep)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name}</div>
                         <div style={{ fontSize:'0.78rem', color:'var(--text-light)' }}>NPR {price.toLocaleString()} each</div>
                       </div>
-                      <QtyStepper value={item.quantity || 1} onChange={qty => updateQty(pid, qty)} />
-                      <div style={{ width:88, textAlign:'right', fontWeight:700, fontSize:'0.88rem', color:'var(--green-deep)' }}>
-                        NPR {lineTotal.toLocaleString()}
+                      <div className="cart-item-controls" style={{ display:'flex', alignItems:'center', gap:'1rem', flexShrink:0 }}>
+                        <QtyStepper value={item.quantity || 1} onChange={qty => updateQty(pid, qty)} />
+                        <div style={{ width:88, textAlign:'right', fontWeight:700, fontSize:'0.88rem', color:'var(--green-deep)' }}>
+                          NPR {lineTotal.toLocaleString()}
+                        </div>
+                        <button onClick={() => removeItem(pid)} title="Remove"
+                          style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:'1rem', flexShrink:0 }}>🗑</button>
                       </div>
-                      <button onClick={() => removeItem(pid)} title="Remove"
-                        style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:'1rem', flexShrink:0 }}>🗑</button>
                     </div>
                   )
                 })}
@@ -444,6 +446,31 @@ export default function CartPage() {
       <style>{`
         @media (min-width: 860px) {
           .cart-grid { grid-template-columns: 1fr 1.6fr !important; }
+        }
+        /* ── Cart item row: stack into two lines on narrow phones ── */
+        @media (max-width: 480px) {
+          .cart-item-row {
+            position: relative;
+            padding-right: 2.5rem !important;
+          }
+          .cart-item-thumb {
+            width: 52px !important;
+            height: 52px !important;
+          }
+          .cart-item-info {
+            flex-basis: calc(100% - 68px);
+          }
+          .cart-item-controls {
+            flex-basis: 100%;
+            justify-content: space-between;
+            padding-top: 0.6rem;
+            margin-top: 0.6rem;
+            border-top: 1px dashed rgba(120,190,230,0.35);
+          }
+          .cart-item-controls > div {
+            width: auto !important;
+            text-align: left !important;
+          }
         }
       `}</style>
     </div>
