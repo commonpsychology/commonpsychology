@@ -500,15 +500,10 @@ const [notifs,      setNotifs]      = useState([])
     injectCSS('portal-css', PORTAL_CSS)
     return () => document.getElementById('portal-css')?.remove()
   }, [])
-  useEffect(() => {useEffect(() => {
+  useEffect(() => {
     if (!user) { navigate('/signin'); return }
     loadOverview()
     if (user.role !== 'admin') loadLoyaltyStatus() // ✅ admins don't get loyalty rewards
-    loadNotifications() // prime unread count + chime baseline on portal load
-  }, [user])
-    if (!user) { navigate('/signin'); return }
-    loadOverview()
-    loadLoyaltyStatus()
     loadNotifications() // prime unread count + chime baseline on portal load
   }, [user])
 

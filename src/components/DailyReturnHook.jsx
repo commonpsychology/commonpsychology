@@ -258,6 +258,34 @@ export default function DailyReturnHook({ visible = true }) {
           .drh-grid { grid-template-columns: 1fr; }
         }
 
+        /* ════ MOBILE OVERRIDES (≤ 600px) — fixes horizontal overflow ════ */
+        @media (max-width: 600px) {
+          .drh-root { padding: 2.5rem 1rem; }
+          .drh-card { padding: 1.25rem; border-radius: 16px; }
+
+          .drh-affirmation {
+            padding: 1.5rem;
+            gap: 1rem;
+          }
+          .drh-affirmation::before { font-size: 7rem; top: -10px; left: 10px; }
+          .drh-affirmation-icon { font-size: 2rem; }
+
+          /* 5 mood buttons no longer force overflow — wraps to 3-per-row */
+          .drh-mood-grid { flex-wrap: wrap; gap: 0.5rem; }
+          .drh-mood-btn { flex: 1 1 calc(33.333% - 0.4rem); min-width: 0; padding: 0.6rem 0.3rem; }
+
+          .drh-habit-other { gap: 0.4rem; }
+          .drh-habit-chip { font-size: 0.7rem; padding: 0.28rem 0.6rem; }
+
+          /* CTA button + notify badge stack instead of overflowing side by side */
+          .drh-cta { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+          .drh-cta-btn { width: 100%; max-width: 320px; justify-content: center; }
+          .drh-notify-badge { margin-left: 0; width: 100%; max-width: 320px; justify-content: center; }
+
+          .drh-streak { gap: 0.5rem; }
+          .drh-streak-pill { font-size: 0.78rem; padding: 0.45rem 0.9rem; }
+        }
+
         /* ── Cards — frosted glass, matches navbar dropdown ── */
         .drh-card {
           background: linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(214,238,252,0.5) 55%, rgba(255,255,255,0.78) 100%);
