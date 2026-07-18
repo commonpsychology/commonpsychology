@@ -195,8 +195,9 @@ const CONTACT_CSS = `
 
   .cp3-reassure {
     font-family: var(--font-body);
-    font-size: 0.82rem;
-    color: var(--text-light);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #e53e3e;
   }
 
   /* ── info panel (top-right on desktop, first on mobile) ── */
