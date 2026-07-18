@@ -107,6 +107,23 @@ function googleCalLink(ws) {
     + '&location=' + loc + '&details=' + desc + dates
 }
 
+// ── Has this workshop's date/time already elapsed? ────────────────────────
+function isPastWorkshop(ws) {
+  if (!ws || !ws.date) return false
+  try {
+    // Try combining date + time for a precise cutoff
+    const combined = new Date(ws.date + (ws.time ? ' ' + ws.time : ''))
+    if (!isNaN(combined)) return combined.getTime() < Date.now()
+    // Fall back to end-of-day on the date if time can't be parsed
+    const dateOnly = new Date(ws.date)
+    if (isNaN(dateOnly)) return false
+    dateOnly.setHours(23, 59, 59, 999)
+    return dateOnly.getTime() < Date.now()
+  } catch (_) {
+    return false
+  }
+}
+
 // ── Enrollment Card ───────────────────────────────────────────────────────
 function EnrollmentCard({ reg, isOpen, chip, onToggle }) {
   const ws = reg.workshops || {}
@@ -344,8 +361,14 @@ function MyEnrollments({ userEmail }) {
     )
   }
 
-  const active   = enrollments.filter(
-    r => ['confirmed', 'paid', 'free'].includes(r.payment_status) && r.status !== 'cancelled'
+  // ── Active = confirmed/paid/free, not cancelled, AND the workshop's
+  //     date/time has not elapsed yet. Everything else (past-dated,
+  //     cancelled, or still-pending) falls into Past & Completed below. ──
+  const active = enrollments.filter(
+    r =>
+      ['confirmed', 'paid', 'free'].includes(r.payment_status) &&
+      r.status !== 'cancelled' &&
+      !isPastWorkshop(r.workshops)
   )
   const inactive = enrollments.filter(r => !active.includes(r))
 
@@ -549,7 +572,7 @@ function MyEnrollments({ userEmail }) {
                           fontFamily: 'var(--font-display)', color: C.textLight,
                           fontSize: '0.92rem', fontWeight: 600,
                         }}>
-                          Past &amp; Cancelled
+                          Past &amp; Completed
                         </span>
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -1470,66 +1493,161 @@ export default function WorkshopsPage() {
         .workshops-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
         @media(max-width:1024px){ .workshops-grid { grid-template-columns:repeat(2,1fr); } }
         @media(max-width:600px){  .workshops-grid { grid-template-columns:1fr; } }
+
+        /* ── Glassy sky-blue blob hero ─────────────────────────────────── */
+        .ws-hero {
+          position: relative;
+          overflow: hidden;
+          padding: clamp(3.5rem, 8vw, 6rem) 1.5rem clamp(4.5rem, 9vw, 7rem);
+          background:
+            radial-gradient(120% 100% at 15% 0%,  #eafcff 0%, transparent 55%),
+            radial-gradient(120% 100% at 85% 100%, #d8f3ff 0%, transparent 55%),
+            linear-gradient(160deg, #f3fdff 0%, #e3f6ff 45%, #cdeeff 100%);
+          isolation: isolate;
+        }
+        .ws-blob {
+          position: absolute;
+          filter: blur(2px);
+          opacity: 0.55;
+          pointer-events: none;
+          z-index: 0;
+          animation: ws-float 14s ease-in-out infinite;
+        }
+        .ws-blob.b1 {
+          top: -12%; left: -8%; width: min(48vw, 520px); aspect-ratio: 1;
+          background: linear-gradient(135deg, rgba(0,191,255,0.55), rgba(34,211,238,0.25));
+          border-radius: 42% 58% 65% 35% / 45% 40% 60% 55%;
+          animation-duration: 16s;
+        }
+        .ws-blob.b2 {
+          bottom: -18%; right: -10%; width: min(42vw, 460px); aspect-ratio: 1;
+          background: linear-gradient(135deg, rgba(0,123,168,0.4), rgba(0,191,255,0.18));
+          border-radius: 58% 42% 40% 60% / 55% 60% 40% 45%;
+          animation-duration: 19s; animation-delay: -4s;
+        }
+        .ws-blob.b3 {
+          top: 20%; right: 10%; width: min(20vw, 220px); aspect-ratio: 1;
+          background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9), rgba(0,191,255,0.15) 70%);
+          border-radius: 65% 35% 55% 45% / 40% 55% 45% 60%;
+          animation-duration: 11s; animation-delay: -2s; opacity: 0.7;
+        }
+        @keyframes ws-float {
+          0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+          33%      { transform: translate(2%, -3%) rotate(6deg) scale(1.03); }
+          66%      { transform: translate(-2%, 2%) rotate(-4deg) scale(0.98); }
+        }
+        .ws-glass-panel {
+          position: relative;
+          z-index: 1;
+          max-width: 760px;
+          margin: 0 auto;
+          text-align: center;
+          padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 5vw, 3.5rem);
+          border-radius: 48% 52% 38% 62% / 42% 46% 54% 58%;
+          background: rgba(255,255,255,0.4);
+          backdrop-filter: blur(22px) saturate(160%);
+          -webkit-backdrop-filter: blur(22px) saturate(160%);
+          border: 1px solid rgba(255,255,255,0.65);
+          box-shadow:
+            0 8px 40px rgba(0,123,168,0.16),
+            inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        .ws-glass-pill {
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ws-blob { animation: none; }
+        }
       `}</style>
 
-      <div className="page-hero" style={{ background: 'var(--sky-light)' }}>
-        <span className="section-tag">Workshops &amp; Events</span>
-        <h1 className="section-title">Join a Live <em>Workshop</em></h1>
-        <p className="section-desc">
-          Interactive sessions led by our therapists — online and in-person across Nepal.
-        </p>
+      <div className="ws-hero">
+        <div className="ws-blob b1" />
+        <div className="ws-blob b2" />
+        <div className="ws-blob b3" />
 
-        {/* ── Hero action row ── */}
-        <div style={{
-          marginTop: '1.5rem',
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'center', gap: '0.85rem', flexWrap: 'wrap',
-        }}>
-          {/* See My Enrollment Status button — always visible */}
-          <button
-            onClick={() =>
-              document.getElementById('my-enrollments-section')
-                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            }
+        <div className="ws-glass-panel">
+          <span
+            className="ws-glass-pill"
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '0.65rem 1.4rem', borderRadius: 100,
-              border: '2px solid ' + C.skyMid,
-              background: 'rgba(0,159,212,0.08)',
-              color: C.skyDeep,
-              fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem',
-              cursor: 'pointer', whiteSpace: 'nowrap',
-              transition: 'all 0.2s',
-              boxShadow: '0 2px 12px rgba(0,159,212,0.12)',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = btnGrad
-              e.currentTarget.style.color = '#fff'
-              e.currentTarget.style.borderColor = 'transparent'
-              e.currentTarget.style.boxShadow = '0 4px 18px rgba(0,191,255,0.35)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(0,159,212,0.08)'
-              e.currentTarget.style.color = C.skyDeep
-              e.currentTarget.style.borderColor = C.skyMid
-              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,159,212,0.12)'
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'rgba(255,255,255,0.55)',
+              border: '1px solid rgba(255,255,255,0.8)',
+              borderRadius: 100, padding: '0.32rem 1rem', marginBottom: '1rem',
+              fontFamily: 'var(--font-body)', fontSize: '0.68rem', fontWeight: 800,
+              letterSpacing: '0.1em', textTransform: 'uppercase', color: C.skyDeep,
             }}
           >
-            🎟️ See My Enrollment Status
-            <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>↓</span>
-          </button>
+            ✦ Workshops &amp; Events
+          </span>
 
-          {/* Session registered badge */}
-          {registered.length > 0 && (
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: btnGrad, borderRadius: 100, padding: '0.65rem 1.25rem',
-              fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700,
-              color: 'white', boxShadow: '0 4px 16px rgba(0,191,255,0.3)',
-            }}>
-              ✓ {registered.length} workshop{registered.length > 1 ? 's' : ''} registered this session
-            </div>
-          )}
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+            color: C.textDark, margin: '0 0 0.75rem', lineHeight: 1.15,
+          }}>
+            Join a Live <em style={{ color: C.skyDeep, fontStyle: 'normal' }}>Workshop</em>
+          </h1>
+
+          <p style={{
+            fontFamily: 'var(--font-body)', fontSize: 'clamp(0.92rem, 1.6vw, 1.05rem)',
+            color: C.textMid, maxWidth: 480, margin: '0 auto 1.75rem', lineHeight: 1.65,
+          }}>
+            Interactive sessions led by our therapists — online and in-person across Nepal.
+          </p>
+
+          {/* ── Hero action row ── */}
+          <div style={{
+            display: 'flex', alignItems: 'center',
+            justifyContent: 'center', gap: '0.85rem', flexWrap: 'wrap',
+          }}>
+            {/* See My Enrollment Status button — always visible */}
+            <button
+              className="ws-glass-pill"
+              onClick={() =>
+                document.getElementById('my-enrollments-section')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '0.65rem 1.4rem', borderRadius: 100,
+                border: '1.5px solid rgba(255,255,255,0.85)',
+                background: 'rgba(255,255,255,0.45)',
+                color: C.skyDeep,
+                fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 18px rgba(0,123,168,0.12)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = btnGrad
+                e.currentTarget.style.color = '#fff'
+                e.currentTarget.style.borderColor = 'transparent'
+                e.currentTarget.style.boxShadow = '0 6px 22px rgba(0,191,255,0.35)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.45)'
+                e.currentTarget.style.color = C.skyDeep
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.85)'
+                e.currentTarget.style.boxShadow = '0 4px 18px rgba(0,123,168,0.12)'
+              }}
+            >
+              🎟️ See My Enrollment Status
+              <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>↓</span>
+            </button>
+
+            {/* Session registered badge */}
+            {registered.length > 0 && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: btnGrad, borderRadius: 100, padding: '0.65rem 1.25rem',
+                fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700,
+                color: 'white', boxShadow: '0 4px 16px rgba(0,191,255,0.3)',
+              }}>
+                ✓ {registered.length} workshop{registered.length > 1 ? 's' : ''} registered this session
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

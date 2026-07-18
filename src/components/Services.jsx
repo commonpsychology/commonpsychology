@@ -57,11 +57,11 @@ export default function Services() {
 
   return (
     <section className="section services" id="services" style={{ position: 'relative' }}>
-      {/* Fade in from the dark Umbrella section above — soft eased band */}
+      {/* Fade in from the light bottom of the Umbrella section above — soft eased band */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0,
         height: 'clamp(50px, 10vw, 110px)',
-        background: 'linear-gradient(to top, rgba(6,13,26,0) 0%, rgba(6,13,26,0.15) 45%, rgba(6,13,26,0.5) 78%, #060d1a 100%)',
+        background: 'linear-gradient(to top, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.55) 78%, #ffffff 100%)',
         pointerEvents: 'none', zIndex: 1,
       }} />
       {/* Fade toward the Balance section's light-blue start below — soft eased band */}
