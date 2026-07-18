@@ -555,6 +555,8 @@ export default function ContactPage() {
               </div>
             </div>
 
+            
+
             <div className="cp3-map-panel cp3-glass">
               <svg className="cp3-map-panel-cracks" viewBox="0 0 300 260" preserveAspectRatio="none">
                 <polyline points="0,20 40,45 70,18 120,50" stroke="white" strokeWidth="0.6" fill="none" />
