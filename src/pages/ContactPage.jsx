@@ -179,7 +179,7 @@ const CONTACT_CSS = `
 
   .cp3-submit {
     padding: 0.95rem 1.9rem;
-    background: linear-gradient(135deg, #0f3460 0%, #2980b9 100%);
+    background: linear-gradient(135deg, #2980b9 0%, #2980b9 100%);
     color: var(--white);
     border: none;
     border-radius: 100px;
@@ -555,7 +555,7 @@ export default function ContactPage() {
               </div>
             </div>
 
-            
+
 
             <div className="cp3-map-panel cp3-glass">
               <svg className="cp3-map-panel-cracks" viewBox="0 0 300 260" preserveAspectRatio="none">
