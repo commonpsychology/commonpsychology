@@ -55,7 +55,7 @@ function PhoneCard({ line }) {
         }}>
           {line.name}
         </div>
-        <div style={{
+        <div className="phone-number-text" style={{
           fontFamily: "'DM Mono', 'Fira Mono', monospace",
           fontSize: '0.95rem',
           fontWeight: 700,
@@ -123,7 +123,7 @@ export default function Crisis() {
         }} />
 
         {/* Inner layout */}
-        <div style={{
+        <div className="crisis-inner-grid" style={{
           position: 'relative',
           display: 'grid',
           gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.1fr)',
@@ -132,7 +132,7 @@ export default function Crisis() {
         }}>
 
           {/* LEFT — text */}
-          <div style={{
+          <div className="crisis-left" style={{
             padding: '2rem 1.75rem 2rem 2rem',
             borderRight: '1px solid rgba(186,230,253,0.4)',
             display: 'flex',
@@ -207,7 +207,7 @@ export default function Crisis() {
           </div>
 
           {/* RIGHT — phone cards */}
-          <div style={{
+          <div className="crisis-right" style={{
             padding: '1.6rem 1.75rem 1.6rem 1.5rem',
             display: 'flex',
             flexDirection: 'column',
@@ -224,6 +224,20 @@ export default function Crisis() {
           @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.5; transform: scale(0.7); }
+          }
+          @media (max-width: 640px) {
+            .crisis-inner-grid { grid-template-columns: 1fr !important; }
+            .crisis-left {
+              padding: 1.5rem 1.25rem 1rem !important;
+              border-right: none !important;
+              border-bottom: 1px solid rgba(186,230,253,0.4) !important;
+            }
+            .crisis-right { padding: 1.25rem !important; }
+            .phone-number-text {
+              font-size: 0.85rem !important;
+              letter-spacing: 0.02em !important;
+              word-break: break-word !important;
+            }
           }
         `}</style>
       </div>

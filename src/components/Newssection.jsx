@@ -84,6 +84,13 @@ const CSS = `
     background: var(--off-white);
     text-decoration: none;
     transition: all 0.2s;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .news-source-pill-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .news-source-pill:hover {
     background: var(--sky-light);
@@ -125,9 +132,18 @@ const CSS = `
     .news-sources-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
     }
     .news-source-pill {
       justify-content: center;
+      padding: 0.5rem 0.6rem;
+      min-width: 0;
+    }
+    .news-source-pill-label {
+      white-space: normal;
+      font-size: 0.72rem;
+      text-align: center;
+      line-height: 1.3;
     }
   }
 `
@@ -223,9 +239,9 @@ export default function NewsSection() {
               className="news-source-pill"
             >
               <span style={{ fontSize: '0.88rem' }}>{src.icon}</span>
-              <span style={{
+              <span className="news-source-pill-label" style={{
                 fontFamily: 'var(--font-body)', fontSize: '0.8rem',
-                fontWeight: 600, color: 'var(--blue-deep)', whiteSpace: 'nowrap',
+                fontWeight: 600, color: 'var(--blue-deep)',
               }}>
                 {src.name}
               </span>
