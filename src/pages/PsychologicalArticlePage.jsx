@@ -152,9 +152,14 @@ export default function PsychDetailPage() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
         *{box-sizing:border-box}
         @media(max-width:900px){
-          .psych-detail-grid{grid-template-columns:1fr !important}
+          .psych-detail-body{grid-template-columns:1fr !important}
           .psych-detail-hero{padding:5rem 1.5rem 2.25rem !important}
           .psych-detail-body{padding:2rem 1.5rem !important}
+        }
+        .psych-detail-body, .psych-detail-body > * { min-width: 0; }
+        @media(max-width:500px){
+          .psych-detail-hero{padding:4rem 1.1rem 1.75rem !important}
+          .psych-detail-body{padding:1.5rem 1.1rem !important}
         }
       `}</style>
 
@@ -215,7 +220,7 @@ export default function PsychDetailPage() {
           style={{ maxWidth:1100, margin:'0 auto', padding:'3rem 6rem',
             display:'grid', gridTemplateColumns:'1fr 340px', gap:'3rem', alignItems:'start' }}>
 
-          <div>
+          <div style={{ minWidth: 0 }}>
             {analysis.excerpt && (
               <div style={{ background:`linear-gradient(135deg,${C.skyFainter},${C.greenMist})`,
                 border:`1px solid ${C.borderFaint}`, borderLeft:`4px solid ${C.sky}`,
@@ -262,7 +267,7 @@ export default function PsychDetailPage() {
             </div>
           </div>
 
-          <aside style={{ position:'sticky', top:'6rem', display:'flex', flexDirection:'column', gap:'1.5rem' }}>
+          <aside style={{ position:'sticky', top:'6rem', display:'flex', flexDirection:'column', gap:'1.5rem', minWidth: 0 }}>
             <div style={{ borderRadius:16, overflow:'hidden', boxShadow:`0 8px 36px rgba(56,189,248,0.14)` }}>
               <AnalysisVisual analysis={analysis} height={220} />
             </div>
@@ -293,10 +298,10 @@ export default function PsychDetailPage() {
                   letterSpacing:'0.1em', marginBottom:'1rem' }}>Key Concepts</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
                   {analysis.concepts.map((concept, i) => (
-                    <div key={i} style={{ display:'flex', alignItems:'center', gap:'0.6rem' }}>
-                      <span style={{ width:6, height:6, borderRadius:'50%', background:C.sky, flexShrink:0 }} />
+                    <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:'0.6rem' }}>
+                      <span style={{ width:6, height:6, borderRadius:'50%', background:C.sky, flexShrink:0, marginTop:6 }} />
                       <span style={{ fontFamily:"'Nunito',sans-serif", fontSize:'0.82rem',
-                        fontWeight:600, color:'rgba(255,255,255,0.82)' }}>{concept}</span>
+                        fontWeight:600, color:'rgba(255,255,255,0.82)', wordBreak:'break-word', minWidth:0 }}>{concept}</span>
                     </div>
                   ))}
                 </div>

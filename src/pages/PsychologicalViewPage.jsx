@@ -385,25 +385,34 @@ function AnalysesGrid({ analyses, loading, navigate }) {
           return (
             <div
               key={a.id}
-              style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--blue-pale)', boxShadow: 'var(--shadow-soft)', cursor: 'pointer', transition: 'all 0.25s' }}
+              style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--blue-pale)', boxShadow: 'var(--shadow-soft)', cursor: 'pointer', transition: 'all 0.25s', display: 'flex', flexDirection: 'column', height: '100%' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = 'var(--shadow-mid)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-soft)' }}
               onClick={() => navigate('/psychological-view/' + a.slug)}
             >
-              <div style={{ background: a.color_var, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '2rem' }}>{a.icon}</span>
-                <div>
+              <div style={{ background: a.color_var, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+                <span style={{ fontSize: '1.7rem', flexShrink: 0 }}>{a.icon}</span>
+                <div style={{ minWidth: 0 }}>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--blue-mid)' }}>{a.category}</div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: 'var(--text-light)' }}>{fmtDate(a.published_at)} · {a.read_time} read</div>
                 </div>
               </div>
-              <div style={{ padding: '1.25rem' }}>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--blue-deep)', marginBottom: '0.6rem', lineHeight: 1.35 }}>{a.title}</h3>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: 'var(--text-light)', lineHeight: 1.65, marginBottom: '0.75rem' }}>{a.excerpt}</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {(a.concepts || []).map((c, j) => (
+              <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                <h3 style={{
+                  fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--blue-deep)', marginBottom: '0.6rem', lineHeight: 1.35,
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>{a.title}</h3>
+                <p style={{
+                  fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: 'var(--text-light)', lineHeight: 1.65, marginBottom: '0.75rem',
+                  display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>{a.excerpt}</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 'auto' }}>
+                  {(a.concepts || []).slice(0, 3).map((c, j) => (
                     <span key={j} className="tag" style={{ fontSize: '0.65rem' }}>{c}</span>
                   ))}
+                  {(a.concepts || []).length > 3 && (
+                    <span className="tag" style={{ fontSize: '0.65rem', opacity: 0.7 }}>+{a.concepts.length - 3}</span>
+                  )}
                 </div>
               </div>
             </div>
