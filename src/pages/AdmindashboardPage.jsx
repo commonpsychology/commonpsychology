@@ -889,9 +889,11 @@ function resolvePaymentDetails(pay) {
   else if (pay.appointment_id) category = '📋 Appointment'
   else if (pay.order_id) category = '📦 Order'
   else if (pay.category) category = pay.category
-const isPending = pay.status === 'pending_cod' ||
-  (pay.status === 'pending' && pay.method !== 'esewa')
-    return { clientName, category, isPending }
+  const isPending = pay.status === 'pending_cod' ||
+    (pay.status === 'pending' && pay.method !== 'esewa')
+  // ✅ NEW: surface why the amount was reduced, straight from gateway_response
+  const discountLabel = pay.gateway_response?.discount_label || null
+  return { clientName, category, isPending, discountLabel }
 }
 
 function PayBadge({ status }) {
@@ -1052,33 +1054,39 @@ function PaymentsSection() {
     ? [<tr key="ld"><td className="tbl-loading" colSpan={8}><span className="spinner" /> Loading…</td></tr>]
     : pays.length === 0
       ? [<tr key="e"><td colSpan={8}><div className="empty-state"><div className="empty-icon">💳</div><div className="empty-text">No payments found</div></div></td></tr>]
-      : pays.flatMap(pay => {
-          const { clientName, category, isPending } = resolvePaymentDetails(pay)
-          const isExp = expanded === pay.id
-          const main = (
-            <tr key={pay.id} style={{ cursor:'pointer' }} onClick={() => setExpanded(isExp ? null : pay.id)}>
-              <td>
-                <div style={{ fontWeight:600, fontSize:'.82rem', color:'var(--text-primary)' }}>{clientName}</div>
-                <div className="mono" style={{ fontSize:'.66rem', color:'var(--text-muted)' }}>{pay.transaction_id || String(pay.id || '').slice(0,12)}</div>
-              </td>
-              <td><strong style={{ fontSize:'.85rem' }}>NPR {Number(pay.amount || 0).toLocaleString()}</strong></td>
-              <td><span className="mono" style={{ fontSize:'.73rem', fontWeight:700, color:'var(--teal)', textTransform:'uppercase' }}>{pay.method || '—'}</span></td>
-              <td><span style={{ fontSize:'.72rem', color:'var(--text-muted)' }}>{category}</span></td>
-              <td><PayBadge status={pay.status} /></td>
-              <td><Badge s={pay.status} /></td>
-              <td style={{ fontSize:'.74rem', color:'var(--text-muted)' }}>{fmt(pay.created_at)}</td>
-              <td onClick={e => e.stopPropagation()}>
-                <div style={{ display:'flex', gap:'.3rem', flexWrap:'wrap' }}>
-                  {isPending && <>
-                    <button className="btn btn-success btn-sm" disabled={busy[pay.id]} onClick={() => setConfirming(pay.id)}>✓</button>
-                    <button className="btn btn-danger btn-sm" disabled={busy[pay.id]} onClick={() => reject(pay.id)}>✗</button>
-                  </>}
-                  {pay.status === 'completed' && <button className="btn btn-ghost btn-sm" onClick={() => refund(pay.id)}>↩</button>}
-                  <button className="btn btn-ghost btn-sm btn-icon">{isExp ? '▲' : '▼'}</button>
-                </div>
-              </td>
-            </tr>
-          )
+     : pays.flatMap(pay => {
+  const { clientName, category, isPending, discountLabel } = resolvePaymentDetails(pay)
+  const isExp = expanded === pay.id
+  const main = (
+    <tr key={pay.id} style={{ cursor:'pointer' }} onClick={() => setExpanded(isExp ? null : pay.id)}>
+      <td>
+        <div style={{ fontWeight:600, fontSize:'.82rem', color:'var(--text-primary)' }}>{clientName}</div>
+        <div className="mono" style={{ fontSize:'.66rem', color:'var(--text-muted)' }}>{pay.transaction_id || String(pay.id || '').slice(0,12)}</div>
+      </td>
+      <td><strong style={{ fontSize:'.85rem' }}>NPR {Number(pay.amount || 0).toLocaleString()}</strong></td>
+      <td><span className="mono" style={{ fontSize:'.73rem', fontWeight:700, color:'var(--teal)', textTransform:'uppercase' }}>{pay.method || '—'}</span></td>
+      <td><span style={{ fontSize:'.72rem', color:'var(--text-muted)' }}>{category}</span></td>
+      <td>
+        {discountLabel
+          ? <span style={{ display:'inline-block', fontSize:'.66rem', fontWeight:700, color:'#065f46', background:'#ecfdf5', border:'1px solid #a7f3d0', borderRadius:100, padding:'.15rem .5rem', maxWidth:170, whiteSpace:'normal', lineHeight:1.3 }}>{discountLabel}</span>
+          : <span style={{ fontSize:'.7rem', color:'var(--text-muted)' }}>—</span>}
+      </td>
+      <td><PayBadge status={pay.status} /></td>
+      <td><Badge s={pay.status} /></td>
+      <td style={{ fontSize:'.74rem', color:'var(--text-muted)' }}>{fmt(pay.created_at)}</td>
+      <td onClick={e => e.stopPropagation()}>
+        <div style={{ display:'flex', gap:'.3rem', flexWrap:'wrap' }}>
+          {isPending && <>
+            <button className="btn btn-success btn-sm" disabled={busy[pay.id]} onClick={() => setConfirming(pay.id)}>✓</button>
+            <button className="btn btn-danger btn-sm" disabled={busy[pay.id]} onClick={() => reject(pay.id)}>✗</button>
+          </>}
+          {pay.status === 'completed' && <button className="btn btn-ghost btn-sm" onClick={() => refund(pay.id)}>↩</button>}
+          <button className="btn btn-ghost btn-sm btn-icon">{isExp ? '▲' : '▼'}</button>
+        </div>
+      </td>
+    </tr>
+  )
+  if (!isExp) return [main]
           if (!isExp) return [main]
           const gw = pay.gateway_response
           const detail = (
@@ -1148,8 +1156,7 @@ function PaymentsSection() {
       <div className="tbl-wrap">
         <div className="tbl-scroll">
           <table className="tbl">
-            <thead><tr>{['Client','Amount','Method','Category','Validity','Status','Date','Actions'].map(c => <th key={c}>{c}</th>)}</tr></thead>
-            <tbody>{rows}</tbody>
+<thead><tr>{['Client','Amount','Method','Category','Discount','Validity','Status','Date','Actions'].map(c => <th key={c}>{c}</th>)}</tr></thead>            <tbody>{rows}</tbody>
           </table>
         </div>
       </div>
