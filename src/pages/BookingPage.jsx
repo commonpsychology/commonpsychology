@@ -135,6 +135,24 @@ const STEP_BAR_CSS = `
   .stepbar-connector.done {
     background: rgba(0,123,168,0.45);
   }
+
+  /* ── Back / Continue button rows — stack full-width on mobile so long
+     labels like "Choose Payment Method →" never get clipped by the
+     viewport edge ── */
+  .nav-actions {
+    display: flex;
+    gap: 1rem;
+  }
+  @media (max-width: 600px) {
+    .nav-actions {
+      flex-direction: column;
+    }
+    .nav-actions > button {
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
 `
 
 function StepBar({ step }) {
@@ -436,7 +454,7 @@ export default function BookingPage() {
   return (
     <div className="page-wrapper">
       {showConfirmedModal && (
-        <PaymentConfirmedModal onGoToPortal={() => navigate('/portal')} />
+        <PaymentConfirmedModal onGoToPortal={() => { setShowConfirmedModal(false); navigate('/portal') }} />
       )}
 
       <div style={{
@@ -593,7 +611,7 @@ export default function BookingPage() {
                   )
                 })}
               </div>
-              <div style={{ display:'flex', gap:'1rem' }}>
+              <div className="nav-actions">
                 <button className="btn btn-outline" onClick={() => setStep(1)}>← Back</button>
                 <button className="btn btn-primary btn-lg" onClick={() => setStep(3)}>Continue →</button>
               </div>
@@ -679,7 +697,7 @@ export default function BookingPage() {
                   ⚠️ {slotCheckErr}
                 </div>
               )}
-              <div style={{ display:'flex', gap:'1rem' }}>
+              <div className="nav-actions">
                 <button className="btn btn-outline" onClick={() => setStep(2)}>← Back</button>
                 <button className="btn btn-primary btn-lg"
                   disabled={!selected.date || !selected.time || loadingSlots || availableSlotsForDay.length === 0 || dayTaken || checkingSlot}
@@ -720,9 +738,9 @@ export default function BookingPage() {
               <div style={{ background:'#e8f8f0', border:'1px solid #a8d8b8', borderRadius:10, padding:'0.85rem 1rem', marginBottom:'1.25rem', fontSize:'0.82rem', color:'#1a5a3a' }}>
                 ℹ️ Your appointment will be saved first, then you'll choose your payment method.
               </div>
-              <div style={{ display:'flex', gap:'1rem' }}>
+              <div className="nav-actions">
                 <button className="btn btn-outline" onClick={() => setStep(3)}>← Back</button>
-                <button className="btn btn-primary btn-lg" style={{ flex:1, justifyContent:'center', opacity:submitting?0.7:1 }} onClick={handleConfirm} disabled={submitting}>
+                <button className="btn btn-primary btn-lg" style={{ flex:1, justifyContent:'center', opacity:submitting?0.7:1, whiteSpace:'nowrap' }} onClick={handleConfirm} disabled={submitting}>
                   {submitting ? 'Saving…' : 'Choose Payment Method →'}
                 </button>
               </div>
