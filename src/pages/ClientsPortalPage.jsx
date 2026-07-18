@@ -7,7 +7,11 @@ import { appointments, wellness, notifications } from '../services/api'
 const TABS  = ['Overview','Appointments','Mood Diary','Journal','Notifications','Messages']
 const MOODS = ['😞','😔','😐','🙂','😊','😄','🤩']
 
-const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+// NOTE: fixed — the original fallback referenced VITE_API_URL inside a
+// single-quoted string, so `${...}` was never interpolated and the value
+// was always the literal text "${import.meta.env.VITE_API_URL}/api".
+// Adjust this fallback to your actual API host.
+const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
 // ── Glass card palette (bluish-white, frosted) — identical to the
 // therapist-card / session-type glass treatment on the Booking page ────────
@@ -257,10 +261,47 @@ function isStaleUnpaid(appt) {
   return ageMinutes > UNPAID_GRACE_MINUTES
 }
 
-function apptPaymentBadge(status) {  if (status === 'paid')                                  return { label:'✓ Paid',            bg:'#d1fae5', color:'#065f46' }
-  if (status === 'pending' || status === 'pending_cod')    return { label:'⏳ Payment Pending', bg:'#fef3c7', color:'#92400e' }
-  if (status === 'failed')                                 return { label:'⚠️ Payment Issue',  bg:'#fee2e2', color:'#991b1b' }
-  return                                                        { label:'💳 Payment Due',      bg:'#fee2e2', color:'#991b1b' }
+function apptPaymentBadge(status) {
+  if (status === 'paid')                                 return { label:'✓ Paid',            bg:'#d1fae5', color:'#065f46' }
+  if (status === 'pending' || status === 'pending_cod')   return { label:'⏳ Payment Pending', bg:'#fef3c7', color:'#92400e' }
+  if (status === 'failed')                                return { label:'⚠️ Payment Issue',  bg:'#fee2e2', color:'#991b1b' }
+  return                                                       { label:'💳 Payment Due',      bg:'#fee2e2', color:'#991b1b' }
+}
+
+/* ── Google Calendar link builders ──────────────────────────────────────── */
+function pad2(n) { return String(n).padStart(2, '0') }
+
+function toGCalUTC(date) {
+  return date.getUTCFullYear()
+    + pad2(date.getUTCMonth() + 1)
+    + pad2(date.getUTCDate())
+    + 'T'
+    + pad2(date.getUTCHours())
+    + pad2(date.getUTCMinutes())
+    + pad2(date.getUTCSeconds())
+    + 'Z'
+}
+
+// Regular therapy appointment — defaults to a 1hr block from scheduled_at
+function googleCalLinkAppt(a) {
+  const start = new Date(a.scheduled_at)
+  if (isNaN(start)) return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+  const end   = new Date(start.getTime() + 60 * 60000)
+  const title = encodeURIComponent((a.type || 'Therapy Session') + ' with ' + (a.therapists?.profiles?.full_name || 'Therapist'))
+  const desc  = encodeURIComponent('Appointment booked via Sajha Manobigyan client portal.')
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + title
+    + '&details=' + desc + '&dates=' + toGCalUTC(start) + '/' + toGCalUTC(end)
+}
+
+// Serenity Room booking — uses exact start_time/end_time
+function googleCalLinkRoom(b) {
+  const start = new Date(`${b.booked_date}T${b.start_time}`)
+  const end   = new Date(`${b.booked_date}T${b.end_time}`)
+  if (isNaN(start) || isNaN(end)) return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+  const title = encodeURIComponent('The Serenity Room Booking')
+  const desc  = encodeURIComponent('Room reservation via Sajha Manobigyan — The Serenity Room.')
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + title
+    + '&details=' + desc + '&dates=' + toGCalUTC(start) + '/' + toGCalUTC(end)
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -342,6 +383,25 @@ function SerenityBookingCard({ booking }) {
             ) : null}
           </div>
         </div>
+        {!past && (
+          <div style={{ marginTop:'0.85rem', display:'flex', justifyContent:'flex-end' }}>
+            <a
+              href={googleCalLinkRoom(booking)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                fontSize: '0.75rem', padding: '0.4rem 0.9rem', borderRadius: 8,
+                border: `1.5px solid ${pkg.color}44`, background: pkg.faint,
+                color: pkg.color, fontWeight: 700, textDecoration: 'none',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              📅 Add to Google Calendar
+            </a>
+          </div>
+        )}
+
         {isActive && (
           <div style={{ marginTop:'0.85rem' }}>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.3rem' }}>
@@ -484,7 +544,7 @@ export default function ClientPortalPage() {
   const [savingEntry, setSavingEntry] = useState(false)
   const [openEntry,   setOpenEntry]   = useState(null)
 
-const [notifs,      setNotifs]      = useState([])
+  const [notifs,      setNotifs]      = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifFilter, setNotifFilter] = useState('all')
   const [notifShown,  setNotifShown]  = useState(8)
@@ -496,7 +556,7 @@ const [notifs,      setNotifs]      = useState([])
   const seenNotifIds = useRef(null)
   const pollTimerRef = useRef(null)
 
- useEffect(() => {
+  useEffect(() => {
     injectCSS('portal-css', PORTAL_CSS)
     return () => document.getElementById('portal-css')?.remove()
   }, [])
@@ -532,7 +592,7 @@ const [notifs,      setNotifs]      = useState([])
       // both count toward "you have a session coming up".
       // Show pending/confirmed regardless of payment stage —
       // a brand-new booking starts as unpaid until gateway callback fires.
- const upcoming = all
+      const upcoming = all
         .filter(a =>
           ['pending', 'confirmed'].includes(a.status) &&
           new Date(a.scheduled_at) >= new Date() &&
@@ -551,7 +611,8 @@ const [notifs,      setNotifs]      = useState([])
       })
     } catch {}
   }
- async function loadAppointments() {
+
+  async function loadAppointments() {
     setLoadingAppts(true)
     try {
       const res = await appointments.list({ limit: 20 })
@@ -560,26 +621,26 @@ const [notifs,      setNotifs]      = useState([])
       console.log('[DEBUG] appointment count:', all.length, all)
       // Always show pending/confirmed — new bookings are 'unpaid' until
       // the payment gateway callback fires, so don't gate on payment_status here.
- const now = new Date()
-const upcomingAppts = all.filter(a => {
-  if (a.status === 'cancelled') return false
-  if (a.status === 'completed') return false
-  if (isStaleUnpaid(a)) return false   // hide abandoned unpaid holds
-  return new Date(a.scheduled_at) >= now
-})
-const pastAppts = all.filter(a => {
-  if (a.status === 'completed') return true
-  if (a.status === 'cancelled') return true
-  return new Date(a.scheduled_at) < now
-})
-setUpcoming(upcomingAppts)
-setPast(pastAppts)
+      const now = new Date()
+      const upcomingAppts = all.filter(a => {
+        if (a.status === 'cancelled') return false
+        if (a.status === 'completed') return false
+        if (isStaleUnpaid(a)) return false   // hide abandoned unpaid holds
+        return new Date(a.scheduled_at) >= now
+      })
+      const pastAppts = all.filter(a => {
+        if (a.status === 'completed') return true
+        if (a.status === 'cancelled') return true
+        return new Date(a.scheduled_at) < now
+      })
+      setUpcoming(upcomingAppts)
+      setPast(pastAppts)
     } catch (err) {
       console.error('[DEBUG] loadAppointments FAILED:', err)
     } finally { setLoadingAppts(false) }
   }
 
-async function loadLoyaltyStatus() {
+  async function loadLoyaltyStatus() {
     try {
       const token = localStorage.getItem('accessToken')
       if (!token) return
@@ -589,7 +650,8 @@ async function loadLoyaltyStatus() {
     } catch {}
   }
 
-  async function loadRoomBookings() {    setLoadingRoomBookings(true)
+  async function loadRoomBookings() {
+    setLoadingRoomBookings(true)
     try {
       const token = localStorage.getItem('accessToken')
       if (!token) return
@@ -717,8 +779,8 @@ async function loadLoyaltyStatus() {
 
       <JournalModal entry={openEntry} onClose={() => setOpenEntry(null)} />
 
-    {/* ── Header ── */}
-     <div
+      {/* ── Header ── */}
+      <div
         style={{
           position: 'relative',
           overflow: 'hidden',
@@ -736,7 +798,7 @@ async function loadLoyaltyStatus() {
           gap: '1rem',
         }}
       >
-      <div style={{
+        <div style={{
           position: 'absolute', width: 280, height: 280, borderRadius: '50%',
           background: 'rgba(14,165,233,0.16)', filter: 'blur(52px)',
           top: -140, right: '10%', pointerEvents: 'none',
@@ -795,7 +857,7 @@ async function loadLoyaltyStatus() {
                     boxShadow: '0 6px 24px rgba(255,183,77,0.45)',
                     animation: 'glowPulse 2.4s ease-in-out infinite',
                   }
-              : {
+                : {
                     background: 'rgba(14,165,233,0.08)',
                     border: '1px solid rgba(14,165,233,0.18)',
                     color: '#3a5a72',
@@ -854,7 +916,7 @@ async function loadLoyaltyStatus() {
           </svg>
           Log Out
         </button>
-              </div>
+      </div>
 
       <style>{`
         @keyframes shine {
@@ -881,11 +943,10 @@ async function loadLoyaltyStatus() {
 
       <div style={{ padding:'clamp(1rem,4vw,2rem)', maxWidth:1100, margin:'0 auto' }}>
 
-       
         {tab === 'Overview' && (
           <div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'1rem', marginBottom:'2rem' }}>
-            {[
+              {[
                 { label:'Sessions Completed', val:stats?.sessions??'…',         icon:'✅' },
                 { label:'Next Appointment',   val:stats?.nextSession??'…',      icon:'📅' },
                 { label:'Log Streak',         val:`${stats?.streak??'…'} days`, icon:'🔥' },
@@ -995,15 +1056,14 @@ async function loadLoyaltyStatus() {
                 <p style={{ color:'var(--text-light)', marginBottom:'1rem' }}>No upcoming appointments.</p>
                 <button className="btn btn-primary" onClick={() => navigate('/book')}>Book Your First Session →</button>
               </div>
-)       
-   : upcoming.map((a) => {
-           
-   const apptDate  = new Date(a.scheduled_at)
-  const msUntil   = apptDate - Date.now()
-  const daysUntil = Math.ceil((apptDate - new Date()) / 86400000)
-  const isToday    = daysUntil === 0
-  const isTomorrow = daysUntil === 1
-             
+            ) : upcoming.map((a) => {
+
+              const apptDate  = new Date(a.scheduled_at)
+              const msUntil   = apptDate - Date.now()
+              const daysUntil = Math.ceil((apptDate - new Date()) / 86400000)
+              const isToday    = daysUntil === 0
+              const isTomorrow = daysUntil === 1
+
               const urgencyColor = isToday ? '#ef4444' : isTomorrow ? '#f59e0b' : '#10b981'
               const urgencyBg    = isToday ? '#fee2e2' : isTomorrow ? '#fef3c7' : '#d1fae5'
               const urgencyLabel = isToday ? '🔴 Today' : isTomorrow ? '🟡 Tomorrow' : `🟢 In ${daysUntil} days`
@@ -1053,13 +1113,29 @@ async function loadLoyaltyStatus() {
                         </div>
                       </div>
                     </div>
-                    <button
-                      className="btn btn-outline"
-                      style={{ fontSize: '0.78rem', padding: '0.4rem 1rem', color: '#ef4444', borderColor: '#fca5a5' }}
-                      onClick={() => cancelAppt(a.id)}
-                    >
-                      Cancel
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <a
+                        href={googleCalLinkAppt(a)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          fontSize: '0.78rem', padding: '0.4rem 0.9rem', borderRadius: 8,
+                          border: '1.5px solid #a7d8f0', background: '#f0f9ff',
+                          color: '#0369a1', fontWeight: 700, textDecoration: 'none',
+                          fontFamily: 'var(--font-body)', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        📅 Add to Calendar
+                      </a>
+                      <button
+                        className="btn btn-outline"
+                        style={{ fontSize: '0.78rem', padding: '0.4rem 1rem', color: '#ef4444', borderColor: '#fca5a5' }}
+                        onClick={() => cancelAppt(a.id)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
               )
@@ -1071,7 +1147,7 @@ async function loadLoyaltyStatus() {
             </button>
             {showPastAppts && (past.length === 0 ? (
               <p style={{ color:'var(--text-light)' }}>No past sessions yet.</p>
-          ) : past.map((a) => (
+            ) : past.map((a) => (
               <div key={a.id} style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-md)', padding:'1rem 1.5rem', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.5rem', flexWrap:'wrap', gap:'0.75rem' }}>
                 <div>
                   <div style={{ fontWeight:600, color:'var(--text-mid)' }}>{a.therapists?.profiles?.full_name || 'Therapist'} · {fmtDate(a.scheduled_at)}</div>
