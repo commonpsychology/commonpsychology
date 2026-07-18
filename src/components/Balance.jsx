@@ -272,17 +272,19 @@ export default function BalanceWithin() {
           padding: "72px 20px 88px", position: "relative", overflow: "hidden", boxSizing: "border-box",
         }}
       >
-        {/* Fade in from the Services section above */}
+        {/* Fade in from the Services section above — soft eased band */}
         <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: '10%',
-          background: 'linear-gradient(to top, transparent 0%, var(--white) 100%)',
-          pointerEvents: 'none', zIndex: 5,
+          position: 'absolute', top: 0, left: 0, right: 0,
+          height: 'clamp(50px, 10vw, 110px)',
+          background: 'linear-gradient(to top, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.5) 78%, var(--white) 100%)',
+          pointerEvents: 'none', zIndex: 1,
         }} />
-        {/* Fade toward the dark cosmos section below (DreamSection) */}
+        {/* Fade toward the dark cosmos section below (DreamSection) — soft eased band */}
         <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: '14%',
-          background: 'linear-gradient(to bottom, transparent 0%, #060c1c 100%)',
-          pointerEvents: 'none', zIndex: 5,
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          height: 'clamp(60px, 12vw, 140px)',
+          background: 'linear-gradient(to bottom, rgba(6,12,28,0) 0%, rgba(6,12,28,0.15) 45%, rgba(6,12,28,0.55) 78%, #060c1c 100%)',
+          pointerEvents: 'none', zIndex: 1,
         }} />
         {[
           { top: "-100px", left: "-100px", size: "420px", color: "#bfdbfe44" },
@@ -292,7 +294,7 @@ export default function BalanceWithin() {
           <div key={i} style={{ position: "absolute", top: o.top, left: o.left, bottom: o.bottom, right: o.right, width: o.size, height: o.size, borderRadius: "50%", background: `radial-gradient(circle, ${o.color}, transparent 68%)`, pointerEvents: "none" }} />
         ))}
 
-        <header style={{ textAlign: "center", marginBottom: "48px", animation: "fadeUp 0.8s ease both" }}>
+        <header style={{ textAlign: "center", marginBottom: "48px", animation: "fadeUp 0.8s ease both", position: "relative", zIndex: 2 }}>
           <span style={{ fontFamily: "'Lato',sans-serif", fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase", color: "#6366f1", fontWeight: 700, display: "block", marginBottom: "14px" }}>
             Wellness Reflection · Figurative Only
           </span>

@@ -57,18 +57,21 @@ export default function Services() {
 
   return (
     <section className="section services" id="services" style={{ position: 'relative' }}>
-      {/* Fade in from the dark Umbrella section above */}
+      {/* Fade in from the dark Umbrella section above — soft eased band */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '10%',
-        background: 'linear-gradient(to top, transparent 0%, #060d1a 100%)',
-        pointerEvents: 'none', zIndex: 5,
+        position: 'absolute', top: 0, left: 0, right: 0,
+        height: 'clamp(50px, 10vw, 110px)',
+        background: 'linear-gradient(to top, rgba(6,13,26,0) 0%, rgba(6,13,26,0.15) 45%, rgba(6,13,26,0.5) 78%, #060d1a 100%)',
+        pointerEvents: 'none', zIndex: 1,
       }} />
-      {/* Fade toward the Balance section's light-blue start below */}
+      {/* Fade toward the Balance section's light-blue start below — soft eased band */}
       <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: '10%',
-        background: 'linear-gradient(to bottom, transparent 0%, #dbeafe 100%)',
-        pointerEvents: 'none', zIndex: 5,
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        height: 'clamp(50px, 10vw, 110px)',
+        background: 'linear-gradient(to bottom, rgba(219,234,254,0) 0%, rgba(219,234,254,0.15) 45%, rgba(219,234,254,0.5) 78%, #dbeafe 100%)',
+        pointerEvents: 'none', zIndex: 1,
       }} />
+      <div style={{ position: 'relative', zIndex: 2 }}>
       <div className="section-header">
         <div>
           <span className="section-tag">What We Offer</span>
@@ -122,6 +125,7 @@ export default function Services() {
             </button>
           </div>
         ))}
+      </div>
       </div>
     </section>
   )
