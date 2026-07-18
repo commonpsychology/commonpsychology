@@ -286,7 +286,10 @@ function OrdersTab() {
 }
 // ─── Main Page ────────────────────────────────────────────────
 export default function MyAccountPage() {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('acc-css')?.remove()
+}, [])
 
   const { navigate }                  = useRouter()
   const { user, logout, refreshUser } = useAuth()

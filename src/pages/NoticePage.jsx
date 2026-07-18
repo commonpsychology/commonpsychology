@@ -411,8 +411,10 @@ export default function NoticeBoardPage() {
   const [active, setActive] = useState('All')
 
   useEffect(() => {
+useEffect(() => {
     injectCSS('notice-board-page-css', PAGE_CSS)
-  }, [])
+    return () => document.getElementById('notice-board-page-css')?.remove()
+  }, [])  }, [])
 
   const counts = useMemo(() => {
     const c = { All: NOTICES.length }

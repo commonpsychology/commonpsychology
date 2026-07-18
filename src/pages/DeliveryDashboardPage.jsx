@@ -159,7 +159,10 @@ function injectCSS() {
 
 // ─────────────────────────────────────────────────────────────
 export default function DeliveryDashboardPage() {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('dlv-dash-css')?.remove()
+}, [])
 
   const { navigate } = useRouter()
   const rider = getRider()

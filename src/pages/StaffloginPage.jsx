@@ -77,7 +77,10 @@ function FloatingInput({ label, type = 'text', value, onChange, placeholder, req
 }
 
 export default function StaffLoginPage() {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('staff-login-css')?.remove()
+}, [])
 
   const { user, loading: authLoading } = useAuth()
   const { navigate }                   = useRouter()

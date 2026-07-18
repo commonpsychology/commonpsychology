@@ -534,8 +534,10 @@ function OrderCard({ order, onShowQR, onCODConfirm }) {
      3. user exists   → render full page
 ═══════════════════════════════════════════════════════════ */
 export default function MyOrdersPage() {
-  useEffect(() => { injectCSS('mo-css', CSS) }, [])
-
+useEffect(() => {
+    injectCSS('mo-css', CSS)
+    return () => document.getElementById('mo-css')?.remove()
+  }, [])
   const { user, loading: authLoading } = useAuth()
   const { navigate }                   = useRouter()
 

@@ -222,7 +222,10 @@ const INITIAL = {
 }
 
 export default function RegisterStaffPage() {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('rsf-css')?.remove()
+}, [])
   const { navigate }                   = useRouter()
   const { user, loading: authLoading } = useAuth()
   const [role,    setRole]    = useState('therapist')   // default same as original

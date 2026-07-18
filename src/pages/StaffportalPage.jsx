@@ -680,7 +680,10 @@ function AccountantTab() {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function StaffPortalPage() {
-  useEffect(() => { injectCSS('sp-css', CSS) }, [])
+ useEffect(() => {
+    injectCSS('sp-css', CSS)
+    return () => document.getElementById('sp-css')?.remove()
+  }, [])
 
   const { user, logout } = useAuth()
   const { navigate }     = useRouter()

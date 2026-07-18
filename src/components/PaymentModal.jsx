@@ -375,7 +375,10 @@ function AuthWall({ onClose }) {
 const PaymentContext = createContext(null)
 
 export function PaymentProvider({ children }) {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('psm-css')?.remove()
+}, [])
   const [config,  setConfig]  = useState(null)
   const [visible, setVisible] = useState(false)
   const resolveRef = useRef(null)

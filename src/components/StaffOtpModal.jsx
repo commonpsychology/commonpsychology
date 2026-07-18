@@ -289,7 +289,10 @@ function useCountdown(initial) {
 //   onSuccess  — called with verifyOTP result → parent navigates
 //   onCancel   — called when user cancels
 export default function StaffOTPModal({ email, name, user_id, role = 'staff', onSuccess, onCancel }) {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('smf-css')?.remove()
+}, [])
 
   const [otp, setOtp]           = useState('')
   const [error, setError]       = useState('')

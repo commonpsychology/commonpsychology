@@ -290,7 +290,10 @@ function MessagingPanel() {
 const TABS = ['Dashboard', 'My Schedule', 'Clients', 'Notes', 'Messages']
 
 export default function TherapistDashboard() {
-  useEffect(() => { injectCSS() }, [])
+  useEffect(() => {
+  injectCSS()
+  return () => document.getElementById('therapist-dash-css')?.remove()
+}, [])
 
   const { navigate }                           = useRouter()
   const { user, loading: authLoading, logout } = useAuth()
