@@ -3202,8 +3202,33 @@ psych_concept:     () => sec('/admin/psych-concepts',   setPconcepts,  setPcTota
     workshop:          fetchWorkshops,
   }
 
-  const openCreate = (type, defs = {}) => { setForm(defs); setSaveErr(null); setModal({ type, data:null }) }
-  const openEdit   = (type, item)  => { setForm({ ...item }); setSaveErr(null); setModal({ type, data:item }) }
+  const openCreate = (type, defs = {}) => {
+    if (type === 'psych_analysis') {
+      setForm({
+        category:'', icon:'🌍', color_var:'var(--blue-mist)',
+        title:'', slug:'', excerpt:'', content:'',
+        concepts_text:'', read_time:'5 min',
+        published_at: new Date().toISOString().slice(0,10),
+        sort_order:0, is_active:true,
+        ...defs,
+      })
+    } else {
+      setForm(defs)
+    }
+    setSaveErr(null); setModal({ type, data:null })
+  }
+  const openEdit   = (type, item)  => {
+    if (type === 'psych_analysis') {
+      setForm({
+        ...item,
+        concepts_text: Array.isArray(item.concepts) ? item.concepts.join('\n') : (item.concepts || ''),
+        published_at: item.published_at ? String(item.published_at).slice(0,10) : '',
+      })
+    } else {
+      setForm({ ...item })
+    }
+    setSaveErr(null); setModal({ type, data:item })
+  }
   const closeModal = () => { setModal(null); setForm({}); setSaveErr(null) }
   const fld = k => e => setForm(p => ({ ...p, [k]: e?.target ? e.target.value : e }))
 
@@ -3215,6 +3240,26 @@ psych_concept:     () => sec('/admin/psych-concepts',   setPconcepts,  setPcTota
         const body = { ...form, seats:Number(form.seats||20), price:Number(form.price||0), sort_order:Number(form.sort_order||0), tags:Array.isArray(form.tags)?form.tags:(form.tags||'').split(',').map(t=>t.trim()).filter(Boolean), is_active:form.is_active!==false }
         if (modal.data) await apiFetch(`/workshops/admin/${modal.data.id}`, { method:'PATCH', body:JSON.stringify(body) })
         else await apiFetch('/workshops/admin', { method:'POST', body:JSON.stringify(body) })
+      } else if (modal.type === 'psych_analysis') {
+        const slug = form.slug?.trim() ||
+          (form.title || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')
+        const body = {
+          category:     form.category,
+          icon:         form.icon,
+          color_var:    form.color_var,
+          title:        form.title,
+          slug,
+          excerpt:      form.excerpt,
+          content:      form.content || null,
+          concepts:     (form.concepts_text || '').split('\n').map(s => s.trim()).filter(Boolean),
+          read_time:    form.read_time,
+          published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
+          sort_order:   Number(form.sort_order) || 0,
+          is_active:    form.is_active !== false,
+        }
+        const ep = ENDPOINTS[modal.type]
+        if (modal.data) await apiFetch(`${ep}/${modal.data.id}`, { method:'PUT', body:JSON.stringify(body) })
+        else await apiFetch(ep, { method:'POST', body:JSON.stringify(body) })
       } else {
         const ep = ENDPOINTS[modal.type]
         if (modal.data) await apiFetch(`${ep}/${modal.data.id}`, { method:'PUT', body:JSON.stringify(form) })
@@ -3487,7 +3532,66 @@ await REFRESH_MAP[modal.type]?.()
         {[['is_free','Free'],['is_published','Published']].map(([k,l])=>(<label key={k} style={{display:'flex',alignItems:'center',gap:'.5rem',fontSize:'.78rem',cursor:'pointer'}}><Toggle on={form[k]!==false} onChange={v=>setForm(p=>({...p,[k]:v}))} />{l}</label>))}
       </div>
     </>)
-   if (['psych_video','psych_analysis','psych_concept','assessment','therapist_profile'].includes(t)) return (<>
+   if (t === 'psych_analysis') return (<>
+      <div className="field-row">
+        <div className="field" style={{ flex:'0 0 80px' }}>
+          <label>Icon</label>
+          <input className="inp" value={form.icon||''} onChange={fld('icon')} style={{ textAlign:'center', fontSize:'1.3rem' }} placeholder="🌍" />
+        </div>
+        <div className="field" style={{ flex:1 }}>
+          <label>Title *</label>
+          <input className="inp" value={form.title||''} onChange={fld('title')} placeholder="e.g. Why Populism Keeps Rising" />
+        </div>
+      </div>
+
+      <div className="field-row">
+        <div className="field"><label>Category *</label><input className="inp" value={form.category||''} onChange={fld('category')} placeholder="e.g. Global Politics" /></div>
+        <div className="field"><label>Slug (auto if blank)</label><input className="inp mono" value={form.slug||''} onChange={fld('slug')} placeholder="auto-generated-from-title" /></div>
+      </div>
+
+      <div className="field">
+        <label>Color Variable</label>
+        <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap', marginBottom:'.4rem' }}>
+          {['var(--blue-mist)','var(--sky-light)','var(--green-mist)','var(--earth-cream)'].map(v => (
+            <button key={v} type="button" onClick={() => setForm(f => ({ ...f, color_var:v }))}
+              style={{
+                padding:'.3rem .7rem', borderRadius:8, fontSize:'.7rem', fontFamily:'var(--font-mono)',
+                border: form.color_var===v ? '2px solid var(--blue)' : '1.5px solid var(--border)',
+                background: v, cursor:'pointer',
+              }}>{v}</button>
+          ))}
+        </div>
+        <input className="inp mono" value={form.color_var||''} onChange={fld('color_var')} placeholder="var(--blue-mist)" style={{ fontSize:'.72rem' }} />
+      </div>
+
+      <div className="field">
+        <label>Excerpt *</label>
+        <textarea className="inp" rows={3} value={form.excerpt||''} onChange={fld('excerpt')} placeholder="Short summary shown on the card" />
+      </div>
+
+      <div className="field">
+        <label>Full Content (optional — shown on the article's own page)</label>
+        <textarea className="inp" rows={6} value={form.content||''} onChange={fld('content')} placeholder="Full article body, if this analysis has a dedicated page" />
+      </div>
+
+      <div className="field">
+        <label>Concepts (one per line)</label>
+        <textarea className="inp" rows={4} value={form.concepts_text||''} onChange={fld('concepts_text')}
+          placeholder={'Social Identity Theory\nScapegoating\nFear Appeals'} />
+        <div className="field-hint">Shown as tags on the card</div>
+      </div>
+
+      <div className="field-row3">
+        <div className="field"><label>Read Time</label><input className="inp" value={form.read_time||''} onChange={fld('read_time')} placeholder="6 min" /></div>
+        <div className="field"><label>Published Date</label><input className="inp" type="date" value={form.published_at||''} onChange={fld('published_at')} /></div>
+        <div className="field"><label>Sort Order</label><input className="inp" type="number" value={form.sort_order??0} onChange={fld('sort_order')} /></div>
+      </div>
+
+      <label style={{display:'flex',alignItems:'center',gap:'.5rem',fontSize:'.78rem',cursor:'pointer'}}>
+        <Toggle on={form.is_active!==false} onChange={v=>setForm(p=>({...p,is_active:v}))} /> Active (visible on site)
+      </label>
+    </>)
+    if (['psych_video','psych_concept','assessment','therapist_profile'].includes(t)) return (<>
       <div className="field"><label>{t==='psych_concept'?'Term':'Title'} *</label><input className="inp" value={form.title||form.term||''} onChange={e=>setForm(p=>({...p,[t==='psych_concept'?'term':'title']:e.target.value}))} /></div>
       {t==='psych_video' && <div className="field"><label>YouTube ID *</label><input className="inp mono" value={form.youtube_id||''} onChange={fld('youtube_id')} /></div>}
       {t==='psych_concept' && <div className="field"><label>Definition *</label><textarea className="inp" rows={4} value={form.definition||''} onChange={fld('definition')} /></div>}
@@ -4070,12 +4174,19 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
           {/* ═══ PSYCH ANALYSES ═══ */}
           {tab === 'psych_analyses' && (
             <div>
-              <SectionHeader title="Psych Analyses" count={paTotal} onNew={() => openCreate('psych_analysis',{is_active:true})} />
-              <Table loading={busy.psych_analyses} cols={['Title','Category','Active','Actions']}
+              <SectionHeader title="Psych Analyses" count={paTotal} onNew={() => openCreate('psych_analysis')} />
+              <Table loading={busy.psych_analyses} cols={['','Title','Category','Slug','Sort','Published','Active','Actions']}
                 rows={panalyses.map(a=>(
                   <tr key={a.id}>
-                    <td style={{fontWeight:600,fontSize:'.82rem'}}>{a.title}</td>
+                    <td style={{fontSize:'1.2rem',textAlign:'center'}}>{a.icon}</td>
+                    <td>
+                      <div style={{fontWeight:600,fontSize:'.82rem'}}>{a.title}</div>
+                      <div style={{fontSize:'.68rem',color:'var(--text-muted)'}}>{a.read_time||'—'}</div>
+                    </td>
                     <td style={{fontSize:'.78rem'}}>{a.category||'—'}</td>
+                    <td className="mono" style={{fontSize:'.68rem',color:'var(--text-muted)'}}>{a.slug||'—'}</td>
+                    <td style={{fontSize:'.78rem',textAlign:'center'}}>{a.sort_order ?? '—'}</td>
+                    <td style={{fontSize:'.72rem',color:'var(--text-muted)'}}>{fmt(a.published_at)}</td>
                     <td><Badge s={a.is_active!==false?'active':'paused'} /></td>
                     <td><RowActions onEdit={()=>openEdit('psych_analysis',a)} onDelete={()=>del('/admin/psych-analyses',a.id,a.title,()=>sec('/admin/psych-analyses',setPanalyses,setPaTotal,paPage))} /></td>
                   </tr>
