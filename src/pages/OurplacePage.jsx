@@ -136,9 +136,30 @@ function isSlotPast(slot, bookDate) {
   return slot <= nowHM()
 }
 
-// Is a slot overlapping with any booked range?
+// Is a slot overlapping with any booked range? (any seat, or a whole-room hold)
 function isSlotBooked(slotTime, bookedSlots) {
   return bookedSlots.some(b => slotTime >= b.start && slotTime < b.end)
+}
+
+// How many of the 7 seats are free across a full duration window? A
+// whole-room booking occupies all 7; otherwise each distinct seat counts once.
+function seatsAvailableCount(startTime, durationHours, bookedSlots) {
+  if (!startTime || !durationHours) return SEATS_PER_ROOM
+  const endTime = addHours(startTime, durationHours)
+  const overlapping = bookedSlots.filter(b => startTime < b.end && endTime > b.start)
+  if (overlapping.some(b => b.seatNumber === null || b.seatNumber === undefined)) return 0
+  const takenSeats = new Set(overlapping.map(b => b.seatNumber))
+  return Math.max(0, SEATS_PER_ROOM - takenSeats.size)
+}
+
+// Is every seat taken at this exact 30-min instant? Used to disable a start
+// time in the time picker — one seat being taken should NOT disable the
+// slot, since other seats may still be free.
+function isSlotFullyBooked(slotTime, bookedSlots) {
+  const overlapping = bookedSlots.filter(b => slotTime >= b.start && slotTime < b.end)
+  if (overlapping.some(b => b.seatNumber === null || b.seatNumber === undefined)) return true
+  const takenSeats = new Set(overlapping.map(b => b.seatNumber))
+  return takenSeats.size >= SEATS_PER_ROOM
 }
 
 // Is the selected start time conflicting with package duration?
@@ -435,7 +456,7 @@ function AvailabilityTimeline({ bookedSlots, selectedStart, selectedEnd, duratio
 
 // ── Time Picker with booked-slot awareness ────────────────────────────────────
 // Uses position:fixed so the dropdown escapes any overflow:hidden/scroll parent
-function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label, bookDate }) {
+function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label, bookDate, wholeRoom }) {
   const [open,    setOpen]    = useState(false)
   const [dropPos, setDropPos] = useState({ top:0, left:0, width:200 })
   const btnRef  = useRef(null)
@@ -517,12 +538,16 @@ function SmartTimePicker({ value, onChange, bookedSlots, durationHours, label, b
           </div>
           {ALL_SLOTS.map(slot => {
        const slotPast      = isSlotPast(slot, bookDate)
-            const slotBooked    = isSlotBooked(slot, bookedSlots)
+            const slotBooked    = wholeRoom
+              ? isSlotBooked(slot, bookedSlots)        // whole room needs the instant fully clear
+              : isSlotFullyBooked(slot, bookedSlots)   // single seat: only blocked if ALL 7 are taken
             const slotOvernight = crossesMidnight(slot, durationHours)
             const slotDisabled  = slotPast || slotBooked || slotOvernight
             const endIfSelected = addHours(slot, durationHours || 1)
             const wouldConflict = durationHours
-              ? hasConflict(slot, durationHours, bookedSlots)
+              ? (wholeRoom
+                  ? hasConflict(slot, durationHours, bookedSlots)
+                  : seatsAvailableCount(slot, durationHours, bookedSlots) === 0)
               : slotBooked
             const isSelected = value === slot
 
@@ -583,8 +608,11 @@ if (slotPast) {
   )
 }
 
-// ── Seat Picker — 7 seats, red = booked/conflicting, green = available, blue = selected ──
-function SeatPicker({ bookedSlots, startTime, endTime, selectedSeat, onSelect }) {
+// ── Seat / Whole-Room Picker ──────────────────────────────────────────────
+// 7 seats, red = booked/conflicting, green = available, blue = selected.
+// A "book the whole room" toggle sits above the grid — choosing it requires
+// the ENTIRE time slot to be free, and prices at SEATS_PER_ROOM × per-seat price.
+function SeatOrWholeRoomPicker({ bookedSlots, startTime, endTime, selectedSeat, onSelectSeat, wholeRoom, onToggleWholeRoom, pricePerSeat }) {
   if (!startTime || !endTime) {
     return (
       <div style={{ padding:'0.85rem 1rem', background:BG, borderRadius:12, border:`1px solid ${BORDER}`, fontSize:'0.8rem', color:SLATE_L, fontStyle:'italic' }}>
@@ -594,54 +622,97 @@ function SeatPicker({ bookedSlots, startTime, endTime, selectedSeat, onSelect })
   }
 
   const seatConflict = (seatNum) => bookedSlots.some(b =>
-    b.seatNumber === seatNum && startTime < b.end && endTime > b.start
+    (b.seatNumber === seatNum || b.seatNumber === null || b.seatNumber === undefined) &&
+    startTime < b.end && endTime > b.start
   )
+
+  const wholeRoomAvailable = !bookedSlots.some(b => startTime < b.end && endTime > b.start)
+  const wholeRoomPrice = pricePerSeat * SEATS_PER_ROOM
 
   return (
     <div>
-      <label style={{ display:'block', fontFamily:'inherit', fontSize:'0.68rem', fontWeight:800, color:SLATE_L, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>
-        Choose Your Seat *
-      </label>
-      <div style={{ display:'flex', gap:'0.6rem', flexWrap:'wrap' }}>
-        {Array.from({ length: SEATS_PER_ROOM }, (_, i) => i + 1).map(seatNum => {
-          const booked = seatConflict(seatNum)
-          const isSel  = selectedSeat === seatNum
-          let bg = MINT_L, border = '#a7f3d0', color = '#065f46', label = 'Available'
-          if (booked) { bg = RED_L; border = '#fca5a5'; color = RED_D; label = 'Booked' }
-          if (isSel)  { bg = SKY_L; border = SKY; color = SKY_D; label = 'Selected' }
-
-          return (
-            <button
-              key={seatNum}
-              type="button"
-              disabled={booked}
-              onClick={() => onSelect(seatNum)}
-              title={`Seat ${seatNum} — ${label}`}
-              style={{
-                width: 56, height: 56, borderRadius: 12,
-                border: `2px solid ${border}`, background: bg, color,
-                display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-                cursor: booked ? 'not-allowed' : 'pointer',
-                fontFamily:'inherit', fontWeight:700, fontSize:'0.9rem',
-                opacity: booked ? 0.75 : 1,
-                transition:'all 0.15s',
-                boxShadow: isSel ? `0 0 0 3px ${SKY_L}` : 'none',
-              }}
-            >
-              <span style={{ fontSize:'1.1rem' }}>💺</span>
-              <span style={{ fontSize:'0.68rem' }}>{seatNum}</span>
-            </button>
-          )
-        })}
-      </div>
-      <div style={{ display:'flex', gap:'0.85rem', marginTop:'0.6rem', flexWrap:'wrap' }}>
-        {[[MINT,'Available'],[RED,'Booked'],[SKY,'Selected']].map(([c,l]) => (
-          <div key={l} style={{ display:'flex', alignItems:'center', gap:'0.3rem' }}>
-            <div style={{ width:10, height:10, borderRadius:3, background:c, flexShrink:0 }} />
-            <span style={{ fontFamily:'inherit', fontSize:'0.67rem', color:SLATE_M }}>{l}</span>
+      <div
+        onClick={() => { if (wholeRoomAvailable || wholeRoom) onToggleWholeRoom(!wholeRoom) }}
+        style={{
+          display:'flex', alignItems:'center', justifyContent:'space-between', gap:'0.75rem',
+          padding:'0.75rem 1rem', borderRadius:12, marginBottom:'0.85rem',
+          border:`1.5px solid ${wholeRoom ? SKY : BORDER}`,
+          background: wholeRoom ? SKY_L : (wholeRoomAvailable ? WHITE : BG),
+          cursor: wholeRoomAvailable ? 'pointer' : 'not-allowed',
+          opacity: wholeRoomAvailable ? 1 : 0.6,
+        }}
+        title={wholeRoomAvailable ? 'Book all 7 seats for this time slot' : 'Whole room is unavailable — at least one seat is already booked for this time'}
+      >
+        <div>
+          <div style={{ fontFamily:'inherit', fontSize:'0.85rem', fontWeight:700, color:SLATE }}>
+            🏛️ Book the Whole Room
           </div>
-        ))}
+          <div style={{ fontFamily:'inherit', fontSize:'0.72rem', color:SLATE_M }}>
+            All {SEATS_PER_ROOM} seats · NPR {wholeRoomPrice.toLocaleString()} {!wholeRoomAvailable && '· unavailable for this time'}
+          </div>
+        </div>
+        <div style={{
+          width:22, height:22, borderRadius:6, flexShrink:0,
+          border:`2px solid ${wholeRoom ? SKY : SLATE_L}`,
+          background: wholeRoom ? SKY : WHITE,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          color:WHITE, fontSize:'0.8rem', fontWeight:800,
+        }}>
+          {wholeRoom ? '✓' : ''}
+        </div>
       </div>
+
+      {wholeRoom ? (
+        <div style={{ padding:'0.85rem 1rem', background:SKY_L, borderRadius:12, border:`1px solid ${SKY}`, fontSize:'0.8rem', color:SKY_D }}>
+          Whole room selected — all {SEATS_PER_ROOM} seats reserved for this time slot.
+        </div>
+      ) : (
+        <div>
+          <label style={{ display:'block', fontFamily:'inherit', fontSize:'0.68rem', fontWeight:800, color:SLATE_L, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>
+            Or Choose a Single Seat *
+          </label>
+          <div style={{ display:'flex', gap:'0.6rem', flexWrap:'wrap' }}>
+            {Array.from({ length: SEATS_PER_ROOM }, (_, i) => i + 1).map(seatNum => {
+              const booked = seatConflict(seatNum)
+              const isSel  = selectedSeat === seatNum
+              let bg = MINT_L, border = '#a7f3d0', color = '#065f46', label = 'Available'
+              if (booked) { bg = RED_L; border = '#fca5a5'; color = RED_D; label = 'Booked' }
+              if (isSel)  { bg = SKY_L; border = SKY; color = SKY_D; label = 'Selected' }
+
+              return (
+                <button
+                  key={seatNum}
+                  type="button"
+                  disabled={booked}
+                  onClick={() => onSelectSeat(seatNum)}
+                  title={`Seat ${seatNum} — ${label}`}
+                  style={{
+                    width: 56, height: 56, borderRadius: 12,
+                    border: `2px solid ${border}`, background: bg, color,
+                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+                    cursor: booked ? 'not-allowed' : 'pointer',
+                    fontFamily:'inherit', fontWeight:700, fontSize:'0.9rem',
+                    opacity: booked ? 0.75 : 1,
+                    transition:'all 0.15s',
+                    boxShadow: isSel ? `0 0 0 3px ${SKY_L}` : 'none',
+                  }}
+                >
+                  <span style={{ fontSize:'1.1rem' }}>💺</span>
+                  <span style={{ fontSize:'0.68rem' }}>{seatNum}</span>
+                </button>
+              )
+            })}
+          </div>
+          <div style={{ display:'flex', gap:'0.85rem', marginTop:'0.6rem', flexWrap:'wrap' }}>
+            {[[MINT,'Available'],[RED,'Booked'],[SKY,'Selected']].map(([c,l]) => (
+              <div key={l} style={{ display:'flex', alignItems:'center', gap:'0.3rem' }}>
+                <div style={{ width:10, height:10, borderRadius:3, background:c, flexShrink:0 }} />
+                <span style={{ fontFamily:'inherit', fontSize:'0.67rem', color:SLATE_M }}>{l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -682,8 +753,9 @@ const [bookErr,     setBookErr]     = useState('')
   const [selectedRoomKey, setSelectedRoomKey] = useState(ROOMS[2].key) // default: The Serenity Room
 
   // ── Availability state ──────────────────────────────────────────────────
-  const [bookedSlots,   setBookedSlots]   = useState([])  // [{seatNumber,start,end}]
+  const [bookedSlots,   setBookedSlots]   = useState([])  // [{seatNumber,start,end}] — seatNumber null = whole-room booking
   const [selectedSeat,  setSelectedSeat]  = useState(null)
+  const [bookWholeRoom, setBookWholeRoom] = useState(false)
   const [availLoading,  setAvailLoading]  = useState(false)
   const [availErr,      setAvailErr]      = useState('')
   const [availFetched,  setAvailFetched]  = useState('')  // last fetched date+roomId
@@ -774,16 +846,20 @@ useEffect(() => {
 
   const pkg    = PACKAGES.find(p => p.id === selPkg)
   const endTime = bookTime && pkg ? addHours(bookTime, pkg.durationHours) : ''
+  const totalPrice = pkg ? (bookWholeRoom ? pkg.price * SEATS_PER_ROOM : pkg.price) : 0
 
-  // Conflict detection
+  // Conflict detection — whole room needs the slot completely clear;
+  // a single seat only conflicts once every seat is taken.
   const timeConflict = bookTime && pkg
-    ? hasConflict(bookTime, pkg.durationHours, bookedSlots)
+    ? (bookWholeRoom
+        ? hasConflict(bookTime, pkg.durationHours, bookedSlots)
+        : seatsAvailableCount(bookTime, pkg.durationHours, bookedSlots) === 0)
     : false
 
   // Can't select a start time that has already passed today
   const timeInPast = bookTime ? isSlotPast(bookTime, bookDate) : false
 
-const formOK = bookDate && bookTime && selectedSeat && clientName.trim() && clientPhone.trim().length >= 7 && !timeConflict && !timeInPast && !dayTaken
+const formOK = bookDate && bookTime && (bookWholeRoom || selectedSeat) && clientName.trim() && clientPhone.trim().length >= 7 && !timeConflict && !timeInPast && !dayTaken
   function goBook() {
     setScreen('book')
     setTimeout(() => bookEl.current?.scrollIntoView({ behavior:'smooth', block:'start' }), 80)
@@ -801,7 +877,7 @@ async function handleConfirmBooking() {
     if (timeConflict) { setBookErr('Selected time conflicts with an existing booking. Please choose another slot.'); return }
     if (timeInPast) { setBookErr('That time has already passed today. Please choose an upcoming time.'); return }
     if (crossesMidnight(bookTime, pkg.durationHours)) { setBookErr(`A ${pkg.durationHours}h session starting at ${fmtTime(bookTime)} would run past midnight. Please choose an earlier start time.`); return }
-    if (!selectedSeat) { setBookErr('Please select a seat before continuing.'); return }
+    if (!bookWholeRoom && !selectedSeat) { setBookErr('Please select a seat, or choose to book the whole room.'); return }
 
     // ── Final one-booking-per-day check, BEFORE opening payment ──
     try {
@@ -823,10 +899,12 @@ async function handleConfirmBooking() {
     // Do NOT create the booking until payment actually succeeds.
     const result = await openPayment({
       type:        'room_booking',
-      amount:      pkg.price,
-      title:       `${selectedRoomMeta.name} — ${pkg.name}`,
-      description: `${bookDate} · ${bookTime}–${endTime} · ${pkg.period}`,
-      itemLines:   [{ label:`${pkg.name} (${pkg.period})`, amount:pkg.price }],
+      amount:      totalPrice,
+      title:       `${selectedRoomMeta.name} — ${pkg.name}${bookWholeRoom ? ' (Whole Room)' : ''}`,
+      description: `${bookDate} · ${bookTime}–${endTime} · ${pkg.period}${bookWholeRoom ? ' · Whole Room' : ` · Seat ${selectedSeat}`}`,
+      itemLines:   bookWholeRoom
+        ? [{ label:`${pkg.name} (${pkg.period}) × ${SEATS_PER_ROOM} seats — whole room`, amount:totalPrice }]
+        : [{ label:`${pkg.name} (${pkg.period})`, amount:totalPrice }],
       couponEnabled: true,
       allowedGateways: ['esewa','khalti','fonepay','stripe','bank_transfer','cash'],
       metadata: {
@@ -837,7 +915,8 @@ async function handleConfirmBooking() {
         package_name:    pkg.name,
         book_date:       bookDate,
         book_time:       bookTime,
-        seat_number:     selectedSeat,
+        seat_number:     bookWholeRoom ? null : selectedSeat,
+        whole_room:      bookWholeRoom,
         client_name:     clientName,
         client_phone:    clientPhone,
         client_email:    clientEmail,
@@ -857,8 +936,8 @@ async function handleConfirmBooking() {
 bookingId = await saveRoomBooking({
         roomId, bookedDate:bookDate, startTime:bookTime, endTime, notes:notes||null,
         paymentMethod: result.method || null,
-        amount: pkg.price,
-        seatNumber: selectedSeat,
+        amount: totalPrice,
+        seatNumber: bookWholeRoom ? null : selectedSeat,
       })
     } catch (err) {
       saveErr = err.message === 'ONE_BOOKING_PER_DAY'
@@ -882,7 +961,7 @@ bookingId = await saveRoomBooking({
       }).catch(() => {})
     }
 
-    setDoneData({ pkg, room:selectedRoomMeta, bookDate, bookTime, endTime, seatNumber:selectedSeat, clientName, clientPhone, method:result.method, txnId:result.transactionId })
+    setDoneData({ pkg, room:selectedRoomMeta, bookDate, bookTime, endTime, seatNumber:selectedSeat, wholeRoom:bookWholeRoom, totalPrice, clientName, clientPhone, method:result.method, txnId:result.transactionId })
     setScreen('done')
     window.scrollTo({ top:0, behavior:'smooth' })
   }
@@ -913,8 +992,8 @@ const tomorrow = new Date()
                 ['Package', `${doneData.pkg?.emoji} ${doneData.pkg?.name}`],
                 ['Date',    doneData.bookDate],
                 ['Time',    `${doneData.bookTime} – ${doneData.endTime}`],
-                ['Seat',    `#${doneData.seatNumber}`],
-                ['Total',   `NPR ${doneData.pkg?.price?.toLocaleString()}`],
+                ['Seat',    doneData.wholeRoom ? `Whole Room (all ${SEATS_PER_ROOM} seats)` : `#${doneData.seatNumber}`],
+                ['Total',   `NPR ${(doneData.totalPrice ?? doneData.pkg?.price)?.toLocaleString()}`],
                 ['Payment', doneData.method||'—'],
                 ...(doneData.txnId ? [['Ref', doneData.txnId]] : []),
               ].map(([k,v]) => (
@@ -1100,7 +1179,7 @@ const tomorrow = new Date()
                     <button
                       key={r.key}
                       type="button"
-                      onClick={() => { setSelectedRoomKey(r.key); setSelectedSeat(null) }}
+                      onClick={() => { setSelectedRoomKey(r.key); setSelectedSeat(null); setBookWholeRoom(false) }}
                       style={{
                         display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'0.3rem',
                         padding:'0.75rem 0.85rem', borderRadius:12, textAlign:'left', cursor:'pointer',
@@ -1133,7 +1212,7 @@ const tomorrow = new Date()
              {/* Date picker */}
                 <div>
                   <label style={{ display:'block', fontFamily:'inherit', fontSize:'0.68rem', fontWeight:800, color:SLATE_L, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.35rem' }}>Date *</label>
-<SmartDatePicker value={bookDate} minDate={minDate} onChange={val => { setBookDate(val); setBookTime(''); setSelectedSeat(null) }} />                </div>
+<SmartDatePicker value={bookDate} minDate={minDate} onChange={val => { setBookDate(val); setBookTime(''); setSelectedSeat(null); setBookWholeRoom(false) }} />                </div>
 
                 {bookDate && dayTaken && (
                   <div style={{ background:AMBER_L, border:`1.5px solid ${AMBER}`, borderRadius:10, padding:'0.75rem 0.9rem', display:'flex', gap:'0.6rem', alignItems:'flex-start' }}>
@@ -1168,11 +1247,12 @@ const tomorrow = new Date()
                 {/* Smart time picker */}
                 <SmartTimePicker
                   value={bookTime}
-                  onChange={t => { setBookTime(t); setSelectedSeat(null) }}
+                  onChange={t => { setBookTime(t); setSelectedSeat(null); setBookWholeRoom(false) }}
                   bookedSlots={bookedSlots}
                   durationHours={pkg.durationHours}
                   label={`Start Time * (${pkg.durationHours}h slot · 24hr, day or night)`}
                   bookDate={bookDate}
+                  wholeRoom={bookWholeRoom}
                 />
 
                 {/* Session summary, past-time warning, or conflict warning */}
@@ -1215,12 +1295,15 @@ const tomorrow = new Date()
                 )}
 
                 {bookTime && !timeInPast && !timeConflict && (
-                  <SeatPicker
+                  <SeatOrWholeRoomPicker
                     bookedSlots={bookedSlots}
                     startTime={bookTime}
                     endTime={endTime}
                     selectedSeat={selectedSeat}
-                    onSelect={setSelectedSeat}
+                    onSelectSeat={setSelectedSeat}
+                    wholeRoom={bookWholeRoom}
+                    onToggleWholeRoom={setBookWholeRoom}
+                    pricePerSeat={pkg.price}
                   />
                 )}
               </div>
@@ -1273,11 +1356,11 @@ const tomorrow = new Date()
                       ? '🚫 Choose a different time'
                       : !bookDate || !bookTime
                         ? 'Pick a date & time first'
-                        : !selectedSeat
-                          ? '💺 Please select a seat'
+                        : (!bookWholeRoom && !selectedSeat)
+                          ? '💺 Please select a seat, or book the whole room'
                           : !clientName.trim() || clientPhone.trim().length < 7
                             ? 'Fill in your name & phone'
-                            : `Choose Payment — NPR ${pkg.price.toLocaleString()} →`
+                            : `Choose Payment — NPR ${totalPrice.toLocaleString()} →`
                 }
               </button>
             </div>
