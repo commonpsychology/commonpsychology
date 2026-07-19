@@ -926,6 +926,7 @@ const SIDEBAR = [
   { group:'Content', items:[
     { id:'posts',          label:'Blog Posts',     icon:'✦' },
     { id:'news',           label:'News',           icon:'◆' },
+    { id:'newsletter',     label:'Newsletter',     icon:'✉️' },
     { id:'resources',      label:'Resources',      icon:'▣' },
     { id:'gallery',        label:'Gallery',        icon:'▦' },
     { id:'research',       label:'Research',       icon:'◈' },
@@ -2525,6 +2526,70 @@ function ProductReviewsSection() {
   )
 }
 
+// ─── NEWSLETTER SUBSCRIBERS SECTION ───────────────────────────────────────────
+function NewsletterSubscribersSection() {
+  const [subs, setSubs]       = useState([])
+  const [total, setTotal]     = useState(0)
+  const [page, setPage]       = useState(1)
+  const [search, setSearch]   = useState('')
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast]     = useState(null)
+  const SUB_LIMIT = 20
+
+  const flash = (msg, ok=true) => { setToast({ msg, ok }); setTimeout(()=>setToast(null), 3000) }
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const p = new URLSearchParams({ page, limit: SUB_LIMIT })
+      if (search) p.set('search', search)
+      const d = await apiFetch(`/admin/newsletter-subscribers?${p}`)
+      setSubs(d.items || d.subscribers || [])
+      setTotal(d.pagination?.total || 0)
+    } catch (e) { flash(e.message, false) }
+    finally { setLoading(false) }
+  }, [page, search])
+
+  useEffect(() => { load() }, [load])
+
+  const remove = async (id) => {
+    if (!window.confirm('Remove this subscriber?')) return
+    try { await apiFetch(`/admin/newsletter-subscribers/${id}`, { method:'DELETE' }); flash('Removed'); load() }
+    catch (e) { flash(e.message, false) }
+  }
+
+  const exportCsv = () => {
+    const rows = ['email,subscribed_at', ...subs.map(s => `${s.email},${s.subscribed_at||''}`)]
+    const blob = new Blob([rows.join('\n')], { type:'text/csv' })
+    const url  = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = 'newsletter-subscribers.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div style={{ position:'relative' }}>
+      {toast && (
+        <div style={{ position:'fixed', bottom:'1.5rem', right:'1.5rem', zIndex:9999, background:toast.ok?'var(--green)':'var(--red)', color:'white', padding:'.65rem 1.1rem', borderRadius:'var(--radius)', fontWeight:600, fontSize:'.82rem', boxShadow:'var(--shadow-md)' }}>{toast.msg}</div>
+      )}
+      <SectionHeader title="Newsletter Subscribers" count={total} sub="People who subscribed via the Our News page">
+        <input className="inp" value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search email…" style={{width:200}} />
+        <button className="btn btn-ghost" onClick={exportCsv}>⬇ Export CSV</button>
+        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
+      </SectionHeader>
+      <Table loading={loading} cols={['Email','Subscribed At','Actions']}
+        rows={subs.map(s => (
+          <tr key={s.id}>
+            <td style={{ fontWeight:600, fontSize:'.82rem' }}>{s.email}</td>
+            <td style={{ fontSize:'.76rem', color:'var(--text-muted)' }}>{fmtT(s.subscribed_at)}</td>
+            <td><button className="btn btn-danger btn-sm btn-icon" onClick={()=>remove(s.id)}>🗑</button></td>
+          </tr>
+        ))}
+      />
+      <Pager page={page} set={setPage} total={total} limit={SUB_LIMIT} />
+    </div>
+  )
+}
+
 // ─── INTEGRATE (MEMBERS) SECTION ─────────────────────────────────────────────
 function IntegrateSection() {
   const [members, setMembers] = useState([])
@@ -2776,6 +2841,7 @@ export default function AdminDashboardPage() {
   // Content tabs
   const [posts, setPosts]         = useState([]); const [postsTotal, setPostsTotal]     = useState(0); const [postsPage, setPostsPage]     = useState(1)
   const [news, setNews]           = useState([]); const [newsTotal, setNewsTotal]       = useState(0); const [newsPage, setNewsPage]       = useState(1)
+  const [newsCategories, setNewsCategories] = useState([])
   const [resources, setRes]       = useState([]); const [resTotal, setResTotal]         = useState(0); const [resPage, setResPage]         = useState(1)
   const [gallery, setGallery]     = useState([]); const [galTotal, setGalTotal]         = useState(0); const [galPage, setGalPage]         = useState(1)
   const [research, setResearch]   = useState([]); const [rscTotal, setRscTotal]         = useState(0); const [rscPage, setRscPage]         = useState(1)
@@ -2834,7 +2900,7 @@ export default function AdminDashboardPage() {
   orders: () => { fetchOrders(); fetchRiders() },  // ← call both
       notifications:       fetchNotifClients,
       posts:               () => sec('/admin/posts',            setPosts,      setPostsTotal,  postsPage),
-      news:                () => sec('/admin/news',             setNews,       setNewsTotal,   newsPage),
+      news:                () => { sec('/admin/news', setNews, setNewsTotal, newsPage); fetchNewsCategories() },
       resources:           () => sec('/admin/resources',        setRes,        setResTotal,    resPage),
       therapists:          () => sec('/admin/therapists',       setTherapists, setThrTotal,    thrPage),
       gallery:             () => sec('/admin/gallery',          setGallery,    setGalTotal,    galPage),
@@ -2994,6 +3060,10 @@ const fetchRiders = async () => {
     try { const d = await apiFetch('/admin/settings'); setSettings(d.settings || d.data || []) }
     catch {}
     finally { setB('settings', false) }
+  }
+
+  const fetchNewsCategories = async () => {
+    try { const d = await apiFetch('/admin/news-categories'); setNewsCategories(d.categories || []) } catch {}
   }
 
   const sec = async (ep, setter, totalSetter, pg) => {
@@ -3251,14 +3321,39 @@ await REFRESH_MAP[modal.type]?.()
     if (t === 'news_article') return (<>
       <div className="field"><label>Headline *</label><input className="inp" value={form.headline||''} onChange={fld('headline')} /></div>
       <div className="field-row">
-        <div className="field"><label>Slug *</label><input className="inp" value={form.slug||''} onChange={fld('slug')} /></div>
-        <div className="field"><label>Tag</label><input className="inp" value={form.tag||''} onChange={fld('tag')} /></div>
+        <div className="field"><label>Slug (auto if blank)</label><input className="inp mono" value={form.slug||''} onChange={fld('slug')} /></div>
+        <div className="field"><label>Category</label>
+          <select className="inp" value={form.category_id||''} onChange={fld('category_id')}>
+            <option value="">— None —</option>
+            {newsCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
       </div>
       <div className="field"><label>Summary</label><textarea className="inp" rows={3} value={form.summary||''} onChange={fld('summary')} /></div>
+      <div className="field"><label>Content (Markdown)</label><textarea className="inp mono" rows={8} value={form.content||''} onChange={fld('content')} /></div>
       <div className="field-row">
         <div className="field"><label>Author</label><input className="inp" value={form.author||''} onChange={fld('author')} /></div>
         <div className="field"><label>Author Role</label><input className="inp" value={form.author_role||''} onChange={fld('author_role')} /></div>
       </div>
+      <div className="field-row3">
+        <div className="field"><label>Tag</label><input className="inp" value={form.tag||''} onChange={fld('tag')} placeholder="e.g. Research" /></div>
+        <div className="field"><label>Read Time</label><input className="inp" value={form.read_time||'5 min read'} onChange={fld('read_time')} /></div>
+        <div className="field"><label>Card Size</label>
+          <select className="inp" value={form.size||'medium'} onChange={fld('size')}>
+            {['hero','secondary','medium','small'].map(s=><option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="field-row">
+        <div className="field"><label>Image URL</label><input className="inp" value={form.image_url||''} onChange={fld('image_url')} placeholder="https://…" /></div>
+        <div className="field"><label>Fallback Emoji</label><input className="inp" value={form.image_emoji||'📰'} onChange={fld('image_emoji')} style={{textAlign:'center',fontSize:'1.2rem'}} /></div>
+      </div>
+      <div className="field">
+        <label>Fallback Gradient (used when no Image URL)</label>
+        <input className="inp mono" value={form.image_gradient||''} onChange={fld('image_gradient')} placeholder="linear-gradient(135deg, #1a3a4a 0%, #2e6080 100%)" style={{fontSize:'.72rem'}} />
+        <div style={{ width:'100%', height:40, borderRadius:8, marginTop:'.4rem', background:form.image_gradient||'#e2e8f0', border:'1px solid var(--border)' }} />
+      </div>
+      <div className="field"><label>Publish Date</label><input className="inp" type="date" value={(form.published_at||new Date().toISOString()).slice(0,10)} onChange={fld('published_at')} /></div>
       <div style={{display:'flex',gap:'1.25rem'}}>
         {[['is_published','Published'],['is_featured','Featured']].map(([k,l])=>(<label key={k} style={{display:'flex',alignItems:'center',gap:'.5rem',fontSize:'.78rem',cursor:'pointer'}}><Toggle on={form[k]!==false} onChange={v=>setForm(p=>({...p,[k]:v}))} />{l}</label>))}
       </div>
@@ -3876,6 +3971,8 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
               <Pager page={newsPage} set={setNewsPage} total={newsTotal} />
             </div>
           )}
+
+          {tab === 'newsletter' && <NewsletterSubscribersSection />}
 
           {/* ═══ RESOURCES ═══ */}
           {tab === 'resources' && (

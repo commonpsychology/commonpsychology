@@ -6,8 +6,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "../context/RouterContext"
 
 // ✅ FIXED: API_BASE always ends with /api — matches detail pages exactly
-const API_BASE = (import.meta.env.VITE_API_URL || "${import.meta.env.VITE_API_URL}/api")
-  .replace(/\/+$/, "")   // strip trailing slash
+const API_BASE = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "")  .replace(/\/+$/, "")   // strip trailing slash
   .replace(/\/api$/, "") // strip /api if already present
   + "/api"               // re-append exactly once
 
@@ -86,20 +85,21 @@ function NewsletterBox() {
   const [email, setEmail] = useState("")
   const [status, setStatus] = useState("idle") // idle | loading | done | error
 
-  async function handleSubscribe() {
-    if (!email) return
-    setStatus("loading")
-    try {
-      const res = await fetch(`${API_BASE}/news/subscribe`, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ email })
-      })
-      if (res.ok) setStatus("done")
-      else setStatus("error")
-    } catch {
-      setStatus("done")
-    }
+async function handleSubscribe() {
+  if (!email) return
+  setStatus("loading")
+  try {
+    const res = await fetch(`${API_BASE}/news/subscribe`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    })
+    const data = await res.json().catch(() => ({}))
+    if (res.ok && data.success !== false) setStatus("done")
+    else setStatus("error")
+  } catch {
+    setStatus("error")
   }
+}
 
   return (
     <div style={{ background:`linear-gradient(135deg,${T.blueDeep} 0%,${T.greenDeep} 100%)`,

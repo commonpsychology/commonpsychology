@@ -1394,4 +1394,4 @@ export default function ClientPortalPage() {
       </div>
     </div>
   )
-}
+} 
