@@ -887,6 +887,8 @@ bookingId = await saveRoomBooking({
     window.scrollTo({ top:0, behavior:'smooth' })
   }
 
+
+  
 const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   const minDate = tomorrow.toISOString().split('T')[0]
