@@ -234,7 +234,7 @@ function PaymentConfirmedModal({ variant = 'success', transactionId, onGoToPorta
           background: btnGrad,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '1.8rem', color: 'white', boxShadow: '0 8px 24px rgba(0,123,168,0.35)',
-        }}>✓</div>
+        }}>!</div>
         <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.25rem', color:C.textDark, margin:'0 0 0.75rem' }}>
           Payment Received
         </h2>
