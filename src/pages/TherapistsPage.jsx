@@ -22,6 +22,9 @@ function InitialsAvatar({ name }) {
   )
 }
 
+
+
+
 function cleanUrl(url) {
   if (!url) return null
   if (url.startsWith('http://') || url.startsWith('https://')) return url
