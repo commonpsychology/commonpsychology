@@ -263,6 +263,92 @@ export default function TherapistsPage() {
         </div>
       </div>
 
+      {/* ── Calming Space Section ── */}
+      <div style={{
+        maxWidth: 1180, margin: '4rem auto', padding: '0 2rem',
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3.5rem',
+        alignItems: 'center',
+      }}
+      className="calm-space-section"
+      >
+        {/* Left — text */}
+        <div>
+          <span style={{
+            display: 'inline-block', fontSize: '0.72rem', fontWeight: 800,
+            letterSpacing: '0.14em', textTransform: 'uppercase',
+            color: '#0d9488', background: 'rgba(13,148,136,0.1)',
+            padding: '5px 14px', borderRadius: 20, marginBottom: '1.1rem',
+          }}>
+            A Space to Breathe
+          </span>
+          <h2 style={{
+            fontSize: 'clamp(1.7rem, 3vw, 2.4rem)', fontWeight: 700,
+            color: '#0f172a', lineHeight: 1.25, marginBottom: '1.1rem',
+          }}>
+            A calm, welcoming space<br />designed for healing
+          </h2>
+          <p style={{ fontSize: '1rem', color: '#475569', lineHeight: 1.8, marginBottom: '1.1rem' }}>
+            Every session takes place in a setting built around comfort and privacy —
+            soft natural light, quiet acoustics, and warm, unhurried surroundings that
+            help you settle in before a single word is spoken.
+          </p>
+          <p style={{ fontSize: '1rem', color: '#475569', lineHeight: 1.8, marginBottom: '1.75rem' }}>
+            We believe the environment is part of the therapy. That's why our rooms
+            are thoughtfully arranged to feel less like a clinic and more like a
+            space where you can exhale, be heard, and feel genuinely at ease.
+          </p>
+          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+            {[
+              ['🌿', 'Calming, private rooms'],
+              ['🔇', 'Sound-conscious spaces'],
+              ['☀️', 'Warm natural lighting'],
+            ].map(([icon, label]) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '1.3rem' }}>{icon}</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right — framed image */}
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            position: 'absolute', width: 200, height: 200, borderRadius: '50%',
+            background: 'rgba(0,123,168,0.12)', filter: 'blur(36px)',
+            top: -30, right: -20, pointerEvents: 'none',
+          }} />
+          <div style={{
+            position: 'absolute', width: 160, height: 160, borderRadius: '50%',
+            background: 'rgba(254,243,199,0.6)', filter: 'blur(30px)',
+            bottom: -20, left: -20, pointerEvents: 'none',
+          }} />
+          <div style={{
+            position: 'relative', zIndex: 1,
+            borderRadius: 28, overflow: 'hidden',
+            boxShadow: '0 20px 60px rgba(15,23,42,0.16), 0 4px 16px rgba(15,23,42,0.08)',
+            border: '6px solid #ffffff',
+            transform: 'rotate(-1.2deg)',
+          }}>
+            <img
+              src="/setting.png"
+              alt="Our calming therapy setting"
+              style={{ width: '100%', height: 420, objectFit: 'cover', display: 'block' }}
+              onError={e => { e.target.style.display = 'none' }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 860px) {
+          .calm-space-section {
+            grid-template-columns: 1fr !important;
+            gap: 2rem !important;
+          }
+        }
+      `}</style>
+
       {selectedTherapist && (
         <TherapistDetailModal
           therapist={selectedTherapist}
