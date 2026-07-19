@@ -22,6 +22,7 @@ const btnGrad  = `linear-gradient(135deg,${SKY_D} 0%,${SKY} 100%)`
 const goldGrad = `linear-gradient(135deg,#92400e 0%,${GOLD} 60%,#fbbf24 100%)`
 
 const DEFAULT_ROOM_NAME = 'Therapy Room A'
+const SEATS_PER_ROOM = 7
 
 
 function MyBookingsSidebar({ apiBase }) {
@@ -582,12 +583,75 @@ if (slotPast) {
   )
 }
 
-async function saveRoomBooking({ roomId, bookedDate, startTime, endTime, notes, paymentMethod, amount }) {
+// ── Seat Picker — 7 seats, red = booked/conflicting, green = available, blue = selected ──
+function SeatPicker({ bookedSlots, startTime, endTime, selectedSeat, onSelect }) {
+  if (!startTime || !endTime) {
+    return (
+      <div style={{ padding:'0.85rem 1rem', background:BG, borderRadius:12, border:`1px solid ${BORDER}`, fontSize:'0.8rem', color:SLATE_L, fontStyle:'italic' }}>
+        Select a start time above to see seat availability.
+      </div>
+    )
+  }
+
+  const seatConflict = (seatNum) => bookedSlots.some(b =>
+    b.seatNumber === seatNum && startTime < b.end && endTime > b.start
+  )
+
+  return (
+    <div>
+      <label style={{ display:'block', fontFamily:'inherit', fontSize:'0.68rem', fontWeight:800, color:SLATE_L, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>
+        Choose Your Seat *
+      </label>
+      <div style={{ display:'flex', gap:'0.6rem', flexWrap:'wrap' }}>
+        {Array.from({ length: SEATS_PER_ROOM }, (_, i) => i + 1).map(seatNum => {
+          const booked = seatConflict(seatNum)
+          const isSel  = selectedSeat === seatNum
+          let bg = MINT_L, border = '#a7f3d0', color = '#065f46', label = 'Available'
+          if (booked) { bg = RED_L; border = '#fca5a5'; color = RED_D; label = 'Booked' }
+          if (isSel)  { bg = SKY_L; border = SKY; color = SKY_D; label = 'Selected' }
+
+          return (
+            <button
+              key={seatNum}
+              type="button"
+              disabled={booked}
+              onClick={() => onSelect(seatNum)}
+              title={`Seat ${seatNum} — ${label}`}
+              style={{
+                width: 56, height: 56, borderRadius: 12,
+                border: `2px solid ${border}`, background: bg, color,
+                display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+                cursor: booked ? 'not-allowed' : 'pointer',
+                fontFamily:'inherit', fontWeight:700, fontSize:'0.9rem',
+                opacity: booked ? 0.75 : 1,
+                transition:'all 0.15s',
+                boxShadow: isSel ? `0 0 0 3px ${SKY_L}` : 'none',
+              }}
+            >
+              <span style={{ fontSize:'1.1rem' }}>💺</span>
+              <span style={{ fontSize:'0.68rem' }}>{seatNum}</span>
+            </button>
+          )
+        })}
+      </div>
+      <div style={{ display:'flex', gap:'0.85rem', marginTop:'0.6rem', flexWrap:'wrap' }}>
+        {[[MINT,'Available'],[RED,'Booked'],[SKY,'Selected']].map(([c,l]) => (
+          <div key={l} style={{ display:'flex', alignItems:'center', gap:'0.3rem' }}>
+            <div style={{ width:10, height:10, borderRadius:3, background:c, flexShrink:0 }} />
+            <span style={{ fontFamily:'inherit', fontSize:'0.67rem', color:SLATE_M }}>{l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+async function saveRoomBooking({ roomId, bookedDate, startTime, endTime, notes, paymentMethod, amount, seatNumber }) {
   const token = localStorage.getItem('accessToken')
   const res = await fetch(`${API_BASE}/room-bookings`, {
     method:  'POST',
     headers: { 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) },
-    body: JSON.stringify({ roomId, bookedDate, startTime, endTime, notes:notes||null, paymentMethod:paymentMethod||null, amount }),
+    body: JSON.stringify({ roomId, bookedDate, startTime, endTime, notes:notes||null, paymentMethod:paymentMethod||null, amount, seatNumber }),
   })
   const data = await res.json()
   if (!res.ok) throw new Error(data.message || `Booking failed (${res.status})`)
@@ -618,7 +682,8 @@ const [bookErr,     setBookErr]     = useState('')
   const [selectedRoomKey, setSelectedRoomKey] = useState(ROOMS[2].key) // default: The Serenity Room
 
   // ── Availability state ──────────────────────────────────────────────────
-  const [bookedSlots,   setBookedSlots]   = useState([])  // [{start,end}]
+  const [bookedSlots,   setBookedSlots]   = useState([])  // [{seatNumber,start,end}]
+  const [selectedSeat,  setSelectedSeat]  = useState(null)
   const [availLoading,  setAvailLoading]  = useState(false)
   const [availErr,      setAvailErr]      = useState('')
   const [availFetched,  setAvailFetched]  = useState('')  // last fetched date+roomId
@@ -718,7 +783,7 @@ useEffect(() => {
   // Can't select a start time that has already passed today
   const timeInPast = bookTime ? isSlotPast(bookTime, bookDate) : false
 
-const formOK = bookDate && bookTime && clientName.trim() && clientPhone.trim().length >= 7 && !timeConflict && !timeInPast && !dayTaken
+const formOK = bookDate && bookTime && selectedSeat && clientName.trim() && clientPhone.trim().length >= 7 && !timeConflict && !timeInPast && !dayTaken
   function goBook() {
     setScreen('book')
     setTimeout(() => bookEl.current?.scrollIntoView({ behavior:'smooth', block:'start' }), 80)
@@ -736,6 +801,7 @@ async function handleConfirmBooking() {
     if (timeConflict) { setBookErr('Selected time conflicts with an existing booking. Please choose another slot.'); return }
     if (timeInPast) { setBookErr('That time has already passed today. Please choose an upcoming time.'); return }
     if (crossesMidnight(bookTime, pkg.durationHours)) { setBookErr(`A ${pkg.durationHours}h session starting at ${fmtTime(bookTime)} would run past midnight. Please choose an earlier start time.`); return }
+    if (!selectedSeat) { setBookErr('Please select a seat before continuing.'); return }
 
     // ── Final one-booking-per-day check, BEFORE opening payment ──
     try {
@@ -771,6 +837,7 @@ async function handleConfirmBooking() {
         package_name:    pkg.name,
         book_date:       bookDate,
         book_time:       bookTime,
+        seat_number:     selectedSeat,
         client_name:     clientName,
         client_phone:    clientPhone,
         client_email:    clientEmail,
@@ -791,6 +858,7 @@ bookingId = await saveRoomBooking({
         roomId, bookedDate:bookDate, startTime:bookTime, endTime, notes:notes||null,
         paymentMethod: result.method || null,
         amount: pkg.price,
+        seatNumber: selectedSeat,
       })
     } catch (err) {
       saveErr = err.message === 'ONE_BOOKING_PER_DAY'
@@ -814,7 +882,7 @@ bookingId = await saveRoomBooking({
       }).catch(() => {})
     }
 
-    setDoneData({ pkg, room:selectedRoomMeta, bookDate, bookTime, endTime, clientName, clientPhone, method:result.method, txnId:result.transactionId })
+    setDoneData({ pkg, room:selectedRoomMeta, bookDate, bookTime, endTime, seatNumber:selectedSeat, clientName, clientPhone, method:result.method, txnId:result.transactionId })
     setScreen('done')
     window.scrollTo({ top:0, behavior:'smooth' })
   }
@@ -843,6 +911,7 @@ const tomorrow = new Date()
                 ['Package', `${doneData.pkg?.emoji} ${doneData.pkg?.name}`],
                 ['Date',    doneData.bookDate],
                 ['Time',    `${doneData.bookTime} – ${doneData.endTime}`],
+                ['Seat',    `#${doneData.seatNumber}`],
                 ['Total',   `NPR ${doneData.pkg?.price?.toLocaleString()}`],
                 ['Payment', doneData.method||'—'],
                 ...(doneData.txnId ? [['Ref', doneData.txnId]] : []),
@@ -1029,7 +1098,7 @@ const tomorrow = new Date()
                     <button
                       key={r.key}
                       type="button"
-                      onClick={() => setSelectedRoomKey(r.key)}
+                      onClick={() => { setSelectedRoomKey(r.key); setSelectedSeat(null) }}
                       style={{
                         display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'0.3rem',
                         padding:'0.75rem 0.85rem', borderRadius:12, textAlign:'left', cursor:'pointer',
@@ -1062,7 +1131,7 @@ const tomorrow = new Date()
              {/* Date picker */}
                 <div>
                   <label style={{ display:'block', fontFamily:'inherit', fontSize:'0.68rem', fontWeight:800, color:SLATE_L, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.35rem' }}>Date *</label>
-<SmartDatePicker value={bookDate} minDate={minDate} onChange={val => { setBookDate(val); setBookTime('') }} />                </div>
+<SmartDatePicker value={bookDate} minDate={minDate} onChange={val => { setBookDate(val); setBookTime(''); setSelectedSeat(null) }} />                </div>
 
                 {bookDate && dayTaken && (
                   <div style={{ background:AMBER_L, border:`1.5px solid ${AMBER}`, borderRadius:10, padding:'0.75rem 0.9rem', display:'flex', gap:'0.6rem', alignItems:'flex-start' }}>
@@ -1097,7 +1166,7 @@ const tomorrow = new Date()
                 {/* Smart time picker */}
                 <SmartTimePicker
                   value={bookTime}
-                  onChange={setBookTime}
+                  onChange={t => { setBookTime(t); setSelectedSeat(null) }}
                   bookedSlots={bookedSlots}
                   durationHours={pkg.durationHours}
                   label={`Start Time * (${pkg.durationHours}h slot · 24hr, day or night)`}
@@ -1134,13 +1203,23 @@ const tomorrow = new Date()
                         <div style={{ marginTop:'0.45rem', display:'flex', flexWrap:'wrap', gap:'0.3rem' }}>
                           {bookedSlots.map((b,i) => (
                             <span key={i} style={{ background:'#fee2e2', border:`1px solid #fca5a5`, borderRadius:100, padding:'0.15rem 0.55rem', fontSize:'0.68rem', color:RED_D, fontWeight:600 }}>
-                              {fmtTime(b.start)}–{fmtTime(b.end)} booked
+                              Seat {b.seatNumber} · {fmtTime(b.start)}–{fmtTime(b.end)} booked
                             </span>
                           ))}
                         </div>
                       )}
                     </div>
                   </div>
+                )}
+
+                {bookTime && !timeInPast && !timeConflict && (
+                  <SeatPicker
+                    bookedSlots={bookedSlots}
+                    startTime={bookTime}
+                    endTime={endTime}
+                    selectedSeat={selectedSeat}
+                    onSelect={setSelectedSeat}
+                  />
                 )}
               </div>
             </div>
@@ -1192,9 +1271,11 @@ const tomorrow = new Date()
                       ? '🚫 Choose a different time'
                       : !bookDate || !bookTime
                         ? 'Pick a date & time first'
-                        : !clientName.trim() || clientPhone.trim().length < 7
-                          ? 'Fill in your name & phone'
-                          : `Choose Payment — NPR ${pkg.price.toLocaleString()} →`
+                        : !selectedSeat
+                          ? '💺 Please select a seat'
+                          : !clientName.trim() || clientPhone.trim().length < 7
+                            ? 'Fill in your name & phone'
+                            : `Choose Payment — NPR ${pkg.price.toLocaleString()} →`
                 }
               </button>
             </div>
