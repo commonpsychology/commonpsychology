@@ -1,7 +1,7 @@
 // src/components/ReviewModal.jsx
 import { useState } from 'react'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
 
 export default function ReviewModal({ therapist, onClose, onSubmitted }) {
   const [rating, setRating] = useState(0)
