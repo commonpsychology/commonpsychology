@@ -383,7 +383,7 @@ export default function OurNews() {
                         {heroArticle.summary}
                       </p>
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-                        borderTop:`1px solid ${T.cardLine}`, paddingTop:"1rem" }}>
+                        borderTop:`1px solid ${T.cardLine}`, paddingTop:"1rem", flexWrap:"wrap", gap:"0.75rem" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                           <div style={{ width:34, height:34, borderRadius:"50%", background:T.paperDeep,
                             display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1rem",
@@ -391,8 +391,19 @@ export default function OurNews() {
                           <span style={{ fontFamily:"'Nunito',sans-serif", fontSize:"0.82rem",
                             fontWeight:700, color:T.ink }}>{heroArticle.author}</span>
                         </div>
-                        <span style={{ fontFamily:"'Nunito',sans-serif", fontSize:"0.8rem",
-                          fontWeight:700, color:T.blueMid, textDecoration:"underline", textUnderlineOffset:3 }}>Read full article →</span>
+                        <div style={{ display:"flex", alignItems:"center", gap:"0.9rem" }}>
+                          <button onClick={e=>{ e.stopPropagation(); navigate("/psychological-view") }}
+                            style={{ display:"flex", alignItems:"center", gap:6, padding:"0.4rem 0.85rem",
+                              borderRadius:100, border:`1.5px solid ${T.blueMid}`, background:"transparent",
+                              color:T.blueMid, fontFamily:"'Nunito',sans-serif", fontSize:"0.74rem", fontWeight:700,
+                              cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.18s" }}
+                            onMouseEnter={e=>{ e.currentTarget.style.background=T.blueMid; e.currentTarget.style.color=T.white }}
+                            onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.color=T.blueMid }}>
+                            👁 See from psychological perspective
+                          </button>
+                          <span style={{ fontFamily:"'Nunito',sans-serif", fontSize:"0.8rem",
+                            fontWeight:700, color:T.blueMid, textDecoration:"underline", textUnderlineOffset:3 }}>Read full article →</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -432,7 +443,7 @@ export default function OurNews() {
                             color:T.inkFaint, lineHeight:1.65, marginBottom:"0.9rem" }}>
                             {a.summary?.slice(0,100)}…
                           </p>
-                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"0.75rem" }}>
                             <span style={{ fontFamily:"'Nunito',sans-serif", fontSize:"0.7rem", color:T.inkFaint }}>
                               {fmtDate(a.published_at)}
                             </span>
@@ -440,6 +451,15 @@ export default function OurNews() {
                               {a.read_time}
                             </span>
                           </div>
+                          <button onClick={e=>{ e.stopPropagation(); navigate("/psychological-view") }}
+                            style={{ display:"flex", alignItems:"center", gap:6, padding:"0.35rem 0.75rem",
+                              borderRadius:100, border:`1.5px solid ${T.blueMid}`, background:"transparent",
+                              color:T.blueMid, fontFamily:"'Nunito',sans-serif", fontSize:"0.68rem", fontWeight:700,
+                              cursor:"pointer", width:"100%", justifyContent:"center", transition:"all 0.18s" }}
+                            onMouseEnter={e=>{ e.currentTarget.style.background=T.blueMid; e.currentTarget.style.color=T.white }}
+                            onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.color=T.blueMid }}>
+                            👁 See from psychological perspective
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -480,9 +500,19 @@ export default function OurNews() {
                           fontWeight:400, color:T.ink, lineHeight:1.35, marginBottom:"0.3rem" }}>
                           {a.headline}
                         </h4>
-                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
                           <span style={{ fontFamily:"'Nunito',sans-serif", fontSize:"0.68rem", color:T.inkFaint }}>{a.author}</span>
                           <span style={{ fontFamily:"'Nunito',sans-serif", fontSize:"0.68rem", color:T.cardLine }}>· {a.read_time}</span>
+                          <button onClick={e=>{ e.stopPropagation(); navigate("/psychological-view") }}
+                            title="See from psychological perspective"
+                            style={{ display:"flex", alignItems:"center", gap:4, padding:"0.2rem 0.55rem",
+                              borderRadius:100, border:`1px solid ${T.blueMid}`, background:"transparent",
+                              color:T.blueMid, fontFamily:"'Nunito',sans-serif", fontSize:"0.62rem", fontWeight:700,
+                              cursor:"pointer", whiteSpace:"nowrap", marginLeft:"auto", transition:"all 0.18s" }}
+                            onMouseEnter={e=>{ e.currentTarget.style.background=T.blueMid; e.currentTarget.style.color=T.white }}
+                            onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.color=T.blueMid }}>
+                            👁 Psychological view
+                          </button>
                         </div>
                       </div>
                     </div>
