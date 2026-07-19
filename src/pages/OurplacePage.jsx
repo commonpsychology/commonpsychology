@@ -596,7 +596,7 @@ async function saveRoomBooking({ roomId, bookedDate, startTime, endTime, notes, 
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function OurPlacePage() {
-  const { navigate }    = useRouter()
+  const { navigate, params } = useRouter()
   const { openPayment } = usePayment()
 
   const [screen,      setScreen]      = useState('place')
@@ -631,6 +631,15 @@ const [bookErr,     setBookErr]     = useState('')
     const id = setInterval(() => setImgIdx(i => (i + 1) % PLACE.images.length), 5000)
     return () => clearInterval(id)
   }, [])
+
+  // Arrived here via a "Book a Room" link elsewhere (e.g. My Bookings) —
+  // jump straight into the booking flow and scroll down to it.
+  useEffect(() => {
+    if (params?.scrollTo === 'bottom') {
+      goBook()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params])
 
   // Fetch the full rooms list from the API
   useEffect(() => {
