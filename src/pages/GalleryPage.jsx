@@ -326,6 +326,19 @@ export default function GalleryPage() {
           </span>
         </div>
 
+        {/* Image disclaimer */}
+<div style={{
+  display:'flex', alignItems:'center', gap:'0.5rem',
+  background:C.skyGhost, border:`1px dashed ${C.border}`,
+  borderRadius:10, padding:'0.65rem 1rem', marginBottom:'1.5rem'
+}}>
+  <span style={{ fontSize:'0.9rem' }}>ℹ️</span>
+  <span style={{ fontFamily:'var(--font-body)', fontSize:'0.75rem', color:C.textLight, lineHeight:1.5 }}>
+    Some images shown are illustrative placeholders sourced from the web or AI-generated,
+    and may not depict actual events or locations.
+  </span>
+</div>
+
         {/* Grid — gridColumns is derived from the same `bp` state used by
            GalleryCard, so the container and every card are always in sync. */}
         <div style={{

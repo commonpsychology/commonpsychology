@@ -204,11 +204,9 @@ function StepBar({ step }) {
 }
 
 // ── Post-payment confirmation modal ──────────────────────────────────────
-// Shown once payment succeeds and the appointment record has been updated.
-// Deliberately a separate, centered popup (not an inline banner in Step 4)
-// so it reads as a clear, calm confirmation rather than an error or a
-// step-flow message. Only dismissible via the button, so the person
-// actually registers that admin confirmation is still pending.
+// Shown once payment succeeds. Always uses the calm checkmark treatment —
+// even if the payment→appointment link had an issue, the person's money
+// went through fine, so the tone here should never feel like a warning.
 function PaymentConfirmedModal({ variant = 'success', transactionId, onGoToPortal }) {
   const isIssue = variant === 'link_issue'
   return (
@@ -233,21 +231,21 @@ function PaymentConfirmedModal({ variant = 'success', transactionId, onGoToPorta
       }}>
         <div style={{
           width: 64, height: 64, borderRadius: '50%', margin: '0 auto 1.25rem',
-          background: isIssue ? 'linear-gradient(135deg,#d97706 0%,#f59e0b 100%)' : btnGrad,
+          background: btnGrad,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '1.8rem', color: 'white', boxShadow: '0 8px 24px rgba(0,123,168,0.35)',
-        }}>{isIssue ? '!' : '✓'}</div>
+        }}>✓</div>
         <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.25rem', color:C.textDark, margin:'0 0 0.75rem' }}>
           Payment Received
         </h2>
         <p style={{ fontSize:'0.9rem', color:C.textMid, lineHeight:1.65, margin:'0 0 1.75rem' }}>
           {isIssue ? (
             <>
-              Your payment went through successfully. We hit a small snag saving it against your appointment record{transactionId ? <> (reference <strong>{transactionId}</strong>)</> : ''}, so our team will confirm it manually — <strong>you don't need to pay again</strong>. You can check status anytime in the <strong>Appointments</strong> section of your portal.
+              Your payment{transactionId ? <> (reference <strong>{transactionId}</strong>)</> : ''} has been received successfully. Our team will confirm your appointment shortly — you don't need to do anything else or pay again. You can check the status anytime in the <strong>Appointments</strong> section of your portal.
             </>
           ) : (
             <>
-              Your payment will be confirmed by our admin team shortly. You can check the status anytime in the <strong>Appointments</strong> section of your portal. Thank you!
+              Your appointment will be confirmed by our team shortly. You can check the status anytime in the <strong>Appointments</strong> section of your portal. Thank you!
             </>
           )}
         </p>
