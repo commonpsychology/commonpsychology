@@ -24,6 +24,8 @@ const NAV = [
   { label: 'Learn', labelNP: 'सिक्नुहोस्', path: '/blog', children: [
     { label: 'Blog & Articles', labelNP: 'ब्लग र लेखहरू',     path: '/blog',         icon: '✍️', desc: 'Expert-written insights',     descNP: 'विशेषज्ञ-लिखित अन्तर्दृष्टि' },
     { label: 'Research',        labelNP: 'अनुसन्धान',         path: '/research',     icon: '🔬', desc: 'Publications & studies',      descNP: 'प्रकाशन र अध्ययनहरू' },
+        { label: 'News',        labelNP: 'समाचार',         path: '/our-news',     icon: '📰', desc: 'Latest updates and announcements',      descNP: 'नवीनतम अपडेट र घोषणाहरू' },
+
     { label: 'Community',       labelNP: 'समुदाय',            path: '/community',    icon: '🤝', desc: 'Support groups & forums',     descNP: 'सहयोग समूह र फोरमहरू' },
     { label: 'Animations',       labelNP: 'न्यूरोसाइन्स',            path: '/neuro-science',    icon: '🎬', desc: 'Educational videos',     descNP: 'शिक्षामूलक भिडियोहरू' },
   ]},
