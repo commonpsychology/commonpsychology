@@ -58,14 +58,17 @@ const TRUST_ITEMS = [
   },
   {
     icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <path d="M14 4C9.58 4 6 7.58 6 12c0 6 8 14 8 14s8-8 8-14c0-4.42-3.58-8-8-8z"
-          fill="rgba(14,165,233,0.14)" stroke="#0ea5e9" strokeWidth="1.6"/>
-        <circle cx="14" cy="12" r="3" fill="#0ea5e9"/>
-      </svg>
+       <svg width={size} height={size} viewBox="0 0 28 28" fill="none" style={{ flexShrink:0 }}>
+      <path d="M11 5c-2.2 0-4 1.8-4 4 0 .7.2 1.4.5 2C6.4 11.6 5.5 13 5.5 14.5c0 1.9 1.3 3.5 3 4-.1.4-.2.8-.2 1.2 0 2.2 1.8 4 4 4 1.1 0 2.1-.5 2.8-1.2.7.7 1.7 1.2 2.8 1.2 2.2 0 4-1.8 4-4 0-.4-.1-.8-.2-1.2 1.7-.5 3-2.1 3-4 0-1.5-.9-2.9-2-3.5.3-.6.5-1.3.5-2 0-2.2-1.8-4-4-4-.8 0-1.5.2-2.1.6C16.2 5.2 15.1 5 14 5s-2.2.2-2.9.6C10.5 5.2 9.8 5 9 5z"
+        fill="rgba(14,165,233,0.14)" stroke="#0ea5e9" strokeWidth="1.4" strokeLinejoin="round"/>
+      <path d="M14 5v18" stroke="#0ea5e9" strokeWidth="1.2" strokeDasharray="1.5 2" opacity="0.6"/>
+      <circle cx="10" cy="12" r="1.2" fill="#0ea5e9"/>
+      <circle cx="18" cy="14" r="1.2" fill="#0ea5e9"/>
+      <circle cx="14" cy="20" r="1.2" fill="#0ea5e9"/>
+    </svg>
     ),
-    label: 'Nepal-Based',
-    desc: 'Culturally sensitive care',
+    label: 'Smooth Processing',
+    desc: 'We handle the process smoothly for you',
     accent: '#38bdf8',
     lightBg: 'rgba(56,189,248,0.06)',
     num: '05',
