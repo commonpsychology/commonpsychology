@@ -326,7 +326,7 @@ export default function TherapistDetailModal({ therapist, onClose, onBook }) {
   }, [onClose])
 
   // Paginated reviews (10 per page)
-  const [reviews, setReviews] = useState([])
+  const [reviewsList, setReviewsList] = useState([])
   const [reviewPage, setReviewPage] = useState(1)
   const [reviewTotalPages, setReviewTotalPages] = useState(1)
   const [reviewsLoading, setReviewsLoading] = useState(false)
@@ -340,7 +340,7 @@ export default function TherapistDetailModal({ therapist, onClose, onBook }) {
       .then(data => {
         if (cancelled) return
         if (data.success) {
-          setReviews(data.reviews)
+          setReviewsList(data.reviews)
           setReviewTotalPages(data.pagination.totalPages)
         }
       })
@@ -672,10 +672,10 @@ export default function TherapistDetailModal({ therapist, onClose, onBook }) {
             {reviewsLoading && (
               <p style={{ fontSize: 13, color: '#8aafcc' }}>Loading reviews...</p>
             )}
-            {!reviewsLoading && reviews.length === 0 && (
+            {!reviewsLoading && reviewsList.length === 0 && (
               <p style={{ fontSize: 13, color: '#8aafcc' }}>No reviews yet.</p>
             )}
-            {reviews.map(r => (
+            {reviewsList.map(r => (
               <div key={r.id} style={{ padding: '0.7rem 0', borderBottom: '1px solid #f0f7ff' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <strong style={{ fontSize: 13, color: '#042c53' }}>
