@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+
 /* ─── Avatar components (inline SVG) ─── */
 function AvatarAnita() {
   return (
@@ -323,6 +325,29 @@ export default function TherapistDetailModal({ therapist, onClose, onBook }) {
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
+  // Paginated reviews (10 per page)
+  const [reviews, setReviews] = useState([])
+  const [reviewPage, setReviewPage] = useState(1)
+  const [reviewTotalPages, setReviewTotalPages] = useState(1)
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+
+  useEffect(() => {
+    if (!therapist?.id) return
+    let cancelled = false
+    setReviewsLoading(true)
+    fetch(`${API_BASE}/therapists/${therapist.id}/reviews?page=${reviewPage}&limit=10`)
+      .then(res => res.json())
+      .then(data => {
+        if (cancelled) return
+        if (data.success) {
+          setReviews(data.reviews)
+          setReviewTotalPages(data.pagination.totalPages)
+        }
+      })
+      .finally(() => { if (!cancelled) setReviewsLoading(false) })
+    return () => { cancelled = true }
+  }, [therapist?.id, reviewPage])
+
   if (!therapist) return null
 
   /* ── Normalise data: works with both DB shape and static shape ── */
@@ -638,6 +663,53 @@ export default function TherapistDetailModal({ therapist, onClose, onBook }) {
                   </div>
                 ))}
               </>
+            )}
+
+            <div className="tdm-divider" />
+
+            {/* Reviews */}
+            <div className="tdm-section-head">Reviews</div>
+            {reviewsLoading && (
+              <p style={{ fontSize: 13, color: '#8aafcc' }}>Loading reviews...</p>
+            )}
+            {!reviewsLoading && reviews.length === 0 && (
+              <p style={{ fontSize: 13, color: '#8aafcc' }}>No reviews yet.</p>
+            )}
+            {reviews.map(r => (
+              <div key={r.id} style={{ padding: '0.7rem 0', borderBottom: '1px solid #f0f7ff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong style={{ fontSize: 13, color: '#042c53' }}>
+                    {r.profiles?.display_name || r.profiles?.full_name || 'Anonymous'}
+                  </strong>
+                  <span style={{ fontSize: 12, color: '#f59e0b' }}>
+                    {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                  </span>
+                </div>
+                {r.review_text && (
+                  <p style={{ fontSize: 13, color: '#334e68', margin: '4px 0 0' }}>{r.review_text}</p>
+                )}
+                <span style={{ fontSize: 11, color: '#8aafcc' }}>
+                  {new Date(r.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+
+            {reviewTotalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: '0.8rem' }}>
+                <button
+                  disabled={reviewPage <= 1}
+                  onClick={() => setReviewPage(p => p - 1)}
+                  style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid #dde8f5', background: '#fff', cursor: reviewPage <= 1 ? 'default' : 'pointer', opacity: reviewPage <= 1 ? 0.5 : 1 }}
+                >Prev</button>
+                <span style={{ fontSize: 12, color: '#5a8ab0', alignSelf: 'center' }}>
+                  Page {reviewPage} / {reviewTotalPages}
+                </span>
+                <button
+                  disabled={reviewPage >= reviewTotalPages}
+                  onClick={() => setReviewPage(p => p + 1)}
+                  style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid #dde8f5', background: '#fff', cursor: reviewPage >= reviewTotalPages ? 'default' : 'pointer', opacity: reviewPage >= reviewTotalPages ? 0.5 : 1 }}
+                >Next</button>
+              </div>
             )}
 
             <div className="tdm-divider" />
