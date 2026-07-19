@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useTherapists } from '../context/TherapistsContext'
 import TherapistDetailModal from '../components/TherapistDetailModal'
+import ReviewModal from '../components/ReviewModal'
 
 function InitialsAvatar({ name }) {
   const initials = (name || 'T').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -75,7 +76,7 @@ const cardStyle = {
   cursor: 'pointer',
 }
 
-function TherapistCard({ t, onBook, onView }) {
+function TherapistCard({ t, onBook, onView, onReview }) {
   const [imgErr, setImgErr] = useState(false)
   const [hovered, setHovered] = useState(false)
 
@@ -115,6 +116,21 @@ function TherapistCard({ t, onBook, onView }) {
         }}>
           {t.is_available ? '● Available' : 'Unavailable'}
         </span>
+
+        <button
+          onClick={e => { e.stopPropagation(); onReview() }}
+          aria-label="Write a review"
+          title="Write a review"
+          style={{
+            position: 'absolute', top: 10, right: 10,
+            width: 34, height: 34, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.9)', border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', fontSize: '1rem', boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          ⭐
+        </button>
       </div>
 
       {/* ── Body: flex-col so button sticks to bottom ── */}
@@ -198,6 +214,7 @@ export default function TherapistsPage() {
   const { navigate } = useRouter()
   const { therapists, loading, error } = useTherapists()
   const [selectedTherapist, setSelectedTherapist] = useState(null)
+  const [reviewTarget, setReviewTarget] = useState(null)
 
   return (
     <div className="page-wrapper">
@@ -257,6 +274,7 @@ export default function TherapistsPage() {
                   t={t}
                   onBook={() => navigate('/book', { therapist: t })}
                   onView={() => setSelectedTherapist(t)}
+                  onReview={() => setReviewTarget(t)}
                 />
               ))
           }
@@ -357,6 +375,14 @@ export default function TherapistsPage() {
             setSelectedTherapist(null)
             navigate('/book', { therapist: t })
           }}
+        />
+      )}
+
+      {reviewTarget && (
+        <ReviewModal
+          therapist={reviewTarget}
+          onClose={() => setReviewTarget(null)}
+          onSubmitted={() => setReviewTarget(null)}
         />
       )}
     </div>
