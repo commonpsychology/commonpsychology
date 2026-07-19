@@ -422,6 +422,8 @@ export default function BookingPage() {
         return
       }
 
+
+
       // Payment did not succeed — release the slot we just held.
       try {
         await appointments.cancel(appointmentId)
