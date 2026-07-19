@@ -139,12 +139,32 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
           .cp-glow-btn:hover { transform: translateY(-1px); }
 
           @media (max-width: 480px) {
-            .cp-notice-header {
-              flex-direction: column;
-              text-align: center;
-              gap: 8px !important;
+            .cp-refblock { text-align: center !important; }
+
+            .cp-header {
+              flex-direction: column !important;
+              text-align: center !important;
+              gap: 10px !important;
+              padding: 0.5rem 1rem 0.4rem !important;
             }
-            .cp-notice-heading-text { text-align: center; }
+            .cp-heading-np {
+              margin-left: 0 !important;
+              text-align: center !important;
+            }
+            .cp-heading-en { text-align: center !important; }
+
+            .cp-footer {
+              flex-direction: column !important;
+              align-items: center !important;
+              gap: 1.5rem !important;
+              text-align: center !important;
+            }
+            .cp-sig-block { text-align: center !important; }
+
+            .cp-actions { flex-direction: column !important; }
+            .cp-actions button { width: 100% !important; }
+
+            .cp-letter-body { padding: 1.75rem 1.4rem 2rem !important; }
           }
         `}</style>
 
@@ -174,9 +194,9 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
         </button>
 
         {/* ── Letter paper ───────────────────────────────────── */}
-        <div style={{ padding: '2.2rem 2.4rem 2.6rem', position: 'relative', zIndex: 1 }}>
+        <div className="cp-letter-body" style={{ padding: '2.2rem 2.4rem 2.6rem', position: 'relative', zIndex: 1 }}>
           {/* Reference block (dynamic) */}
-          <div style={{ fontSize: 13, lineHeight: 1.9, marginBottom: 4 }}>
+          <div className="cp-refblock" style={{ fontSize: 13, lineHeight: 1.9, marginBottom: 4 }}>
             <div>पत्र संख्या:-१२७९ {notice.letterNo}</div>
             <div>प्राप्त पत्र संख्या र मिति:-२०८३/०४/०१ {notice.receivedNo}</div>
             <div>च.नं.:-१ {notice.chNo}</div>
@@ -184,6 +204,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
 
           {/* Header (static) */}
           <div
+            className="cp-header"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -206,6 +227,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
             />
             <div>
               <div
+                className="cp-heading-np"
                 style={{
                   fontSize: 26,
                   fontWeight: 700,
@@ -218,6 +240,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
                 {HEADING_NP}
               </div>
               <div
+                className="cp-heading-en"
                 style={{
                   fontSize: 14,
                   fontWeight: 600,
@@ -256,6 +279,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
 
           {/* Footer row: (static, right) */}
           <div
+            className="cp-footer"
             style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -268,7 +292,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
               {notice.sambat && <div>नेपाल संवत {notice.sambat}</div>}
             </div>
 
-            <div style={{ textAlign: 'center' }}>
+            <div className="cp-sig-block" style={{ textAlign: 'center' }}>
               <img
                 src={SIGNATURE_IMAGE}
                 alt="signature"
@@ -280,7 +304,8 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
                   display: 'block',
                 }}
               />
-              <div style={{ fontSize: 14, fontWeight: 600, borderTop: '1px solid #999', paddingTop: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, borderTop: '1px solid #999', 
+                paddingTop: 4 }}>
                 {SIGNATORY_NAME}
               </div>
               <div style={{ fontSize: 12, color: '#555' }}>{notice.signatoryTitle}</div>

@@ -209,7 +209,8 @@ function StepBar({ step }) {
 // so it reads as a clear, calm confirmation rather than an error or a
 // step-flow message. Only dismissible via the button, so the person
 // actually registers that admin confirmation is still pending.
-function PaymentConfirmedModal({ onGoToPortal }) {
+function PaymentConfirmedModal({ variant = 'success', transactionId, onGoToPortal }) {
+  const isIssue = variant === 'link_issue'
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 2000,
@@ -232,14 +233,23 @@ function PaymentConfirmedModal({ onGoToPortal }) {
       }}>
         <div style={{
           width: 64, height: 64, borderRadius: '50%', margin: '0 auto 1.25rem',
-          background: btnGrad, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: isIssue ? 'linear-gradient(135deg,#d97706 0%,#f59e0b 100%)' : btnGrad,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '1.8rem', color: 'white', boxShadow: '0 8px 24px rgba(0,123,168,0.35)',
-        }}>✓</div>
+        }}>{isIssue ? '!' : '✓'}</div>
         <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1.25rem', color:C.textDark, margin:'0 0 0.75rem' }}>
           Payment Received
         </h2>
         <p style={{ fontSize:'0.9rem', color:C.textMid, lineHeight:1.65, margin:'0 0 1.75rem' }}>
-          Your payment will be confirmed by our admin team shortly. You can check the status anytime in the <strong>Appointments</strong> section of your portal. Thank you!
+          {isIssue ? (
+            <>
+              Your payment went through successfully. We hit a small snag saving it against your appointment record{transactionId ? <> (reference <strong>{transactionId}</strong>)</> : ''}, so our team will confirm it manually — <strong>you don't need to pay again</strong>. You can check status anytime in the <strong>Appointments</strong> section of your portal.
+            </>
+          ) : (
+            <>
+              Your payment will be confirmed by our admin team shortly. You can check the status anytime in the <strong>Appointments</strong> section of your portal. Thank you!
+            </>
+          )}
         </p>
         <button
           onClick={onGoToPortal}
@@ -276,7 +286,7 @@ export default function BookingPage() {
   const [checkingSlot,  setCheckingSlot]  = useState(false)
   const [hoveredTherapist, setHoveredTherapist] = useState(null)
   const [hoveredType,       setHoveredType]     = useState(null)
-  const [showConfirmedModal, setShowConfirmedModal] = useState(false)
+  const [postPaymentModal, setPostPaymentModal] = useState(null) // null | { variant: 'success' | 'link_issue', transactionId }
   const allSpecializations = ['All', ...Array.from(new Set(therapists.flatMap(t => t.specializations || []))).sort()]
   const filteredTherapists = activeFilter === 'All' ? therapists : therapists.filter(t => (t.specializations||[]).includes(activeFilter))
 
@@ -405,20 +415,17 @@ export default function BookingPage() {
         try {
           await appointments.attachPayment(appointmentId, result.paymentId, result.transactionId)
         } catch (linkErr) {
-          // Payment succeeded but we couldn't record it against the appointment —
-          // don't silently navigate away and hide that from the user.
-          setError(
-            `Payment succeeded but we couldn't update your appointment record` +
-            (result.transactionId ? ` (reference ${result.transactionId})` : '') +
-            `. Please contact support so we can confirm it manually.`
-          )
+          // Payment succeeded — still block the payment button with a modal
+          // instead of leaving an inline red error the user might mistake
+          // for "booking failed, try paying again."
           setSubmitting(false)
+          setPostPaymentModal({ variant: 'link_issue', transactionId: result.transactionId })
           return
         }
 
         // modal is what actually takes the person to /portal.
         setSubmitting(false)
-        setShowConfirmedModal(true)
+        setPostPaymentModal({ variant: 'success' })
         return
       }
 
@@ -454,8 +461,12 @@ export default function BookingPage() {
 
   return (
     <div className="page-wrapper">
-      {showConfirmedModal && (
-        <PaymentConfirmedModal onGoToPortal={() => { setShowConfirmedModal(false); navigate('/portal') }} />
+      {postPaymentModal && (
+        <PaymentConfirmedModal
+          variant={postPaymentModal.variant}
+          transactionId={postPaymentModal.transactionId}
+          onGoToPortal={() => { setPostPaymentModal(null); navigate('/portal') }}
+        />
       )}
 
       <div style={{
