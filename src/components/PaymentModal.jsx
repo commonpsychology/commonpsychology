@@ -423,6 +423,7 @@ export function usePayment() {
 /* ── PaymentModal ── */
 function PaymentModal({ config, onClose, onResult }) {
   const { user, loading: authLoading } = useAuth()
+  const modalRef = useRef(null)
 
   const [gateway,       setGateway]       = useState(null)
   const [step,          setStep]          = useState('select')
@@ -493,6 +494,16 @@ const finalAmount     = Math.max(0, afterCoupon - loyaltyDiscount)
     setProgress(0)
     const ts = [300, 800, 1500, 2500].map((t, i) => setTimeout(() => setProgress([30, 60, 80, 92][i]), t))
     return () => ts.forEach(clearTimeout)
+  }, [step])
+
+  // Every step swaps in very differently-sized content (a tall gateway
+  // selection screen vs. a short spinner/success/error screen). Without
+  // this, the modal keeps whatever scroll offset it had from the
+  // previous step, so on cart checkout — where the summary can be long
+  // enough to require scrolling — the processing/success view can render
+  // fully below the fold and look like nothing happened.
+  useEffect(() => {
+    modalRef.current?.scrollTo({ top: 0, behavior: 'auto' })
   }, [step])
 
   function handlePayClick() {
@@ -649,7 +660,7 @@ if (safeMethod === 'esewa') {
   return (
     <>
       <div className="psm-overlay" onClick={e => { if (e.target === e.currentTarget && step !== 'processing') onClose() }}>
-        <div className="psm-modal" onClick={e => e.stopPropagation()}>
+        <div className="psm-modal" ref={modalRef} onClick={e => e.stopPropagation()}>
           {/* decorative sky-blue glows behind the card content — purely visual */}
           <div className="psm-blob psm-blob-a" />
           <div className="psm-blob psm-blob-b" />
