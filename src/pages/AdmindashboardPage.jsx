@@ -2559,7 +2559,7 @@ function NewsletterSubscribersSection() {
   }
 
   const exportCsv = () => {
-    const rows = ['email,subscribed_at', ...subs.map(s => `${s.email},${s.subscribed_at||''}`)]
+    const rows = ['email,created_at', ...subs.map(s => `${s.email},${s.created_at||''}`)]
     const blob = new Blob([rows.join('\n')], { type:'text/csv' })
     const url  = URL.createObjectURL(blob)
     const a = document.createElement('a'); a.href = url; a.download = 'newsletter-subscribers.csv'; a.click()
@@ -2580,7 +2580,7 @@ function NewsletterSubscribersSection() {
         rows={subs.map(s => (
           <tr key={s.id}>
             <td style={{ fontWeight:600, fontSize:'.82rem' }}>{s.email}</td>
-            <td style={{ fontSize:'.76rem', color:'var(--text-muted)' }}>{fmtT(s.subscribed_at)}</td>
+            <td style={{ fontSize:'.76rem', color:'var(--text-muted)' }}>{fmtT(s.created_at)}</td>
             <td><button className="btn btn-danger btn-sm btn-icon" onClick={()=>remove(s.id)}>🗑</button></td>
           </tr>
         ))}
