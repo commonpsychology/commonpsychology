@@ -62,6 +62,38 @@ function paymentStatusBadge(paymentStatus, paymentMethod) {
   return                                    { label:'💳 Payment Due',                            bg:'#fee2e2', color:'#991b1b' }
 }
 
+function buildGoogleCalendarUrl(booking) {
+  const pad = n => String(n).padStart(2, '0')
+  const toGCalStamp = (dateStr, timeStr) => {
+    const d = new Date(`${dateStr}T${timeStr}`)
+    return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`
+  }
+
+  const roomName = booking.room?.name || 'Room'
+  const start = toGCalStamp(booking.booked_date, booking.start_time)
+  const end   = toGCalStamp(booking.booked_date, booking.end_time)
+
+  const details = [
+    `Room: ${roomName}`,
+    `Duration: ${Number(booking.duration_hours)}h`,
+    `Total: NPR ${Number(booking.total_amount).toLocaleString()}`,
+    booking.notes ? `Notes: ${booking.notes}` : '',
+  ].filter(Boolean).join('\n')
+
+  let timeZone = 'UTC'
+  try { timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone } catch {}
+
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `${roomName} Booking`,
+    dates: `${start}/${end}`,
+    details,
+    ctz: timeZone,
+  })
+
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
+}
+
 const ACTIVE_GLOW_BG = 'linear-gradient(160deg, rgba(255,255,255,0.97) 0%, rgba(209,250,229,0.62) 55%, rgba(255,255,255,0.96) 100%)'
 
 function SerenityBookingCard({ booking }) {
