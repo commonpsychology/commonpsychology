@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useAuth } from '../context/AuthContext'
-import ClientFilesModal from '../components/ClientFilesModal' // ← NEW
+import ClientFilesModal from '../components/ClientsFilesModal' 
 
 const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL}/api`
 
