@@ -185,6 +185,21 @@ function SerenityBookingCard({ booking }) {
                 <div style={{ fontSize:'0.92rem', fontWeight:800, color:'#fff', whiteSpace:'nowrap' }}>{countdown.label}</div>
               </div>
             ) : null}
+
+            {!past && booking.status !== 'cancelled' && (
+              <button
+                onClick={() => window.open(buildGoogleCalendarUrl(booking), '_blank', 'noopener,noreferrer')}
+                style={{
+                  display:'flex', alignItems:'center', gap:'0.35rem',
+                  fontSize:'0.68rem', fontWeight:700, color:SKY_D,
+                  background:'#fff', border:`1px solid ${SKY}55`, borderRadius:10,
+                  padding:'0.4rem 0.7rem', whiteSpace:'nowrap', cursor:'pointer',
+                  fontFamily:'inherit',
+                }}
+              >
+                📅 Add to Calendar
+              </button>
+            )}
           </div>
         </div>
         {isActive && (
