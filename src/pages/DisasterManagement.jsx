@@ -244,13 +244,13 @@ function EmotionalArc({ phases }) {
 
 /* ── Field photos: real deployment shots, flowing/organic layout ── */
 const dispatches = [
-  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — psychological support work", location: "Field site", note: "Our team providing psychological support on the ground." },
-  { src: "https://ibb.co/KpnRdky1", alt: "Field response — community session", location: "Field site", note: "A community session held during a recent deployment." },
-  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — team at work", location: "Field site", note: "Our team at work supporting an affected community." },
-  { src: "https://ibb.co/KpnRdky1", alt: "Field response — outreach", location: "Field site", note: "Outreach and support during a disaster response." },
-  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — group activity", location: "Field site", note: "A group activity as part of our recovery programming." },
-  { src: "https://ibb.co/KpnRdky1", alt: "Field response — volunteer coordination", location: "Field site", note: "Volunteers coordinating before deployment." },
-  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — follow-up visit", location: "Field site", note: "A follow-up visit checking in on community wellbeing." },
+  { src: "/pdm.png", alt: "Field response — psychological support work", location: "Field site", note: "Our team providing psychological support on the ground." },
+  { src: "/pdm1.png", alt: "Field response — community session", location: "Field site", note: "A community session held during a recent deployment." },
+  { src: "/pdm.png", alt: "Field response — team at work", location: "Field site", note: "Our team at work supporting an affected community." },
+  { src: "/pdm1.png", alt: "Field response — outreach", location: "Field site", note: "Outreach and support during a disaster response." },
+  { src: "/pdm.png", alt: "Field response — group activity", location: "Field site", note: "A group activity as part of our recovery programming." },
+  { src: "/pdm1.png", alt: "Field response — volunteer coordination", location: "Field site", note: "Volunteers coordinating before deployment." },
+  { src: "/pdm.png", alt: "Field response — follow-up visit", location: "Field site", note: "A follow-up visit checking in on community wellbeing." },
 ];
 
 function FieldDispatches() {
