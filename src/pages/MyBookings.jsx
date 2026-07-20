@@ -188,7 +188,7 @@ function SerenityBookingCard({ booking }) {
 
             {!past && booking.status !== 'cancelled' && (
               <button
-                onClick={() => window.open(buildGoogleCalendarUrl(booking), '_blank', 'noopener,noreferrer')}
+                onClick={() => { window.location.href = buildGoogleCalendarUrl(booking) }}
                 style={{
                   display:'flex', alignItems:'center', gap:'0.35rem',
                   fontSize:'0.68rem', fontWeight:700, color:SKY_D,
