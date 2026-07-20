@@ -2120,6 +2120,382 @@ function AdminDeliveryRidersSection() {
     </div>
   )
 }
+
+// ─── ROOM BOOKINGS ADMIN SECTION ─────────────────────────────────────────────
+const ROOM_SEATS_PER_ROOM = 7
+const EMPTY_ROOM = { name:'', description:'', capacity:1, price_per_hour:0, amenities_text:'', images_text:'', sort_order:0, is_active:true }
+
+function roomToForm(r) {
+  return {
+    name: r.name||'', description: r.description||'', capacity: r.capacity||1,
+    price_per_hour: r.price_per_hour||0,
+    amenities_text: (r.amenities||[]).join('\n'),
+    images_text: (r.images||[]).join('\n'),
+    sort_order: r.sort_order||0, is_active: r.is_active!==false,
+  }
+}
+function formToRoomPayload(f) {
+  return {
+    name: f.name, description: f.description, capacity: Number(f.capacity)||1,
+    pricePerHour: Number(f.price_per_hour)||0,
+    amenities: f.amenities_text.split('\n').map(s=>s.trim()).filter(Boolean),
+    images: f.images_text.split('\n').map(s=>s.trim()).filter(Boolean),
+    sortOrder: Number(f.sort_order)||0, isActive: f.is_active,
+  }
+}
+
+function AdminRoomBookingsSection() {
+  const [subTab, setSubTab] = useState('bookings') // bookings | rooms | seatmap
+
+  // shared room list (used by all three sub-tabs)
+  const [rooms, setRooms]         = useState([])
+  const [roomsLoading, setRLoad]  = useState(false)
+  const loadRooms = useCallback(async () => {
+    setRLoad(true)
+    try { const d = await apiFetch('/admin/rooms'); setRooms(d.rooms || []) }
+    catch (e) { console.error('loadRooms:', e.message) }
+    finally { setRLoad(false) }
+  }, [])
+  useEffect(() => { loadRooms() }, [loadRooms])
+
+  const [toast, setToast] = useState(null)
+  const flash = (msg, ok=true) => { setToast({ msg, ok }); setTimeout(()=>setToast(null), 3200) }
+
+  return (
+    <div style={{ position:'relative' }}>
+      {toast && (
+        <div style={{ position:'fixed', bottom:'1.5rem', right:'1.5rem', zIndex:9999, background:toast.ok?'var(--green)':'var(--red)', color:'white', padding:'.65rem 1.1rem', borderRadius:'var(--radius)', fontWeight:600, fontSize:'.82rem', boxShadow:'var(--shadow-md)' }}>{toast.msg}</div>
+      )}
+      <SectionHeader title="Room Bookings" sub="Rooms, seats, and every booking — full CRUD" />
+      <div className="sub-tabbar">
+        {[['bookings','Bookings'],['rooms','Rooms'],['seatmap','Seat Map']].map(([t,l]) => (
+          <button key={t} className={`sub-tab${subTab===t?' active':''}`} onClick={()=>setSubTab(t)}>{l}</button>
+        ))}
+      </div>
+      {subTab === 'bookings' && <RoomBookingsTab rooms={rooms} flash={flash} />}
+      {subTab === 'rooms'    && <RoomsTab rooms={rooms} roomsLoading={roomsLoading} loadRooms={loadRooms} flash={flash} />}
+      {subTab === 'seatmap'  && <RoomSeatMapTab rooms={rooms} flash={flash} />}
+    </div>
+  )
+}
+
+// ── Bookings sub-tab ─────────────────────────────────────────────────────────
+function RoomBookingsTab({ rooms, flash }) {
+  const [bookings, setBookings] = useState([])
+  const [total, setTotal]       = useState(0)
+  const [page, setPage]         = useState(1)
+  const [status, setStatus]     = useState('')
+  const [roomFilter, setRoomF]  = useState('')
+  const [from, setFrom]         = useState('')
+  const [to, setTo]             = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [detail, setDetail]     = useState(null)
+  const [delConf, setDelConf]   = useState(null)
+  const B_LIMIT = 15
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const p = new URLSearchParams({ page, limit: B_LIMIT })
+      if (status) p.set('status', status)
+      if (roomFilter) p.set('roomId', roomFilter)
+      if (from) p.set('from', from)
+      if (to) p.set('to', to)
+      const d = await apiFetch(`/admin/room-bookings?${p}`)
+      setBookings(d.bookings || [])
+      setTotal(d.pagination?.total || 0)
+    } catch (e) { flash(e.message, false) }
+    finally { setLoading(false) }
+  }, [page, status, roomFilter, from, to])
+
+  useEffect(() => { load() }, [load])
+
+  const updateStatus = async (id, s) => {
+    try {
+      await apiFetch(`/admin/room-bookings/${id}/status`, { method:'PATCH', body: JSON.stringify({ status: s }) })
+      flash('Booking updated ✓'); load()
+    } catch (e) { flash(e.message, false) }
+  }
+
+  const doDelete = async () => {
+    try {
+      await apiFetch(`/admin/room-bookings/${delConf.id}`, { method:'DELETE' })
+      flash('Booking cancelled'); setDelConf(null); load()
+    } catch (e) { flash(e.message, false); setDelConf(null) }
+  }
+
+  return (
+    <div>
+      <div className="filters">
+        <select className="inp" value={roomFilter} onChange={e=>{setRoomF(e.target.value);setPage(1)}}>
+          <option value="">All rooms</option>
+          {rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+        <select className="inp" value={status} onChange={e=>{setStatus(e.target.value);setPage(1)}}>
+          <option value="">All statuses</option>
+          {['pending','confirmed','cancelled','completed','no_show'].map(s=><option key={s} value={s}>{s}</option>)}
+        </select>
+        <input className="inp" type="date" value={from} onChange={e=>{setFrom(e.target.value);setPage(1)}} />
+        <input className="inp" type="date" value={to} onChange={e=>{setTo(e.target.value);setPage(1)}} />
+        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
+        {(roomFilter||status||from||to) && <button className="btn btn-ghost" onClick={()=>{setRoomF('');setStatus('');setFrom('');setTo('');setPage(1)}}>✕ Clear</button>}
+      </div>
+
+      <Table loading={loading} cols={['Client','Room','Date','Time','Seat','Amount','Payment','Status','Update','Actions']}
+        rows={bookings.map(b => {
+          const isWholeRoom = b.seat_number === null || b.seat_number === undefined
+          return (
+            <tr key={b.id} style={{ cursor:'pointer' }} onClick={()=>setDetail(b)}>
+              <td style={{ fontWeight:600, fontSize:'.82rem' }}>{b.client?.full_name || '—'}</td>
+              <td style={{ fontSize:'.78rem' }}>{b.room?.name || '—'}</td>
+              <td style={{ fontWeight:700, fontSize:'.78rem' }}>{b.booked_date}</td>
+              <td style={{ fontSize:'.74rem' }}>{b.start_time?.slice(0,5)} → {b.end_time?.slice(0,5)}</td>
+              <td>
+                {isWholeRoom
+                  ? <span className="badge badge-purple">Whole room</span>
+                  : <span className="badge badge-blue">Seat {b.seat_number}</span>}
+              </td>
+              <td>NPR {Number(b.total_amount||0).toLocaleString()}</td>
+              <td><Badge s={b.payment_status||'pending'} /></td>
+              <td><Badge s={b.status} /></td>
+              <td onClick={e=>e.stopPropagation()}>
+                <select className="inp" value={b.status} style={{ padding:'.18rem .42rem', fontSize:'.72rem' }}
+                  onChange={e=>updateStatus(b.id, e.target.value)}>
+                  {['pending','confirmed','cancelled','completed','no_show'].map(s=><option key={s} value={s}>{s}</option>)}
+                </select>
+              </td>
+              <td onClick={e=>e.stopPropagation()}>
+                <button className="btn btn-danger btn-sm btn-icon" title="Cancel booking" onClick={()=>setDelConf({ id:b.id, label:`${b.booked_date} · ${b.client?.full_name||'booking'}` })}>🗑</button>
+              </td>
+            </tr>
+          )
+        })}
+      />
+      <Pager page={page} set={setPage} total={total} limit={B_LIMIT} />
+
+      {detail && (
+        <div className="overlay" onClick={()=>setDetail(null)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-head"><span className="modal-head-title">📋 Booking Detail</span><button className="btn btn-ghost btn-sm" onClick={()=>setDetail(null)}>✕</button></div>
+            <div className="modal-body">
+              <div className="detail-grid" style={{ padding:0 }}>
+                <div className="detail-card">
+                  <div className="detail-card-title">Client</div>
+                  {[['Name', detail.client?.full_name||'—'],['Email', detail.client?.email||'—'],['Phone', detail.client?.phone||'—']].map(([k,v])=>(
+                    <div key={k} className="detail-row-item"><span className="detail-row-key">{k}</span><span className="detail-row-val">{v}</span></div>
+                  ))}
+                </div>
+                <div className="detail-card">
+                  <div className="detail-card-title">Booking</div>
+                  {[
+                    ['Room', detail.room?.name||'—'],
+                    ['Seat', (detail.seat_number===null||detail.seat_number===undefined) ? `Whole room (all ${ROOM_SEATS_PER_ROOM})` : `#${detail.seat_number}`],
+                    ['Date', detail.booked_date],
+                    ['Time', `${detail.start_time?.slice(0,5)} – ${detail.end_time?.slice(0,5)}`],
+                    ['Status', detail.status],
+                    ['Notes', detail.notes||'—'],
+                  ].map(([k,v])=>(
+                    <div key={k} className="detail-row-item"><span className="detail-row-key">{k}</span><span className="detail-row-val">{v}</span></div>
+                  ))}
+                </div>
+                <div className="detail-card">
+                  <div className="detail-card-title">Payment</div>
+                  {[
+                    ['Amount', `NPR ${Number(detail.total_amount||0).toLocaleString()}`],
+                    ['Status', detail.payment_status||'—'],
+                    ['Method', detail.payment_method||'—'],
+                    ['Payment ID', detail.payment_id||'—'],
+                  ].map(([k,v])=>(
+                    <div key={k} className="detail-row-item"><span className="detail-row-key">{k}</span><span className="detail-row-val mono" style={{ fontSize: k==='Payment ID'?'.63rem':'.74rem' }}>{v}</span></div>
+                  ))}
+                </div>
+                <div className="detail-card">
+                  <div className="detail-card-title">Timestamps</div>
+                  {[['Created', fmtT(detail.created_at)],['Updated', fmtT(detail.updated_at)],['Record ID', detail.id]].map(([k,v])=>(
+                    <div key={k} className="detail-row-item"><span className="detail-row-key">{k}</span><span className="detail-row-val mono" style={{ fontSize:k==='Record ID'?'.63rem':'.74rem' }}>{v}</span></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="modal-foot"><button className="btn btn-ghost" onClick={()=>setDetail(null)}>Close</button></div>
+          </div>
+        </div>
+      )}
+
+      {delConf && (
+        <Confirm msg={`Cancel booking "${delConf.label}"? This frees the slot but keeps the record for history.`}
+          onConfirm={doDelete} onCancel={()=>setDelConf(null)} />
+      )}
+    </div>
+  )
+}
+
+// ── Rooms sub-tab (full CRUD) ────────────────────────────────────────────────
+function RoomsTab({ rooms, roomsLoading, loadRooms, flash }) {
+  const [modal, setModal]     = useState(null)
+  const [form, setForm]       = useState(EMPTY_ROOM)
+  const [saving, setSaving]   = useState(false)
+  const [saveErr, setSaveErr] = useState('')
+  const [delConf, setDelConf] = useState(null)
+  const fld = k => e => setForm(f => ({ ...f, [k]: e?.target ? (e.target.type==='checkbox'?e.target.checked:e.target.value) : e }))
+
+  const openCreate = () => { setForm({ ...EMPTY_ROOM, sort_order: rooms.length }); setSaveErr(''); setModal({ data:null }) }
+  const openEdit   = r  => { setForm(roomToForm(r)); setSaveErr(''); setModal({ data:r }) }
+  const closeModal = () => setModal(null)
+
+  const save = async () => {
+    if (!form.name.trim()) return setSaveErr('Room name is required')
+    setSaving(true); setSaveErr('')
+    try {
+      const body = formToRoomPayload(form)
+      if (modal.data) await apiFetch(`/admin/rooms/${modal.data.id}`, { method:'PUT', body:JSON.stringify(body) })
+      else await apiFetch('/admin/rooms', { method:'POST', body:JSON.stringify(body) })
+      flash(modal.data ? 'Room updated ✓' : 'Room created ✓')
+      closeModal(); loadRooms()
+    } catch (e) { setSaveErr(e.message) }
+    finally { setSaving(false) }
+  }
+
+  const toggleActive = async r => {
+    try { await apiFetch(`/admin/rooms/${r.id}`, { method:'PUT', body:JSON.stringify({ isActive: !r.is_active }) }); loadRooms() }
+    catch (e) { flash(e.message, false) }
+  }
+
+  const doDelete = async () => {
+    try {
+      await apiFetch(`/admin/rooms/${delConf.id}`, { method:'DELETE' })
+      flash('Room deactivated'); setDelConf(null); loadRooms()
+    } catch (e) { flash(e.message, false); setDelConf(null) }
+  }
+
+  return (
+    <div>
+      <SectionHeader title="Rooms" count={rooms.length} onNew={openCreate} newLabel="+ New Room">
+        <button className="btn btn-ghost" onClick={loadRooms}>↺ Refresh</button>
+      </SectionHeader>
+
+      <Table loading={roomsLoading} cols={['Room','Capacity','Price/hr','Seats','Sort','Active','Actions']}
+        rows={rooms.map(r => (
+          <tr key={r.id}>
+            <td><div style={{ fontWeight:600, fontSize:'.82rem' }}>{r.name}</div><div style={{ fontSize:'.68rem', color:'var(--text-muted)' }}>{(r.description||'').slice(0,60)}</div></td>
+            <td style={{ fontSize:'.78rem' }}>{r.capacity}</td>
+            <td style={{ fontSize:'.78rem' }}>NPR {Number(r.price_per_hour||0).toLocaleString()}</td>
+            <td style={{ fontSize:'.78rem' }}>{ROOM_SEATS_PER_ROOM}</td>
+            <td style={{ fontSize:'.78rem' }}>{r.sort_order}</td>
+            <td><Toggle on={r.is_active} onChange={()=>toggleActive(r)} /></td>
+            <td><RowActions onEdit={()=>openEdit(r)} onDelete={()=>setDelConf({ id:r.id, label:r.name })} /></td>
+          </tr>
+        ))}
+      />
+
+      {modal && (
+        <div className="overlay" onClick={closeModal}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-head">
+              <span className="modal-head-title">{modal.data ? '✏️ Edit Room' : '+ New Room'}</span>
+              <button className="btn btn-ghost btn-sm" onClick={closeModal}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="field"><label>Name *</label><input className="inp" value={form.name} onChange={fld('name')} placeholder="e.g. Therapy Room A" /></div>
+              <div className="field"><label>Description</label><textarea className="inp" rows={2} value={form.description} onChange={fld('description')} /></div>
+              <div className="field-row3">
+                <div className="field"><label>Capacity</label><input className="inp" type="number" min="1" value={form.capacity} onChange={fld('capacity')} /></div>
+                <div className="field"><label>Price / Hour (NPR)</label><input className="inp" type="number" min="0" value={form.price_per_hour} onChange={fld('price_per_hour')} /></div>
+                <div className="field"><label>Sort Order</label><input className="inp" type="number" value={form.sort_order} onChange={fld('sort_order')} /></div>
+              </div>
+              <div className="field"><label>Amenities (one per line)</label><textarea className="inp" rows={3} value={form.amenities_text} onChange={fld('amenities_text')} placeholder={'Sound-proofed\nAC\nWhiteboard'} /></div>
+              <div className="field"><label>Image URLs (one per line)</label><textarea className="inp" rows={3} value={form.images_text} onChange={fld('images_text')} /></div>
+              <label style={{ display:'flex', alignItems:'center', gap:'.5rem', fontSize:'.78rem', cursor:'pointer' }}>
+                <Toggle on={form.is_active} onChange={v=>setForm(f=>({...f,is_active:v}))} /> Active (bookable)
+              </label>
+              {saveErr && <div className="alert alert-error">{saveErr}</div>}
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={closeModal}>Cancel</button>
+              <button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? <><span className="spinner" /> Saving…</> : modal.data ? 'Save Changes' : 'Create Room'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {delConf && (
+        <Confirm msg={`Deactivate "${delConf.label}"? It won't accept new bookings but existing bookings stay intact.`}
+          onConfirm={doDelete} onCancel={()=>setDelConf(null)} />
+      )}
+    </div>
+  )
+}
+
+// ── Seat Map sub-tab ─────────────────────────────────────────────────────────
+function RoomSeatMapTab({ rooms, flash }) {
+  const [roomId, setRoomId] = useState('')
+  const [date, setDate]     = useState(new Date().toISOString().slice(0,10))
+  const [data, setData]     = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => { if (rooms.length && !roomId) setRoomId(rooms[0].id) }, [rooms]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const load = useCallback(async () => {
+    if (!roomId || !date) return
+    setLoading(true)
+    try {
+      const d = await apiFetch(`/admin/room-bookings/seat-map?roomId=${roomId}&date=${date}`)
+      setData(d)
+    } catch (e) { flash(e.message, false); setData(null) }
+    finally { setLoading(false) }
+  }, [roomId, date]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { load() }, [load])
+
+  return (
+    <div>
+      <div className="filters">
+        <select className="inp" value={roomId} onChange={e=>setRoomId(e.target.value)}>
+          {rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+        <input className="inp" type="date" value={date} onChange={e=>setDate(e.target.value)} />
+        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
+      </div>
+
+      {loading ? (
+        <div className="tbl-loading"><span className="spinner" /> Loading…</div>
+      ) : !data ? (
+        <div className="empty-state"><div className="empty-text">Select a room and date.</div></div>
+      ) : (
+        <div className="section-inner">
+          {data.wholeRoomBookings.length > 0 && (
+            <div className="alert alert-info" style={{ marginBottom:'1rem' }}>
+              🏛️ Whole room booked by <strong>{data.wholeRoomBookings.map(b=>b.client?.full_name).join(', ')}</strong> for part of this day — every seat below reflects that hold.
+            </div>
+          )}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:'.85rem' }}>
+            {data.seats.map(seat => {
+              const isBooked = seat.bookings.length > 0
+              return (
+                <div key={seat.seatNumber} style={{
+                  border:`1.5px solid ${isBooked ? 'var(--red)' : 'var(--green)'}`,
+                  borderRadius:'var(--radius)', padding:'.85rem', background: isBooked ? 'var(--red-lt)' : 'var(--green-lt)',
+                }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'.5rem' }}>
+                    <span style={{ fontWeight:700, fontSize:'.85rem' }}>💺 Seat {seat.seatNumber}</span>
+                    <span className={`badge ${isBooked ? 'badge-red' : 'badge-green'}`}>{isBooked ? 'Booked' : 'Free'}</span>
+                  </div>
+                  {seat.bookings.map(b => (
+                    <div key={b.id} style={{ fontSize:'.72rem', color:'var(--text-secondary)', marginBottom:'.25rem' }}>
+                      {b.start_time?.slice(0,5)}–{b.end_time?.slice(0,5)} · {b.client?.full_name || '—'}
+                      {(b.seat_number===null) && <span style={{ fontWeight:700 }}> (whole room)</span>}
+                    </div>
+                  ))}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── ADMIN PRODUCTS SECTION ──────────────────────────────────────────────────
 const EMPTY_PRODUCT = {
   name:'', slug:'', category_id:'', short_description:'', description:'',
@@ -4416,36 +4792,7 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
           )}
 
           {/* ═══ ROOM BOOKINGS ═══ */}
-          {tab === 'room_bookings' && (
-            <div>
-              <SectionHeader title="Room Bookings" count={rbTotal}>
-                <select className="inp" value={rbStatus} onChange={e=>{setRbStatus(e.target.value);setRbPage(1)}}>
-                  <option value="">All statuses</option>
-                  {['pending','confirmed','cancelled'].map(s=><option key={s} value={s}>{s}</option>)}
-                </select>
-                <button className="btn btn-ghost" onClick={fetchRoomBookings}>↺</button>
-              </SectionHeader>
-              <Table loading={rbLoading} cols={['Client','Date','Time','Amount','Payment','Status','Actions']}
-                rows={roomBookings.map(b=>(
-                  <tr key={b.id}>
-                    <td style={{fontWeight:600,fontSize:'.82rem'}}>{b.profiles?.full_name||'—'}</td>
-                    <td style={{fontWeight:700}}>{b.booked_date}</td>
-                    <td style={{fontSize:'.76rem'}}>{b.start_time?.slice(0,5)} → {b.end_time?.slice(0,5)}</td>
-                    <td>NPR {Number(b.total_amount||0).toLocaleString()}</td>
-                    <td><Badge s={b.payment_status||'pending'} /></td>
-                    <td>
-                      <select className="inp" value={b.status||'pending'} style={{padding:'.18rem .42rem',fontSize:'.72rem'}}
-                        onChange={async e=>{try{await apiFetch(`/admin/room-bookings/${b.id}`,{method:'PUT',body:JSON.stringify({status:e.target.value})});fetchRoomBookings()}catch(err){alert(err.message)}}}>
-                        {['pending','confirmed','cancelled'].map(s=><option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </td>
-                    <td><button className="btn btn-danger btn-sm" onClick={()=>del('/admin/room-bookings',b.id,`booking ${b.booked_date}`,fetchRoomBookings)}>🗑</button></td>
-                  </tr>
-                ))}
-              />
-              <Pager page={rbPage} set={setRbPage} total={rbTotal} />
-            </div>
-          )}
+          {tab === 'room_bookings' && <AdminRoomBookingsSection />}
 
           {/* ═══ COMMUNITY ADMIN ═══ */}
           {tab === 'community_admin' && (
