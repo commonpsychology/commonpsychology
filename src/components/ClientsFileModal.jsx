@@ -9,8 +9,7 @@
 //   <ClientFilesModal client={filesClient} onClose={() => setFilesClient(null)} />
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { C, GLASS } from '../pages/TherapistdashboardPage' // adjust path if needed
-
+import { C, GLASS } from '../theme'   // instead of importing from the page
 const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL}/api`
 
 async function apiFetch(path, options = {}) {
