@@ -2,8 +2,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from '../context/RouterContext'
 import { useAuth } from '../context/AuthContext'
+import ClientFilesModal from '../components/ClientFilesModal' // ← NEW
 
-const API_BASE = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}/api'
+const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL}/api`
 
 // ── apiFetch: always reads the latest token ────────────────────
 async function apiFetch(path, options = {}) {
@@ -32,7 +33,9 @@ async function apiFetch(path, options = {}) {
 }
 
 // ── Palette ────────────────────────────────────────────────────
-const C = {
+// NOTE: now exported so ClientFilesModal.jsx (and any other new
+// components) can reuse the exact same look and feel.
+export const C = {
   skyBright:'#00BFFF', skyMid:'#009FD4', skyDeep:'#007BA8',
   skyFaint:'#E0F7FF', skyFainter:'#F0FBFF', white:'#ffffff', mint:'#e8f3ee',
   textDark:'#1a3a4a', textMid:'#2e6080', textLight:'#7a9aaa',
@@ -41,7 +44,7 @@ const C = {
 
 // Glass card treatment — layered translucent gradient + blur + hover lift,
 // tuned to this page's sky-blue palette.
-const GLASS = {
+export const GLASS = {
   bg:        'linear-gradient(160deg, rgba(255,255,255,0.78) 0%, rgba(224,247,255,0.6) 55%, rgba(255,255,255,0.74) 100%)',
   bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(200,238,255,0.72) 55%, rgba(255,255,255,0.84) 100%)',
   border:    `1px solid ${C.borderFaint}`,
@@ -328,6 +331,8 @@ export default function TherapistDashboard() {
   const toastTimer                             = useRef(null)
   // ── Pending "mark done" confirmation ──
   const [confirmAppt, setConfirmAppt]          = useState(null)
+  // ── Client whose file manager is open (NEW) ──
+  const [filesClient, setFilesClient]          = useState(null)
 
   const hasLoaded = useRef(false)
 
@@ -345,9 +350,6 @@ export default function TherapistDashboard() {
   }
 
   // ── Auto-flip stale pending/confirmed sessions to "no_show" ──────────
-  // Runs after every load: anything still pending/confirmed more than
-  // NO_SHOW_GRACE_MS past its scheduled time gets marked no_show, since
-  // neither the client showed up nor the therapist updated it in time.
   async function autoMarkNoShows(list) {
     const now = Date.now()
     const stale = list.filter(a =>
@@ -456,6 +458,8 @@ export default function TherapistDashboard() {
         onCancel={() => setConfirmAppt(null)}
         fmtFull={fmtFull}
       />
+      {/* ── Client file manager (NEW) ── */}
+      <ClientFilesModal client={filesClient} onClose={() => setFilesClient(null)} />
 
       {/* ── Top bar ── */}
       <div className="th-topbar">
@@ -648,29 +652,6 @@ export default function TherapistDashboard() {
                             </td>
                             <td><StatusBadge status={a.status}/></td>
                             <td>
-  {/* {(() => {
-    const ps = a.payment_status || 'unpaid'
-    const styles = {
-      paid:    { bg: '#e8f8f0', color: '#1a7a4a', label: '✓ Paid'    },
-      pending: { bg: '#fff5e6', color: '#8a5a1a', label: '⏳ Pending' },
-      unpaid:  { bg: '#fff0f0', color: '#c0392b', label: '✗ Unpaid'  },
-      refunded:{ bg: '#f0f0ff', color: '#4a3ab0', label: '↩ Refunded'},
-    }
-    const s = styles[ps] || styles.unpaid
-    return (
-      <span style={{
-        padding: '0.2rem 0.65rem', borderRadius: 100, fontSize: '0.72rem',
-        fontWeight: 700, background: s.bg, color: s.color,
-        textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap'
-      }}>
-        {s.label}
-      </span>
-    )
-  })()} */}
-</td>
-                            <td>
-                              {/* ── The select now calls updateStatus which uses the correct route ──
-                                  Picking "completed" routes through the same confirmation dialog. ── */}
                               <select
                                 value={a.status}
                                 disabled={isUpdating}
@@ -705,6 +686,9 @@ export default function TherapistDashboard() {
                   marginBottom:'1.25rem', fontSize:'clamp(1.1rem,3vw,1.4rem)' }}>
                   My Clients ({uniqueClients.length})
                 </h2>
+                <p style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:C.textLight, marginTop:'-0.75rem', marginBottom:'1.25rem' }}>
+                  Click a client card to view or upload their files.
+                </p>
                 {loading ? (
                   <p style={{ color:C.textLight, fontFamily:'var(--font-body)' }}>Loading…</p>
                 ) : uniqueClients.length === 0 ? (
@@ -719,10 +703,12 @@ export default function TherapistDashboard() {
                       const clientSessions = appointments.filter(ap => ap.client_id === a.client_id)
                       const lastSession    = clientSessions[0]
                       return (
-                        <div key={i} className="th-glass-card" style={{
-                          background:GLASS.bg, backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)',
-                          borderRadius:14, padding:'1.5rem',
-                          border:GLASS.border, boxShadow:GLASS.shadow }}>
+                        <div key={i} className="th-glass-card"
+                          onClick={() => setFilesClient(a)}
+                          style={{
+                            background:GLASS.bg, backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)',
+                            borderRadius:14, padding:'1.5rem',
+                            border:GLASS.border, boxShadow:GLASS.shadow, cursor:'pointer' }}>
                           <div style={{ display:'flex', alignItems:'center', gap:'0.85rem', marginBottom:'1rem' }}>
                             <div style={{ width:44, height:44, borderRadius:'50%', background:btnGrad,
                               display:'flex', alignItems:'center', justifyContent:'center',
@@ -748,6 +734,10 @@ export default function TherapistDashboard() {
                               <span>Last session</span><span>{lastSession ? fmtDate(lastSession.scheduled_at) : '—'}</span>
                             </div>
                             {lastSession && <StatusBadge status={lastSession.status}/>}
+                            <div style={{ marginTop:'0.75rem', textAlign:'center', fontFamily:'var(--font-body)',
+                              fontSize:'0.74rem', fontWeight:700, color:C.skyDeep }}>
+                              📁 View files
+                            </div>
                           </div>
                         </div>
                       )
@@ -789,17 +779,16 @@ export default function TherapistDashboard() {
                             <div style={{ fontFamily:'var(--font-body)', fontSize:'0.75rem', color:C.textLight }}>{fmtFull(a.scheduled_at)} · {a.type}</div>
                           </div>
                           <StatusBadge status={a.status}/>
-                          {/* Payment indicator — helps therapist know if session is confirmed/paid */}
-{a.payment_status && a.payment_status !== 'paid' && (
-  <span style={{
-    fontSize: '0.68rem', fontWeight: 700, padding: '0.2rem 0.55rem',
-    borderRadius: 100,
-    background: a.payment_status === 'pending' ? '#fff5e6' : '#fff0f0',
-    color:      a.payment_status === 'pending' ? '#8a5a1a' : '#c0392b',
-  }}>
-    {a.payment_status === 'pending' ? '⏳ Payment pending' : '✗ Unpaid'}
-  </span>
-)}
+                          {a.payment_status && a.payment_status !== 'paid' && (
+                            <span style={{
+                              fontSize: '0.68rem', fontWeight: 700, padding: '0.2rem 0.55rem',
+                              borderRadius: 100,
+                              background: a.payment_status === 'pending' ? '#fff5e6' : '#fff0f0',
+                              color:      a.payment_status === 'pending' ? '#8a5a1a' : '#c0392b',
+                            }}>
+                              {a.payment_status === 'pending' ? '⏳ Payment pending' : '✗ Unpaid'}
+                            </span>
+                          )}
                         </div>
                         {a.notes ? (
                           <p style={{ fontFamily:'var(--font-body)', fontSize:'0.85rem', color:C.textMid, lineHeight:1.7, margin:0, background:C.skyFainter, padding:'0.75rem', borderRadius:8 }}>
