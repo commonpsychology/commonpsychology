@@ -21,6 +21,17 @@ const BG = {
   cardBorder: '#dceefc',
 }
 
+// Glass card treatment — same layered translucent gradient + blur used
+// on the Services page cards, tuned to this page's sky-blue palette.
+const GLASS = {
+  bg:        'linear-gradient(160deg, rgba(255,255,255,0.78) 0%, rgba(216,238,255,0.58) 55%, rgba(255,255,255,0.74) 100%)',
+  bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(200,228,255,0.7) 55%, rgba(255,255,255,0.84) 100%)',
+  border:    '1px solid #dceefc',
+  borderHov: '1px solid rgba(56,150,231,0.45)',
+  shadow:    '0 4px 18px rgba(56,150,231,0.10), inset 0 1px 0 rgba(255,255,255,0.5)',
+  shadowHov: '0 20px 44px rgba(56,150,231,0.24), 0 6px 16px rgba(56,150,231,0.14), inset 0 1px 0 rgba(255,255,255,0.6)',
+}
+
 const PILLARS = [
   {
     key: 'emotional',
@@ -184,6 +195,12 @@ function injectMotionCSS() {
     .mfs-level-btn { transition: border-color .15s ease, background .15s ease, transform .12s ease; }
     .mfs-level-btn:hover { transform: translateX(3px); }
     .mfs-level-btn:active { transform: translateX(1px) scale(0.99); }
+    .mfs-glass-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      background: linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(200,228,255,0.7) 55%, rgba(255,255,255,0.84) 100%);
+      border-color: rgba(56,150,231,0.45);
+      box-shadow: 0 20px 44px rgba(56,150,231,0.24), 0 6px 16px rgba(56,150,231,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+    }
   `
   document.head.appendChild(s)
 }
@@ -429,9 +446,10 @@ export default function MentalFitnessScore({ onNavigate }) {
 
               <div style={{
                 display:'inline-flex', alignItems:'center', gap:'1.75rem',
-                background:'var(--white)', border:'1px solid var(--blue-pale)',
+                background:GLASS.bg, backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)',
+                border:GLASS.border,
                 borderRadius:'var(--radius-lg)', padding:'1.4rem 2rem',
-                boxShadow:'0 20px 56px rgba(15,52,96,0.1)',
+                boxShadow:GLASS.shadowHov,
                 flexWrap:'wrap', justifyContent:'center', marginBottom:'2rem',
               }}>
                 <div className="mfs-ring-anim" style={{ position:'relative', width:108, height:108, flexShrink:0 }}>
@@ -480,10 +498,13 @@ export default function MentalFitnessScore({ onNavigate }) {
                 {pillarScores.map((p, i) => {
                   const c = scoreColor(p.pct ?? 0)
                   return (
-                    <div key={p.key} className="mfs-fade-up" style={{
-                      background:'var(--white)', border:'1px solid var(--blue-pale)',
+                    <div key={p.key} className="mfs-fade-up mfs-glass-card" style={{
+                      background:GLASS.bg, backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)',
+                      border:GLASS.border,
                       borderRadius:'var(--radius-md)', padding:'0.9rem 1rem',
                       display:'flex', alignItems:'center', gap:'0.75rem',
+                      boxShadow:GLASS.shadow,
+                      transition:'transform 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s ease, background 0.3s ease, border 0.3s ease',
                       animationDelay: `${140 + i * 70}ms`,
                     }}>
                       <div style={{
@@ -556,10 +577,12 @@ export default function MentalFitnessScore({ onNavigate }) {
           gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))',
         }}>
           {PILLARS.map(p => (
-            <div key={p.label} style={{
-              background:'var(--white)', border:'1px solid var(--blue-pale)',
+            <div key={p.label} className="mfs-glass-card" style={{
+              background:GLASS.bg, backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)',
+              border:GLASS.border,
               borderRadius:'var(--radius-lg)', padding:'1.5rem',
-              boxShadow:'0 12px 32px rgba(15,52,96,0.05)',
+              boxShadow:GLASS.shadow,
+              transition:'transform 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s ease, background 0.3s ease, border 0.3s ease',
             }}>
               <div style={{
                 width:46, height:46, borderRadius:12, background:p.tint,
