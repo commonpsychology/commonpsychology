@@ -4196,7 +4196,7 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
             </div>
           )}
 
-          {/* ═══ PSYCH CONCEPTS ═══ */}
+       
           {tab === 'psych_concepts' && (
             <div>
               <SectionHeader title="Psych Concepts" count={pcTotal} onNew={() => openCreate('psych_concept',{is_active:true})} />
