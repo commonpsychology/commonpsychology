@@ -25,6 +25,14 @@ const heroGrad    = `linear-gradient(135deg, ${C.skyDeep} 0%, ${C.skyMid} 40%, $
 const sectionGrad = `linear-gradient(135deg, ${C.skyFainter} 0%, ${C.mint} 60%, ${C.skyFaint} 100%)`
 const btnGrad     = `linear-gradient(135deg, ${C.skyDeep} 0%, ${C.skyBright} 100%)`
 
+// ── Glass card palette (matches ServicesPage) ──
+const GLASS = {
+  bg:        'linear-gradient(160deg, rgba(255,255,255,0.72) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.68) 100%)',
+  bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(200,232,250,0.68) 55%, rgba(255,255,255,0.78) 100%)',
+  border:    '1px solid rgba(255,255,255,0.55)',
+  borderHov: '1px solid rgba(120,190,230,0.65)',
+}
+
 /* ── Responsive columns hook ── */
 function useGridColumns() {
   const getColumns = (w) => {
@@ -76,7 +84,10 @@ function ProgramCard({ prog, onReadMore }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        borderRadius: 20, background: C.white,
+        borderRadius: 20,
+        background: hovered ? GLASS.bgHover : GLASS.bg,
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         position: 'relative', overflow: 'visible',
         cursor: 'pointer',
         boxShadow: hovered
@@ -84,9 +95,9 @@ function ProgramCard({ prog, onReadMore }) {
              0 5px 0 0 ${C.skyMid}bb,
              0 9px 0 0 ${C.skyBright}55,
              0 22px 52px rgba(0,191,255,0.2),
-             inset 0 1px 0 rgba(255,255,255,0.9)`
-          : `0 2px 12px rgba(0,191,255,0.06), inset 0 1px 0 rgba(255,255,255,0.8)`,
-        border: `1.5px solid ${hovered ? C.skyBright : C.borderFaint}`,
+             inset 0 1px 0 rgba(255,255,255,0.6)`
+          : `0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.5)`,
+        border: hovered ? GLASS.borderHov : GLASS.border,
         transform: hovered ? 'translateY(-7px) scale(1.013)' : 'translateY(0) scale(1)',
         transition: 'all 0.32s cubic-bezier(0.34,1.56,0.64,1)',
       }}
@@ -208,7 +219,14 @@ function ProgramCard({ prog, onReadMore }) {
 // ── Loading skeleton ─────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div style={{ borderRadius: 20, background: C.white, border: `1.5px solid ${C.borderFaint}`, overflow: 'hidden' }}>
+    <div style={{
+      borderRadius: 20,
+      background: GLASS.bg,
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      border: GLASS.border,
+      overflow: 'hidden',
+    }}>
       <div style={{ height: 160, background: `linear-gradient(90deg, ${C.skyFaint} 25%, ${C.skyFainter} 50%, ${C.skyFaint} 75%)`, backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />
       <div style={{ padding: '1.4rem' }}>
         {[80, 50, 100, 100, 70].map((w, i) => (
