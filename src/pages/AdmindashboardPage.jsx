@@ -2339,6 +2339,16 @@ function RoomsTab({ rooms, roomsLoading, loadRooms, flash }) {
   const [delConf, setDelConf] = useState(null)
   const fld = k => e => setForm(f => ({ ...f, [k]: e?.target ? (e.target.type==='checkbox'?e.target.checked:e.target.value) : e }))
 
+  const [seatDate, setSeatDate] = useState(new Date().toISOString().slice(0,10))
+  const [seatSummary, setSeatSummary] = useState({})
+  const loadSeatSummary = useCallback(async () => {
+    try {
+      const d = await apiFetch(`/admin/rooms/seat-summary?date=${seatDate}`)
+      setSeatSummary(d.summary || {})
+    } catch (e) { console.error('seat-summary:', e.message) }
+  }, [seatDate])
+  useEffect(() => { loadSeatSummary() }, [loadSeatSummary])
+
   const openCreate = () => { setForm({ ...EMPTY_ROOM, sort_order: rooms.length }); setSaveErr(''); setModal({ data:null }) }
   const openEdit   = r  => { setForm(roomToForm(r)); setSaveErr(''); setModal({ data:r }) }
   const closeModal = () => setModal(null)
@@ -2371,21 +2381,34 @@ function RoomsTab({ rooms, roomsLoading, loadRooms, flash }) {
   return (
     <div>
       <SectionHeader title="Rooms" count={rooms.length} onNew={openCreate} newLabel="+ New Room">
-        <button className="btn btn-ghost" onClick={loadRooms}>↺ Refresh</button>
+        <label style={{ fontSize:'.72rem', color:'var(--text-muted)', display:'flex', alignItems:'center', gap:'.35rem' }}>
+          Seats for
+          <input className="inp" type="date" value={seatDate} onChange={e=>setSeatDate(e.target.value)} style={{ padding:'.28rem .5rem' }} />
+        </label>
+        <button className="btn btn-ghost" onClick={()=>{ loadRooms(); loadSeatSummary() }}>↺ Refresh</button>
       </SectionHeader>
 
-      <Table loading={roomsLoading} cols={['Room','Capacity','Price/hr','Seats','Sort','Active','Actions']}
-        rows={rooms.map(r => (
-          <tr key={r.id}>
-            <td><div style={{ fontWeight:600, fontSize:'.82rem' }}>{r.name}</div><div style={{ fontSize:'.68rem', color:'var(--text-muted)' }}>{(r.description||'').slice(0,60)}</div></td>
-            <td style={{ fontSize:'.78rem' }}>{r.capacity}</td>
-            <td style={{ fontSize:'.78rem' }}>NPR {Number(r.price_per_hour||0).toLocaleString()}</td>
-            <td style={{ fontSize:'.78rem' }}>{ROOM_SEATS_PER_ROOM}</td>
-            <td style={{ fontSize:'.78rem' }}>{r.sort_order}</td>
-            <td><Toggle on={r.is_active} onChange={()=>toggleActive(r)} /></td>
-            <td><RowActions onEdit={()=>openEdit(r)} onDelete={()=>setDelConf({ id:r.id, label:r.name })} /></td>
-          </tr>
-        ))}
+      <Table loading={roomsLoading} cols={['Room','Price/hr','Seats','Sort','Active','Actions']}
+        rows={rooms.map(r => {
+          const s = seatSummary[r.id]
+          const booked = s?.booked ?? 0
+          const total  = s?.total ?? ROOM_SEATS_PER_ROOM
+          const full   = booked >= total
+          return (
+            <tr key={r.id}>
+              <td><div style={{ fontWeight:600, fontSize:'.82rem' }}>{r.name}</div><div style={{ fontSize:'.68rem', color:'var(--text-muted)' }}>{(r.description||'').slice(0,60)}</div></td>
+              <td style={{ fontSize:'.78rem' }}>NPR {Number(r.price_per_hour||0).toLocaleString()}</td>
+              <td>
+                <span className={`badge ${full ? 'badge-red' : booked > 0 ? 'badge-amber' : 'badge-green'}`}>
+                  {booked}/{total} booked
+                </span>
+              </td>
+              <td style={{ fontSize:'.78rem' }}>{r.sort_order}</td>
+              <td><Toggle on={r.is_active} onChange={()=>toggleActive(r)} /></td>
+              <td><RowActions onEdit={()=>openEdit(r)} onDelete={()=>setDelConf({ id:r.id, label:r.name })} /></td>
+            </tr>
+          )
+        })}
       />
 
       {modal && (
