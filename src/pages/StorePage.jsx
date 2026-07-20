@@ -443,7 +443,8 @@ function ProductQuickView({ productSummary, onClose, onAddToCart, adding }) {
                 </div>
                 {reviewsHasMore && (
                   <button onClick={loadMoreReviews} disabled={reviewsLoadingMore}
-                    style={{ fontSize:'0.76rem', fontWeight:700, color:'var(--green-deep)', background:'none', border:'none', cursor: reviewsLoadingMore ? 'default' : 'pointer', marginBottom:'0.9rem', padding:0 }}>
+                    style={{ fontSize:'0.76rem', fontWeight
+                    :700, color:'var(--green-deep)', background:'none', border:'none', cursor: reviewsLoadingMore ? 'default' : 'pointer', marginBottom:'0.9rem', padding:0 }}>
                     {reviewsLoadingMore ? 'Loading…' : `Show more reviews (${liveReviewCount - reviews.length} remaining)`}
                   </button>
                 )}
