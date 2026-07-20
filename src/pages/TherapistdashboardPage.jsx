@@ -38,6 +38,17 @@ const C = {
   textDark:'#1a3a4a', textMid:'#2e6080', textLight:'#7a9aaa',
   border:'#b0d4e8', borderFaint:'#daeef8',
 }
+
+// Glass card treatment — layered translucent gradient + blur + hover lift,
+// tuned to this page's sky-blue palette.
+const GLASS = {
+  bg:        'linear-gradient(160deg, rgba(255,255,255,0.78) 0%, rgba(224,247,255,0.6) 55%, rgba(255,255,255,0.74) 100%)',
+  bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(200,238,255,0.72) 55%, rgba(255,255,255,0.84) 100%)',
+  border:    `1px solid ${C.borderFaint}`,
+  borderHov: `1px solid ${C.skyBright}88`,
+  shadow:    '0 4px 18px rgba(0,191,255,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+  shadowHov: '0 20px 44px rgba(0,191,255,0.2), 0 6px 16px rgba(0,191,255,0.12), inset 0 1px 0 rgba(255,255,255,0.6)',
+}
 const btnGrad  = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyBright} 100%)`
 const heroGrad = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyMid} 45%,${C.skyBright} 85%,#22d3ee 100%)`
 const secGrad  = `linear-gradient(135deg,${C.skyFainter} 0%,${C.mint} 60%,${C.skyFaint} 100%)`
@@ -56,7 +67,7 @@ const CSS = `
   .th-content { padding:clamp(1rem,3vw,2rem); max-width:1100px; margin:0 auto; width:100%; }
   .th-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
   .th-stat-card { border-radius:14px; padding:clamp(1rem,3vw,1.5rem); border:1px solid ${C.borderFaint}; }
-  .th-table-wrap { background:${C.white}; border-radius:14px; border:1px solid ${C.borderFaint}; overflow:auto; }
+  .th-table-wrap { background:linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(224,247,255,0.55) 55%, rgba(255,255,255,0.78) 100%); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-radius:14px; border:1px solid ${C.borderFaint}; overflow:auto; box-shadow:0 4px 18px rgba(0,191,255,0.08); }
   table.th-table { width:100%; border-collapse:collapse; min-width:520px; }
   table.th-table th { padding:0.65rem 1rem; text-align:left; font-size:0.72rem; font-weight:800; color:${C.textLight}; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid ${C.borderFaint}; background:${secGrad}; white-space:nowrap; }
   table.th-table td { padding:0.75rem 1rem; font-size:0.84rem; color:${C.textMid}; border-bottom:1px solid ${C.borderFaint}; vertical-align:middle; }
@@ -72,6 +83,13 @@ const CSS = `
   @media(max-width:900px){ .th-stats{grid-template-columns:repeat(2,1fr);} }
   @media(max-width:600px){ .th-stats{grid-template-columns:1fr 1fr;gap:0.75rem;} .th-content{padding:0.85rem;} .th-topbar{padding:0.65rem 1rem;} .th-client-grid{grid-template-columns:1fr;} }
   @media(max-width:420px){ .th-stats{grid-template-columns:1fr;gap:0.6rem;} }
+  .th-glass-card { transition: transform 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease; }
+  .th-glass-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    background: linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(200,238,255,0.72) 55%, rgba(255,255,255,0.84) 100%) !important;
+    border-color: ${C.skyBright}88 !important;
+    box-shadow: 0 20px 44px rgba(0,191,255,0.2), 0 6px 16px rgba(0,191,255,0.12), inset 0 1px 0 rgba(255,255,255,0.6) !important;
+  }
 `
 
 function injectCSS() {
@@ -215,11 +233,12 @@ function MessagingPanel() {
       </p>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:'1.25rem' }}>
         {Object.entries(CONTACT_INFO).map(([key, info]) => (
-          <div key={key} style={{ background:C.white, borderRadius:16,
-            border:`1.5px solid ${C.borderFaint}`, overflow:'hidden',
-            boxShadow:`0 4px 20px rgba(0,191,255,0.06)`, transition:'transform 0.2s,box-shadow 0.2s' }}
-            onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 28px rgba(0,191,255,0.12)' }}
-            onMouseLeave={e=>{ e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow=`0 4px 20px rgba(0,191,255,0.06)` }}>
+          <div key={key} style={{
+            background:GLASS.bg, backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)',
+            borderRadius:16, border:GLASS.border, overflow:'hidden',
+            boxShadow:GLASS.shadow, transition:'transform 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease' }}
+            onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-4px) scale(1.01)'; e.currentTarget.style.background=GLASS.bgHover; e.currentTarget.style.borderColor=`${C.skyBright}88`; e.currentTarget.style.boxShadow=GLASS.shadowHov }}
+            onMouseLeave={e=>{ e.currentTarget.style.transform='none'; e.currentTarget.style.background=GLASS.bg; e.currentTarget.style.borderColor=C.borderFaint; e.currentTarget.style.boxShadow=GLASS.shadow }}>
             <div style={{ background:info.faint, borderBottom:`1.5px solid ${info.color}22`,
               padding:'1.5rem 1.5rem 1.25rem', display:'flex', alignItems:'center', gap:'0.85rem' }}>
               <div style={{ width:52, height:52, borderRadius:'50%', background:info.color,
@@ -525,21 +544,23 @@ export default function TherapistDashboard() {
                 {loading ? (
                   <p style={{ color:C.textLight, fontFamily:'var(--font-body)' }}>Loading appointments…</p>
                 ) : upcoming.length === 0 ? (
-                  <div style={{ background:C.white, borderRadius:12, padding:'2.5rem',
-                    border:`1px solid ${C.borderFaint}`, textAlign:'center', color:C.textLight }}>
+                  <div style={{ background:GLASS.bg, backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)', borderRadius:12, padding:'2.5rem',
+                    border:GLASS.border, boxShadow:GLASS.shadow, textAlign:'center', color:C.textLight }}>
                     <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>📅</div>
                     <p style={{ fontFamily:'var(--font-body)', margin:0 }}>No upcoming sessions.</p>
                   </div>
                 ) : upcoming.slice(0,8).map((a,i) => {
                   const isUpdating = updatingIds.has(a.id)
                   return (
-                    <div key={a.id||i}
-                      style={{ background:C.white, borderRadius:12,
+                    <div key={a.id||i} className="th-glass-card"
+                      style={{ background:GLASS.bg, backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
+                        borderRadius:12,
                         padding:'clamp(1rem,3vw,1.25rem) clamp(1rem,3vw,1.5rem)',
-                        border:`1px solid ${C.borderFaint}`, marginBottom:'0.75rem',
+                        border:GLASS.border, marginBottom:'0.75rem',
+                        boxShadow:GLASS.shadow,
                         display:'flex', justifyContent:'space-between',
                         alignItems:'center', flexWrap:'wrap', gap:'0.75rem',
-                        opacity: isUpdating ? 0.75 : 1, transition:'opacity 0.15s' }}>
+                        opacity: isUpdating ? 0.75 : 1, transition:'opacity 0.15s, transform 0.3s, box-shadow 0.3s, background 0.3s' }}>
                       <div style={{ display:'flex', gap:'1rem', alignItems:'center' }}>
                         <div style={{ width:40, height:40, borderRadius:'50%', background:C.skyFaint,
                           display:'flex', alignItems:'center', justifyContent:'center',
@@ -698,8 +719,10 @@ export default function TherapistDashboard() {
                       const clientSessions = appointments.filter(ap => ap.client_id === a.client_id)
                       const lastSession    = clientSessions[0]
                       return (
-                        <div key={i} style={{ background:C.white, borderRadius:14, padding:'1.5rem',
-                          border:`1px solid ${C.borderFaint}`, boxShadow:`0 2px 10px rgba(0,191,255,0.05)` }}>
+                        <div key={i} className="th-glass-card" style={{
+                          background:GLASS.bg, backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)',
+                          borderRadius:14, padding:'1.5rem',
+                          border:GLASS.border, boxShadow:GLASS.shadow }}>
                           <div style={{ display:'flex', alignItems:'center', gap:'0.85rem', marginBottom:'1rem' }}>
                             <div style={{ width:44, height:44, borderRadius:'50%', background:btnGrad,
                               display:'flex', alignItems:'center', justifyContent:'center',
@@ -757,7 +780,9 @@ export default function TherapistDashboard() {
                 ) : (
                   <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
                     {past.filter(a=>a.status==='completed').map((a,i) => (
-                      <div key={a.id||i} style={{ background:C.white, borderRadius:12, padding:'1.25rem 1.5rem', border:`1px solid ${C.borderFaint}` }}>
+                      <div key={a.id||i} className="th-glass-card" style={{
+                        background:GLASS.bg, backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
+                        borderRadius:12, padding:'1.25rem 1.5rem', border:GLASS.border, boxShadow:GLASS.shadow }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.75rem', flexWrap:'wrap', gap:'0.5rem' }}>
                           <div>
                             <div style={{ fontFamily:'var(--font-body)', fontWeight:700, color:C.textDark, marginBottom:'0.2rem' }}>{a.clients?.full_name||'Client'}</div>
