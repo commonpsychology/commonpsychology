@@ -244,13 +244,13 @@ function EmotionalArc({ phases }) {
 
 /* ── Field photos: real deployment shots, flowing/organic layout ── */
 const dispatches = [
-  { src: "https://i.postimg.cc/GHGjQd01/dm.jpg", alt: "Field response — psychological support work", location: "Field site", note: "Our team providing psychological support on the ground." },
-  { src: "https://i.postimg.cc/Xpdg84M6/dm2.jpg", alt: "Field response — community session", location: "Field site", note: "A community session held during a recent deployment." },
-  { src: "https://i.postimg.cc/PPYM4hgB/dm3.jpg", alt: "Field response — team at work", location: "Field site", note: "Our team at work supporting an affected community." },
-  { src: "https://i.postimg.cc/crwcm0qq/dm4.jpg", alt: "Field response — outreach", location: "Field site", note: "Outreach and support during a disaster response." },
-  { src: "https://i.postimg.cc/D8LcgF99/dm6.jpg", alt: "Field response — group activity", location: "Field site", note: "A group activity as part of our recovery programming." },
-  { src: "https://i.postimg.cc/D8LcgF9M/dm7.jpg", alt: "Field response — volunteer coordination", location: "Field site", note: "Volunteers coordinating before deployment." },
-  { src: "https://i.postimg.cc/zVKkj5s4/m5.jpg", alt: "Field response — follow-up visit", location: "Field site", note: "A follow-up visit checking in on community wellbeing." },
+  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — psychological support work", location: "Field site", note: "Our team providing psychological support on the ground." },
+  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — community session", location: "Field site", note: "A community session held during a recent deployment." },
+  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — team at work", location: "Field site", note: "Our team at work supporting an affected community." },
+  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — outreach", location: "Field site", note: "Outreach and support during a disaster response." },
+  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — group activity", location: "Field site", note: "A group activity as part of our recovery programming." },
+  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — volunteer coordination", location: "Field site", note: "Volunteers coordinating before deployment." },
+  { src: "https://ibb.co/4gTbKKVK", alt: "Field response — follow-up visit", location: "Field site", note: "A follow-up visit checking in on community wellbeing." },
 ];
 
 function FieldDispatches() {
