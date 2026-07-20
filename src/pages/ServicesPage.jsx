@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { useRouter } from '../context/RouterContext'
 
 const allServices = [
-  {
-    icon: '🩺', iconClass: 'si-blue',
-    title: 'Psychiatrist Consultation',
-    desc: 'Comprehensive psychiatric evaluation and medication management from licensed psychiatrists, for when therapy alone needs clinical support.',
-    features: ['Diagnostic assessment', 'Medication management', 'Follow-up reviews', 'Coordination with your therapist'],
-    specialties: ['Psychiatry', 'Medication', 'Diagnosis', 'Clinical'],
-  },
+  // {
+  //   icon: '🩺', iconClass: 'si-blue',
+  //   title: 'Psychiatrist Consultation',
+  //   desc: 'Comprehensive psychiatric evaluation and medication management from licensed psychiatrists, for when therapy alone needs clinical support.',
+  //   features: ['Diagnostic assessment', 'Medication management', 'Follow-up reviews', 'Coordination with your therapist'],
+  //   specialties: ['Psychiatry', 'Medication', 'Diagnosis', 'Clinical'],
+  // },
   {
     icon: '🧠', iconClass: 'si-green',
     title: 'Individual Therapy',
