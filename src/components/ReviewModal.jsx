@@ -20,9 +20,7 @@ export default function ReviewModal({ therapist, onClose, onSubmitted }) {
     setSubmitting(true)
     setError(null)
     try {
-      // NOTE: adjust this to however your app stores the auth token
-      // (e.g. supabase.auth.getSession(), a context, etc.)
-      const token = localStorage.getItem('access_token')
+      const token = localStorage.getItem('accessToken')
 
       const res = await fetch(`${API_BASE}/therapists/${therapist.id}/reviews`, {
         method: 'POST',
