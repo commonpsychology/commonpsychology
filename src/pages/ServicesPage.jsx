@@ -498,6 +498,27 @@ export default function ServicesPage() {
                 }}
                 onClick={() => navigate('/book', { serviceTitle: s.title, serviceSpecialties: s.specialties })}
               >
+                <button
+                  onClick={(e) => { e.stopPropagation(); navigate(`/services/${slugify(s.title)}`) }}
+                  title="View details"
+                  aria-label={`View details for ${s.title}`}
+                  style={{
+                    position: 'absolute', top: 14, right: 14, zIndex: 2,
+                    width: 34, height: 34, borderRadius: '50%',
+                    border: '1px solid rgba(255,255,255,0.7)',
+                    background: 'rgba(255,255,255,0.75)',
+                    backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', fontSize: '1rem', color: '#007ba8',
+                    boxShadow: '0 2px 8px rgba(0,123,168,0.18)',
+                    transition: 'transform 0.2s ease, background 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.95)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.75)' }}
+                >
+                  👁
+                </button>
+
                 <div
                   className={`service-icon ${s.iconClass}`}
                   style={{
