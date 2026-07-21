@@ -399,7 +399,7 @@ useEffect(() => { load() }, [load])
   const STATS = [
     { key: '',           label: 'Total',      val: summary.total      || 0, color: '#3b82f6', dot: '#3b82f6' },
     { key: 'assigned',   label: 'Assigned',   val: summary.assigned   || 0, color: '#1e40af', dot: '#3b82f6' },
-    { key: 'in_transit', label: 'In Transit', val: summary.in_transit || 0, color: '#0e7490', dot: '#f3f706' },
+    { key: 'in_transit', label: 'In Transit', val: summary.in_transit || 0, color: '#92400e', dot: '#f59e0b' },
     { key: 'delivered',  label: 'Delivered',  val: summary.delivered  || 0, color: '#065f46', dot: '#10b981' },
     { key: 'failed',     label: 'Failed',     val: summary.failed     || 0, color: '#991b1b', dot: '#ef4444' },
   ]
