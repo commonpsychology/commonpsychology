@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { useRouter } from '../context/RouterContext'
 
-const allServices = [
+export function slugify(str) {
+  return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+export const allServices = [
   // {
   //   icon: '🩺', iconClass: 'si-blue',
   //   title: 'Psychiatrist Consultation',
@@ -205,6 +209,33 @@ export default function ServicesPage() {
                 }}
                 onClick={() => navigate('/book', { serviceTitle: s.title, serviceSpecialties: s.specialties })}
               >
+                <button
+                  aria-label={`View details for ${s.title}`}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/services/${slugify(s.title)}`) }}
+                  style={{
+                    position: 'absolute',
+                    top: '14px',
+                    right: '14px',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '50%',
+                    border: '1px solid rgba(255,255,255,0.6)',
+                    background: 'rgba(255,255,255,0.65)',
+                    backdropFilter: 'blur(6px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 3px 10px rgba(0,60,100,0.12)',
+                    transition: 'transform 0.2s ease, background 0.2s ease',
+                    zIndex: 2,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.background = 'rgba(255,255,255,0.9)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.65)' }}
+                >
+                  👁️
+                </button>
                 <div
                   className={`service-icon ${s.iconClass}`}
                   style={{
