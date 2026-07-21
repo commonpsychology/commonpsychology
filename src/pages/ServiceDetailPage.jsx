@@ -1,8 +1,297 @@
-// src/pages/ServiceDetailPage.jsx
-import { useState, useEffect, useRef } from 'react'
+// src/pages/ServicesPage.jsx
+import { useState } from 'react'
 import { useRouter } from '../context/RouterContext'
-import { allServices, slugify } from './ServicesPage'
 
+export function slugify(str) {
+  return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+export const allServices = [
+  {
+    icon: '🧠', iconClass: 'si-green',
+    title: 'Individual Therapy',
+    desc: 'One-on-one sessions tailored to your unique needs, delivered by certified clinical psychologists. Available online or in-person across Kathmandu.',
+    features: ['CBT & DBT approaches', '60-minute sessions', 'Flexible scheduling', 'Session notes shared securely'],
+    specialties: ['Anxiety', 'Depression', 'CBT', 'Trauma'],
+    overview: 'Individual therapy provides a private, one-on-one space to work through personal challenges — from anxiety and depression to self-esteem, life direction, and everyday stress. Sessions are led by certified clinical psychologists trained in evidence-based approaches like CBT and DBT, tailored to your specific goals rather than a one-size-fits-all program.',
+    whoFor: [
+      "You're dealing with ongoing anxiety, low mood, or stress affecting daily life",
+      'You want a confidential space to process thoughts and feelings without judgment',
+      "You're looking for practical tools, not just someone to listen",
+      "You've tried therapy before or are completely new to it — both are welcome",
+    ],
+    duration: '60 minutes',
+    format: 'Online or in-person in Kathmandu',
+    frequency: 'Weekly, biweekly, or as needed',
+    process: [
+      { title: 'Initial Consultation', desc: 'A brief intake call to understand your concerns and match you with the right therapist.' },
+      { title: 'First Session', desc: 'Your therapist gets a fuller picture of your history, goals, and what you want out of therapy.' },
+      { title: 'Ongoing Sessions', desc: 'Regular sessions using CBT, DBT, or other approaches suited to your needs, with reflection between sessions.' },
+      { title: 'Progress Check-ins', desc: 'Periodic reviews to track progress and adjust the approach as needed.' },
+    ],
+    faqs: [
+      { q: 'How many sessions will I need?', a: 'It varies — some people benefit from a handful of sessions to work through a specific issue, while others continue longer-term. Your therapist will discuss this with you as you go.' },
+      { q: 'Is everything I share confidential?', a: 'Yes. Sessions are private and confidential, in line with professional counseling ethics, except in rare situations involving risk of harm.' },
+      { q: "Can I switch therapists if it's not a good fit?", a: 'Absolutely. Finding the right fit matters, and you can request a different therapist at any point.' },
+    ],
+  },
+  {
+    icon: '💑', iconClass: 'si-earth',
+    title: 'Couples Counseling',
+    desc: 'Rebuild trust, communication, and intimacy with your partner through evidence-based relationship therapy.',
+    features: ['Gottman Method', 'Joint & separate sessions', 'Conflict resolution', 'Relationship assessment'],
+    specialties: ['Relationship', 'Couples', 'Gottman', 'Communication'],
+    overview: "Couples counseling helps partners rebuild trust, improve communication, and work through recurring conflict using structured, evidence-based methods like the Gottman Method. Whether you're navigating a rough patch or want to strengthen an already solid relationship, sessions create a safe space for both partners to be heard.",
+    whoFor: [
+      'You and your partner argue about the same issues repeatedly without resolution',
+      'Communication feels difficult, distant, or one-sided',
+      "You're rebuilding trust after a breach or difficult period",
+      'You want to strengthen your relationship proactively, not just in crisis',
+    ],
+    duration: '75 minutes',
+    format: 'Online or in-person, joint sessions with optional individual check-ins',
+    frequency: 'Weekly or biweekly',
+    process: [
+      { title: 'Joint Assessment', desc: 'Both partners share their perspective and relationship history with the therapist.' },
+      { title: 'Individual Check-ins', desc: "Brief one-on-one conversations to understand each partner's personal concerns." },
+      { title: 'Guided Sessions', desc: 'Structured joint sessions focused on communication skills, conflict resolution, and rebuilding connection.' },
+      { title: 'Home Practice', desc: "Simple exercises between sessions to reinforce what's discussed in therapy." },
+    ],
+    faqs: [
+      { q: 'Do both partners need to attend every session?', a: 'Most sessions are joint, though occasional individual check-ins may be included when helpful.' },
+      { q: "What if we're not sure about staying together?", a: "That's a valid reason to seek counseling. Sessions can help clarify the relationship's direction, whichever way that goes." },
+      { q: 'Is this only for married couples?', a: 'No — we work with couples at any stage, married or not, of any orientation.' },
+    ],
+  },
+  {
+    icon: '👨‍👩‍👧', iconClass: 'si-blue',
+    title: 'Family Therapy',
+    desc: 'Strengthen family bonds and work through dynamics that affect everyone in the household.',
+    features: ['Family systems approach', 'Parenting support', 'Communication skills', 'Crisis intervention'],
+    specialties: ['Family', 'Parenting', 'Crisis', 'Communication'],
+    overview: 'Family therapy addresses the dynamics, communication patterns, and conflicts that affect the household as a whole — not just one individual. Using a systemic approach, sessions help families understand each other better, resolve recurring conflicts, and build healthier ways of relating.',
+    whoFor: [
+      'Conflict between family members feels ongoing or unresolved',
+      'A major life change (illness, loss, relocation) is affecting the whole family',
+      'Parents and children are struggling to communicate',
+      'You want support navigating a blended family or major transition',
+    ],
+    duration: '60–90 minutes',
+    format: 'In-person (home visits available) or online',
+    frequency: 'Weekly or as needed',
+    process: [
+      { title: 'Family Intake', desc: "Understanding each family member's perspective and the core concerns." },
+      { title: 'Systemic Assessment', desc: 'Identifying recurring patterns and dynamics contributing to conflict.' },
+      { title: 'Joint Sessions', desc: 'Structured conversations involving relevant family members, guided by the therapist.' },
+      { title: 'Ongoing Support', desc: 'Regular check-ins as the family works through changes together.' },
+    ],
+    faqs: [
+      { q: 'Does the whole family need to attend every session?', a: "Not necessarily — some sessions may involve specific family members depending on what's being addressed." },
+      { q: 'Is this suitable for children?', a: 'Yes, sessions are adapted to be age-appropriate for all participating family members.' },
+      { q: 'Do you offer home visits?', a: 'Yes, home visit options are available depending on location and availability.' },
+    ],
+  },
+  {
+    icon: '🧒', iconClass: 'si-green',
+    title: 'Child Psychology',
+    desc: 'Specialized support for children aged 5–18, using play therapy and age-appropriate techniques.',
+    features: ['Play therapy', 'Behavioral assessment', 'School-related issues', 'Parent coaching'],
+    specialties: ['Children', 'Play Therapy', 'Behavioral', 'Adolescents'],
+    overview: 'Specialized psychological support for children aged 5–18, using play therapy, behavioral techniques, and age-appropriate conversation to help kids process emotions, navigate school-related stress, or work through behavioral challenges — with parents involved every step of the way.',
+    whoFor: [
+      'Your child is showing signs of anxiety, withdrawal, or behavioral changes',
+      'School-related stress, bullying, or academic pressure is affecting them',
+      'You want support navigating a major transition (divorce, new sibling, relocation)',
+      "You're looking for parent coaching alongside your child's sessions",
+    ],
+    duration: '45 minutes',
+    format: 'In-person (play therapy room) or online for older children/teens',
+    frequency: 'Weekly',
+    process: [
+      { title: 'Parent Consultation', desc: 'An initial conversation with parents/guardians to understand concerns and history.' },
+      { title: 'Child Assessment', desc: "Age-appropriate assessment to understand the child's emotional and behavioral needs." },
+      { title: 'Therapy Sessions', desc: "Play therapy or talk-based sessions, depending on the child's age and comfort." },
+      { title: 'Parent Coaching', desc: 'Guidance for parents on supporting progress at home.' },
+    ],
+    faqs: [
+      { q: "Will I know what happens in my child's sessions?", a: "You'll receive general updates on progress while respecting your child's space to build trust with their therapist." },
+      { q: 'What age range do you work with?', a: 'Children and adolescents aged 5 to 18.' },
+      { q: 'What is play therapy?', a: 'A therapeutic approach using play, rather than direct conversation, to help younger children express and process emotions.' },
+    ],
+  },
+  {
+    icon: '🌿', iconClass: 'si-earth',
+    title: 'Mindfulness & Stress',
+    desc: 'Learn practical mindfulness techniques to manage stress, anxiety, and emotional regulation.',
+    features: ['MBSR program', 'Breathing techniques', 'Stress audit', 'Daily practice tools'],
+    specialties: ['Mindfulness', 'Stress', 'Anxiety', 'MBSR'],
+    overview: 'Learn practical, evidence-based mindfulness techniques through a structured MBSR (Mindfulness-Based Stress Reduction) program, designed to help you manage everyday stress, anxiety, and emotional overwhelm with tools you can use long after sessions end.',
+    whoFor: [
+      'You feel chronically stressed, overwhelmed, or on edge',
+      'You want practical tools rather than open-ended talk therapy',
+      "You're curious about mindfulness but don't know where to start",
+      "You're looking to build a sustainable daily practice",
+    ],
+    duration: '50 minutes',
+    format: 'Online or in-person, individual or group sessions',
+    frequency: 'Weekly for an 8-week program, or standalone sessions',
+    process: [
+      { title: 'Stress Audit', desc: 'Identifying your specific stress triggers and current coping patterns.' },
+      { title: 'Foundational Techniques', desc: 'Learning breathing exercises and grounding techniques.' },
+      { title: 'MBSR Program', desc: 'Structured weekly sessions building a complete mindfulness practice.' },
+      { title: 'Daily Practice Tools', desc: 'Take-home resources to continue practicing independently.' },
+    ],
+    faqs: [
+      { q: 'Do I need any prior meditation experience?', a: 'No prior experience is needed — sessions start from the basics.' },
+      { q: 'Is this a substitute for therapy?', a: "It can complement therapy but isn't a replacement for clinical treatment of diagnosed conditions." },
+      { q: 'Can I do this in a group setting?', a: 'Yes, both individual and group formats are available.' },
+    ],
+  },
+  {
+    icon: '😴', iconClass: 'si-blue',
+    title: 'Sleep & Mood',
+    desc: 'Address insomnia, burnout, and mood disorders with targeted therapeutic interventions.',
+    features: ['CBT for insomnia', 'Mood charting', 'Sleep hygiene coaching', 'Lifestyle integration'],
+    specialties: ['Insomnia', 'Sleep', 'Mood', 'Burnout'],
+    overview: 'Address insomnia, low mood, and burnout with targeted, evidence-based interventions including CBT for Insomnia (CBT-I) — one of the most effective non-medication treatments for sleep difficulties — combined with mood tracking and lifestyle adjustments.',
+    whoFor: [
+      'You struggle to fall or stay asleep on a regular basis',
+      "You're dealing with burnout or low energy affecting daily function",
+      'Your mood feels persistently low or unpredictable',
+      'You want an alternative or complement to sleep medication',
+    ],
+    duration: '50 minutes',
+    format: 'Online or in-person',
+    frequency: 'Weekly for 4–6 sessions, then as needed',
+    process: [
+      { title: 'Sleep & Mood Assessment', desc: 'Understanding your sleep patterns, mood history, and daily routines.' },
+      { title: 'CBT-I Techniques', desc: 'Structured techniques to retrain sleep patterns without medication.' },
+      { title: 'Mood Charting', desc: 'Tracking mood alongside sleep to identify patterns and triggers.' },
+      { title: 'Lifestyle Integration', desc: 'Practical adjustments to daily habits supporting long-term improvement.' },
+    ],
+    faqs: [
+      { q: 'Will you prescribe sleep medication?', a: 'No — this service focuses on non-medication approaches. Medication management would go through a psychiatrist.' },
+      { q: 'How soon will I see improvement?', a: 'Many people notice improvement within a few weeks of consistent practice, though it varies by individual.' },
+      { q: 'Is this only for insomnia?', a: 'It also addresses burnout and mood-related concerns connected to sleep.' },
+    ],
+  },
+  {
+    icon: '💼', iconClass: 'si-blue',
+    title: 'Organizational Wellness',
+    desc: 'Support for workplace mental health and employee well-being.',
+    features: ['Workplace assessments', 'Employee assistance', 'Leadership training', 'Culture of care'],
+    specialties: ['Workplace', 'Employee', 'Leadership', 'Culture'],
+    overview: 'Support for workplace mental health, from individual employee assistance to leadership training and organization-wide culture assessments — helping teams build a sustainable culture of psychological safety and care.',
+    whoFor: [
+      'Your organization wants to introduce or improve employee mental health support',
+      'Leadership wants training on supporting team wellbeing',
+      "You're seeing signs of burnout or disengagement across your team",
+      'You want a confidential Employee Assistance Program (EAP) for staff',
+    ],
+    duration: 'Varies by engagement (half-day workshops to ongoing EAP)',
+    format: 'On-site, online, or hybrid',
+    frequency: 'Custom, based on organizational needs',
+    process: [
+      { title: 'Organizational Assessment', desc: 'Understanding current workplace culture and specific challenges.' },
+      { title: 'Program Design', desc: 'Tailoring an approach — EAP, workshops, leadership training, or a mix.' },
+      { title: 'Implementation', desc: 'Rolling out sessions, trainings, or ongoing employee assistance access.' },
+      { title: 'Review & Iteration', desc: 'Periodic review of impact and adjustments based on feedback.' },
+    ],
+    faqs: [
+      { q: 'Is employee participation confidential?', a: 'Yes — individual employee sessions remain confidential from the employer.' },
+      { q: 'What size organizations do you work with?', a: 'We work with organizations of varying sizes, from small teams to larger companies.' },
+      { q: 'Can this be a one-time workshop instead of an ongoing program?', a: 'Yes, we offer both one-time workshops and ongoing engagement models.' },
+    ],
+  },
+  {
+    icon: '🗨️', iconClass: 'si-green',
+    title: 'General Counseling',
+    desc: 'Talk through everyday challenges, life transitions, or emotional struggles with a supportive, non-judgmental counselor.',
+    features: ['Life transitions support', 'Emotional wellness check-ins', 'Confidential sessions', 'Personalized coping strategies'],
+    specialties: ['Counseling', 'Life Transitions', 'Emotional Support', 'Wellness'],
+    overview: "A flexible, supportive space to talk through everyday challenges, life transitions, or emotional struggles that don't necessarily need a clinical diagnosis to deserve attention — sometimes you just need a non-judgmental space to think things through.",
+    whoFor: [
+      "You're going through a life transition and want support processing it",
+      'You feel emotionally overwhelmed but aren\'t sure it "counts" as needing therapy',
+      'You want a regular space for reflection and emotional check-ins',
+      "You're looking for short-term support around a specific situation",
+    ],
+    duration: '50 minutes',
+    format: 'Online or in-person',
+    frequency: 'Weekly, biweekly, or as needed',
+    process: [
+      { title: 'Initial Conversation', desc: "Understanding what's bringing you to counseling and what support looks like for you." },
+      { title: 'Ongoing Sessions', desc: 'Regular sessions focused on your specific concerns and goals.' },
+      { title: 'Coping Strategy Building', desc: "Developing personalized strategies for whatever you're navigating." },
+      { title: 'Flexible Continuation', desc: "Continue as long as it's useful — short-term or ongoing, your choice." },
+    ],
+    faqs: [
+      { q: 'Do I need a specific diagnosis to seek counseling?', a: "No — general counseling is open to anyone wanting support, whether or not there's a clinical diagnosis involved." },
+      { q: 'How is this different from therapy?', a: "It's similar in format but often more flexible and short-term focused, suited to everyday challenges rather than deeper clinical work." },
+      { q: 'Can I switch to a more specialized service later?', a: 'Yes, your counselor can help refer you to a more specialized service if needed.' },
+    ],
+  },
+  {
+    icon: '🕊️', iconClass: 'si-earth',
+    title: 'Grief & Loss Counseling',
+    desc: 'Compassionate support for processing grief after the loss of a loved one, relationship, or major life change.',
+    features: ['Grief processing techniques', 'Individual & family sessions', 'Coping with loss', 'Memory & meaning-making work'],
+    specialties: ['Grief', 'Loss', 'Bereavement', 'Family'],
+    overview: 'Compassionate, paced support for processing grief after losing a loved one, a relationship, or navigating any major life loss — helping you find ways to carry the loss while continuing to live fully, on your own timeline.',
+    whoFor: [
+      "You've experienced the loss of a loved one, recently or in the past",
+      "You're grieving a relationship, job, or other significant life change",
+      'You feel stuck, numb, or overwhelmed by grief',
+      'You want support for a family member navigating loss (e.g. a grieving child)',
+    ],
+    duration: '60 minutes',
+    format: 'Online or in-person, individual or family sessions',
+    frequency: 'Weekly or as needed, at your own pace',
+    process: [
+      { title: 'Gentle Intake', desc: 'A compassionate first conversation about your loss and what support you need.' },
+      { title: 'Grief Processing', desc: 'Structured but flexible techniques to help process complex emotions around loss.' },
+      { title: 'Meaning-Making Work', desc: 'Exploring ways to honor memory while moving forward.' },
+      { title: 'Ongoing Support', desc: "Continued sessions as long as helpful — grief doesn't follow a fixed timeline." },
+    ],
+    faqs: [
+      { q: 'How soon after a loss should I seek counseling?', a: "There's no fixed timeline — some people seek support immediately, others years later. Both are valid." },
+      { q: 'Can this help with grief unrelated to death, like a breakup or job loss?', a: 'Yes, grief counseling supports processing any significant loss, not only bereavement.' },
+      { q: 'Can children attend grief counseling?', a: 'Yes, sessions can be adapted for children experiencing loss, often alongside family sessions.' },
+    ],
+  },
+  {
+    icon: '🌱', iconClass: 'si-blue',
+    title: 'Trauma Counseling',
+    desc: 'Specialized, trauma-informed therapy to help you process difficult experiences and rebuild a sense of safety.',
+    features: ['Trauma-informed approach', 'EMDR & grounding techniques', 'Safe, paced sessions', 'Nervous system regulation support'],
+    specialties: ['Trauma', 'PTSD', 'EMDR', 'Safety'],
+    overview: 'Specialized, trauma-informed therapy using approaches like EMDR and grounding techniques to help you process difficult or overwhelming experiences at a safe, manageable pace — with your sense of safety and control as the top priority throughout.',
+    whoFor: [
+      "You've experienced a distressing or traumatic event, recent or past",
+      'You experience flashbacks, hypervigilance, or emotional numbness',
+      'You want to work through trauma without being forced to relive it in detail',
+      "You're looking for a trauma-informed therapist experienced with PTSD",
+    ],
+    duration: '60 minutes',
+    format: 'Online or in-person',
+    frequency: 'Weekly, at a pace set by you',
+    process: [
+      { title: 'Safety First', desc: 'Establishing trust and safety before any trauma processing begins.' },
+      { title: 'Stabilization', desc: 'Building grounding and nervous system regulation tools.' },
+      { title: 'Trauma Processing', desc: 'Using EMDR or other trauma-informed techniques, paced entirely to your comfort.' },
+      { title: 'Integration', desc: 'Consolidating progress and building long-term resilience.' },
+    ],
+    faqs: [
+      { q: 'Will I have to describe my trauma in detail?', a: "No — trauma-informed approaches like EMDR don't require you to recount every detail to be effective." },
+      { q: 'What is EMDR?', a: 'Eye Movement Desensitization and Reprocessing — a structured, evidence-based therapy technique for processing traumatic memories.' },
+      { q: "How do I know if I'm ready for trauma counseling?", a: "If you're considering it, that's often enough of a sign. Your therapist will move at whatever pace feels safe for you." },
+    ],
+  },
+]
+
+const allTags = ['All', ...Array.from(new Set(allServices.flatMap(s => s.specialties)))]
+
+// ── Glass card palette ─────────────────────────────────────────
 const GLASS = {
   bg:        'linear-gradient(160deg, rgba(255,255,255,0.72) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.68) 100%)',
   bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(200,232,250,0.68) 55%, rgba(255,255,255,0.78) 100%)',
@@ -10,446 +299,223 @@ const GLASS = {
   borderHov: '1px solid rgba(120,190,230,0.65)',
 }
 
-const TRUST_BADGES = [
-  { icon: '🔒', label: 'Confidential' },
-  { icon: '🎓', label: 'Licensed Clinicians' },
-  { icon: '📊', label: 'Evidence-Based' },
-  { icon: '🌐', label: 'Online or In-Person' },
-]
+export default function ServicesPage() {
+  const { navigate } = useRouter()
+  const [activeTag, setActiveTag] = useState('All')
+  const [hoveredIdx, setHoveredIdx] = useState(null)
 
-// Short, generic blurbs keyed by common approach/technique tags found in `features`.
-// Falls back to a neutral description if a tag isn't in this map.
-const APPROACH_BLURBS = {
-  'CBT': 'Cognitive Behavioral Therapy helps identify and reshape unhelpful thought patterns that drive difficult emotions and behavior.',
-  'DBT': 'Dialectical Behavior Therapy blends acceptance and change strategies, building skills for emotional regulation and distress tolerance.',
-  'Gottman Method': 'A research-backed framework for understanding relationship dynamics and building stronger communication between partners.',
-  'EMDR': 'Eye Movement Desensitization and Reprocessing helps the brain reprocess distressing memories so they carry less emotional weight.',
-  'Play Therapy': 'Uses play as a natural language for children to express emotions and work through experiences words can\'t always capture.',
-  'MBSR': 'Mindfulness-Based Stress Reduction combines meditation and body awareness to build a sustainable, practical stress-management practice.',
-  'CBT for insomnia': 'A structured, non-medication approach that retrains sleep patterns by addressing the thoughts and habits that disrupt rest.',
-}
-
-function approachFor(feature) {
-  const key = Object.keys(APPROACH_BLURBS).find(k => feature.toLowerCase().includes(k.toLowerCase()))
-  return key ? APPROACH_BLURBS[key] : null
-}
-
-// Generic, clearly-labeled sample testimonials — placeholders only.
-// Swap these for real (consented, anonymized) client feedback before launch.
-const SAMPLE_TESTIMONIALS = [
-  { initials: 'A.S.', quote: 'I was nervous starting therapy, but my sessions felt genuinely tailored to what I was going through — not a generic script.' },
-  { initials: 'R.T.',  quote: 'Having sessions online made it possible to keep up consistently, even during a busy work season.' },
-  { initials: 'P.K.',  quote: 'It took a few sessions to open up, but I felt like my therapist was actually listening and adjusting the approach with me.' },
-]
-
-const NAV_SECTIONS = [
-  { id: 'overview',   label: 'Overview' },
-  { id: 'who-for',    label: 'Is This For You?' },
-  { id: 'approach',   label: 'Our Approach' },
-  { id: 'included',   label: "What's Included" },
-  { id: 'process',    label: 'How It Works' },
-  { id: 'benefits',   label: 'Benefits' },
-  { id: 'pricing',    label: 'Pricing & Insurance' },
-  { id: 'stories',    label: 'Client Stories' },
-  { id: 'faqs',       label: 'FAQs' },
-]
-
-export default function ServiceDetailPage() {
-  const { params, navigate } = useRouter()
-  const service = allServices.find(s => slugify(s.title) === params.slug)
-  const [openFaq, setOpenFaq] = useState(0)
-  const [activeSection, setActiveSection] = useState('overview')
-  const sectionRefs = useRef({})
-
-  // Track which section is in view for the sticky in-page nav highlight
-  useEffect(() => {
-    if (!service) return
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) setActiveSection(entry.target.id)
-        })
-      },
-      { rootMargin: '-15% 0px -70% 0px' }
-    )
-    Object.values(sectionRefs.current).forEach(el => el && observer.observe(el))
-    return () => observer.disconnect()
-  }, [service])
-
-  function scrollTo(id) {
-    sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  if (!service) {
-    return (
-      <div className="page-wrapper">
-        <div className="section" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
-          <h1 className="section-title">Service not found</h1>
-          <p className="section-desc" style={{ marginBottom: '2rem' }}>
-            {params.slug
-              ? `We couldn't find a service matching "${params.slug}".`
-              : "No service was specified in the URL."}
-          </p>
-          <button className="btn btn-primary" onClick={() => navigate('/services')}>
-            Back to All Services
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  const related = allServices
-    .filter(s => s.title !== service.title && s.specialties.some(tag => service.specialties.includes(tag)))
-    .slice(0, 3)
-  const relatedPool = related.length > 0 ? related : allServices.filter(s => s.title !== service.title).slice(0, 3)
-
-  const approachItems = (service.features || [])
-    .map(f => ({ feature: f, blurb: approachFor(f) }))
-    .filter(item => item.blurb)
-
-  const availableNav = NAV_SECTIONS.filter(n => {
-    if (n.id === 'overview')  return !!service.overview
-    if (n.id === 'who-for')   return service.whoFor?.length > 0
-    if (n.id === 'approach')  return approachItems.length > 0
-    if (n.id === 'included')  return service.features?.length > 0
-    if (n.id === 'process')   return service.process?.length > 0
-    if (n.id === 'benefits')  return service.whoFor?.length > 0
-    if (n.id === 'pricing')   return true
-    if (n.id === 'stories')   return true
-    if (n.id === 'faqs')      return service.faqs?.length > 0
-    return true
-  })
+  const visibleServices = activeTag === 'All'
+    ? allServices
+    : allServices.filter(s => s.specialties.includes(activeTag))
 
   return (
     <div className="page-wrapper">
-
-      {/* ── Hero ─────────────────────────────────────────── */}
       <div
         className="page-hero"
         style={{
-          position: 'relative', overflow: 'hidden', padding: '3.5rem 2rem 4.5rem',
-          borderRadius: '0 0 60px 60px',
+          position: 'relative',
+          overflow: 'hidden',
+          padding: '4rem 2rem 5rem',
+          textAlign: 'center',
+          borderRadius: '0 0 60% 60% / 0 0 40px 40px',
           background: `
-            radial-gradient(ellipse 80% 60% at 15% 30%, rgba(180,230,210,0.55) 0%, transparent 70%),
-            radial-gradient(ellipse 70% 80% at 85% 10%, rgba(186,220,248,0.5) 0%, transparent 65%),
-            radial-gradient(ellipse 60% 50% at 60% 90%, rgba(254,243,199,0.4) 0%, transparent 60%),
+            radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
+            radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
+            radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
             linear-gradient(160deg, #f0faf5 0%, #e8f4fb 45%, #fefce8 100%)
           `,
         }}
       >
-        <div style={{ position: 'absolute', width: 260, height: 260, borderRadius: '50%', background: 'rgba(0,123,168,0.1)', filter: 'blur(40px)', top: -60, right: '3%', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', width: 200, height: 200, borderRadius: '50%', background: 'rgba(29,158,117,0.1)', filter: 'blur(40px)', bottom: -30, left: '5%', pointerEvents: 'none' }} />
-
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1000, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: '#5a7a72', marginBottom: '1.75rem' }}>
-            <span style={{ cursor: 'pointer', fontWeight: 600 }} onClick={() => navigate('/')}>Home</span>
-            <span>/</span>
-            <span style={{ cursor: 'pointer', fontWeight: 600 }} onClick={() => navigate('/services')}>Services</span>
-            <span>/</span>
-            <span style={{ color: '#213a34', fontWeight: 700 }}>{service.title}</span>
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.5rem' }}>
-            <div className={`service-icon ${service.iconClass}`} style={{ width: 76, height: 76, fontSize: '2.2rem', flexShrink: 0 }}>
-              {service.icon}
-            </div>
-            <div style={{ flex: 1, minWidth: 260 }}>
-              {service.specialties?.[0] && <span className="section-tag">{service.specialties[0]}</span>}
-              <h1 className="section-title" style={{ margin: '0.35rem 0 0.6rem' }}>{service.title}</h1>
-              <p className="section-desc" style={{ margin: 0, maxWidth: 620 }}>{service.desc}</p>
-            </div>
-          </div>
-
-          {service.specialties?.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '1.5rem' }}>
-              {service.specialties.map(tag => (
-                <span key={tag} style={{ fontSize: '0.75rem', fontWeight: 600, padding: '0.3rem 0.8rem', borderRadius: '999px', background: 'rgba(29,158,117,0.1)', border: '1px solid rgba(29,158,117,0.15)', color: '#1d9e75' }}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Trust badges row */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '2rem' }}>
-            {TRUST_BADGES.map(b => (
-              <div key={b.label} style={{
-                display: 'flex', alignItems: 'center', gap: '0.45rem',
-                background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.7)',
-                borderRadius: '999px', padding: '0.45rem 0.9rem', fontSize: '0.78rem', fontWeight: 600, color: '#213a34',
-              }}>
-                <span>{b.icon}</span>{b.label}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── In-page nav (sticky) ────────────────────────────── */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 20, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderBottom: '1px solid #e5ede9' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', gap: '0.25rem', overflowX: 'auto', padding: '0 2rem' }} className="service-detail-inpage-nav">
-          {availableNav.map(n => (
-            <button
-              key={n.id}
-              onClick={() => scrollTo(n.id)}
-              style={{
-                flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
-                padding: '0.9rem 0.9rem', fontSize: '0.82rem', fontWeight: 600, whiteSpace: 'nowrap',
-                color: activeSection === n.id ? '#007ba8' : '#7a8a85',
-                borderBottom: activeSection === n.id ? '2px solid #007ba8' : '2px solid transparent',
-                transition: 'color 0.15s ease, border-color 0.15s ease',
-              }}
-            >
-              {n.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Body: content + sticky sidebar ──────────────────── */}
-      <div className="section" style={{ background: 'var(--white)' }}>
-        <div
-          style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: '3rem', alignItems: 'start' }}
-          className="service-detail-grid"
-        >
-          {/* ── Main column ── */}
-          <div style={{ display: 'grid', gap: '3.5rem' }}>
-
-            {service.overview && (
-              <section id="overview" ref={el => (sectionRefs.current.overview = el)} style={{ scrollMarginTop: '5rem' }}>
-                <SectionLabel>Overview</SectionLabel>
-                <p style={{ color: '#3a4a45', lineHeight: 1.8, fontSize: '1.02rem' }}>{service.overview}</p>
-              </section>
-            )}
-
-            {service.whoFor?.length > 0 && (
-              <section id="who-for" ref={el => (sectionRefs.current['who-for'] = el)} style={{ scrollMarginTop: '5rem' }}>
-                <SectionLabel>Is This Right For You?</SectionLabel>
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {service.whoFor.map((item, i) => (
-                    <div key={i} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', background: GLASS.bg, border: GLASS.border, borderRadius: '14px', padding: '0.9rem 1.1rem' }}>
-                      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg, #1d9e75, #007ba8)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.68rem', fontWeight: 800, marginTop: '0.1rem' }}>✓</span>
-                      <span style={{ color: '#3a4a45', lineHeight: 1.6, fontSize: '0.95rem' }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {approachItems.length > 0 && (
-              <section id="approach" ref={el => (sectionRefs.current.approach = el)} style={{ scrollMarginTop: '5rem' }}>
-                <SectionLabel>Our Approach</SectionLabel>
-                <p style={{ color: '#5a6a65', fontSize: '0.92rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-                  We draw on established, evidence-based methods — matched to your goals rather than applied as a fixed formula.
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-                  {approachItems.map(({ feature, blurb }) => (
-                    <div key={feature} style={{ background: GLASS.bg, border: GLASS.border, borderRadius: '16px', padding: '1.25rem' }}>
-                      <div style={{ fontWeight: 700, color: '#1d9e75', fontSize: '0.9rem', marginBottom: '0.4rem' }}>{feature}</div>
-                      <p style={{ margin: 0, color: '#5a6a65', fontSize: '0.86rem', lineHeight: 1.6 }}>{blurb}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {service.features?.length > 0 && (
-              <section id="included" ref={el => (sectionRefs.current.included = el)} style={{ scrollMarginTop: '5rem' }}>
-                <SectionLabel>What's Included</SectionLabel>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
-                  {service.features.map((f, j) => (
-                    <div key={j} style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', padding: '0.7rem 0' }}>
-                      <span className="service-card-check">✓</span>
-                      <span style={{ color: '#3a4a45', fontSize: '0.92rem', fontWeight: 500 }}>{f}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {service.process?.length > 0 && (
-              <section id="process" ref={el => (sectionRefs.current.process = el)} style={{ scrollMarginTop: '5rem' }}>
-                <SectionLabel>How It Works</SectionLabel>
-                <div style={{ position: 'relative', display: 'grid', gap: '1.75rem' }}>
-                  <div style={{ position: 'absolute', left: 17, top: 8, bottom: 8, width: 2, background: 'linear-gradient(180deg, rgba(29,158,117,0.35), rgba(0,123,168,0.15))' }} />
-                  {service.process.map((step, i) => (
-                    <div key={i} style={{ position: 'relative', display: 'flex', gap: '1.1rem', alignItems: 'flex-start' }}>
-                      <div style={{ flexShrink: 0, width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #1d9e75, #007ba8)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 800, zIndex: 1, boxShadow: '0 4px 12px rgba(29,158,117,0.3)' }}>
-                        {i + 1}
-                      </div>
-                      <div style={{ paddingTop: '0.15rem' }}>
-                        <h4 style={{ margin: '0 0 0.3rem', fontSize: '1.05rem', color: '#213a34' }}>{step.title}</h4>
-                        <p style={{ margin: 0, color: '#5a6a65', fontSize: '0.92rem', lineHeight: 1.65 }}>{step.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {service.whoFor?.length > 0 && (
-              <section id="benefits" ref={el => (sectionRefs.current.benefits = el)} style={{ scrollMarginTop: '5rem' }}>
-                <SectionLabel>What You Can Expect to Gain</SectionLabel>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-                  {[
-                    { icon: '🧭', text: 'A clearer sense of direction and practical tools you can use between sessions.' },
-                    { icon: '🗣️', text: 'A confidential space to speak openly, without judgment or rushed advice.' },
-                    { icon: '📈', text: 'Progress you can track over time, with check-ins to adjust the approach as needed.' },
-                    { icon: '🤝', text: 'A therapeutic relationship built on trust, at a pace that respects your comfort.' },
-                  ].map((b, i) => (
-                    <div key={i} style={{ background: GLASS.bg, border: GLASS.border, borderRadius: '16px', padding: '1.25rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                      <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{b.icon}</span>
-                      <p style={{ margin: 0, color: '#3a4a45', fontSize: '0.88rem', lineHeight: 1.6 }}>{b.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            <section id="pricing" ref={el => (sectionRefs.current.pricing = el)} style={{ scrollMarginTop: '5rem' }}>
-              <SectionLabel>Pricing &amp; Insurance</SectionLabel>
-              <div style={{ background: GLASS.bg, border: GLASS.border, borderRadius: '16px', padding: '1.5rem', display: 'grid', gap: '0.9rem' }}>
-                <p style={{ margin: 0, color: '#3a4a45', fontSize: '0.92rem', lineHeight: 1.7 }}>
-                  Session fees vary by therapist and are shown before you confirm your booking. You'll see the exact price for your chosen therapist and time slot during checkout — no hidden charges.
-                </p>
-                <p style={{ margin: 0, color: '#5a6a65', fontSize: '0.85rem', lineHeight: 1.7 }}>
-                  Have a question about payment plans or receipts for reimbursement? Reach out through our <span style={{ color: '#007ba8', fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/contact')}>contact page</span> before booking and we'll help you plan ahead.
-                </p>
-              </div>
-            </section>
-
-            <section id="stories" ref={el => (sectionRefs.current.stories = el)} style={{ scrollMarginTop: '5rem' }}>
-              <SectionLabel>Client Stories</SectionLabel>
-              <p style={{ color: '#7a8a85', fontSize: '0.78rem', marginBottom: '1.25rem', fontStyle: 'italic' }}>
-                Illustrative examples — replace with real, consented client feedback.
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-                {SAMPLE_TESTIMONIALS.map((t, i) => (
-                  <div key={i} style={{ background: GLASS.bg, border: GLASS.border, borderRadius: '16px', padding: '1.25rem', display: 'grid', gap: '0.75rem' }}>
-                    <span style={{ fontSize: '1.4rem', color: '#a8c8c0' }}>“</span>
-                    <p style={{ margin: 0, color: '#3a4a45', fontSize: '0.88rem', lineHeight: 1.6, fontStyle: 'italic' }}>{t.quote}</p>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1d9e75' }}>— {t.initials}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {service.faqs?.length > 0 && (
-              <section id="faqs" ref={el => (sectionRefs.current.faqs = el)} style={{ scrollMarginTop: '5rem' }}>
-                <SectionLabel>Frequently Asked Questions</SectionLabel>
-                <div style={{ display: 'grid', gap: '0.6rem' }}>
-                  {service.faqs.map((faq, i) => {
-                    const isOpen = openFaq === i
-                    return (
-                      <div key={i} style={{ background: isOpen ? GLASS.bgHover : GLASS.bg, border: isOpen ? GLASS.borderHov : GLASS.border, borderRadius: '14px', overflow: 'hidden', transition: 'background 0.2s ease, border 0.2s ease' }}>
-                        <button
-                          onClick={() => setOpenFaq(isOpen ? -1 : i)}
-                          style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '1rem 1.25rem', fontWeight: 600, color: '#213a34', fontSize: '0.94rem' }}
-                        >
-                          {faq.q}
-                          <span style={{ flexShrink: 0, marginLeft: '1rem', color: '#007ba8', fontWeight: 700, transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease', fontSize: '1.1rem' }}>+</span>
-                        </button>
-                        {isOpen && (
-                          <p style={{ margin: 0, padding: '0 1.25rem 1.1rem', color: '#5a6a65', lineHeight: 1.65, fontSize: '0.9rem' }}>{faq.a}</p>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </section>
-            )}
-          </div>
-
-          {/* ── Sticky sidebar ── */}
-          <aside className="service-detail-sidebar" style={{ position: 'sticky', top: '4.5rem', display: 'grid', gap: '1.25rem' }}>
-            <div style={{ background: GLASS.bg, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: GLASS.border, borderRadius: '20px', padding: '1.5rem', boxShadow: '0 8px 28px rgba(0,123,168,0.12)' }}>
-              <h3 style={{ margin: '0 0 1.1rem', fontSize: '1.05rem', color: '#213a34' }}>Session Details</h3>
-              <div style={{ display: 'grid', gap: '0.9rem' }}>
-                {service.duration  && <QuickFact icon="⏱️" label="Duration"  value={service.duration} />}
-                {service.format    && <QuickFact icon="📍" label="Format"    value={service.format} />}
-                {service.frequency && <QuickFact icon="🔁" label="Frequency" value={service.frequency} />}
-              </div>
-              <button
-                className="btn btn-primary"
-                style={{ width: '100%', marginTop: '1.4rem', background: 'linear-gradient(135deg, #007ba8 0%, #00bfff 100%)', boxShadow: '0 6px 18px rgba(0,150,210,0.3)', border: 'none', padding: '0.85rem 1rem', fontSize: '0.95rem' }}
-                onClick={() => navigate('/book', { serviceTitle: service.title, serviceSpecialties: service.specialties })}
-              >
-                Book This Service →
-              </button>
-              <p style={{ margin: '0.75rem 0 0', fontSize: '0.72rem', color: '#7a8a85', textAlign: 'center' }}>
-                No payment required to start booking
-              </p>
-            </div>
-
-            {relatedPool.length > 0 && (
-              <div style={{ background: GLASS.bg, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: GLASS.border, borderRadius: '20px', padding: '1.5rem' }}>
-                <h3 style={{ margin: '0 0 1rem', fontSize: '0.95rem', color: '#213a34' }}>Related Services</h3>
-                <div style={{ display: 'grid', gap: '0.6rem' }}>
-                  {relatedPool.map(s => (
-                    <button
-                      key={s.title}
-                      onClick={() => navigate(`/services/${slugify(s.title)}`)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.6)', borderRadius: '12px', padding: '0.6rem 0.7rem', cursor: 'pointer', textAlign: 'left' }}
-                    >
-                      <span style={{ fontSize: '1.15rem' }}>{s.icon}</span>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3a4a45' }}>{s.title}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </aside>
-        </div>
-      </div>
-
-      {/* ── Closing CTA banner ─────────────────────────────── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1d9e75 0%, #007ba8 100%)',
-        padding: '3.5rem 2rem', textAlign: 'center', color: '#fff',
-      }}>
-        <div style={{ maxWidth: 560, margin: '0 auto' }}>
-          <h2 style={{ fontSize: '1.6rem', margin: '0 0 0.6rem' }}>Ready to take the first step?</h2>
-          <p style={{ opacity: 0.92, margin: '0 0 1.5rem', fontSize: '0.95rem', lineHeight: 1.6 }}>
-            Booking takes a few minutes, and you can choose a therapist that fits your needs and schedule.
+        <div style={{
+          position: 'absolute', width: 220, height: 220, borderRadius: '50%',
+          background: 'rgba(0,123,168,0.12)', filter: 'blur(32px)',
+          top: -40, right: '5%', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', width: 180, height: 180, borderRadius: '50%',
+          background: 'rgba(29,158,117,0.1)', filter: 'blur(32px)',
+          bottom: -20, left: '8%', pointerEvents: 'none',
+        }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 560, margin: '0 auto' }}>
+          <span className="section-tag">All Services</span>
+          <h1 className="section-title">Everything You Need for <em>Mental Wellness</em></h1>
+          <p className="section-desc">
+            Comprehensive, evidence-based mental health services designed for the Nepali community.
           </p>
-          <button
-            className="btn"
-            style={{ background: '#fff', color: '#007ba8', border: 'none', padding: '0.9rem 2.2rem', fontSize: '0.95rem', fontWeight: 700, borderRadius: '999px', cursor: 'pointer' }}
-            onClick={() => navigate('/book', { serviceTitle: service.title, serviceSpecialties: service.specialties })}
-          >
-            Book This Service →
-          </button>
         </div>
+      </div>
+
+      <div className="section" style={{ background: 'var(--white)' }}>
+
+        {/* Filter bar */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: '0.6rem',
+            marginBottom: '3rem',
+            padding: '0 1rem',
+          }}
+        >
+          {allTags.map(tag => {
+            const active = tag === activeTag
+            return (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(tag)}
+                style={{
+                  border: active ? '1px solid transparent' : '1px solid #d8e3df',
+                  background: active
+                    ? 'linear-gradient(135deg, #1d9e75, #007ba8)'
+                    : '#fff',
+                  color: active ? '#fff' : '#3a4a45',
+                  padding: '0.5rem 1.1rem',
+                  borderRadius: '999px',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: active ? '0 4px 14px rgba(29,158,117,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+                  transform: active ? 'translateY(-1px)' : 'none',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {tag}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="services-grid-full">
+          {visibleServices.map((s, i) => {
+            const isHovered = hoveredIdx === i
+            return (
+              <div
+                className="service-card-full"
+                key={s.title}
+                onMouseEnter={() => setHoveredIdx(i)}
+                onMouseLeave={() => setHoveredIdx(null)}
+                style={{
+                  position: 'relative',
+                  cursor: 'pointer',
+                  background: isHovered ? GLASS.bgHover : GLASS.bg,
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: isHovered ? GLASS.borderHov : GLASS.border,
+                  transform: isHovered ? 'translateY(-8px) scale(1.015)' : 'translateY(0) scale(1)',
+                  boxShadow: isHovered
+                    ? '0 20px 44px rgba(0,123,168,0.22), 0 6px 16px rgba(29,158,117,0.14), inset 0 1px 0 rgba(255,255,255,0.6)'
+                    : '0 4px 18px rgba(0,123,168,0.10), inset 0 1px 0 rgba(255,255,255,0.5)',
+                  borderRadius: '20px',
+                  transition: 'transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s ease, background 0.35s ease, border 0.35s ease',
+                  animation: `fadeSlideIn 0.5s ease both`,
+                  animationDelay: `${i * 0.06}s`,
+                }}
+                onClick={() => navigate('/book', { serviceTitle: s.title, serviceSpecialties: s.specialties })}
+              >
+                <button
+                  aria-label={`View details for ${s.title}`}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/services/${slugify(s.title)}`) }}
+                  style={{
+                    position: 'absolute',
+                    top: '14px',
+                    right: '14px',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '50%',
+                    border: '1px solid rgba(255,255,255,0.6)',
+                    background: 'rgba(255,255,255,0.65)',
+                    backdropFilter: 'blur(6px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 3px 10px rgba(0,60,100,0.12)',
+                    transition: 'transform 0.2s ease, background 0.2s ease',
+                    zIndex: 2,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.background = 'rgba(255,255,255,0.9)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.65)' }}
+                >
+                  👁️
+                </button>
+                <div
+                  className={`service-icon ${s.iconClass}`}
+                  style={{
+                    transform: isHovered ? 'scale(1.12) rotate(-4deg)' : 'scale(1)',
+                    transition: 'transform 0.3s ease',
+                  }}
+                >
+                  {s.icon}
+                </div>
+
+                <h3 className="service-card-title">{s.title}</h3>
+                <p className="service-card-desc">{s.desc}</p>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
+                  {s.specialties.map(tag => (
+                    <span
+                      key={tag}
+                      onClick={(e) => { e.stopPropagation(); setActiveTag(tag) }}
+                      style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        padding: '0.2rem 0.6rem',
+                        borderRadius: '999px',
+                        background: 'rgba(29,158,117,0.1)',
+                        backdropFilter: 'blur(4px)',
+                        border: '1px solid rgba(29,158,117,0.15)',
+                        color: '#1d9e75',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <ul className="service-card-features">
+                  {s.features.map((f, j) => (
+                    <li key={j}>
+                      <span className="service-card-check">✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  className="btn btn-primary service-card-btn"
+                  style={{
+                    background: 'linear-gradient(135deg, #007ba8 0%, #00bfff 100%)',
+                    boxShadow: '0 6px 18px rgba(0,150,210,0.3)',
+                    border: 'none',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate('/book', { serviceTitle: s.title, serviceSpecialties: s.specialties })
+                  }}
+                >
+                  Book This Service
+                </button>
+              </div>
+            )
+          })}
+        </div>
+
+        {visibleServices.length === 0 && (
+          <p style={{ textAlign: 'center', color: '#7a8a85', marginTop: '2rem' }}>
+            No services match that filter.
+          </p>
+        )}
       </div>
 
       <style>{`
-        .service-detail-inpage-nav::-webkit-scrollbar { height: 0; }
-        @media (max-width: 860px) {
-          .service-detail-grid { grid-template-columns: 1fr !important; }
-          .service-detail-sidebar { position: static !important; }
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-    </div>
-  )
-}
-
-function SectionLabel({ children }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.1rem' }}>
-      <div style={{ width: 4, height: 20, borderRadius: '4px', background: 'linear-gradient(180deg, #1d9e75, #007ba8)' }} />
-      <h2 style={{ fontSize: '1.35rem', margin: 0, color: '#213a34' }}>{children}</h2>
-    </div>
-  )
-}
-
-function QuickFact({ icon, label, value }) {
-  return (
-    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-      <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{icon}</span>
-      <div>
-        <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#7a8a85', marginBottom: '0.15rem' }}>{label}</div>
-        <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#213a34' }}>{value}</div>
-      </div>
     </div>
   )
 }
