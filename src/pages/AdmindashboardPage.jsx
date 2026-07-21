@@ -275,14 +275,17 @@ const GRADIENT_PRESETS = [
   { label: 'Rose',       val: 'linear-gradient(135deg, #881337 0%, #e11d48 60%, #fda4af 100%)' },
 ]
 
+// Delivery Status column now mirrors the same 7-word vocabulary as Order Status
+// and My Orders — rider updates flow into orders.status directly, so there's
+// only ever one status word per order across all three views.
 const DS_BADGE = {
-  unassigned: { label:'Unassigned', bg:'#f1f5f9', c:'#475569', dot:'#94a3b8' },
-  assigned:   { label:'Assigned',   bg:'#eff6ff', c:'#1e40af', dot:'#3b82f6' },
-  picked_up:  { label:'Picked Up',  bg:'#f5f3ff', c:'#5b21b6', dot:'#8b5cf6' },
-  in_transit: { label:'In Transit', bg:'#ecfeff', c:'#0e7490', dot:'#14b8a6' },
-  delivered:  { label:'Delivered',  bg:'#ecfdf5', c:'#065f46', dot:'#10b981' },
-  failed:     { label:'Failed',     bg:'#fef2f2', c:'#991b1b', dot:'#ef4444' },
-  returned:   { label:'Returned',   bg:'#faf5ff', c:'#6b21a8', dot:'#a855f7' },
+  pending:    { label:'Pending',    bg:'#fff9e6', c:'#8a5a1a', dot:'#f59e0b' },
+  confirmed:  { label:'Confirmed',  bg:'#e8f8f0', c:'#1a7a4a', dot:'#10b981' },
+  processing: { label:'Processing',bg:'#e0f7ff', c:'#007BA8', dot:'#3b82f6' },
+  shipped:    { label:'Shipped',    bg:'#f0e8ff', c:'#5a1a8a', dot:'#8b5cf6' },
+  delivered:  { label:'Delivered',  bg:'#e8f8f0', c:'#1a5a3a', dot:'#10b981' },
+  cancelled:  { label:'Cancelled',  bg:'#fff0f0', c:'#c0392b', dot:'#ef4444' },
+  refunded:   { label:'Refunded',   bg:'#f0f4f8', c:'#4a6a7a', dot:'#94a3b8' },
 }
 
 const EMPTY_FORM = {
@@ -4206,14 +4209,14 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
           )}
 
           <SectionHeader title="Orders" count={oTotal}>
-            {/* Delivery status filter ── ← NEW */}
+            {/* Delivery filter now just narrows by rider assignment,
+                since status itself is filtered by the dropdown below */}
             <select className="inp" style={{ minWidth: 130 }}
               value={oDeliveryStatus}
               onChange={e => { setODeliveryStatus(e.target.value); setOPage(1) }}>
-              <option value="">All delivery</option>
-              {Object.entries(DS_BADGE).map(([k, v]) =>
-                <option key={k} value={k}>{v.label}</option>
-              )}
+              <option value="">All (assigned + unassigned)</option>
+              <option value="unassigned">No rider assigned</option>
+              <option value="assigned">Rider assigned</option>
             </select>
             {/* Existing order status filter */}
             <select className="inp" value={oStatus}
@@ -4258,11 +4261,11 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
                           </div>
                         </td></tr>
                       : orders.map(o => {
-                          const dsKey  = o.delivery_status || 'unassigned'
-                          const ds     = DS_BADGE[dsKey] || DS_BADGE.unassigned
+                          const dsKey  = (o.status || 'pending').toLowerCase()
+                          const ds     = DS_BADGE[dsKey] || DS_BADGE.pending
                           const rName  = o.delivery_rider_name || null
                           const rArea  = o.rider_area || ''
-                          const locked = ['delivered','returned','cancelled','refunded'].includes(dsKey)
+                          const locked = ['delivered','cancelled','refunded'].includes(dsKey)
 
                           return (
                             <tr key={o.id}>

@@ -33,17 +33,17 @@ const fmtT = d => d ? new Date(d).toLocaleString('en-US', { month: 'short', day:
 
 // ── Delivery status config ────────────────────────────────────
 const DS = {
-  unassigned: { label: 'Unassigned', bg: '#f1f5f9', fg: '#475569', dot: '#94a3b8' },
-  assigned:   { label: 'Assigned',   bg: '#eff6ff', fg: '#1e40af', dot: '#3b82f6' },
-  picked_up:  { label: 'Picked Up',  bg: '#f5f3ff', fg: '#5b21b6', dot: '#8b5cf6' },
-  in_transit: { label: 'In Transit', bg: '#ecfeff', fg: '#0e7490', dot: '#14b8a6' },
+  pending:    { label: 'Pending',    bg: '#f1f5f9', fg: '#475569', dot: '#94a3b8' },
+  confirmed:  { label: 'Confirmed',  bg: '#eff6ff', fg: '#1e40af', dot: '#3b82f6' },
+  processing: { label: 'Processing', bg: '#f5f3ff', fg: '#5b21b6', dot: '#8b5cf6' },
+  shipped:    { label: 'Shipped',    bg: '#ecfeff', fg: '#0e7490', dot: '#14b8a6' },
   delivered:  { label: 'Delivered',  bg: '#ecfdf5', fg: '#065f46', dot: '#10b981' },
-  failed:     { label: 'Failed',     bg: '#fef2f2', fg: '#991b1b', dot: '#ef4444' },
-  returned:   { label: 'Returned',   bg: '#faf5ff', fg: '#6b21a8', dot: '#a855f7' },
+  cancelled:  { label: 'Cancelled',  bg: '#fef2f2', fg: '#991b1b', dot: '#ef4444' },
+  refunded:   { label: 'Refunded',   bg: '#faf5ff', fg: '#6b21a8', dot: '#a855f7' },
 }
 
 // Rider can only move forward through these
-const RIDER_STATUSES = ['picked_up','in_transit','delivered','failed','returned']
+const RIDER_STATUSES = ['processing','shipped','delivered','cancelled','refunded']
 
 // Order payment status badge
 const PAY_MAP = {
