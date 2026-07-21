@@ -710,7 +710,7 @@ function DonatePopup({ onClose }) {
 const MEET = {
   videoUrl: 'https://meet.google.com/your-room-code',
   // ☝️ REPLACE with your actual video meeting link
-  audioUrl: 'tel:+977XXXXXXXXXX',
+  audioUrl: 'tel:+977',
   // ☝️ REPLACE with your phone number (tel:+977...) or audio-only meeting URL
 }
 
@@ -722,9 +722,9 @@ const MEET = {
 //    and the Messenger desktop/web app on PC
 // ─────────────────────────────────────────────
 const CONTACT = {
-  whatsappNumber: '977XXXXXXXXXX',
+  whatsappNumber: '9845064701',
   // ☝️ REPLACE with your WhatsApp number, country code, NO + or spaces (e.g. 9779812345678)
-  messengerUsername: 'yourpagename',
+  messengerUsername: 'sajhamanobigyan',
   // ☝️ REPLACE with your Facebook Page username or PSID (from m.me/yourusername)
 }
 
