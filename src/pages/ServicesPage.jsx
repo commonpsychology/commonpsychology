@@ -1,3 +1,4 @@
+// src/pages/ServicesPage.jsx
 import { useState } from 'react'
 import { useRouter } from '../context/RouterContext'
 
@@ -6,19 +7,33 @@ export function slugify(str) {
 }
 
 export const allServices = [
-  // {
-  //   icon: '🩺', iconClass: 'si-blue',
-  //   title: 'Psychiatrist Consultation',
-  //   desc: 'Comprehensive psychiatric evaluation and medication management from licensed psychiatrists, for when therapy alone needs clinical support.',
-  //   features: ['Diagnostic assessment', 'Medication management', 'Follow-up reviews', 'Coordination with your therapist'],
-  //   specialties: ['Psychiatry', 'Medication', 'Diagnosis', 'Clinical'],
-  // },
   {
     icon: '🧠', iconClass: 'si-green',
     title: 'Individual Therapy',
     desc: 'One-on-one sessions tailored to your unique needs, delivered by certified clinical psychologists. Available online or in-person across Kathmandu.',
     features: ['CBT & DBT approaches', '60-minute sessions', 'Flexible scheduling', 'Session notes shared securely'],
     specialties: ['Anxiety', 'Depression', 'CBT', 'Trauma'],
+    overview: 'Individual therapy provides a private, one-on-one space to work through personal challenges — from anxiety and depression to self-esteem, life direction, and everyday stress. Sessions are led by certified clinical psychologists trained in evidence-based approaches like CBT and DBT, tailored to your specific goals rather than a one-size-fits-all program.',
+    whoFor: [
+      "You're dealing with ongoing anxiety, low mood, or stress affecting daily life",
+      'You want a confidential space to process thoughts and feelings without judgment',
+      "You're looking for practical tools, not just someone to listen",
+      "You've tried therapy before or are completely new to it — both are welcome",
+    ],
+    duration: '60 minutes',
+    format: 'Online or in-person in Kathmandu',
+    frequency: 'Weekly, biweekly, or as needed',
+    process: [
+      { title: 'Initial Consultation', desc: 'A brief intake call to understand your concerns and match you with the right therapist.' },
+      { title: 'First Session', desc: 'Your therapist gets a fuller picture of your history, goals, and what you want out of therapy.' },
+      { title: 'Ongoing Sessions', desc: 'Regular sessions using CBT, DBT, or other approaches suited to your needs, with reflection between sessions.' },
+      { title: 'Progress Check-ins', desc: 'Periodic reviews to track progress and adjust the approach as needed.' },
+    ],
+    faqs: [
+      { q: 'How many sessions will I need?', a: 'It varies — some people benefit from a handful of sessions to work through a specific issue, while others continue longer-term. Your therapist will discuss this with you as you go.' },
+      { q: 'Is everything I share confidential?', a: 'Yes. Sessions are private and confidential, in line with professional counseling ethics, except in rare situations involving risk of harm.' },
+      { q: "Can I switch therapists if it's not a good fit?", a: 'Absolutely. Finding the right fit matters, and you can request a different therapist at any point.' },
+    ],
   },
   {
     icon: '💑', iconClass: 'si-earth',
@@ -26,6 +41,27 @@ export const allServices = [
     desc: 'Rebuild trust, communication, and intimacy with your partner through evidence-based relationship therapy.',
     features: ['Gottman Method', 'Joint & separate sessions', 'Conflict resolution', 'Relationship assessment'],
     specialties: ['Relationship', 'Couples', 'Gottman', 'Communication'],
+    overview: "Couples counseling helps partners rebuild trust, improve communication, and work through recurring conflict using structured, evidence-based methods like the Gottman Method. Whether you're navigating a rough patch or want to strengthen an already solid relationship, sessions create a safe space for both partners to be heard.",
+    whoFor: [
+      'You and your partner argue about the same issues repeatedly without resolution',
+      'Communication feels difficult, distant, or one-sided',
+      "You're rebuilding trust after a breach or difficult period",
+      'You want to strengthen your relationship proactively, not just in crisis',
+    ],
+    duration: '75 minutes',
+    format: 'Online or in-person, joint sessions with optional individual check-ins',
+    frequency: 'Weekly or biweekly',
+    process: [
+      { title: 'Joint Assessment', desc: 'Both partners share their perspective and relationship history with the therapist.' },
+      { title: 'Individual Check-ins', desc: "Brief one-on-one conversations to understand each partner's personal concerns." },
+      { title: 'Guided Sessions', desc: 'Structured joint sessions focused on communication skills, conflict resolution, and rebuilding connection.' },
+      { title: 'Home Practice', desc: "Simple exercises between sessions to reinforce what's discussed in therapy." },
+    ],
+    faqs: [
+      { q: 'Do both partners need to attend every session?', a: 'Most sessions are joint, though occasional individual check-ins may be included when helpful.' },
+      { q: "What if we're not sure about staying together?", a: "That's a valid reason to seek counseling. Sessions can help clarify the relationship's direction, whichever way that goes." },
+      { q: 'Is this only for married couples?', a: 'No — we work with couples at any stage, married or not, of any orientation.' },
+    ],
   },
   {
     icon: '👨‍👩‍👧', iconClass: 'si-blue',
@@ -33,6 +69,27 @@ export const allServices = [
     desc: 'Strengthen family bonds and work through dynamics that affect everyone in the household.',
     features: ['Family systems approach', 'Parenting support', 'Communication skills', 'Crisis intervention'],
     specialties: ['Family', 'Parenting', 'Crisis', 'Communication'],
+    overview: 'Family therapy addresses the dynamics, communication patterns, and conflicts that affect the household as a whole — not just one individual. Using a systemic approach, sessions help families understand each other better, resolve recurring conflicts, and build healthier ways of relating.',
+    whoFor: [
+      'Conflict between family members feels ongoing or unresolved',
+      'A major life change (illness, loss, relocation) is affecting the whole family',
+      'Parents and children are struggling to communicate',
+      'You want support navigating a blended family or major transition',
+    ],
+    duration: '60–90 minutes',
+    format: 'In-person (home visits available) or online',
+    frequency: 'Weekly or as needed',
+    process: [
+      { title: 'Family Intake', desc: "Understanding each family member's perspective and the core concerns." },
+      { title: 'Systemic Assessment', desc: 'Identifying recurring patterns and dynamics contributing to conflict.' },
+      { title: 'Joint Sessions', desc: 'Structured conversations involving relevant family members, guided by the therapist.' },
+      { title: 'Ongoing Support', desc: 'Regular check-ins as the family works through changes together.' },
+    ],
+    faqs: [
+      { q: 'Does the whole family need to attend every session?', a: "Not necessarily — some sessions may involve specific family members depending on what's being addressed." },
+      { q: 'Is this suitable for children?', a: 'Yes, sessions are adapted to be age-appropriate for all participating family members.' },
+      { q: 'Do you offer home visits?', a: 'Yes, home visit options are available depending on location and availability.' },
+    ],
   },
   {
     icon: '🧒', iconClass: 'si-green',
@@ -40,6 +97,27 @@ export const allServices = [
     desc: 'Specialized support for children aged 5–18, using play therapy and age-appropriate techniques.',
     features: ['Play therapy', 'Behavioral assessment', 'School-related issues', 'Parent coaching'],
     specialties: ['Children', 'Play Therapy', 'Behavioral', 'Adolescents'],
+    overview: 'Specialized psychological support for children aged 5–18, using play therapy, behavioral techniques, and age-appropriate conversation to help kids process emotions, navigate school-related stress, or work through behavioral challenges — with parents involved every step of the way.',
+    whoFor: [
+      'Your child is showing signs of anxiety, withdrawal, or behavioral changes',
+      'School-related stress, bullying, or academic pressure is affecting them',
+      'You want support navigating a major transition (divorce, new sibling, relocation)',
+      "You're looking for parent coaching alongside your child's sessions",
+    ],
+    duration: '45 minutes',
+    format: 'In-person (play therapy room) or online for older children/teens',
+    frequency: 'Weekly',
+    process: [
+      { title: 'Parent Consultation', desc: 'An initial conversation with parents/guardians to understand concerns and history.' },
+      { title: 'Child Assessment', desc: "Age-appropriate assessment to understand the child's emotional and behavioral needs." },
+      { title: 'Therapy Sessions', desc: "Play therapy or talk-based sessions, depending on the child's age and comfort." },
+      { title: 'Parent Coaching', desc: 'Guidance for parents on supporting progress at home.' },
+    ],
+    faqs: [
+      { q: "Will I know what happens in my child's sessions?", a: "You'll receive general updates on progress while respecting your child's space to build trust with their therapist." },
+      { q: 'What age range do you work with?', a: 'Children and adolescents aged 5 to 18.' },
+      { q: 'What is play therapy?', a: 'A therapeutic approach using play, rather than direct conversation, to help younger children express and process emotions.' },
+    ],
   },
   {
     icon: '🌿', iconClass: 'si-earth',
@@ -47,6 +125,27 @@ export const allServices = [
     desc: 'Learn practical mindfulness techniques to manage stress, anxiety, and emotional regulation.',
     features: ['MBSR program', 'Breathing techniques', 'Stress audit', 'Daily practice tools'],
     specialties: ['Mindfulness', 'Stress', 'Anxiety', 'MBSR'],
+    overview: 'Learn practical, evidence-based mindfulness techniques through a structured MBSR (Mindfulness-Based Stress Reduction) program, designed to help you manage everyday stress, anxiety, and emotional overwhelm with tools you can use long after sessions end.',
+    whoFor: [
+      'You feel chronically stressed, overwhelmed, or on edge',
+      'You want practical tools rather than open-ended talk therapy',
+      "You're curious about mindfulness but don't know where to start",
+      "You're looking to build a sustainable daily practice",
+    ],
+    duration: '50 minutes',
+    format: 'Online or in-person, individual or group sessions',
+    frequency: 'Weekly for an 8-week program, or standalone sessions',
+    process: [
+      { title: 'Stress Audit', desc: 'Identifying your specific stress triggers and current coping patterns.' },
+      { title: 'Foundational Techniques', desc: 'Learning breathing exercises and grounding techniques.' },
+      { title: 'MBSR Program', desc: 'Structured weekly sessions building a complete mindfulness practice.' },
+      { title: 'Daily Practice Tools', desc: 'Take-home resources to continue practicing independently.' },
+    ],
+    faqs: [
+      { q: 'Do I need any prior meditation experience?', a: 'No prior experience is needed — sessions start from the basics.' },
+      { q: 'Is this a substitute for therapy?', a: "It can complement therapy but isn't a replacement for clinical treatment of diagnosed conditions." },
+      { q: 'Can I do this in a group setting?', a: 'Yes, both individual and group formats are available.' },
+    ],
   },
   {
     icon: '😴', iconClass: 'si-blue',
@@ -54,6 +153,27 @@ export const allServices = [
     desc: 'Address insomnia, burnout, and mood disorders with targeted therapeutic interventions.',
     features: ['CBT for insomnia', 'Mood charting', 'Sleep hygiene coaching', 'Lifestyle integration'],
     specialties: ['Insomnia', 'Sleep', 'Mood', 'Burnout'],
+    overview: 'Address insomnia, low mood, and burnout with targeted, evidence-based interventions including CBT for Insomnia (CBT-I) — one of the most effective non-medication treatments for sleep difficulties — combined with mood tracking and lifestyle adjustments.',
+    whoFor: [
+      'You struggle to fall or stay asleep on a regular basis',
+      "You're dealing with burnout or low energy affecting daily function",
+      'Your mood feels persistently low or unpredictable',
+      'You want an alternative or complement to sleep medication',
+    ],
+    duration: '50 minutes',
+    format: 'Online or in-person',
+    frequency: 'Weekly for 4–6 sessions, then as needed',
+    process: [
+      { title: 'Sleep & Mood Assessment', desc: 'Understanding your sleep patterns, mood history, and daily routines.' },
+      { title: 'CBT-I Techniques', desc: 'Structured techniques to retrain sleep patterns without medication.' },
+      { title: 'Mood Charting', desc: 'Tracking mood alongside sleep to identify patterns and triggers.' },
+      { title: 'Lifestyle Integration', desc: 'Practical adjustments to daily habits supporting long-term improvement.' },
+    ],
+    faqs: [
+      { q: 'Will you prescribe sleep medication?', a: 'No — this service focuses on non-medication approaches. Medication management would go through a psychiatrist.' },
+      { q: 'How soon will I see improvement?', a: 'Many people notice improvement within a few weeks of consistent practice, though it varies by individual.' },
+      { q: 'Is this only for insomnia?', a: 'It also addresses burnout and mood-related concerns connected to sleep.' },
+    ],
   },
   {
     icon: '💼', iconClass: 'si-blue',
@@ -61,6 +181,27 @@ export const allServices = [
     desc: 'Support for workplace mental health and employee well-being.',
     features: ['Workplace assessments', 'Employee assistance', 'Leadership training', 'Culture of care'],
     specialties: ['Workplace', 'Employee', 'Leadership', 'Culture'],
+    overview: 'Support for workplace mental health, from individual employee assistance to leadership training and organization-wide culture assessments — helping teams build a sustainable culture of psychological safety and care.',
+    whoFor: [
+      'Your organization wants to introduce or improve employee mental health support',
+      'Leadership wants training on supporting team wellbeing',
+      "You're seeing signs of burnout or disengagement across your team",
+      'You want a confidential Employee Assistance Program (EAP) for staff',
+    ],
+    duration: 'Varies by engagement (half-day workshops to ongoing EAP)',
+    format: 'On-site, online, or hybrid',
+    frequency: 'Custom, based on organizational needs',
+    process: [
+      { title: 'Organizational Assessment', desc: 'Understanding current workplace culture and specific challenges.' },
+      { title: 'Program Design', desc: 'Tailoring an approach — EAP, workshops, leadership training, or a mix.' },
+      { title: 'Implementation', desc: 'Rolling out sessions, trainings, or ongoing employee assistance access.' },
+      { title: 'Review & Iteration', desc: 'Periodic review of impact and adjustments based on feedback.' },
+    ],
+    faqs: [
+      { q: 'Is employee participation confidential?', a: 'Yes — individual employee sessions remain confidential from the employer.' },
+      { q: 'What size organizations do you work with?', a: 'We work with organizations of varying sizes, from small teams to larger companies.' },
+      { q: 'Can this be a one-time workshop instead of an ongoing program?', a: 'Yes, we offer both one-time workshops and ongoing engagement models.' },
+    ],
   },
   {
     icon: '🗨️', iconClass: 'si-green',
@@ -68,6 +209,27 @@ export const allServices = [
     desc: 'Talk through everyday challenges, life transitions, or emotional struggles with a supportive, non-judgmental counselor.',
     features: ['Life transitions support', 'Emotional wellness check-ins', 'Confidential sessions', 'Personalized coping strategies'],
     specialties: ['Counseling', 'Life Transitions', 'Emotional Support', 'Wellness'],
+    overview: "A flexible, supportive space to talk through everyday challenges, life transitions, or emotional struggles that don't necessarily need a clinical diagnosis to deserve attention — sometimes you just need a non-judgmental space to think things through.",
+    whoFor: [
+      "You're going through a life transition and want support processing it",
+      'You feel emotionally overwhelmed but aren\'t sure it "counts" as needing therapy',
+      'You want a regular space for reflection and emotional check-ins',
+      "You're looking for short-term support around a specific situation",
+    ],
+    duration: '50 minutes',
+    format: 'Online or in-person',
+    frequency: 'Weekly, biweekly, or as needed',
+    process: [
+      { title: 'Initial Conversation', desc: "Understanding what's bringing you to counseling and what support looks like for you." },
+      { title: 'Ongoing Sessions', desc: 'Regular sessions focused on your specific concerns and goals.' },
+      { title: 'Coping Strategy Building', desc: "Developing personalized strategies for whatever you're navigating." },
+      { title: 'Flexible Continuation', desc: "Continue as long as it's useful — short-term or ongoing, your choice." },
+    ],
+    faqs: [
+      { q: 'Do I need a specific diagnosis to seek counseling?', a: "No — general counseling is open to anyone wanting support, whether or not there's a clinical diagnosis involved." },
+      { q: 'How is this different from therapy?', a: "It's similar in format but often more flexible and short-term focused, suited to everyday challenges rather than deeper clinical work." },
+      { q: 'Can I switch to a more specialized service later?', a: 'Yes, your counselor can help refer you to a more specialized service if needed.' },
+    ],
   },
   {
     icon: '🕊️', iconClass: 'si-earth',
@@ -75,6 +237,27 @@ export const allServices = [
     desc: 'Compassionate support for processing grief after the loss of a loved one, relationship, or major life change.',
     features: ['Grief processing techniques', 'Individual & family sessions', 'Coping with loss', 'Memory & meaning-making work'],
     specialties: ['Grief', 'Loss', 'Bereavement', 'Family'],
+    overview: 'Compassionate, paced support for processing grief after losing a loved one, a relationship, or navigating any major life loss — helping you find ways to carry the loss while continuing to live fully, on your own timeline.',
+    whoFor: [
+      "You've experienced the loss of a loved one, recently or in the past",
+      "You're grieving a relationship, job, or other significant life change",
+      'You feel stuck, numb, or overwhelmed by grief',
+      'You want support for a family member navigating loss (e.g. a grieving child)',
+    ],
+    duration: '60 minutes',
+    format: 'Online or in-person, individual or family sessions',
+    frequency: 'Weekly or as needed, at your own pace',
+    process: [
+      { title: 'Gentle Intake', desc: 'A compassionate first conversation about your loss and what support you need.' },
+      { title: 'Grief Processing', desc: 'Structured but flexible techniques to help process complex emotions around loss.' },
+      { title: 'Meaning-Making Work', desc: 'Exploring ways to honor memory while moving forward.' },
+      { title: 'Ongoing Support', desc: "Continued sessions as long as helpful — grief doesn't follow a fixed timeline." },
+    ],
+    faqs: [
+      { q: 'How soon after a loss should I seek counseling?', a: "There's no fixed timeline — some people seek support immediately, others years later. Both are valid." },
+      { q: 'Can this help with grief unrelated to death, like a breakup or job loss?', a: 'Yes, grief counseling supports processing any significant loss, not only bereavement.' },
+      { q: 'Can children attend grief counseling?', a: 'Yes, sessions can be adapted for children experiencing loss, often alongside family sessions.' },
+    ],
   },
   {
     icon: '🌱', iconClass: 'si-blue',
@@ -82,6 +265,27 @@ export const allServices = [
     desc: 'Specialized, trauma-informed therapy to help you process difficult experiences and rebuild a sense of safety.',
     features: ['Trauma-informed approach', 'EMDR & grounding techniques', 'Safe, paced sessions', 'Nervous system regulation support'],
     specialties: ['Trauma', 'PTSD', 'EMDR', 'Safety'],
+    overview: 'Specialized, trauma-informed therapy using approaches like EMDR and grounding techniques to help you process difficult or overwhelming experiences at a safe, manageable pace — with your sense of safety and control as the top priority throughout.',
+    whoFor: [
+      "You've experienced a distressing or traumatic event, recent or past",
+      'You experience flashbacks, hypervigilance, or emotional numbness',
+      'You want to work through trauma without being forced to relive it in detail',
+      "You're looking for a trauma-informed therapist experienced with PTSD",
+    ],
+    duration: '60 minutes',
+    format: 'Online or in-person',
+    frequency: 'Weekly, at a pace set by you',
+    process: [
+      { title: 'Safety First', desc: 'Establishing trust and safety before any trauma processing begins.' },
+      { title: 'Stabilization', desc: 'Building grounding and nervous system regulation tools.' },
+      { title: 'Trauma Processing', desc: 'Using EMDR or other trauma-informed techniques, paced entirely to your comfort.' },
+      { title: 'Integration', desc: 'Consolidating progress and building long-term resilience.' },
+    ],
+    faqs: [
+      { q: 'Will I have to describe my trauma in detail?', a: "No — trauma-informed approaches like EMDR don't require you to recount every detail to be effective." },
+      { q: 'What is EMDR?', a: 'Eye Movement Desensitization and Reprocessing — a structured, evidence-based therapy technique for processing traumatic memories.' },
+      { q: "How do I know if I'm ready for trauma counseling?", a: "If you're considering it, that's often enough of a sign. Your therapist will move at whatever pace feels safe for you." },
+    ],
   },
 ]
 
@@ -314,4 +518,8 @@ export default function ServicesPage() {
       `}</style>
     </div>
   )
+
+  
 }
+
+
