@@ -21,6 +21,7 @@ import OurNews             from './pages/OurNews'
 import DisasterManagement  from './pages/DisasterManagement'
 import NewsDetailPage      from './pages/NewsDetailPage'
 import PsychologicalArticlePage from './pages/PsychologicalArticlePage'
+import ServiceDetailPage from './pages/ServiceDetailPage'
 import CoursesPage         from './pages/CoursesPage'
 import BlogPage            from './pages/BlogPage'            // ← list page
 import BlogDetailPage      from './pages/BlogDetailPage'      // ← detail page
@@ -138,6 +139,7 @@ const DYNAMIC_ROUTES = [
   { prefix: '/psychological-view/', Component: PsychologicalArticlePage },
   { prefix: '/blog/',               Component: BlogDetailPage           },
   { prefix: '/research/',           Component: ResearchDetailPage       },
+  { prefix: '/services/',           Component: ServiceDetailPage        },
 ]
 
 function resolveDynamicRoute(path) {

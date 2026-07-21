@@ -92,39 +92,42 @@ export default function Services() {
       </div>
 
       <div className="services-grid-full">
-        {services.map((s, i) => (
-          <div
-            className="service-card-full"
-            key={i}
-            onClick={() => navigate(s.route)}
-          >
-            <div className={`service-icon ${s.iconClass}`}>
-              {s.icon}
-            </div>
-
-            <h3 className="service-card-title">{s.title}</h3>
-            <p className="service-card-desc">{s.desc}</p>
-
-            <ul className="service-card-features">
-              {s.features.map((f, fi) => (
-                <li key={fi}>
-                  <span className="service-card-check">✓</span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-
-            <button
-              className="btn btn-sky-outline service-card-btn"
-              onClick={(e) => {
-                e.stopPropagation()
-                navigate(s.route)
-              }}
+        {services.map((s, i) => {
+          const bookingParams = s.route === '/book' ? { serviceTitle: s.title } : undefined
+          return (
+            <div
+              className="service-card-full"
+              key={i}
+              onClick={() => navigate(s.route, bookingParams)}
             >
-              {s.link} →
-            </button>
-          </div>
-        ))}
+              <div className={`service-icon ${s.iconClass}`}>
+                {s.icon}
+              </div>
+
+              <h3 className="service-card-title">{s.title}</h3>
+              <p className="service-card-desc">{s.desc}</p>
+
+              <ul className="service-card-features">
+                {s.features.map((f, fi) => (
+                  <li key={fi}>
+                    <span className="service-card-check">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                className="btn btn-sky-outline service-card-btn"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate(s.route, bookingParams)
+                }}
+              >
+                {s.link} →
+              </button>
+            </div>
+          )
+        })}
       </div>
       </div>
     </section>
