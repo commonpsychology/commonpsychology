@@ -15,7 +15,7 @@ function TawkChat() {
     const s1 = document.createElement('script');
     s1.id = 'tawk-script';
     s1.async = true;
-    s1.src = `https://embed.tawk.to/${TAWK_PROPERTY_ID}/${TAWK_WIDGET_ID}`;
+    s1.src = `https://tawk.to/chat/6a5ec22b4693711d483c3044/1ju12cv3s`;
     s1.charset = 'UTF-8';
     s1.setAttribute('crossorigin', '*');
     document.body.appendChild(s1);

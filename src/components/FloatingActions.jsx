@@ -714,6 +714,20 @@ const MEET = {
   // ☝️ REPLACE with your phone number (tel:+977...) or audio-only meeting URL
 }
 
+// ─────────────────────────────────────────────
+// CONTACT LINKS
+// 👉 WhatsApp: wa.me automatically opens the WhatsApp app on mobile
+//    and the WhatsApp Desktop app on PC (if installed), else web.whatsapp.com
+// 👉 Messenger: m.me automatically opens the Messenger app on mobile
+//    and the Messenger desktop/web app on PC
+// ─────────────────────────────────────────────
+const CONTACT = {
+  whatsappNumber: '977XXXXXXXXXX',
+  // ☝️ REPLACE with your WhatsApp number, country code, NO + or spaces (e.g. 9779812345678)
+  messengerUsername: 'yourpagename',
+  // ☝️ REPLACE with your Facebook Page username or PSID (from m.me/yourusername)
+}
+
 function MeetPopup({ onClose }) {
   usePopupBehavior(onClose)
   return (
@@ -801,6 +815,88 @@ function MeetPopup({ onClose }) {
 }
 
 // ─────────────────────────────────────────────
+// CONTACT POPUP
+// ─────────────────────────────────────────────
+function ContactPopup({ onClose }) {
+  usePopupBehavior(onClose)
+  return (
+    <div
+      className="pop-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      role="dialog" aria-modal="true" aria-label="Contact us"
+    >
+      <div className="pop-card">
+
+        <div className="pop-header">
+          <div className="pop-header-dot" style={{ color: '#25D366', background: '#25D366', boxShadow: '0 0 8px rgba(37,211,102,0.8)' }} />
+          <div className="pop-header-text">
+            <p className="pop-eyebrow" style={{ color: 'rgba(37,211,102,0.75)' }}>Get In Touch</p>
+            <h2 className="pop-title">Chat With Us 💬</h2>
+            <p className="pop-subtitle">Pick your preferred app</p>
+          </div>
+          <button className="pop-close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
+        <div className="pop-meet-body">
+
+          <a
+            className="meet-call-card meet-card-video"
+            href={`https://wa.me/${CONTACT.whatsappNumber}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+          >
+            <div className="meet-icon-wrap meet-icon-video">🟢</div>
+            <div className="meet-card-text">
+              <p className="meet-card-label">WhatsApp</p>
+              <p className="meet-card-desc">Opens the WhatsApp app on mobile or desktop</p>
+            </div>
+            <span className="meet-card-arrow">→</span>
+          </a>
+
+          <div className="meet-divider">
+            <div className="meet-divider-line" />
+            <span className="meet-divider-text">or</span>
+            <div className="meet-divider-line" />
+          </div>
+
+          <a
+            className="meet-call-card meet-card-audio"
+            href={`https://m.me/${CONTACT.messengerUsername}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+          >
+            <div className="meet-icon-wrap meet-icon-audio">🔵</div>
+            <div className="meet-card-text">
+              <p className="meet-card-label">Messenger</p>
+              <p className="meet-card-desc">Opens the Messenger app on mobile or desktop</p>
+            </div>
+            <span className="meet-card-arrow">→</span>
+          </a>
+
+        </div>
+
+        <p className="meet-note">
+          💬 &nbsp;We usually reply within a few hours
+        </p>
+
+        <div className="pop-footer">
+          <div className="pop-footer-info">
+            <IconShield />
+            Fast &nbsp;|&nbsp; Direct
+          </div>
+          <button className="pop-action-btn" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
 // ACTIONS CONFIG
 // ─────────────────────────────────────────────
 const ACTIONS = [
@@ -843,6 +939,14 @@ const ACTIONS = [
     bg:     'linear-gradient(135deg,#1D9E75,#2cc08a)',
     shadow: 'rgba(29,158,117,.35)',
     popup:  'location',
+  },
+  {
+    id:     'contact',
+    label:  'Chat With Us',
+    emoji:  '💬',
+    bg:     'linear-gradient(135deg,#25D366,#128C7E)',
+    shadow: 'rgba(37,211,102,.4)',
+    popup:  'contact',
   },
   {
     id:     'eye',
@@ -900,6 +1004,7 @@ export default function FloatingActions({ user }) {
       {popup === 'meet'       && <MeetPopup        onClose={() => setPopup(null)} />}
       {popup === 'attendance' && <AttendanceModal  onClose={() => setPopup(null)} />}
         {popup === 'giveaway' && <GiveawayModal onClose={() => setPopup(null)} user={user} />}
+        {popup === 'contact' && <ContactPopup onClose={() => setPopup(null)} />}
 
       {/* FAB */}
       <div className="fa-root">
@@ -955,4 +1060,3 @@ export default function FloatingActions({ user }) {
     </>
   )
 }
-

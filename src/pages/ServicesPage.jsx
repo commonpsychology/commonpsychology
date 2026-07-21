@@ -58,6 +58,27 @@ const allServices = [
     features: ['Workplace assessments', 'Employee assistance', 'Leadership training', 'Culture of care'],
     specialties: ['Workplace', 'Employee', 'Leadership', 'Culture'],
   },
+  {
+    icon: '🗨️', iconClass: 'si-green',
+    title: 'General Counseling',
+    desc: 'Talk through everyday challenges, life transitions, or emotional struggles with a supportive, non-judgmental counselor.',
+    features: ['Life transitions support', 'Emotional wellness check-ins', 'Confidential sessions', 'Personalized coping strategies'],
+    specialties: ['Counseling', 'Life Transitions', 'Emotional Support', 'Wellness'],
+  },
+  {
+    icon: '🕊️', iconClass: 'si-earth',
+    title: 'Grief & Loss Counseling',
+    desc: 'Compassionate support for processing grief after the loss of a loved one, relationship, or major life change.',
+    features: ['Grief processing techniques', 'Individual & family sessions', 'Coping with loss', 'Memory & meaning-making work'],
+    specialties: ['Grief', 'Loss', 'Bereavement', 'Family'],
+  },
+  {
+    icon: '🌱', iconClass: 'si-blue',
+    title: 'Trauma Counseling',
+    desc: 'Specialized, trauma-informed therapy to help you process difficult experiences and rebuild a sense of safety.',
+    features: ['Trauma-informed approach', 'EMDR & grounding techniques', 'Safe, paced sessions', 'Nervous system regulation support'],
+    specialties: ['Trauma', 'PTSD', 'EMDR', 'Safety'],
+  },
 ]
 
 const allTags = ['All', ...Array.from(new Set(allServices.flatMap(s => s.specialties)))]
