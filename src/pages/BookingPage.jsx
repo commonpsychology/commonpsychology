@@ -454,7 +454,11 @@ export default function BookingPage() {
     } finally { setSubmitting(false) }
   }
 
-  const minDate = new Date().toISOString().split('T')[0]
+  const minDate = (() => {
+  const d = new Date()
+  d.setDate(d.getDate() + 1) // earliest bookable day is tomorrow — today is not selectable
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+})()
   const availableSlotsForDay = getAvailableSlots(selected.therapist, selected.date)
 
   return (
