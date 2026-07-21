@@ -1,7 +1,15 @@
 import { useState } from 'react'
 import { useRouter } from '../context/RouterContext'
 
-const allServices = [
+export function slugify(title) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+}
+
+export const allServices = [
   // {
   //   icon: '🩺', iconClass: 'si-blue',
   //   title: 'Psychiatrist Consultation',
