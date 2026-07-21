@@ -536,7 +536,7 @@ export default function ContactPage() {
                 </div>
                 <div className="cp3-info-item">
                   <div className="cp3-info-label">Phone</div>
-                  <div className="cp3-info-val">+977 01-4412345</div>
+                  <div className="cp3-info-val">WhatsApp: +977 01-4412345</div>
                 </div>
                 <div className="cp3-info-item">
                   <div className="cp3-info-label">Email</div>
