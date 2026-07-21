@@ -135,17 +135,31 @@ export default function ServiceDetailPage({ slug: slugProp }) {
         }} />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 640, margin: '0 auto' }}>
-          <button
-            onClick={() => navigate('/services')}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.7)',
-              borderRadius: '999px', padding: '0.4rem 1rem', fontSize: '0.8rem', fontWeight: 600,
-              color: '#3a4a45', cursor: 'pointer', marginBottom: '1.5rem',
-            }}
-          >
-            ← All Services
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => navigate('/services')}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.7)',
+                borderRadius: '999px', padding: '0.4rem 1rem', fontSize: '0.8rem', fontWeight: 600,
+                color: '#3a4a45', cursor: 'pointer',
+              }}
+            >
+              ← All Services
+            </button>
+
+            <button
+              className="btn btn-primary"
+              style={{
+                background: 'linear-gradient(135deg, #007ba8 0%, #00bfff 100%)',
+                boxShadow: '0 4px 14px rgba(0,150,210,0.3)', border: 'none',
+                padding: '0.5rem 1.2rem', fontSize: '0.85rem', borderRadius: '999px',
+              }}
+              onClick={() => navigate('/book', { serviceTitle: service.title, serviceSpecialties: service.specialties })}
+            >
+              Book Session
+            </button>
+          </div>
 
           <div
             className={`service-icon ${service.iconClass}`}
