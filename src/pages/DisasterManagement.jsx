@@ -244,14 +244,26 @@ function EmotionalArc({ phases }) {
 
 /* ── Field photos: real deployment shots, flowing/organic layout ── */
 const dispatches = [
-  { src: "https://loremflickr.com/600/450/volunteer,community", alt: "Field response — psychological support work", location: "Field site", note: "Our team providing psychological support on the ground." },
-  { src: "https://loremflickr.com/600/450/community,meeting", alt: "Field response — community session", location: "Field site", note: "A community session held during a recent deployment." },
-  { src: "https://loremflickr.com/600/450/team,outdoor", alt: "Field response — team at work", location: "Field site", note: "Our team at work supporting an affected community." },
-  { src: "https://loremflickr.com/600/450/outreach,help", alt: "Field response — outreach", location: "Field site", note: "Outreach and support during a disaster response." },
-  { src: "https://loremflickr.com/600/450/group,support", alt: "Field response — group activity", location: "Field site", note: "A group activity as part of our recovery programming." },
-  { src: "https://loremflickr.com/600/450/volunteers,teamwork", alt: "Field response — volunteer coordination", location: "Field site", note: "Volunteers coordinating before deployment." },
+  { src: "/pdm.png", alt: "Field response — psychological support work", location: "Field site", note: "Our team providing psychological support on the ground." },
+  { src: "/pdm1.png", alt: "Field response — community session", location: "Field site", note: "A community session held during a recent deployment." },
+  { src: "/pdm.png", alt: "Field response — team at work", location: "Field site", note: "Our team at work supporting an affected community." },
+  { src: "/pdm1.png", alt: "Field response — outreach", location: "Field site", note: "Outreach and support during a disaster response." },
+  { src: "/pdm.png", alt: "Field response — group activity", location: "Field site", note: "A group activity as part of our recovery programming." },
+  { src: "/pdm1.png", alt: "Field response — volunteer coordination", location: "Field site", note: "Volunteers coordinating before deployment." },
+  { src: "/pdm.png", alt: "Field response — follow-up visit", location: "Field site", note: "A follow-up visit checking in on community wellbeing." },
 ];
 
+
+
+// /* ── Field photos: real deployment shots, flowing/organic layout ── */
+// const dispatches = [
+//   { src: "https://loremflickr.com/600/450/volunteer,community", alt: "Field response — psychological support work", location: "Field site", note: "Our team providing psychological support on the ground." },
+//   { src: "https://loremflickr.com/600/450/community,meeting", alt: "Field response — community session", location: "Field site", note: "A community session held during a recent deployment." },
+//   { src: "https://loremflickr.com/600/450/team,outdoor", alt: "Field response — team at work", location: "Field site", note: "Our team at work supporting an affected community." },
+//   { src: "https://loremflickr.com/600/450/outreach,help", alt: "Field response — outreach", location: "Field site", note: "Outreach and support during a disaster response." },
+//   { src: "https://loremflickr.com/600/450/group,support", alt: "Field response — group activity", location: "Field site", note: "A group activity as part of our recovery programming." },
+//   { src: "https://loremflickr.com/600/450/volunteers,teamwork", alt: "Field response — volunteer coordination", location: "Field site", note: "Volunteers coordinating before deployment." },
+// ];
 function FieldDispatches() {
   const [open, setOpen] = useState(null);
 
