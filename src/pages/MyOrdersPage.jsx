@@ -685,7 +685,7 @@ Signed in as <strong style={{ color:'#0369a1' }}>                  {user.fullNam
                 <div className="mo-empty-icon">📦</div>
                 <p style={{ color:C.mid, marginBottom:'.5rem', fontFamily:"'Fraunces',Georgia,serif", fontSize:'1.05rem' }}>No orders yet</p>
                 <p style={{ color:'#7a9aaa', fontSize:'.85rem', marginBottom:'1.5rem' }}>When you purchase products, they'll appear here.</p>
-                <button className="mo-btn-primary" onClick={() => navigate('/shop')}>Browse Shop →</button>
+                <button className="mo-btn-primary" onClick={() => navigate('/store')}>Browse Shop →</button>
               </div>
             )}
             {!loading && !loadError && orders.length > 0 && (() => {
