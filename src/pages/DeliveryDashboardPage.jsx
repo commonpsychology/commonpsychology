@@ -205,7 +205,6 @@ const [newStatus, setNewStatus] = useState('')
   const riderMarkerRef  = useRef(null)
   const orderMarkersRef = useRef([])
   const watchIdRef      = useRef(null)
-  const routeLineRef    = useRef(null)
 
   const LIMIT = 15
 
@@ -328,7 +327,6 @@ useEffect(() => { load() }, [load])
       `)
       marker.on('click', () => {
         setDetailRow(o)
-        showRouteTo(lat, lng)
       })
 
       orderMarkersRef.current.push(marker)
@@ -339,41 +337,6 @@ useEffect(() => { load() }, [load])
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 })
     }
   }, [mapReady, orders])
-
-  // Draws a driving route from the rider's current position to a destination pin
-  // using OSRM's free public routing API. Falls back to a toast telling the
-  // rider to use the Google Maps button if the route can't be calculated.
-  async function showRouteTo(lat, lng) {
-    const map = mapInstRef.current
-    if (!map) return
-
-    if (routeLineRef.current) {
-      map.removeLayer(routeLineRef.current)
-      routeLineRef.current = null
-    }
-
-    const riderPos = riderMarkerRef.current?.getLatLng()
-    if (!riderPos) {
-      flash('Still finding your location — try again in a moment, or use Google Maps directions.', false)
-      return
-    }
-
-    try {
-      const url = `https://router.project-osrm.org/route/v1/driving/${riderPos.lng},${riderPos.lat};${lng},${lat}?overview=full&geometries=geojson`
-      const res = await fetch(url)
-      const data = await res.json()
-      const coords = data.routes?.[0]?.geometry?.coordinates
-      if (!coords) {
-        flash('Could not calculate an in-app route — try Google Maps directions instead.', false)
-        return
-      }
-      const latlngs = coords.map(([lo, la]) => [la, lo])
-      routeLineRef.current = L.polyline(latlngs, { color: '#3b82f6', weight: 4, opacity: 0.85 }).addTo(map)
-      map.fitBounds(routeLineRef.current.getBounds(), { padding: [60, 60] })
-    } catch (e) {
-      flash('Route lookup failed — try Google Maps directions instead.', false)
-    }
-  }
 
   function openGoogleDirections(lat, lng) {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`, '_blank', 'noopener')
@@ -851,18 +814,9 @@ const pay = PAY_MAP[o.payment_status] || { bg: '#ecfdf5', c: '#065f46', t: '✓ 
                 const lng = detailRow.shipping_address?.lng ?? detailRow.shipping_address?.longitude
                 const hasCoords = lat != null && lng != null
                 return hasCoords ? (
-                  <>
-                    <button className="btn btn-ghost" onClick={() => openGoogleDirections(lat, lng)}>
-                      🧭 Google Maps
-                    </button>
-                    <button className="btn btn-ghost" onClick={() => {
-                      setTab('map')
-                      setDetailRow(null)
-                      setTimeout(() => showRouteTo(lat, lng), 700) // give the map time to mount
-                    }}>
-                      🗺️ Route on Map
-                    </button>
-                  </>
+                  <button className="btn btn-ghost" onClick={() => openGoogleDirections(lat, lng)}>
+                    🧭 Google Maps
+                  </button>
                 ) : null
               })()}
               {!['delivered','returned'].includes(detailRow.delivery_status) && (
