@@ -41,19 +41,28 @@ function fmtDate(iso) {
   return new Date(iso).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" })
 }
 
-/* ─── ARTICLE IMAGE VISUAL ───────────────────────────────────── */
+/* ─── ARTICLE IMAGE VISUAL — shows the real photo if one exists ── */
 function ArticleImage({ article, height=220, style={} }) {
+  const [imgErr, setImgErr] = useState(false)
+  const hasPhoto = article.image_url && !imgErr
+
   return (
     <div style={{
       width:"100%", height,
-      background: article.image_gradient || `linear-gradient(135deg,${T.greenDeep},${T.blueMid})`,
+      background: hasPhoto ? undefined : (article.image_gradient || `linear-gradient(135deg,${T.greenDeep},${T.blueMid})`),
       display:"flex", alignItems:"center", justifyContent:"center",
       fontSize: height>200 ? "4rem" : "3rem",
       position:"relative", overflow:"hidden", flexShrink:0,
-      filter:"grayscale(0.1) contrast(1.05)",
       ...style,
     }}>
-      <span style={{ filter:"drop-shadow(0 4px 16px rgba(0,0,0,0.2))" }}>{article.image_emoji || "📰"}</span>
+      {hasPhoto ? (
+        <img src={article.image_url} alt={article.headline}
+          onError={() => setImgErr(true)}
+          style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
+            filter:"grayscale(0.1) contrast(1.05)" }} />
+      ) : (
+        <span style={{ filter:"drop-shadow(0 4px 16px rgba(0,0,0,0.2))" }}>{article.image_emoji || "📰"}</span>
+      )}
       {article.tag && (
         <div style={{ position:"absolute", top:10, left:0, background:T.ink, color:T.paper,
           fontFamily:"'Nunito',sans-serif", fontSize:"0.65rem", fontWeight:800,
