@@ -530,17 +530,6 @@ export default function CartPage() {
                 <h2 style={{ fontFamily:'var(--font-display)', fontSize:'1rem', color:'var(--green-deep)', fontWeight:700, marginBottom:'1rem' }}>Delivery Details</h2>
 
                 <MapPicker onLocationChange={setLocation} />
-
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.6rem', marginTop:'1rem' }}>
-                  <input placeholder="Full name *" value={contact.full_name} onChange={e => setContact(c => ({ ...c, full_name:e.target.value }))}
-                    style={{ padding:'0.6rem 0.75rem', border:'1.5px solid rgba(120,190,230,0.4)', borderRadius:9, fontSize:'0.82rem', background:'rgba(255,255,255,0.75)', gridColumn:'1 / -1' }} />
-                  <input placeholder="Phone number *" value={contact.phone} onChange={e => setContact(c => ({ ...c, phone:e.target.value }))}
-                    style={{ padding:'0.6rem 0.75rem', border:'1.5px solid rgba(120,190,230,0.4)', borderRadius:9, fontSize:'0.82rem', background:'rgba(255,255,255,0.75)', gridColumn:'1 / -1' }} />
-                  <input placeholder="Landmark (optional)" value={contact.landmark} onChange={e => setContact(c => ({ ...c, landmark:e.target.value }))}
-                    style={{ padding:'0.6rem 0.75rem', border:'1.5px solid rgba(120,190,230,0.4)', borderRadius:9, fontSize:'0.82rem', background:'rgba(255,255,255,0.75)', gridColumn:'1 / -1' }} />
-                  <textarea placeholder="Delivery notes (optional)" value={contact.notes} onChange={e => setContact(c => ({ ...c, notes:e.target.value }))} rows={2}
-                    style={{ padding:'0.6rem 0.75rem', border:'1.5px solid rgba(120,190,230,0.4)', borderRadius:9, fontSize:'0.82rem', resize:'vertical', background:'rgba(255,255,255,0.75)', gridColumn:'1 / -1' }} />
-                </div>
                 {addrErr && <p style={{ color:'#ef4444', fontSize:'0.76rem', marginTop:'0.6rem', fontWeight:600 }}>{addrErr}</p>}
               </div>
 
