@@ -34,14 +34,23 @@ const fmtT = d => d ? new Date(d).toLocaleString('en-US', { month: 'short', day:
 const DS = {
   unassigned: { label: 'Unassigned', bg: '#f1f5f9', fg: '#475569', dot: '#94a3b8' },
   assigned:   { label: 'Assigned',   bg: '#eff6ff', fg: '#1e40af', dot: '#3b82f6' },
-  processing: { label: 'Processing', bg: '#f5f3ff', fg: '#5b21b6', dot: '#8b5cf6' },
-  shipped:    { label: 'Shipped',    bg: '#ecfeff', fg: '#0e7490', dot: '#14b8a6' },
+  picked_up:  { label: 'Picked Up',  bg: '#f5f3ff', fg: '#5b21b6', dot: '#8b5cf6' },
   in_transit: { label: 'In Transit', bg: '#ecfeff', fg: '#0e7490', dot: '#f59e0b' },
   delivered:  { label: 'Delivered',  bg: '#ecfdf5', fg: '#065f46', dot: '#10b981' },
-  cancelled:  { label: 'Cancelled',  bg: '#fef2f2', fg: '#991b1b', dot: '#ef4444' },
   failed:     { label: 'Failed',     bg: '#fef2f2', fg: '#991b1b', dot: '#ef4444' },
   returned:   { label: 'Returned',   bg: '#faf5ff', fg: '#6b21a8', dot: '#a855f7' },
-  refunded:   { label: 'Refunded',   bg: '#faf5ff', fg: '#6b21a8', dot: '#a855f7' },
+}
+
+// What PUT /api/delivery/my-orders/:id actually accepts as `delivery_status` in
+// the request body (see routes/delivery.js STATUS_MAP). The server translates
+// these into the DS values above for storage/display — the words don't match
+// on purpose, that's the server's contract.
+const RIDER_ACTIONS = {
+  processing: 'Picked Up / Processing',
+  shipped:    'In Transit / Shipped',
+  delivered:  'Delivered',
+  cancelled:  'Failed / Cancelled',
+  refunded:   'Returned / Refunded',
 }
 
 // Rider can only move forward through these
@@ -107,7 +116,7 @@ table.tbl tr:last-child td{border-bottom:none}
 table.tbl tr:hover td{background:#fafbfd}
 .tbl-loading{text-align:center;padding:2.5rem;color:var(--muted);font-size:.82rem}
 
-.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.25rem}
+.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:.75rem;margin-bottom:1.25rem}
 .stat-card{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);padding:.95rem 1.1rem;cursor:pointer;transition:all .15s}
 .stat-card:hover,.stat-card.active{transform:translateY(-2px);box-shadow:var(--shadow-md)}
 .stat-val{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;line-height:1;margin-bottom:.25rem}
@@ -378,7 +387,7 @@ useEffect(() => { load() }, [load])
 
   function openUpdate(order) {
     setUpdateModal({ order })
-    setNewStatus(order.delivery_status || 'assigned')
+    setNewStatus('processing')
     setNewNote('')
   }
 
@@ -391,7 +400,7 @@ useEffect(() => { load() }, [load])
         body: JSON.stringify({ delivery_status: newStatus, delivery_note: newNote, note: newNote }),
       })
       setUpdateModal(null)
-      flash(`Status updated → ${DS[newStatus]?.label}`)
+      flash(`Status updated → ${RIDER_ACTIONS[newStatus]}`)
       load()
     } catch (e) { flash(e.message, false) }
     finally { setSaving(false) }
@@ -401,7 +410,8 @@ useEffect(() => { load() }, [load])
   const STATS = [
     { key: '',           label: 'Total',      val: summary.total      || 0, color: '#3b82f6', dot: '#3b82f6' },
     { key: 'assigned',   label: 'Assigned',   val: summary.assigned   || 0, color: '#1e40af', dot: '#3b82f6' },
-    { key: 'in_transit', label: 'In Transit', val: summary.in_transit || 0, color: '#0e7490', dot: '#f3f706' },
+    { key: 'picked_up',  label: 'Picked Up',  val: summary.picked_up  || 0, color: '#5b21b6', dot: '#8b5cf6' },
+    { key: 'in_transit', label: 'In Transit', val: summary.in_transit || 0, color: '#0e7490', dot: '#f59e0b' },
     { key: 'delivered',  label: 'Delivered',  val: summary.delivered  || 0, color: '#065f46', dot: '#10b981' },
     { key: 'failed',     label: 'Failed',     val: summary.failed     || 0, color: '#991b1b', dot: '#ef4444' },
   ]
@@ -752,8 +762,8 @@ const pay = PAY_MAP[o.payment_status] || { bg: '#ecfdf5', c: '#065f46', t: '✓ 
               <div className="field">
                 <label>New Delivery Status</label>
                 <select className="inp" value={newStatus} onChange={e => setNewStatus(e.target.value)}>
-                  {RIDER_STATUSES.map(s => (
-                    <option key={s} value={s}>{DS[s]?.label || s}</option>
+                  {Object.entries(RIDER_ACTIONS).map(([val, label]) => (
+                    <option key={val} value={val}>{label}</option>
                   ))}
                 </select>
               </div>
