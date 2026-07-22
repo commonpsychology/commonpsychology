@@ -130,9 +130,102 @@ function PdfBadge() {
   )
 }
 
+function CloseIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function PdfViewerModal({ report, onClose }) {
+  if (!report) return null
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(15,30,28,0.55)',
+        backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '2rem',
+        animation: 'fadeIn 0.2s ease both',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 900, height: '88vh',
+          display: 'flex', flexDirection: 'column',
+          background: 'linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(222,241,251,0.9) 55%, rgba(255,255,255,0.92) 100%)',
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.6)',
+          borderRadius: '20px',
+          boxShadow: '0 24px 60px rgba(0,60,80,0.35)',
+          overflow: 'hidden',
+          animation: 'popIn 0.25s cubic-bezier(0.22,1,0.36,1) both',
+        }}
+      >
+        {/* Modal header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '1rem 1.3rem',
+          borderBottom: '1px solid rgba(0,123,168,0.14)',
+          background: 'rgba(255,255,255,0.5)',
+        }}>
+          <div>
+            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1d3a34' }}>{report.title}</div>
+            <div style={{ fontSize: '0.72rem', color: '#7a8a85' }}>{report.pages} pages · {report.fileSize}</div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button
+              onClick={() => openAndDownloadPdf(report.pdfUrl, `${slugify(report.title)}.pdf`)}
+              className="btn btn-primary"
+              style={{
+                background: 'linear-gradient(135deg, #007ba8 0%, #00bfff 100%)',
+                border: 'none', color: '#fff',
+                fontSize: '0.8rem', fontWeight: 600,
+                padding: '0.45rem 0.9rem', borderRadius: '999px',
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center',
+              }}
+            >
+              <DownloadIcon />
+              Download
+            </button>
+            <button
+              onClick={onClose}
+              aria-label="Close PDF viewer"
+              style={{
+                width: 34, height: 34, borderRadius: '50%',
+                border: '1px solid rgba(0,123,168,0.2)',
+                background: 'rgba(255,255,255,0.7)',
+                color: '#007ba8', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <CloseIcon />
+            </button>
+          </div>
+        </div>
+
+        {/* PDF viewer */}
+        <div style={{ flex: 1, background: '#e9eef0' }}>
+          <iframe
+            src={report.pdfUrl}
+            title={report.title}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AnnualReportsPage() {
   const [activeYear, setActiveYear] = useState('All')
   const [hoveredIdx, setHoveredIdx] = useState(null)
+  const [selectedReport, setSelectedReport] = useState(null)
 
   const visibleReports = activeYear === 'All'
     ? allReports
@@ -225,9 +318,10 @@ export default function AnnualReportsPage() {
                 key={r.year}
                 onMouseEnter={() => setHoveredIdx(i)}
                 onMouseLeave={() => setHoveredIdx(null)}
+                onClick={() => setSelectedReport(r)}
                 style={{
                   position: 'relative',
-                  cursor: 'default',
+                  cursor: 'pointer',
                   background: isHovered ? GLASS.bgHover : GLASS.bg,
                   backdropFilter: 'blur(16px)',
                   WebkitBackdropFilter: 'blur(16px)',
@@ -295,7 +389,10 @@ export default function AnnualReportsPage() {
 
                 <button
                   className="btn btn-primary service-card-btn"
-                  onClick={() => openAndDownloadPdf(r.pdfUrl, `${slugify(r.title)}.pdf`)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openAndDownloadPdf(r.pdfUrl, `${slugify(r.title)}.pdf`)
+                  }}
                   style={{
                     background: 'linear-gradient(135deg, #007ba8 0%, #00bfff 100%)',
                     boxShadow: '0 6px 18px rgba(0,150,210,0.3)',
@@ -320,10 +417,20 @@ export default function AnnualReportsPage() {
         )}
       </div>
 
+      <PdfViewerModal report={selectedReport} onClose={() => setSelectedReport(null)} />
+
       <style>{`
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(16px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes popIn {
+          from { opacity: 0; transform: scale(0.96) translateY(8px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
     </div>
