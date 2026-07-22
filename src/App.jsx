@@ -34,6 +34,7 @@ import ForgotPasswordPage   from './pages/ForgotPasswordPage'
 import RegisterPage        from './pages/RegisterPage'
 import StorePage           from './pages/StorePage'
 import OnlineCourses      from './pages/OnlineCourses'
+import AnnualReports from './pages/AnnualReports'
 import CartPage            from './pages/CartPage'
 import MessagesPage        from './pages/MessagesPage'
 import PrivacyPage         from './pages/PrivacyPage'
@@ -107,6 +108,7 @@ const ROUTES = {
   '/portal':             ClientPortalPage,
   '/community':          CommunityPage,  
   '/notices':             NoticePage,
+  '/annual-reports':     AnnualReports,
   '/ai-tools':           AIToolsPage,
   '/verify':             VerifyAccountPage,
   '/staff/portal':        StaffportalPage,
