@@ -1,5 +1,13 @@
 import { useState } from 'react'
 
+function slugify(title) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+}
+
 // ── Report data ────────────────────────────────────────────────
 // Replace `pdfUrl` with the real hosted PDF path for each report
 // (e.g. '/reports/annual-report-2025.pdf').
@@ -93,6 +101,19 @@ function DownloadIcon() {
       <path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
+}
+
+function openAndDownloadPdf(url, filename) {
+  // 1. Show the PDF in a new tab
+  window.open(url, '_blank', 'noopener,noreferrer')
+
+  // 2. Also trigger a direct download via a hidden link
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 function PdfBadge() {
@@ -272,16 +293,13 @@ export default function AnnualReportsPage() {
                   <span style={{ fontSize: '0.72rem', color: '#7a8a85' }}>{r.pages} pages · {r.fileSize}</span>
                 </div>
 
-                <a
+                <button
                   className="btn btn-primary service-card-btn"
-                  href={r.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={() => openAndDownloadPdf(r.pdfUrl, `${slugify(r.title)}.pdf`)}
                   style={{
                     background: 'linear-gradient(135deg, #007ba8 0%, #00bfff 100%)',
                     boxShadow: '0 6px 18px rgba(0,150,210,0.3)',
                     border: 'none',
-                    textDecoration: 'none',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -289,7 +307,7 @@ export default function AnnualReportsPage() {
                 >
                   <DownloadIcon />
                   Download Report
-                </a>
+                </button>
               </div>
             )
           })}
