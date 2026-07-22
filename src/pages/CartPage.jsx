@@ -77,13 +77,6 @@ function MapPicker({ onLocationChange }) {
   const [coords, setCoords] = useState(null)
   const lastGeocodeRef = useRef(0)
 
-  // ── Address search (forward geocoding via Nominatim) ──
-  const [searchQuery, setSearchQuery] = useState('')
-  const [suggestions, setSuggestions] = useState([])
-  const [searching, setSearching] = useState(false)
-  const searchTimeoutRef = useRef(null)
-  const searchAbortRef = useRef(null)
-
   // ── Manual lat/lng entry (for setting a location you're not currently at) ──
   const [manualLat, setManualLat] = useState('')
   const [manualLng, setManualLng] = useState('')
@@ -126,8 +119,8 @@ function MapPicker({ onLocationChange }) {
     }
   }, [onLocationChange])
 
-  // Move the map + marker to an arbitrary lat/lng (used by both search
-  // selection and manual coordinate entry) and look up its address text.
+  // Move the map + marker to an arbitrary lat/lng (used by manual coordinate
+  // entry) and look up its address text.
   const goToLocation = useCallback((lat, lng, zoom = 16) => {
     if (!mapRef.current || !markerRef.current) return
     mapRef.current.setView([lat, lng], zoom)
@@ -174,43 +167,6 @@ function MapPicker({ onLocationChange }) {
     setTimeout(() => map.invalidateSize(), 200)
   }, [leafletReady, reverseGeocode])
 
-  // Debounced forward-geocoding search — lets someone type an address
-  // ("Thamel, Kathmandu") and jump the pin there instead of hunting on the map.
-  useEffect(() => {
-    if (!searchQuery.trim()) { setSuggestions([]); setSearching(false); return }
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
-
-    searchTimeoutRef.current = setTimeout(async () => {
-      if (searchAbortRef.current) searchAbortRef.current.abort()
-      const controller = new AbortController()
-      searchAbortRef.current = controller
-      setSearching(true)
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(searchQuery)}&addressdetails=1&limit=5`,
-          { signal: controller.signal }
-        )
-        if (!res.ok) throw new Error(`Nominatim returned ${res.status}`)
-        const data = await res.json()
-        setSuggestions(Array.isArray(data) ? data : [])
-      } catch (e) {
-        if (e.name !== 'AbortError') setSuggestions([])
-      } finally {
-        setSearching(false)
-      }
-    }, 500) // respects Nominatim's ~1 req/sec usage policy
-
-    return () => clearTimeout(searchTimeoutRef.current)
-  }, [searchQuery])
-
-  function selectSuggestion(s) {
-    const lat = parseFloat(s.lat), lng = parseFloat(s.lon)
-    if (isNaN(lat) || isNaN(lng)) return
-    setSearchQuery(s.display_name)
-    setSuggestions([])
-    goToLocation(lat, lng)
-  }
-
   function handleManualSubmit() {
     const lat = parseFloat(manualLat)
     const lng = parseFloat(manualLng)
@@ -224,48 +180,6 @@ function MapPicker({ onLocationChange }) {
 
   return (
     <div>
-      {/* Address search */}
-      <div style={{ position:'relative', marginBottom:'0.6rem' }}>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          placeholder="🔍 Search for an address or place…"
-          style={{
-            width:'100%', boxSizing:'border-box', padding:'0.6rem 2.4rem 0.6rem 0.75rem',
-            border:'1.5px solid rgba(120,190,230,0.4)', borderRadius:9, fontSize:'0.82rem',
-            background:'rgba(255,255,255,0.85)',
-          }}
-        />
-        {searching && (
-          <span style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', fontSize:'0.68rem', color:'var(--text-light)' }}>
-            searching…
-          </span>
-        )}
-        {suggestions.length > 0 && (
-          <div style={{
-            position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:30,
-            background:'rgba(255,255,255,0.98)', border:'1px solid rgba(120,190,230,0.4)',
-            borderRadius:9, boxShadow:'0 6px 20px rgba(0,90,140,0.16)', overflow:'hidden',
-            maxHeight:220, overflowY:'auto',
-          }}>
-            {suggestions.map((s, idx) => (
-              <div
-                key={s.place_id || idx}
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => selectSuggestion(s)}
-                style={{
-                  padding:'0.55rem 0.75rem', fontSize:'0.78rem', cursor:'pointer', color:'var(--text-mid)',
-                  borderBottom: idx < suggestions.length - 1 ? '1px solid rgba(120,190,230,0.2)' : 'none',
-                }}
-              >
-                {s.display_name}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       <div ref={mapEl} style={{ width:'100%', height:260, borderRadius:14, overflow:'hidden', border:'1.5px solid rgba(120,190,230,0.5)', boxShadow:'0 2px 14px rgba(0,90,140,0.10)' }} />
       <p style={{ fontSize:'0.74rem', color:'var(--text-light)', marginTop:'0.5rem' }}>
         📍 {status} — tap the map or drag the pin to set your exact delivery location.
