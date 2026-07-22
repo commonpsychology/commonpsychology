@@ -31,19 +31,21 @@ const apiFetch = async (path, opts = {}) => {
 const fmt  = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
 const fmtT = d => d ? new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
 
-// ── Delivery status config ────────────────────────────────────
 const DS = {
-  pending:    { label: 'Pending',    bg: '#f1f5f9', fg: '#475569', dot: '#94a3b8' },
-  confirmed:  { label: 'Confirmed',  bg: '#eff6ff', fg: '#1e40af', dot: '#3b82f6' },
+  unassigned: { label: 'Unassigned', bg: '#f1f5f9', fg: '#475569', dot: '#94a3b8' },
+  assigned:   { label: 'Assigned',   bg: '#eff6ff', fg: '#1e40af', dot: '#3b82f6' },
   processing: { label: 'Processing', bg: '#f5f3ff', fg: '#5b21b6', dot: '#8b5cf6' },
   shipped:    { label: 'Shipped',    bg: '#ecfeff', fg: '#0e7490', dot: '#14b8a6' },
+  in_transit: { label: 'In Transit', bg: '#ecfeff', fg: '#0e7490', dot: '#f59e0b' },
   delivered:  { label: 'Delivered',  bg: '#ecfdf5', fg: '#065f46', dot: '#10b981' },
   cancelled:  { label: 'Cancelled',  bg: '#fef2f2', fg: '#991b1b', dot: '#ef4444' },
+  failed:     { label: 'Failed',     bg: '#fef2f2', fg: '#991b1b', dot: '#ef4444' },
+  returned:   { label: 'Returned',   bg: '#faf5ff', fg: '#6b21a8', dot: '#a855f7' },
   refunded:   { label: 'Refunded',   bg: '#faf5ff', fg: '#6b21a8', dot: '#a855f7' },
 }
 
 // Rider can only move forward through these
-const RIDER_STATUSES = ['processing','shipped','delivered','cancelled','refunded']
+const RIDER_STATUSES = ['assigned','in_transit','delivered','failed','returned']
 
 // Order payment status badge
 const PAY_MAP = {
@@ -399,7 +401,7 @@ useEffect(() => { load() }, [load])
   const STATS = [
     { key: '',           label: 'Total',      val: summary.total      || 0, color: '#3b82f6', dot: '#3b82f6' },
     { key: 'assigned',   label: 'Assigned',   val: summary.assigned   || 0, color: '#1e40af', dot: '#3b82f6' },
-    { key: 'in_transit', label: 'In Transit', val: summary.in_transit || 0, color: '#92400e', dot: '#f59e0b' },
+    { key: 'in_transit', label: 'In Transit', val: summary.in_transit || 0, color: '#0e7490', dot: '#f3f706' },
     { key: 'delivered',  label: 'Delivered',  val: summary.delivered  || 0, color: '#065f46', dot: '#10b981' },
     { key: 'failed',     label: 'Failed',     val: summary.failed     || 0, color: '#991b1b', dot: '#ef4444' },
   ]
@@ -868,6 +870,6 @@ const pay = PAY_MAP[o.payment_status] || { bg: '#ecfdf5', c: '#065f46', t: '✓ 
 
     </div>
   )
+
+
 }
-
-
