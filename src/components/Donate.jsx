@@ -629,7 +629,7 @@ export default function WellspringFlask() {
 
       <div className="wf-inner">
         <div className="wf-header">
-          <span className="wf-eyebrow">💧 Give Water</span>
+          <span className="wf-eyebrow"> Donate </span>
           <h2 className="wf-title">
             Every Donation <em>Reaches</em> Someone
           </h2>
