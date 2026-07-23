@@ -55,7 +55,7 @@ function VideoThumbnail({ v }) {
 
   if (v.video_url && !errored) {
     return (
-      <div style={{ position: 'relative', width: '100%', background: TOKENS.oceanInk }}>
+      <div className="vr-thumb" style={{ position: 'relative', width: '100%', background: TOKENS.oceanInk }}>
         {/* Topic pill */}
         <div style={{
           position: 'absolute', top: 10, left: 10, zIndex: 3,
@@ -92,8 +92,9 @@ function VideoThumbnail({ v }) {
           onError={() => setErrored(true)}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
+          className="vr-thumb-media"
           style={{
-            display: 'block', width: '100%', height: 210,
+            display: 'block', width: '100%',
             objectFit: 'cover', background: TOKENS.oceanInk,
           }}
         />
@@ -102,8 +103,8 @@ function VideoThumbnail({ v }) {
   }
 
   return (
-    <div style={{
-      position: 'relative', height: 210,
+    <div className="vr-thumb" style={{
+      position: 'relative',
       background: v.thumbnail_url ? undefined : TOKENS.skyLight,
       backgroundImage: v.thumbnail_url ? `url(${v.thumbnail_url})` : undefined,
       backgroundSize: 'cover', backgroundPosition: 'center',
@@ -667,6 +668,11 @@ export default function VideoReviews() {
           }
           .vr-carousel-wrap::-webkit-scrollbar { display: none; }
 
+          .vr-thumb, .vr-thumb-media { height: 210px; }
+          @media (max-width: 640px) {
+            .vr-thumb, .vr-thumb-media { height: 130px; }
+          }
+
           .vr-dot {
             border: none; padding: 0; cursor: pointer; border-radius: 4px; height: 8px;
             transition: all 0.25s ease;
@@ -688,6 +694,10 @@ export default function VideoReviews() {
             background: linear-gradient(90deg, ${TOKENS.skyLight} 0%, #e3f4fb 50%, ${TOKENS.skyLight} 100%);
             background-size: 200% 100%;
             animation: vrShimmer 1.4s infinite;
+          }
+          .vr-skeleton-card { height: 340px; }
+          @media (max-width: 640px) {
+            .vr-skeleton-card { height: 220px; }
           }
 
           @media (max-width: 640px) {
@@ -742,7 +752,7 @@ export default function VideoReviews() {
           {loading && (
             <div style={{ display: 'flex', gap: GAP }}>
               {[1,2,3].slice(0, visible).map(i => (
-                <div key={i} className="vr-skeleton" style={{ flex: 1, height: 340 }} />
+                <div key={i} className="vr-skeleton vr-skeleton-card" style={{ flex: 1 }} />
               ))}
             </div>
           )}
