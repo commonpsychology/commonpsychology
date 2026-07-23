@@ -15,9 +15,9 @@ export default function EleventhPaymentPromo() {
       display: 'flex',
       alignItems: 'center',
       gap: '1rem',
-      background: 'linear-gradient(120deg, #007BA8 0%, #00BFFF 45%, #f0fbff 100%)',
-      boxShadow: '0 10px 30px rgba(0,191,255,0.28)',
-      border: '1px solid rgba(224,247,255,0.5)',
+      background: 'linear-gradient(120deg, #EAF6FC 0%, #FFFFFF 50%, #F0FBFF 100%)',
+      boxShadow: '0 10px 30px rgba(0,123,168,0.14)',
+      border: '1px solid rgba(190,233,251,0.7)',
     }}>
       {/* ambient glow */}
       <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(255,255,255,0.35)', filter:'blur(36px)', top:-60, left:-40, pointerEvents:'none' }} />

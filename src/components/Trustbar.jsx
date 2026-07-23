@@ -188,7 +188,7 @@ export default function TrustBar() {
   return (
     <div style={{
       padding: '12px 3px',
-      background: 'linear-gradient(135deg, #f0f9ff 0%, #f0f9ff 50%, #f0f9ff 100%)',
+      background: 'linear-gradient(180deg, #EAF6FC 0%, #FFFFFF 50%, #F0FBFF 100%)',
       borderTop: '1px solid rgba(186,230,253,0.4)',
       borderBottom: '1px solid rgba(186,230,253,0.4)',
       boxSizing: 'border-box',
