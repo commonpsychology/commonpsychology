@@ -260,9 +260,15 @@ export default function AnnualReportsPage() {
           bottom: -20, left: '8%', pointerEvents: 'none',
         }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 560, margin: '0 auto' }}>
-          <span className="section-tag">Annual Reports</span>
-          <h1 className="section-title">A Record of <em>Care & Growth</em></h1>
-          <p className="section-desc">
+          <span className="section-tag" style={{
+            display: 'inline-flex', alignItems: 'center',
+            color: '#005580', background: 'rgba(255,255,255,0.7)',
+            border: '1.5px solid rgba(190,233,251,0.8)',
+          }}>Annual Reports</span>
+          <h1 className="section-title" style={{ color: '#003850' }}>
+            A Record of <em style={{ color: '#00BFFF', fontStyle: 'italic' }}>Care & Growth</em>
+          </h1>
+          <p className="section-desc" style={{ color: '#4d7c94' }}>
             Transparent, year-by-year accounts of our impact, our services, and the community we serve.
           </p>
         </div>
