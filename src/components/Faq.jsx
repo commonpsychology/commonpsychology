@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { TOKENS, sectionGradientCSS } from '../styles/oceanTheme'
 
 const FAQS = [
   { q: 'What is  Mental Wellness Center?', a: 'Common Psychology is Nepal\'s leading digital mental health platform, connecting individuals with licensed psychologists, counselors, and psychiatrists. We offer online and in-person therapy, free assessments, educational resources, and community support — all rooted in Nepali culture.' },
@@ -17,55 +18,82 @@ export default function FAQ() {
   const [open, setOpen] = useState(null)
 
   return (
-    <section className="section" id="faq" style={{ background: 'var(--off-white)' }}>
-      <div style={{ maxWidth: 780, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <span className="section-tag">FAQ</span>
-          <h2 className="section-title">Frequently Asked <em>Questions</em></h2>
-          <p className="section-desc" style={{ margin: '0 auto' }}>Everything you need to know before taking the first step.</p>
+    <section className="faq-section" id="faq">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&display=swap');
+        ${sectionGradientCSS('faq-section')}
+
+        .faq-section { padding: 3.5rem 1.5rem 4rem; }
+        .faq-inner { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; }
+
+        .faq-header { text-align: center; margin-bottom: 2.25rem; }
+        .faq-eyebrow {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          padding: 0.25rem 0.75rem; margin-bottom: 0.7rem;
+          border: 1.5px solid ${TOKENS.bluePale}; border-radius: 100px;
+          font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 700;
+          letter-spacing: 0.06em; text-transform: uppercase;
+          color: #0f3460; background: ${TOKENS.skyLight};
+        }
+        .faq-title {
+          font-family: 'Fraunces', serif; font-weight: 800;
+          font-size: clamp(1.5rem, 3vw, 2.05rem); line-height: 1.2;
+          color: ${TOKENS.oceanInk}; margin: 0 0 0.5rem;
+        }
+        .faq-title em { font-style: italic; color: ${TOKENS.oceanBright}; }
+        .faq-desc { font-family: 'Inter', sans-serif; font-size: 0.9rem; color: ${TOKENS.dim}; line-height: 1.55; margin: 0 auto; max-width: 480px; }
+
+        .faq-list { display: flex; flex-direction: column; gap: 0.6rem; }
+        .faq-item {
+          background: ${TOKENS.white};
+          border-radius: 12px;
+          border: 1.5px solid ${TOKENS.bluePale};
+          overflow: hidden;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .faq-item.is-open { border-color: ${TOKENS.oceanBright}; box-shadow: 0 4px 16px rgba(0,123,168,0.08); }
+        .faq-q-btn {
+          display: flex; justify-content: space-between; align-items: center;
+          width: 100%; padding: 1rem 1.25rem;
+          background: none; border: none; cursor: pointer;
+          text-align: left; gap: 1rem;
+        }
+        .faq-q-text {
+          font-family: 'Inter', sans-serif; font-size: 0.92rem; font-weight: 700;
+          line-height: 1.4; color: ${TOKENS.oceanDeep};
+        }
+        .faq-q-text.is-open { color: ${TOKENS.oceanBright}; }
+        .faq-toggle {
+          width: 26px; height: 26px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0; font-size: 0.8rem; color: ${TOKENS.oceanDeep};
+          background: ${TOKENS.skyLight};
+          transition: all 0.2s; transform: rotate(0deg);
+        }
+        .faq-toggle.is-open { background: ${TOKENS.oceanBright}; color: #fff; transform: rotate(45deg); }
+        .faq-answer { padding: 0 1.25rem 1rem; border-top: 1px solid ${TOKENS.bluePale}; }
+        .faq-answer p { font-family: 'Inter', sans-serif; font-size: 0.88rem; color: ${TOKENS.dim}; line-height: 1.75; margin-top: 0.75rem; }
+      `}</style>
+
+      <div className="faq-inner">
+        <div className="faq-header">
+          <span className="faq-eyebrow">❓ FAQ</span>
+          <h2 className="faq-title">Frequently Asked <em>Questions</em></h2>
+          <p className="faq-desc">Everything you need to know before taking the first step.</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <div className="faq-list">
           {FAQS.map((faq, i) => {
             const isOpen = open === i
             return (
-              <div
-                key={i}
-                style={{
-                  background: 'var(--white)',
-                  borderRadius: 'var(--radius-md)',
-                  border: `1.5px solid ${isOpen ? 'var(--sky)' : 'var(--blue-pale)'}`,
-                  overflow: 'hidden',
-                  transition: 'border-color 0.2s',
-                }}
-              >
-                <button
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    width: '100%', padding: '1rem 1.25rem',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    textAlign: 'left', gap: '1rem',
-                  }}
-                >
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.92rem', fontWeight: 700, color: isOpen ? 'var(--sky)' : 'var(--blue-deep)', lineHeight: 1.4 }}>
-                    {faq.q}
-                  </span>
-                  <span style={{
-                    width: 26, height: 26, borderRadius: '50%',
-                    background: isOpen ? 'var(--sky)' : 'var(--blue-mist)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0, fontSize: '0.8rem', color: isOpen ? 'white' : 'var(--blue-deep)',
-                    transition: 'all 0.2s',
-                    transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-                  }}>+</span>
+              <div key={i} className={`faq-item ${isOpen ? 'is-open' : ''}`}>
+                <button className="faq-q-btn" onClick={() => setOpen(isOpen ? null : i)}>
+                  <span className={`faq-q-text ${isOpen ? 'is-open' : ''}`}>{faq.q}</span>
+                  <span className={`faq-toggle ${isOpen ? 'is-open' : ''}`}>+</span>
                 </button>
-
                 {isOpen && (
-                  <div style={{ padding: '0 1.25rem 1rem', borderTop: '1px solid var(--blue-pale)' }}>
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: 'var(--text-mid)', lineHeight: 1.75, marginTop: '0.75rem' }}>
-                      {faq.a}
-                    </p>
+                  <div className="faq-answer">
+                    <p>{faq.a}</p>
                   </div>
                 )}
               </div>

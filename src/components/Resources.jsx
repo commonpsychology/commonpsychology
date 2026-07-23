@@ -1,4 +1,5 @@
 import { useRouter } from '../context/RouterContext'
+import { TOKENS, sectionGradientCSS } from '../styles/oceanTheme'
 
 function IllustrationWorksheet() {
   return (
@@ -124,39 +125,97 @@ export default function Resources() {
   const { navigate } = useRouter()
 
   return (
-    <section className="section resources" id="resources">
-      <div className="section-header">
-        <div>
-          <span className="section-tag">Free Resources</span>
-          <h2 className="section-title">Tools to Support Your <em>Everyday</em> Wellness</h2>
-          <p className="section-desc">
-            Download worksheets, guided audios, eBooks, and trackers — curated by our clinical team.
-          </p>
-        </div>
-        <button className="btn btn-outline" onClick={() => navigate('/resources')}>
-          View All Resources
-        </button>
-      </div>
+    <section className="rs-section" id="resources">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&display=swap');
+        ${sectionGradientCSS('rs-section')}
 
-      <div className="resources-grid">
-        {resources.map((r, i) => (
-          <div
-            className="resource-card"
-            key={i}
-            onClick={() => navigate(r.route)}
-          >
-            <span className="resource-type">{r.type}</span>
-            <div className="resource-illustration">{r.illustration}</div>
-            <h4>{r.title}</h4>
-            <p>{r.desc}</p>
-            <div className="resource-meta">
-              <span>{r.downloads}</span>
-              <span className={r.free ? 'resource-free' : ''}>
-                {r.free ? 'FREE' : 'Premium'}
-              </span>
-            </div>
+        .rs-section { padding: 3.5rem 1.5rem 4rem; }
+        .rs-inner { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; }
+
+        .rs-header {
+          display: flex; justify-content: space-between; align-items: flex-start;
+          margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap;
+        }
+        .rs-eyebrow {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          padding: 0.25rem 0.75rem; margin-bottom: 0.7rem;
+          border: 1.5px solid ${TOKENS.bluePale}; border-radius: 100px;
+          font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 700;
+          letter-spacing: 0.06em; text-transform: uppercase;
+          color: #0f3460; background: ${TOKENS.skyLight};
+        }
+        .rs-title {
+          font-family: 'Fraunces', serif; font-weight: 800;
+          font-size: clamp(1.5rem, 3vw, 2.05rem); line-height: 1.2;
+          color: ${TOKENS.oceanInk}; margin: 0 0 0.4rem;
+        }
+        .rs-title em { font-style: italic; color: ${TOKENS.oceanBright}; }
+        .rs-desc { font-family: 'Inter', sans-serif; font-size: 0.9rem; color: ${TOKENS.dim}; line-height: 1.55; margin: 0; max-width: 480px; }
+
+        .rs-btn {
+          display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+          font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.85rem;
+          padding: 0.65rem 1.3rem; border-radius: 100px; cursor: pointer;
+          background: ${TOKENS.white}; color: ${TOKENS.oceanDeep};
+          border: 1.5px solid ${TOKENS.bluePale};
+          transition: all 0.2s ease; white-space: nowrap;
+        }
+        .rs-btn:hover { background: ${TOKENS.skyLight}; border-color: ${TOKENS.oceanBright}; }
+
+        .rs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+        .rs-card {
+          background: ${TOKENS.white};
+          border: 1px solid ${TOKENS.bluePale};
+          border-radius: 16px;
+          padding: 1.4rem 1.3rem;
+          cursor: pointer;
+          box-shadow: 0 4px 16px rgba(15,52,96,0.06);
+          transition: all 0.25s;
+        }
+        .rs-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,88,128,0.14); }
+        .rs-type {
+          display: inline-block; font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 800;
+          letter-spacing: 0.08em; text-transform: uppercase; color: ${TOKENS.oceanDeep};
+          background: ${TOKENS.skyLight}; padding: 3px 9px; border-radius: 100px; margin-bottom: 0.9rem;
+        }
+        .rs-illustration { margin-bottom: 0.9rem; }
+        .rs-card h4 { font-family: 'Fraunces', serif; font-size: 1rem; color: ${TOKENS.oceanInk}; margin: 0 0 0.4rem; line-height: 1.3; }
+        .rs-card p { font-family: 'Inter', sans-serif; font-size: 0.82rem; color: ${TOKENS.dim}; line-height: 1.55; margin: 0 0 1rem; }
+        .rs-meta { display: flex; align-items: center; justify-content: space-between; font-family: 'Inter', sans-serif; font-size: 0.75rem; color: ${TOKENS.dim}; }
+        .rs-free { font-weight: 800; color: ${TOKENS.oceanBright}; }
+
+        @media (max-width: 900px) { .rs-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 560px) {
+          .rs-grid { grid-template-columns: 1fr; }
+          .rs-header { flex-direction: column; align-items: flex-start; }
+        }
+      `}</style>
+
+      <div className="rs-inner">
+        <div className="rs-header">
+          <div>
+            <span className="rs-eyebrow">🧰 Free Resources</span>
+            <h2 className="rs-title">Tools to Support Your <em>Everyday</em> Wellness</h2>
+            <p className="rs-desc">Download worksheets, guided audios, eBooks, and trackers — curated by our clinical team.</p>
           </div>
-        ))}
+          <button className="rs-btn" onClick={() => navigate('/resources')}>View All Resources</button>
+        </div>
+
+        <div className="rs-grid">
+          {resources.map((r, i) => (
+            <div className="rs-card" key={i} onClick={() => navigate(r.route)}>
+              <span className="rs-type">{r.type}</span>
+              <div className="rs-illustration">{r.illustration}</div>
+              <h4>{r.title}</h4>
+              <p>{r.desc}</p>
+              <div className="rs-meta">
+                <span>{r.downloads}</span>
+                <span className={r.free ? 'rs-free' : ''}>{r.free ? 'FREE' : 'Premium'}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )
