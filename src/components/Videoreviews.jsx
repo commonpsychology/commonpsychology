@@ -1,6 +1,12 @@
 // src/components/VideoReviews.jsx
 // Dynamic video reviews section — users can submit videos, stored in Supabase
 // Shows approved videos; links to full /reviews page
+//
+// Visual language matches the Wellspring donate flask section: same ocean-blue
+// token set, sky-light -> white -> sky-light section gradient, blurred blobs,
+// pill eyebrow, Fraunces display type with an italic accent word, blue-pale
+// card borders, and solid-blue pill CTAs — so the two sections read as one
+// homepage rather than two different components stitched together.
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from '../context/RouterContext'
@@ -11,6 +17,21 @@ const API_BASE = import.meta.env.VITE_API_URL
   : '/api'
 const GAP = 20
 
+// Same palette as the donate flask (WellspringFlask.jsx TOKENS) so both
+// sections draw from one source of truth for color.
+const TOKENS = {
+  oceanInk: '#003850',
+  oceanDeep: '#005580',
+  oceanCore: '#007BA8',
+  oceanBright: '#00BFFF',
+  oceanPale: '#F0FBFF',
+  skyLight: '#EAF6FC',
+  mist: '#F4FAF9',
+  dim: '#4d7c94',
+  bluePale: '#BEE9FB',
+  white: '#FFFFFF',
+}
+
 function getVisible(w) {
   if (w < 640)  return 1
   if (w < 1280) return 2
@@ -20,7 +41,7 @@ function getVisible(w) {
 /* ── STAR RATING ── */
 function Stars({ count = 5, size = '0.8rem' }) {
   return (
-    <span style={{ color: 'var(--earth-warm)', fontSize: size, letterSpacing: 1 }}>
+    <span style={{ color: TOKENS.oceanBright, fontSize: size, letterSpacing: 1 }}>
       {'★'.repeat(count)}{'☆'.repeat(5 - count)}
     </span>
   )
@@ -32,21 +53,17 @@ function VideoThumbnail({ v }) {
   const [playing, setPlaying] = useState(false)
   const videoRef = useRef(null)
 
-  const thumbBg = v.thumbnail_url
-    ? `url(${v.thumbnail_url}) center/cover no-repeat`
-    : 'var(--sky-light)'
-
   if (v.video_url && !errored) {
     return (
-      <div style={{ position: 'relative', width: '100%', background: '#0a1520' }}>
+      <div style={{ position: 'relative', width: '100%', background: TOKENS.oceanInk }}>
         {/* Topic pill */}
         <div style={{
           position: 'absolute', top: 10, left: 10, zIndex: 3,
-          background: 'var(--white)', borderRadius: 100,
+          background: TOKENS.white, borderRadius: 100,
           padding: '3px 10px',
-          fontFamily: 'var(--font-body)', fontSize: '0.65rem',
-          fontWeight: 700, color: 'var(--blue-deep)',
-          border: '1px solid var(--blue-pale)',
+          fontFamily: "'Inter', sans-serif", fontSize: '0.65rem',
+          fontWeight: 700, color: TOKENS.oceanDeep,
+          border: `1px solid ${TOKENS.bluePale}`,
           pointerEvents: 'none',
         }}>
           {v.topic}
@@ -56,9 +73,9 @@ function VideoThumbnail({ v }) {
         {v.duration && (
           <div style={{
             position: 'absolute', bottom: 8, right: 8, zIndex: 3,
-            background: 'rgba(0,0,0,0.6)', borderRadius: 4,
+            background: 'rgba(0,56,80,0.65)', borderRadius: 4,
             padding: '2px 7px',
-            fontFamily: 'var(--font-body)', fontSize: '0.68rem',
+            fontFamily: "'Inter', sans-serif", fontSize: '0.68rem',
             color: '#fff', fontWeight: 600, pointerEvents: 'none',
           }}>
             {v.duration}
@@ -77,7 +94,7 @@ function VideoThumbnail({ v }) {
           onPause={() => setPlaying(false)}
           style={{
             display: 'block', width: '100%', height: 210,
-            objectFit: 'cover', background: '#0a1520',
+            objectFit: 'cover', background: TOKENS.oceanInk,
           }}
         />
       </div>
@@ -87,7 +104,7 @@ function VideoThumbnail({ v }) {
   return (
     <div style={{
       position: 'relative', height: 210,
-      background: v.thumbnail_url ? undefined : 'var(--sky-light)',
+      background: v.thumbnail_url ? undefined : TOKENS.skyLight,
       backgroundImage: v.thumbnail_url ? `url(${v.thumbnail_url})` : undefined,
       backgroundSize: 'cover', backgroundPosition: 'center',
       display: 'flex', flexDirection: 'column',
@@ -98,22 +115,22 @@ function VideoThumbnail({ v }) {
         background: 'rgba(0,191,255,0.15)',
         border: '2px solid rgba(0,191,255,0.3)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '1.4rem',
+        fontSize: '1.4rem', color: TOKENS.oceanCore,
       }}>▶</div>
       <span style={{
-        fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 600,
-        color: 'var(--text-light)', background: 'rgba(255,255,255,0.85)',
+        fontFamily: "'Inter', sans-serif", fontSize: '0.72rem', fontWeight: 600,
+        color: TOKENS.dim, background: 'rgba(255,255,255,0.85)',
         padding: '3px 12px', borderRadius: 100,
       }}>
         {errored ? 'Video unavailable' : 'Video coming soon'}
       </span>
       <div style={{
         position: 'absolute', top: 10, left: 10,
-        background: 'var(--white)', borderRadius: 100,
+        background: TOKENS.white, borderRadius: 100,
         padding: '3px 10px',
-        fontFamily: 'var(--font-body)', fontSize: '0.65rem',
-        fontWeight: 700, color: 'var(--blue-deep)',
-        border: '1px solid var(--blue-pale)',
+        fontFamily: "'Inter', sans-serif", fontSize: '0.65rem',
+        fontWeight: 700, color: TOKENS.oceanDeep,
+        border: `1px solid ${TOKENS.bluePale}`,
       }}>
         {v.topic}
       </div>
@@ -130,41 +147,42 @@ function VideoThumbnail({ v }) {
 function VideoCard({ v, basis }) {
   return (
     <div
+      className="vr-card"
       style={{
         flex: `0 0 ${basis}`,
         boxSizing: 'border-box',
         scrollSnapAlign: 'start',
-        background: 'var(--white)',
-        borderRadius: 'var(--radius-lg)', overflow: 'hidden',
-        border: '1px solid var(--blue-pale)',
-        boxShadow: 'var(--shadow-soft)',
+        background: TOKENS.white,
+        borderRadius: 16, overflow: 'hidden',
+        border: `1px solid ${TOKENS.bluePale}`,
+        boxShadow: '0 4px 16px rgba(15,52,96,0.06)',
         transition: 'box-shadow 0.25s, transform 0.25s',
         display: 'flex', flexDirection: 'column',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.boxShadow = 'var(--shadow-mid)'
+        e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,88,128,0.14)'
         e.currentTarget.style.transform = 'translateY(-4px)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.boxShadow = 'var(--shadow-soft)'
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(15,52,96,0.06)'
         e.currentTarget.style.transform = 'translateY(0)'
       }}
     >
       <VideoThumbnail v={v} />
       <div style={{ padding: '1.1rem 1.2rem', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <p style={{
-          fontFamily: 'var(--font-body)', fontSize: '0.84rem',
-          color: 'var(--text-mid)', fontStyle: 'italic',
+          fontFamily: "'Inter', sans-serif", fontSize: '0.84rem',
+          color: TOKENS.dim, fontStyle: 'italic',
           lineHeight: 1.65, margin: 0, flex: 1,
         }}>
           {v.quote ? `"${v.quote}"` : ''}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.84rem', fontWeight: 700, color: 'var(--blue-deep)' }}>
+            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.84rem', fontWeight: 700, color: TOKENS.oceanDeep }}>
               {v.name}
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.7rem', color: 'var(--text-light)' }}>
+            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: TOKENS.dim }}>
               {v.city}
             </div>
           </div>
@@ -243,15 +261,16 @@ function UploadModal({ onClose, onSuccess }) {
 
   const overlay = {
     position: 'fixed', inset: 0, zIndex: 9000,
-    background: 'rgba(10,20,40,0.7)', backdropFilter: 'blur(6px)',
+    background: 'rgba(0,20,31,0.62)', backdropFilter: 'blur(6px)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     padding: '1rem',
   }
   const modal = {
-    background: 'var(--white)', borderRadius: 20,
+    background: TOKENS.white, borderRadius: 20,
     width: '100%', maxWidth: 520,
-    boxShadow: '0 32px 80px rgba(0,0,0,0.25)',
+    boxShadow: '0 32px 80px rgba(0,40,60,0.28)',
     overflow: 'hidden', position: 'relative',
+    border: `1px solid ${TOKENS.bluePale}`,
   }
 
   return (
@@ -259,22 +278,22 @@ function UploadModal({ onClose, onSuccess }) {
       <div style={modal}>
         {/* Header */}
         <div style={{
-          background: 'linear-gradient(to right,#00BFFF 0%,#00BFFF 5%,#e8f3ee 50%,#fff 100%)',
+          background: `linear-gradient(to right, ${TOKENS.oceanBright} 0%, ${TOKENS.oceanBright} 5%, ${TOKENS.oceanPale} 55%, #fff 100%)`,
           padding: '1.25rem 1.75rem',
-          borderBottom: '1px solid var(--green-pale)',
+          borderBottom: `1px solid ${TOKENS.bluePale}`,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--blue-deep)', fontWeight: 600 }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: '1.1rem', color: TOKENS.oceanInk, fontWeight: 600 }}>
               Share Your Story 🎥
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: 'var(--text-light)' }}>
+            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.75rem', color: TOKENS.dim }}>
               Your experience can inspire others to seek help
             </div>
           </div>
           <button onClick={onClose} style={{
             width: 32, height: 32, borderRadius: '50%', border: 'none',
-            background: 'rgba(0,0,0,0.06)', cursor: 'pointer',
+            background: 'rgba(0,56,80,0.08)', cursor: 'pointer', color: TOKENS.oceanInk,
             fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>✕</button>
         </div>
@@ -286,10 +305,10 @@ function UploadModal({ onClose, onSuccess }) {
           {step === 3 && (
             <div style={{ textAlign: 'center', padding: '2rem 0' }}>
               <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>🎉</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--green-deep)', marginBottom: '0.5rem' }}>
+              <div style={{ fontFamily: "'Fraunces', serif", fontSize: '1.2rem', color: TOKENS.oceanDeep, marginBottom: '0.5rem' }}>
                 Thank you!
               </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-light)', lineHeight: 1.6 }}>
+              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.9rem', color: TOKENS.dim, lineHeight: 1.6 }}>
                 Your video has been submitted for review. Once approved by our team, it will appear in the Stories section.
               </p>
             </div>
@@ -299,18 +318,18 @@ function UploadModal({ onClose, onSuccess }) {
           {step === 2 && (
             <div style={{ textAlign: 'center', padding: '2rem 0' }}>
               <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📤</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-mid)', marginBottom: '1rem' }}>
+              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.9rem', color: TOKENS.dim, marginBottom: '1rem' }}>
                 Uploading your video... {progress}%
               </div>
-              <div style={{ height: 8, background: 'var(--sky-light)', borderRadius: 8, overflow: 'hidden' }}>
+              <div style={{ height: 8, background: TOKENS.skyLight, borderRadius: 8, overflow: 'hidden' }}>
                 <div style={{
                   height: '100%', borderRadius: 8,
-                  background: 'var(--sky)',
+                  background: TOKENS.oceanBright,
                   width: `${progress}%`,
                   transition: 'width 0.3s ease',
                 }} />
               </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: 'var(--text-light)', marginTop: '0.75rem' }}>
+              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', color: TOKENS.dim, marginTop: '0.75rem' }}>
                 Please don't close this window
               </p>
             </div>
@@ -323,7 +342,7 @@ function UploadModal({ onClose, onSuccess }) {
                 <div style={{
                   background: '#fff5f5', border: '1px solid #feb2b2',
                   borderRadius: 8, padding: '0.6rem 0.9rem',
-                  fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: '#c53030',
+                  fontFamily: "'Inter', sans-serif", fontSize: '0.82rem', color: '#c53030',
                 }}>
                   {error}
                 </div>
@@ -331,21 +350,21 @@ function UploadModal({ onClose, onSuccess }) {
 
               {/* Video file */}
               <div>
-                <label style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-mid)', display: 'block', marginBottom: '0.4rem' }}>
-                  Video File * <span style={{ fontWeight: 400, color: 'var(--text-light)' }}>(MP4, max 100MB)</span>
+                <label style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', fontWeight: 700, color: TOKENS.oceanDeep, display: 'block', marginBottom: '0.4rem' }}>
+                  Video File * <span style={{ fontWeight: 400, color: TOKENS.dim }}>(MP4, max 100MB)</span>
                 </label>
                 <div
                   onClick={() => fileRef.current?.click()}
                   style={{
-                    border: `2px dashed ${file ? 'var(--sky)' : 'var(--blue-pale)'}`,
+                    border: `2px dashed ${file ? TOKENS.oceanBright : TOKENS.bluePale}`,
                     borderRadius: 10, padding: '1rem',
                     textAlign: 'center', cursor: 'pointer',
-                    background: file ? 'var(--sky-light)' : 'var(--off-white)',
+                    background: file ? TOKENS.oceanPale : TOKENS.mist,
                     transition: 'all 0.2s',
                   }}
                 >
                   <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{file ? '✅' : '📁'}</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', color: file ? 'var(--sky-dark)' : 'var(--text-light)', fontWeight: file ? 600 : 400 }}>
+                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.8rem', color: file ? TOKENS.oceanCore : TOKENS.dim, fontWeight: file ? 600 : 400 }}>
                     {file ? file.name : 'Click to choose your video'}
                   </div>
                 </div>
@@ -356,17 +375,17 @@ function UploadModal({ onClose, onSuccess }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 {[['name', 'Your Name *', 'Sita Maharjan'], ['city', 'Your City *', 'Kathmandu']].map(([key, label, ph]) => (
                   <div key={key}>
-                    <label style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-mid)', display: 'block', marginBottom: '0.3rem' }}>{label}</label>
+                    <label style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', fontWeight: 700, color: TOKENS.oceanDeep, display: 'block', marginBottom: '0.3rem' }}>{label}</label>
                     <input
                       value={form[key]}
                       onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                       placeholder={ph}
                       style={{
                         width: '100%', padding: '0.55rem 0.8rem',
-                        border: '1.5px solid var(--blue-pale)', borderRadius: 8,
-                        fontFamily: 'var(--font-body)', fontSize: '0.85rem',
-                        color: 'var(--text-dark)', outline: 'none',
-                        background: 'var(--white)',
+                        border: `1.5px solid ${TOKENS.bluePale}`, borderRadius: 8,
+                        fontFamily: "'Inter', sans-serif", fontSize: '0.85rem',
+                        color: TOKENS.oceanInk, outline: 'none',
+                        background: TOKENS.white, boxSizing: 'border-box',
                       }}
                     />
                   </div>
@@ -375,16 +394,16 @@ function UploadModal({ onClose, onSuccess }) {
 
               {/* Topic */}
               <div>
-                <label style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-mid)', display: 'block', marginBottom: '0.3rem' }}>Topic *</label>
+                <label style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', fontWeight: 700, color: TOKENS.oceanDeep, display: 'block', marginBottom: '0.3rem' }}>Topic *</label>
                 <select
                   value={form.topic}
                   onChange={e => setForm(f => ({ ...f, topic: e.target.value }))}
                   style={{
                     width: '100%', padding: '0.55rem 0.8rem',
-                    border: '1.5px solid var(--blue-pale)', borderRadius: 8,
-                    fontFamily: 'var(--font-body)', fontSize: '0.85rem',
-                    color: form.topic ? 'var(--text-dark)' : 'var(--text-light)',
-                    background: 'var(--white)', outline: 'none',
+                    border: `1.5px solid ${TOKENS.bluePale}`, borderRadius: 8,
+                    fontFamily: "'Inter', sans-serif", fontSize: '0.85rem',
+                    color: form.topic ? TOKENS.oceanInk : TOKENS.dim,
+                    background: TOKENS.white, outline: 'none',
                   }}
                 >
                   <option value="">Select your experience area...</option>
@@ -394,8 +413,8 @@ function UploadModal({ onClose, onSuccess }) {
 
               {/* Quote */}
               <div>
-                <label style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-mid)', display: 'block', marginBottom: '0.3rem' }}>
-                  Short Quote <span style={{ fontWeight: 400, color: 'var(--text-light)' }}>(optional)</span>
+                <label style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', fontWeight: 700, color: TOKENS.oceanDeep, display: 'block', marginBottom: '0.3rem' }}>
+                  Short Quote <span style={{ fontWeight: 400, color: TOKENS.dim }}>(optional)</span>
                 </label>
                 <textarea
                   value={form.quote}
@@ -404,39 +423,35 @@ function UploadModal({ onClose, onSuccess }) {
                   rows={2}
                   style={{
                     width: '100%', padding: '0.55rem 0.8rem',
-                    border: '1.5px solid var(--blue-pale)', borderRadius: 8,
-                    fontFamily: 'var(--font-body)', fontSize: '0.85rem',
-                    color: 'var(--text-dark)', resize: 'none', outline: 'none',
-                    background: 'var(--white)',
+                    border: `1.5px solid ${TOKENS.bluePale}`, borderRadius: 8,
+                    fontFamily: "'Inter', sans-serif", fontSize: '0.85rem',
+                    color: TOKENS.oceanInk, resize: 'none', outline: 'none',
+                    background: TOKENS.white, boxSizing: 'border-box',
                   }}
                 />
               </div>
 
               {/* Stars */}
               <div>
-                <label style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-mid)', display: 'block', marginBottom: '0.4rem' }}>Your Rating</label>
+                <label style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', fontWeight: 700, color: TOKENS.oceanDeep, display: 'block', marginBottom: '0.4rem' }}>Your Rating</label>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {[1,2,3,4,5].map(n => (
                     <button key={n} onClick={() => setForm(f => ({ ...f, stars: n }))}
                       style={{
                         border: 'none', background: 'none', cursor: 'pointer',
                         fontSize: '1.6rem', lineHeight: 1,
-                        color: n <= form.stars ? 'var(--earth-warm)' : 'var(--earth-light)',
+                        color: n <= form.stars ? TOKENS.oceanBright : TOKENS.bluePale,
                         transition: 'color 0.15s',
                       }}>★</button>
                   ))}
                 </div>
               </div>
 
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.73rem', color: 'var(--text-light)', margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.73rem', color: TOKENS.dim, margin: 0, lineHeight: 1.5 }}>
                 🔒 Your video will be reviewed by our team before being published. We respect your privacy and will never share your information.
               </p>
 
-              <button
-                className="btn btn-primary btn-lg"
-                onClick={handleSubmit}
-                style={{ width: '100%', justifyContent: 'center', marginTop: '0.25rem' }}
-              >
+              <button className="vr-btn vr-btn-primary" onClick={handleSubmit} style={{ width: '100%', justifyContent: 'center', marginTop: '0.25rem' }}>
                 Submit My Story →
               </button>
             </div>
@@ -570,163 +585,221 @@ export default function VideoReviews() {
         />
       )}
 
-      <section className="section" style={{ background: 'var(--white)', overflow: 'hidden' }}>
-        {/* Header */}
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
-          marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem',
-        }}>
-          <div>
-            <span className="section-tag">Proof of Trust</span>
-            <h2 className="section-title">Real Stories, Real <em>Healing</em></h2>
-            <p className="section-desc">Hear directly from clients who took the first step.</p>
-          </div>
+      <section className="vr-section" id="stories">
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&display=swap');
 
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            {/* Share your story button */}
-            <button
-              className="btn btn-outline"
-              onClick={() => user ? setShowModal(true) : navigate('/signin')}
-              style={{ gap: 6 }}
-            >
-              🎥 Share Your Story
-            </button>
+          .vr-section {
+            position: relative;
+            overflow: hidden;
+            padding: 3.5rem 1.5rem 4rem;
+            background: linear-gradient(180deg, ${TOKENS.skyLight} 0%, ${TOKENS.white} 45%, ${TOKENS.skyLight} 100%);
+          }
+          .vr-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            pointer-events: none;
+          }
+          .vr-inner {
+            position: relative;
+            z-index: 1;
+            max-width: 1120px;
+            margin: 0 auto;
+          }
+          .vr-top {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+          }
+          .vr-eyebrow {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.25rem 0.75rem; margin-bottom: 0.7rem;
+            border: 1.5px solid ${TOKENS.bluePale}; border-radius: 100px;
+            font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            color: #0f3460; background: ${TOKENS.skyLight};
+          }
+          .vr-title {
+            font-family: 'Fraunces', serif; font-weight: 800;
+            font-size: clamp(1.5rem, 3vw, 2.05rem); line-height: 1.2;
+            color: ${TOKENS.oceanInk}; margin: 0 0 0.4rem;
+          }
+          .vr-title em { font-style: italic; color: ${TOKENS.oceanBright}; }
+          .vr-desc {
+            font-family: 'Inter', sans-serif; font-size: 0.9rem;
+            color: ${TOKENS.dim}; line-height: 1.55; margin: 0;
+          }
 
-            {/* Carousel nav */}
-            {pageCount > 1 && (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  onClick={prev} disabled={scrollIndex === 0}
-                  aria-label="Previous"
-                  style={{
-                    width: 40, height: 40, borderRadius: '50%',
-                    border: '2px solid var(--blue-pale)', background: 'var(--white)',
-                    cursor: scrollIndex > 0 ? 'pointer' : 'default',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.2rem', color: 'var(--blue-deep)',
-                    opacity: scrollIndex > 0 ? 1 : 0.3, transition: 'all 0.2s',
-                  }}
-                >‹</button>
-                <button
-                  onClick={next} disabled={scrollIndex >= pageCount - 1}
-                  aria-label="Next"
-                  style={{
-                    width: 40, height: 40, borderRadius: '50%',
-                    border: '2px solid var(--blue-pale)',
-                    background: scrollIndex < pageCount - 1 ? 'var(--sky)' : 'var(--white)',
-                    cursor: scrollIndex < pageCount - 1 ? 'pointer' : 'default',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.2rem',
-                    color: scrollIndex < pageCount - 1 ? 'white' : 'var(--blue-deep)',
-                    opacity: scrollIndex < pageCount - 1 ? 1 : 0.3, transition: 'all 0.2s',
-                  }}
-                >›</button>
-              </div>
-            )}
-          </div>
-        </div>
+          .vr-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
 
-        {/* Loading skeleton */}
-        {loading && (
-          <div style={{ display: 'flex', gap: GAP }}>
-            {[1,2,3].slice(0, visible).map(i => (
-              <div key={i} style={{
-                flex: 1, height: 340, borderRadius: 20,
-                background: 'linear-gradient(90deg,var(--sky-light) 0%,#e8f3ee 50%,var(--sky-light) 100%)',
-                backgroundSize: '200% 100%',
-                animation: 'shimmer 1.4s infinite',
-              }} />
-            ))}
-          </div>
-        )}
+          .vr-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.85rem;
+            padding: 0.65rem 1.3rem; border-radius: 100px; cursor: pointer;
+            border: none; transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+          }
+          .vr-btn-primary {
+            background: ${TOKENS.oceanBright}; color: #fff;
+            box-shadow: 0 8px 18px rgba(0,123,168,0.3);
+          }
+          .vr-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,123,168,0.38); }
+          .vr-btn-outline {
+            background: ${TOKENS.white}; color: ${TOKENS.oceanDeep};
+            border: 1.5px solid ${TOKENS.bluePale};
+          }
+          .vr-btn-outline:hover { background: ${TOKENS.skyLight}; border-color: ${TOKENS.oceanBright}; }
 
-        {/* Empty state */}
-        {!loading && videos.length === 0 && (
-          <div style={{
-            textAlign: 'center', padding: '4rem 2rem',
-            border: '2px dashed var(--blue-pale)', borderRadius: 16,
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🎥</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--blue-deep)', marginBottom: '0.5rem' }}>
-              Be the first to share your story
+          .vr-arrow {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid ${TOKENS.bluePale}; background: ${TOKENS.white};
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: ${TOKENS.oceanDeep};
+            transition: all 0.2s;
+          }
+          .vr-arrow.is-active { background: ${TOKENS.oceanBright}; color: #fff; cursor: pointer; }
+          .vr-arrow.is-disabled { opacity: 0.35; cursor: default; }
+
+          .vr-carousel-wrap {
+            overflow-x: auto; overflow-y: hidden; width: 100%;
+            scroll-snap-type: x mandatory; scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; -ms-overflow-style: none;
+          }
+          .vr-carousel-wrap::-webkit-scrollbar { display: none; }
+
+          .vr-dot {
+            border: none; padding: 0; cursor: pointer; border-radius: 4px; height: 8px;
+            transition: all 0.25s ease;
+          }
+
+          .vr-empty {
+            text-align: center; padding: 4rem 2rem;
+            border: 2px dashed ${TOKENS.bluePale}; border-radius: 16px;
+            background: ${TOKENS.white};
+          }
+          .vr-empty-title { font-family: 'Fraunces', serif; font-size: 1.1rem; color: ${TOKENS.oceanDeep}; margin-bottom: 0.5rem; }
+          .vr-empty-desc { font-family: 'Inter', sans-serif; font-size: 0.88rem; color: ${TOKENS.dim}; margin-bottom: 1.25rem; }
+
+          .vr-footer { display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.75rem; flex-wrap: wrap; }
+
+          @keyframes vrShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+          .vr-skeleton {
+            border-radius: 16px;
+            background: linear-gradient(90deg, ${TOKENS.skyLight} 0%, #e3f4fb 50%, ${TOKENS.skyLight} 100%);
+            background-size: 200% 100%;
+            animation: vrShimmer 1.4s infinite;
+          }
+
+          @media (max-width: 640px) {
+            .vr-top { align-items: flex-start; }
+          }
+        `}</style>
+
+        <div className="vr-blob" style={{
+          width: 280, height: 280, top: -100, left: -100,
+          background: 'radial-gradient(circle, rgba(0,191,255,0.12), transparent 70%)',
+        }} />
+        <div className="vr-blob" style={{
+          width: 240, height: 240, bottom: -90, right: -90,
+          background: 'radial-gradient(circle, rgba(0,85,128,0.10), transparent 70%)',
+        }} />
+
+        <div className="vr-inner">
+          {/* Header */}
+          <div className="vr-top">
+            <div>
+              <span className="vr-eyebrow">🎥 Proof of Trust</span>
+              <h2 className="vr-title">Real Stories, Real <em>Healing</em></h2>
+              <p className="vr-desc">Hear directly from clients who took the first step.</p>
             </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: 'var(--text-light)', marginBottom: '1.25rem' }}>
-              Your experience can inspire others to seek the help they need.
-            </p>
-            <button className="btn btn-primary" onClick={() => user ? setShowModal(true) : navigate('/signin')}>
-              🎥 Share Your Story
-            </button>
-          </div>
-        )}
 
-        {/* Carousel */}
-        {!loading && videos.length > 0 && (
-          <>
-            <div
-              ref={wrapRef}
-              className="video-carousel-wrap"
-              style={{
-                overflowX: 'auto',
-                overflowY: 'hidden',
-                width: '100%',
-                scrollSnapType: 'x mandatory',
-                scrollBehavior: 'smooth',
-                WebkitOverflowScrolling: 'touch',
-              }}
-            >
-              <div ref={trackRef} style={{ display: 'flex', gap: GAP }}>
-                {videos.map((v, i) => (
-                  <VideoCard key={v.id || i} v={v} basis={basis} />
-                ))}
-              </div>
-            </div>
+            <div className="vr-actions">
+              <button
+                className="vr-btn vr-btn-outline"
+                onClick={() => user ? setShowModal(true) : navigate('/signin')}
+              >
+                🎥 Share Your Story
+              </button>
 
-            {/* Dots */}
-            {pageCount > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: '1.5rem' }}>
-                {Array.from({ length: pageCount }).map((_, p) => (
+              {pageCount > 1 && (
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button
-                    key={p}
-                    onClick={() => scrollToPage(p)}
-                    style={{
-                      width: p === scrollIndex ? 24 : 8, height: 8,
-                      borderRadius: 4, border: 'none',
-                      background: p === scrollIndex ? 'var(--sky)' : 'var(--blue-pale)',
-                      cursor: 'pointer', transition: 'all 0.25s', padding: 0,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+                    onClick={prev} disabled={scrollIndex === 0}
+                    aria-label="Previous"
+                    className={`vr-arrow ${scrollIndex > 0 ? 'is-active' : 'is-disabled'}`}
+                  >‹</button>
+                  <button
+                    onClick={next} disabled={scrollIndex >= pageCount - 1}
+                    aria-label="Next"
+                    className={`vr-arrow ${scrollIndex < pageCount - 1 ? 'is-active' : 'is-disabled'}`}
+                  >›</button>
+                </div>
+              )}
+            </div>
+          </div>
 
-        {/* Footer actions */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginTop: '1.75rem', flexWrap: 'wrap' }}>
-          <button className="btn btn-primary" onClick={() => navigate('/reviews')}>
-            View All Stories →
-          </button>
-          <button className="btn btn-outline" onClick={() => user ? setShowModal(true) : navigate('/signin')}>
-            🎥 Share Your Story
-          </button>
+          {/* Loading skeleton */}
+          {loading && (
+            <div style={{ display: 'flex', gap: GAP }}>
+              {[1,2,3].slice(0, visible).map(i => (
+                <div key={i} className="vr-skeleton" style={{ flex: 1, height: 340 }} />
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!loading && videos.length === 0 && (
+            <div className="vr-empty">
+              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🎥</div>
+              <div className="vr-empty-title">Be the first to share your story</div>
+              <p className="vr-empty-desc">Your experience can inspire others to seek the help they need.</p>
+              <button className="vr-btn vr-btn-primary" onClick={() => user ? setShowModal(true) : navigate('/signin')}>
+                🎥 Share Your Story
+              </button>
+            </div>
+          )}
+
+          {/* Carousel */}
+          {!loading && videos.length > 0 && (
+            <>
+              <div ref={wrapRef} className="vr-carousel-wrap">
+                <div ref={trackRef} style={{ display: 'flex', gap: GAP }}>
+                  {videos.map((v, i) => (
+                    <VideoCard key={v.id || i} v={v} basis={basis} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Dots */}
+              {pageCount > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: '1.5rem' }}>
+                  {Array.from({ length: pageCount }).map((_, p) => (
+                    <button
+                      key={p}
+                      onClick={() => scrollToPage(p)}
+                      className="vr-dot"
+                      style={{
+                        width: p === scrollIndex ? 24 : 8,
+                        background: p === scrollIndex ? TOKENS.oceanBright : TOKENS.bluePale,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Footer actions */}
+          <div className="vr-footer">
+            <button className="vr-btn vr-btn-primary" onClick={() => navigate('/reviews')}>
+              View All Stories →
+            </button>
+            <button className="vr-btn vr-btn-outline" onClick={() => user ? setShowModal(true) : navigate('/signin')}>
+              🎥 Share Your Story
+            </button>
+          </div>
         </div>
       </section>
-
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-        /* Hide the native scrollbar on the carousel track — navigation is
-           via the arrow buttons / dots / touch swipe, scrollbar is just noise */
-        .video-carousel-wrap {
-          scrollbar-width: none;       /* Firefox */
-          -ms-overflow-style: none;    /* old Edge/IE */
-        }
-        .video-carousel-wrap::-webkit-scrollbar {
-          display: none;               /* Chrome/Safari */
-        }
-      `}</style>
     </>
   )
 }

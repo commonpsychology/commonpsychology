@@ -128,7 +128,7 @@ function DonateModal({ open, onClose }) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Give a drop of water"
+      aria-label="Donate how much you can"
       onClick={onClose}
       className="wf-modal-overlay"
     >
@@ -138,7 +138,7 @@ function DonateModal({ open, onClose }) {
         </button>
 
         <span className="wf-modal-eyebrow">Every drop counted</span>
-        <h3 className="wf-modal-title">Give a drop</h3>
+        <h3 className="wf-modal-title">Donate</h3>
         <p className="wf-modal-sub">Scan to send directly — no account needed.</p>
 
         <div className="wf-qr-card">
@@ -181,7 +181,7 @@ function FlaskVisual({ onGive }) {
   const pool = { cx: 258, cy: 498, rx: 128, ry: 26 };
 
   return (
-    <button onClick={onGive} aria-label="Tap the flask to give a drop of water" className="wf-flask-btn">
+    <button onClick={onGive} aria-label="Tap the flask to donate" className="wf-flask-btn">
       <svg viewBox="0 0 440 560" width="440" height="560" className="wf-flask-svg">
         <defs>
           <linearGradient id="waterFill" x1="0" y1="0" x2="0" y2="1">
@@ -654,7 +654,7 @@ export default function WellspringFlask() {
               <p className="wf-error">Live totals unavailable right now — showing dashes.</p>
             )}
             <button className="wf-cta" onClick={openModal}>
-              Give a Drop →
+              Donate →
             </button>
           </div>
         </div>
