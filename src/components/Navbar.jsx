@@ -568,10 +568,22 @@ export default function Navbar() {
                 style={{ width:'100%', height:'100%', objectFit:'contain', display:'block' }} />
             </div>
             <div>
-              <div className="logo-text" style={{ fontSize: window.innerWidth <= 480 ? '0.30rem' : undefined }}>
+              <div className="logo-text" style={{
+                fontSize: window.innerWidth <= 480 ? '0.62rem' : '1.05rem',
+                fontWeight: 900,
+                letterSpacing: '0.02em',
+                color: 'var(--green-deep)',
+                textShadow: '0 0 1px currentColor',
+                lineHeight: 1.15,
+              }}>
   {lang==='NP' ? 'साझा मनोविज्ञान' : 'COMMON PSYCHOLOGY'}
 </div>
-              <div className="logo-sub">{lang==='NP' ? 'मानसिक स्वास्थ्य केन्द्र' : 'Mental Wellness Center'}</div>
+              <div className="logo-sub" style={{
+                fontWeight: 800,
+                letterSpacing: '0.03em',
+                color: 'var(--green-deep)',
+                fontSize: window.innerWidth <= 480 ? '0.52rem' : '0.7rem',
+              }}>{lang==='NP' ? 'मानसिक स्वास्थ्य केन्द्र' : 'Mental Wellness Center'}</div>
             </div>
           </div>
         </div>
