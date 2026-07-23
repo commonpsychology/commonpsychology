@@ -570,18 +570,17 @@ export default function Navbar() {
             <div>
               <div className="logo-text" style={{
                 fontSize: window.innerWidth <= 480 ? '0.62rem' : '1.05rem',
-                fontWeight: 900,
+                fontWeight: 800,
                 letterSpacing: '0.02em',
-                color: 'var(--green-deep)',
-                textShadow: '0 0 1px currentColor',
+                color: '#1d9e75',
                 lineHeight: 1.15,
               }}>
   {lang==='NP' ? 'साझा मनोविज्ञान' : 'COMMON PSYCHOLOGY'}
 </div>
               <div className="logo-sub" style={{
-                fontWeight: 800,
+                fontWeight: 700,
                 letterSpacing: '0.03em',
-                color: 'var(--green-deep)',
+                color: '#1d9e75',
                 fontSize: window.innerWidth <= 480 ? '0.52rem' : '0.7rem',
               }}>{lang==='NP' ? 'मानसिक स्वास्थ्य केन्द्र' : 'Mental Wellness Center'}</div>
             </div>
