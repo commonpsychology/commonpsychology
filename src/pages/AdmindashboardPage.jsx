@@ -943,6 +943,7 @@ const SIDEBAR = [
     { id:'courses',             label:'Courses',           icon:'◈' },
     { id:'assessments',         label:'Assessments',       icon:'▦' },
     { id:'therapists',          label:'Therapists',        icon:'◎' },
+    { id:'therapist_sessions', label:'Live Sessions', icon:'🟢' },
     { id:'community',           label:'Community Groups',  icon:'◉' },
     { id:'community_admin',     label:'Community Admin',   icon:'◆' },
     { id:'social_work', label:'Social Work', sicon:'🤝' },
@@ -962,6 +963,130 @@ const SIDEBAR = [
     { id:'settings',      label:'Site Settings', icon:'⬡' },
   ]},
 ]
+
+function formatElapsed(startedAt) {
+  if (!startedAt) return '00:00'
+  const diff = Math.max(0, Date.now() - new Date(startedAt).getTime())
+  const totalSec = Math.floor(diff / 1000)
+  const h = Math.floor(totalSec / 3600)
+  const m = Math.floor((totalSec % 3600) / 60)
+  const s = totalSec % 60
+  const pad = n => String(n).padStart(2, '0')
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
+}
+
+function TherapistSessionsSection() {
+  const [seats, setSeats]     = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState('')
+  const [, setTick]           = useState(0) // forces re-render each second so timers move
+
+  const load = useCallback(async () => {
+    setLoading(true); setError('')
+    try {
+      const d = await apiFetch('/admin/therapist-live-status')
+      setSeats(d.seats || [])
+    } catch (e) { setError(e.message) }
+    finally { setLoading(false) }
+  }, [])
+
+  useEffect(() => {
+    load()
+    const poll  = setInterval(load, 10000)
+    const clock = setInterval(() => setTick(t => t + 1), 1000)
+    return () => { clearInterval(poll); clearInterval(clock) }
+  }, [load])
+
+  const activeCount = seats.filter(s => s.status === 'in_session').length
+
+  return (
+    <div>
+      <SectionHeader title="Therapist Live Sessions" sub="Real-time view of who's currently in a session" count={seats.length}>
+        <span style={{
+          fontSize:'.72rem', fontWeight:700, padding:'.25rem .65rem', borderRadius:100,
+          background: activeCount > 0 ? 'var(--green-lt)' : 'var(--surface-2)',
+          color: activeCount > 0 ? 'var(--green-dk)' : 'var(--text-muted)',
+        }}>🟢 {activeCount} in session</span>
+        <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
+      </SectionHeader>
+
+      {error && <div className="alert alert-error" style={{ marginBottom:'.85rem' }}>⚠️ {error}</div>}
+
+      {loading && seats.length === 0 ? (
+        <div className="tbl-loading"><span className="spinner" /> Loading…</div>
+      ) : seats.length === 0 ? (
+        <div className="empty-state"><div className="empty-icon">🪑</div><div className="empty-text">No therapists found.</div></div>
+      ) : (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:'1rem' }}>
+          {seats.map(s => {
+            const isLive = s.status === 'in_session'
+            return (
+              <div key={s.therapist_id} style={{
+                position:'relative', borderRadius:'var(--radius-lg)', padding:'1.1rem',
+                border: isLive ? '2px solid var(--green)' : '1.5px solid var(--border)',
+                background: isLive ? 'linear-gradient(160deg, var(--green-lt) 0%, #ffffff 70%)' : 'var(--surface)',
+                boxShadow: isLive ? '0 6px 22px rgba(16,185,129,.18)' : 'var(--shadow-xs)',
+                transition:'all .2s',
+              }}>
+                <div style={{ position:'absolute', top:10, right:10, display:'flex', alignItems:'center', gap:5 }}>
+                  <span style={{
+                    width:8, height:8, borderRadius:'50%',
+                    background: isLive ? 'var(--green)' : '#cbd5e1',
+                    boxShadow: isLive ? '0 0 0 4px rgba(16,185,129,.18)' : 'none',
+                    animation: isLive ? 'thPulse 1.4s ease-in-out infinite' : 'none',
+                  }} />
+                  <span style={{ fontSize:'.62rem', fontWeight:800, color: isLive ? 'var(--green-dk)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.05em' }}>
+                    {isLive ? 'Occupied' : 'Free seat'}
+                  </span>
+                </div>
+
+                <div style={{ display:'flex', alignItems:'center', gap:'.65rem', marginBottom:'.85rem' }}>
+                  <div style={{
+                    width:42, height:42, borderRadius:'50%', overflow:'hidden', flexShrink:0,
+                    background:'var(--blue-lt)', display:'flex', alignItems:'center', justifyContent:'center',
+                    fontWeight:800, color:'var(--blue-dk)', fontSize:'.85rem',
+                    border: isLive ? '2px solid var(--green)' : '1px solid var(--border)',
+                  }}>
+                    {s.avatar_url
+                      ? <img src={s.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      : (s.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+                  </div>
+                  <div style={{ minWidth:0 }}>
+                    <div style={{ fontWeight:700, fontSize:'.85rem', color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                      {s.full_name}
+                    </div>
+                    <div style={{ fontSize:'.68rem', color:'var(--text-muted)', textTransform:'capitalize' }}>
+                      {s.license_type || 'Therapist'}
+                    </div>
+                  </div>
+                </div>
+
+                {isLive ? (
+                  <div style={{ background:'rgba(16,185,129,.08)', borderRadius:'var(--radius)', padding:'.65rem .75rem' }}>
+                    <div style={{ fontSize:'.68rem', color:'var(--green-dk)', fontWeight:700, marginBottom:'.25rem' }}>
+                      👤 with {s.client_name || 'client'}
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:'.68rem', color:'var(--text-muted)', textTransform:'capitalize' }}>{s.appointment_type || 'session'}</span>
+                      <span className="mono" style={{ fontSize:'.9rem', fontWeight:800, color:'var(--green-dk)' }}>
+                        ⏱ {formatElapsed(s.started_at)}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign:'center', padding:'.65rem 0', color:'var(--text-muted)', fontSize:'.75rem' }}>
+                    Not in a session
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+      <style>{`@keyframes thPulse { 0%,100% { opacity:1 } 50% { opacity:.35 } }`}</style>
+    </div>
+  )
+}
 
 // ─── PAYMENTS SECTION ────────────────────────────────────────────────────────
 function PaymentsSection() {
@@ -4640,6 +4765,7 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
             </div>
           )}
 
+{tab === 'therapist_sessions' && <TherapistSessionsSection />}
           {/* ═══ VOLUNTEERS ═══ */}
           {tab === 'volunteers' && (
             <div>

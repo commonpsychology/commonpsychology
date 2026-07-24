@@ -7,6 +7,9 @@ import { C, GLASS } from '../theme'
 
 const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL}/api`
 
+const [liveSession, setLiveSession] = useState(null)
+const [, setLiveTick] = useState(0)
+
 // ── apiFetch: always reads the latest token ────────────────────
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('accessToken')
@@ -291,6 +294,47 @@ function MessagingPanel() {
   )
 }
 
+function formatElapsed(startedAt) {
+  if (!startedAt) return '00:00'
+  const diff = Math.max(0, Date.now() - new Date(startedAt).getTime())
+  const totalSec = Math.floor(diff / 1000)
+  const h = Math.floor(totalSec / 3600), m = Math.floor((totalSec % 3600) / 60), s = totalSec % 60
+  const pad = n => String(n).padStart(2, '0')
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
+}
+
+useEffect(() => {
+  apiFetch('/therapist-portal/live-session').then(d => {
+    if (d.liveStatus?.status === 'in_session') {
+      setLiveSession({ ...d.liveStatus, client_name: d.liveStatus.clients?.full_name })
+    }
+  }).catch(() => {})
+}, [])
+
+useEffect(() => {
+  if (!liveSession) return
+  const t = setInterval(() => setLiveTick(x => x + 1), 1000)
+  return () => clearInterval(t)
+}, [liveSession])
+
+async function startLiveSessionFor(appt) {
+  try {
+    const d = await apiFetch('/therapist-portal/live-session/start', {
+      method: 'POST', body: JSON.stringify({ appointment_id: appt.id }),
+    })
+    setLiveSession({ ...d.liveStatus, client_name: d.client_name })
+    showToast('Session started — timer running', 'success')
+  } catch (e) { showToast(e.message) }
+}
+
+async function endLiveSessionNow() {
+  try {
+    await apiFetch('/therapist-portal/live-session/end', { method: 'POST' })
+    setLiveSession(null)
+    showToast('Session ended', 'success')
+  } catch (e) { showToast(e.message) }
+}
+
 const TABS = ['Dashboard', 'My Schedule', 'Clients', 'Notes', 'Messages']
 
 export default function TherapistDashboard() {
@@ -403,6 +447,9 @@ export default function TherapistDashboard() {
     }
   }
 
+
+
+
   // ── "Mark done" now routes through a confirmation dialog first ──────
   function requestMarkDone(appt) {
     if (updatingIds.has(appt.id)) return
@@ -496,6 +543,28 @@ export default function TherapistDashboard() {
 
         {!noTherapistRecord && (
           <>
+
+          {liveSession && (
+  <div style={{
+    background:'linear-gradient(135deg,#0f4c6b,#10b981)', color:'white', borderRadius:12,
+    padding:'.85rem 1.25rem', marginBottom:'1.25rem', display:'flex',
+    justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'.5rem',
+  }}>
+    <div style={{ display:'flex', alignItems:'center', gap:'.65rem' }}>
+      <span style={{ width:10, height:10, borderRadius:'50%', background:'#4ade80', display:'inline-block', animation:'thPulse 1.4s infinite' }} />
+      <div>
+        <div style={{ fontWeight:700, fontSize:'.88rem' }}>Live session with {liveSession.client_name || 'client'}</div>
+        <div style={{ fontSize:'.72rem', opacity:.85 }}>Started {new Date(liveSession.started_at).toLocaleTimeString()}</div>
+      </div>
+    </div>
+    <div style={{ display:'flex', alignItems:'center', gap:'.85rem' }}>
+      <span className="mono" style={{ fontSize:'1.1rem', fontWeight:800 }}>{formatElapsed(liveSession.started_at)}</span>
+      <button onClick={endLiveSessionNow} style={{ padding:'.4rem .9rem', borderRadius:8, border:'1.5px solid rgba(255,255,255,.5)', background:'rgba(255,255,255,.15)', color:'white', fontWeight:700, cursor:'pointer' }}>
+        End Session
+      </button>
+    </div>
+  </div>
+)}
             {/* ════ DASHBOARD ════ */}
             {tab === 'Dashboard' && (
               <div>
