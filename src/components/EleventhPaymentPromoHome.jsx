@@ -63,7 +63,7 @@ export default function EleventhPaymentPromo() {
           <span style={{
             fontFamily:'var(--font-display)', fontSize:'1.05rem', fontWeight:700, color:'#fff',
           }}>
-            50% off your <em style={{ color:'#ffffff', fontStyle:'normal', textDecoration:'underline', textDecorationColor:'rgba(255,255,255,0.5)' }}>11th payment</em>
+            50% off your <em style={{ color:'#ffffff', fontStyle:'normal', textDecoration:'underline', textDecorationColor:'rgba(255,255,255,0.5)' }}> every 11th payment</em>
           </span>
           <span style={{
             fontSize:'0.65rem', fontWeight:800, color:'#005580', background:'#ffffff',
@@ -73,7 +73,7 @@ export default function EleventhPaymentPromo() {
           </span>
         </div>
         <p style={{ margin:'0.3rem 0 0', fontSize:'0.8rem', color:'rgba(255,255,255,0.9)', lineHeight:1.4 }}>
-          Complete your 11th order or session payment with us and the discount applies automatically at checkout — our way of saying thank you for staying on your wellness journey.
+          Complete your every 11th order or session payment with us and the discount applies automatically at checkout — our way of saying thank you for staying on your wellness journey.
         </p>
       </div>
     </div>

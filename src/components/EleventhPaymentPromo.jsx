@@ -73,7 +73,7 @@ export default function EleventhPaymentPromo() {
           </span>
         </div>
         <p style={{ margin:'0.3rem 0 0', fontSize:'0.8rem', color:'rgba(255,255,255,0.75)', lineHeight:1.4 }}>
-          Complete your 11th order or session payment with us and the discount applies automatically at checkout — our way of saying thank you for staying on your wellness journey.
+          Complete your every 11th order or session payment with us and the discount applies automatically at checkout — our way of saying thank you for staying on your wellness journey.
         </p>
       </div>
     </div>
