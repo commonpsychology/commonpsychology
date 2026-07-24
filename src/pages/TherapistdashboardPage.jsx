@@ -7,9 +7,6 @@ import { C, GLASS } from '../theme'
 
 const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL}/api`
 
-const [liveSession, setLiveSession] = useState(null)
-const [, setLiveTick] = useState(0)
-
 // ── apiFetch: always reads the latest token ────────────────────
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('accessToken')
@@ -303,38 +300,6 @@ function formatElapsed(startedAt) {
   return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
 }
 
-useEffect(() => {
-  apiFetch('/therapist-portal/live-session').then(d => {
-    if (d.liveStatus?.status === 'in_session') {
-      setLiveSession({ ...d.liveStatus, client_name: d.liveStatus.clients?.full_name })
-    }
-  }).catch(() => {})
-}, [])
-
-useEffect(() => {
-  if (!liveSession) return
-  const t = setInterval(() => setLiveTick(x => x + 1), 1000)
-  return () => clearInterval(t)
-}, [liveSession])
-
-async function startLiveSessionFor(appt) {
-  try {
-    const d = await apiFetch('/therapist-portal/live-session/start', {
-      method: 'POST', body: JSON.stringify({ appointment_id: appt.id }),
-    })
-    setLiveSession({ ...d.liveStatus, client_name: d.client_name })
-    showToast('Session started — timer running', 'success')
-  } catch (e) { showToast(e.message) }
-}
-
-async function endLiveSessionNow() {
-  try {
-    await apiFetch('/therapist-portal/live-session/end', { method: 'POST' })
-    setLiveSession(null)
-    showToast('Session ended', 'success')
-  } catch (e) { showToast(e.message) }
-}
-
 const TABS = ['Dashboard', 'My Schedule', 'Clients', 'Notes', 'Messages']
 
 export default function TherapistDashboard() {
@@ -359,6 +324,9 @@ export default function TherapistDashboard() {
   const [confirmAppt, setConfirmAppt]          = useState(null)
   // ── Client whose file manager is open (NEW) ──
   const [filesClient, setFilesClient]          = useState(null)
+  // ── Live session tracking (moved inside component — hooks must run during render) ──
+  const [liveSession, setLiveSession]          = useState(null)
+  const [, setLiveTick]                        = useState(0)
 
   const hasLoaded = useRef(false)
 
@@ -373,6 +341,38 @@ export default function TherapistDashboard() {
     clearTimeout(toastTimer.current)
     setToast({ message, type })
     toastTimer.current = setTimeout(() => setToast(null), 4000)
+  }
+
+  useEffect(() => {
+    apiFetch('/therapist-portal/live-session').then(d => {
+      if (d.liveStatus?.status === 'in_session') {
+        setLiveSession({ ...d.liveStatus, client_name: d.liveStatus.clients?.full_name })
+      }
+    }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (!liveSession) return
+    const t = setInterval(() => setLiveTick(x => x + 1), 1000)
+    return () => clearInterval(t)
+  }, [liveSession])
+
+  async function startLiveSessionFor(appt) {
+    try {
+      const d = await apiFetch('/therapist-portal/live-session/start', {
+        method: 'POST', body: JSON.stringify({ appointment_id: appt.id }),
+      })
+      setLiveSession({ ...d.liveStatus, client_name: d.client_name })
+      showToast('Session started — timer running', 'success')
+    } catch (e) { showToast(e.message) }
+  }
+
+  async function endLiveSessionNow() {
+    try {
+      await apiFetch('/therapist-portal/live-session/end', { method: 'POST' })
+      setLiveSession(null)
+      showToast('Session ended', 'success')
+    } catch (e) { showToast(e.message) }
   }
 
   // ── Auto-flip stale pending/confirmed sessions to "no_show" ──────────
