@@ -199,6 +199,9 @@ const [newStatus, setNewStatus] = useState('')
   const [newNote,   setNewNote]   = useState('')
   const [saving,    setSaving]    = useState(false)
 
+  const [available, setAvailable]     = useState(rider.is_available !== false)
+  const [statusSaving, setStatusSaving] = useState(false)
+
   const [mapReady, setMapReady]   = useState(false)
   const mapDivRef       = useRef(null)
   const mapInstRef      = useRef(null)
@@ -348,6 +351,25 @@ useEffect(() => { load() }, [load])
     navigate('/delivery/login')
   }
 
+  async function toggleAvailability() {
+    const next = !available
+    setStatusSaving(true)
+    try {
+      await apiFetch('/api/delivery/my-status', {
+        method: 'PUT',
+        body: JSON.stringify({ is_available: next }),
+      })
+      setAvailable(next)
+      const r = getRider()
+      localStorage.setItem('deliveryRider', JSON.stringify({ ...r, is_available: next }))
+      flash(next ? '🟢 You are now Free' : '🔴 You are now Busy')
+    } catch (e) {
+      flash(e.message, false)
+    } finally {
+      setStatusSaving(false)
+    }
+  }
+
   function openUpdate(order) {
     setUpdateModal({ order })
     setNewStatus('processing')
@@ -411,6 +433,18 @@ useEffect(() => { load() }, [load])
           <span style={{ fontSize: '.78rem', color: '#94a3b8' }}>
             {(rider.name || '').split(' ')[0]}
           </span>
+          <button
+            className="logout-btn"
+            disabled={statusSaving}
+            onClick={toggleAvailability}
+            style={{
+              borderColor: available ? '#10b981' : '#ef4444',
+              color: available ? '#10b981' : '#ef4444',
+              fontWeight: 700,
+            }}
+          >
+            {statusSaving ? '…' : available ? '🟢 Free' : '🔴 Busy'}
+          </button>
           <button className="logout-btn" onClick={handleLogout}>Log out</button>
         </div>
       </div>
