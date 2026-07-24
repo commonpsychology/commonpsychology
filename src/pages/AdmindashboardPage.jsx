@@ -2017,7 +2017,7 @@ function AdminDeliveryRidersSection() {
         <button className="btn btn-ghost" onClick={load}>↺ Refresh</button>
       </SectionHeader>
 
-      <Table loading={loading} cols={['Rider','Contact','Area','Vehicle','Active','Delivered','Actions']}
+      <Table loading={loading} cols={['Rider','Contact','Status','Area','Vehicle','Active','Delivered','Actions']}
         rows={riders.map(r => (
           <tr key={r.id}>
             <td>
@@ -2027,6 +2027,11 @@ function AdminDeliveryRidersSection() {
             <td style={{ fontSize:'.78rem' }}>
               <div>{r.phone}</div>
               {r.email && <div style={{ fontSize:'.68rem', color:'var(--text-muted)' }}>{r.email}</div>}
+            </td>
+            <td>
+              <span className={`badge ${r.is_available ? 'badge-green' : 'badge-red'}`}>
+                {r.is_available ? '🟢 Free' : '🔴 Busy'}
+              </span>
             </td>
             <td style={{ fontSize:'.78rem' }}>{r.area || '—'}</td>
             <td style={{ fontSize:'.78rem' }}>{r.vehicle_type || '—'}</td>
@@ -3359,6 +3364,7 @@ const fetchRiders = async () => {
           name:         r.full_name || r.profiles?.full_name || r.name || '—',
           area:         r.area || '',
           vehicle_type: r.vehicle_type || '',
+          is_available: r.is_available !== false,
         }))
       )
     } catch (e) { console.warn('fetchRiders:', e.message) }
@@ -4331,7 +4337,7 @@ const MODAL_TITLES = { post:'Blog Post', news_article:'News Article', resource:'
                                         <option value="">— Unassigned —</option>
                                         {riders.map(r => (
                                           <option key={r.id} value={r.id}>
-                                            🚴 {r.name}{r.area ? ` · ${r.area}` : ''}{r.vehicle_type ? ` (${r.vehicle_type})` : ''}
+                                            {r.is_available ? '🟢' : '🔴'} {r.name}{r.area ? ` · ${r.area}` : ''}{r.vehicle_type ? ` (${r.vehicle_type})` : ''}
                                           </option>
                                         ))}
                                       </select>
