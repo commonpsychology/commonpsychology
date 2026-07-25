@@ -83,7 +83,7 @@ export default function NoticeSection() {
           background:
             radial-gradient(circle at 8% 0%, rgba(0,191,255,0.08), transparent 50%),
             radial-gradient(circle at 100% 100%, rgba(0,191,255,0.06), transparent 50%),
-            linear-gradient(165deg, #f7fbfd 0%, #eef7fb 45%, #eaf5fa 100%);
+            linear-gradient(165deg, #0ea0e9 0%, #adddf1 45%, #6d7376 100%);
         }
         .cp-notice-blob {
           position: absolute;
@@ -122,7 +122,7 @@ export default function NoticeSection() {
           width: 2px;
           transform: translateX(-50%) scaleY(0);
           transform-origin: top;
-          background: linear-gradient(180deg, rgba(41,128,185,0.35), rgba(139,130,114,0.35));
+          background: linear-gradient(180deg, rgba(5, 69, 246, 0.35), rgba(139,130,114,0.35));
           transition: transform 1.1s cubic-bezier(0.2,0.7,0.3,1);
         }
         .cp-notice-spine.is-grown { transform: translateX(-50%) scaleY(1); }
