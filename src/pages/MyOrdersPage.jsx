@@ -125,6 +125,24 @@ body { font-family:'DM Sans',system-ui,sans-serif; background:${C.bg}; min-heigh
 .st-line { flex:1; height:2px; background:${C.border}; margin-bottom:18px; min-width:12px; transition:background .3s }
 .st-line.done { background:${C.sky} }
 
+/* ── Payment status strip (inline on order card) ── */
+.mo-pay-strip {
+  display:flex; align-items:center; justify-content:space-between; gap:.75rem;
+  padding:.6rem 1.1rem; border-top:1px solid rgba(255,255,255,0.5); border-bottom:1px solid rgba(255,255,255,0.5);
+  background:linear-gradient(90deg, rgba(255,255,255,0.35) 0%, rgba(224,242,254,0.25) 100%);
+  flex-wrap:wrap;
+}
+.mo-pay-strip-left { display:flex; align-items:center; gap:.55rem; min-width:0 }
+.mo-pay-strip-icon {
+  width:26px; height:26px; border-radius:8px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:.75rem;
+}
+.mo-pay-strip-label { font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:#7a9aaa; line-height:1 }
+.mo-pay-strip-status { font-size:.82rem; font-weight:700; margin-top:2px; text-transform:capitalize }
+.mo-pay-strip-right { display:flex; align-items:center; gap:.5rem; flex-shrink:0 }
+.mo-pay-strip-amt { font-size:.78rem; font-weight:700; color:${C.slate} }
+.mo-pay-strip-method { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:.15rem .5rem; border-radius:100px; background:rgba(255,255,255,0.6); border:1px solid ${C.border}; color:${C.mid} }
+
 /* ── Payment status ── */
 .ps-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:.85rem }
 .ps-card { background:#fff; border:1.5px solid ${C.border}; border-radius:12px; padding:1rem; display:flex; flex-direction:column; gap:.5rem }
@@ -226,6 +244,29 @@ function StatusTimeline({ status }) {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+/* ── Payment Status Strip — always visible on the order card ── */
+function PaymentStatusStrip({ order }) {
+  const ps = (order.payment_status || 'unpaid').toLowerCase()
+  const s  = PAYMENT_STATUS_COLORS[ps] || PAYMENT_STATUS_COLORS.unpaid
+  return (
+    <div className="mo-pay-strip">
+      <div className="mo-pay-strip-left">
+        <div className="mo-pay-strip-icon" style={{ background:s.bg, color:s.color }}>{s.icon}</div>
+        <div style={{ minWidth:0 }}>
+          <div className="mo-pay-strip-label">Payment</div>
+          <div className="mo-pay-strip-status" style={{ color:s.color }}>{ps.replace(/_/g, ' ')}</div>
+        </div>
+      </div>
+      <div className="mo-pay-strip-right">
+        {order.payment_method && (
+          <span className="mo-pay-strip-method">{order.payment_method}</span>
+        )}
+        <span className="mo-pay-strip-amt">NPR {Number(order.total_amount || 0).toLocaleString()}</span>
+      </div>
     </div>
   )
 }
@@ -438,6 +479,8 @@ function OrderCard({ order, onShowQR, onCODConfirm }) {
       </div>
 
       <StatusTimeline status={status} />
+
+      <PaymentStatusStrip order={order} />
 
       {isOpen && (
         <div style={{ borderTop:`1px solid ${C.border}`, padding:'1.1rem' }}>
