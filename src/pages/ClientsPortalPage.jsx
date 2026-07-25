@@ -825,7 +825,7 @@ export default function ClientPortalPage() {
             <span
               style={{
                 fontWeight: 800,
-                background: 'linear-gradient(90deg, #0c9ff5, #056ffa 50%, #1276fa)',
+                background: 'linear-gradient(90deg, #00BFFF;, #00BFFF; 50%, #1276fa)',
                 backgroundSize: '200% auto',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
