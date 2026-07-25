@@ -20,22 +20,52 @@ const CONTACT_CSS = `
     background: var(--white);
     box-shadow: var(--shadow-soft, 0 20px 50px rgba(15,52,96,0.08));
     overflow: hidden;
+    position: relative;
   }
 
   .cp3-head {
     position: relative;
     width: 100%;
-    padding: 3.5rem 3rem;
+    padding: 6.5rem 3rem 3.5rem;
     text-align: center;
-    background: linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(214,238,252,0.6) 50%, rgba(199,227,247,0.75) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255,255,255,0.65);
-    box-shadow: 0 10px 34px rgba(0,123,168,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
     overflow: hidden;
+    isolation: isolate;
   }
   @media (max-width: 600px) {
-    .cp3-head { padding: 2.5rem 1.5rem 2rem; }
+    .cp3-head { padding: 5rem 1.5rem 2.5rem; }
+  }
+
+  .cp3-head::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: 50%;
+    transform: translateX(-50%) rotate(-6deg);
+    width: 135%;
+    max-width: 1400px;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(155deg, rgba(199,227,247,0.55) 0%, rgba(255,255,255,0.3) 45%, rgba(180,220,248,0.4) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.45);
+    box-shadow: 0 20px 60px rgba(0,123,168,0.1), inset 0 1px 0 rgba(255,255,255,0.4);
+    border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%;
+    z-index: -1;
+  }
+
+  .cp3-head::after {
+    content: '';
+    position: absolute;
+    bottom: -35%;
+    right: -10%;
+    width: 55%;
+    max-width: 620px;
+    aspect-ratio: 1 / 1;
+    background: radial-gradient(circle at 35% 35%, rgba(214,238,252,0.45), rgba(255,255,255,0.1) 70%);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%;
+    z-index: -1;
   }
 
   .cp3-tag {
