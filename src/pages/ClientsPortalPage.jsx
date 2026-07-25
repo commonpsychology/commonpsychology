@@ -825,13 +825,13 @@ export default function ClientPortalPage() {
             <span
               style={{
                 fontWeight: 800,
-                background: 'linear-gradient(90deg, #00BFFF;, #00BFFF; 50%, #1276fa)',
+                background: 'linear-gradient(90deg, #00BFFF, #1276fa 50%, #00BFFF)',
                 backgroundSize: '200% auto',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
                 animation: 'shine 3.5s linear infinite',
-                textShadow: '0 0 24px rgba(12, 12, 12, 0.35)',
+                textShadow: '0 0 18px rgba(14,165,233,0.35)',
               }}
             >
               {user?.fullName?.split(' ')[0] || 'there'}
