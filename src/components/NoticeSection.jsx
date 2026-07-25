@@ -83,7 +83,7 @@ export default function NoticeSection() {
           background:
             radial-gradient(circle at 8% 0%, rgba(0,191,255,0.08), transparent 50%),
             radial-gradient(circle at 100% 100%, rgba(0,191,255,0.06), transparent 50%),
-            linear-gradient(165deg, #0ea0e9 0%, #adddf1 45%, #6d7376 100%);
+            linear-gradient(165deg, #f7fbfd 0%, #eef7fb 45%, #eaf5fa 100%);
         }
         .cp-notice-blob {
           position: absolute;
@@ -122,7 +122,7 @@ export default function NoticeSection() {
           width: 2px;
           transform: translateX(-50%) scaleY(0);
           transform-origin: top;
-          background: linear-gradient(180deg, rgba(5, 69, 246, 0.35), rgba(139,130,114,0.35));
+          background: linear-gradient(180deg, rgba(0,191,255,0.4), rgba(139,130,114,0.35));
           transition: transform 1.1s cubic-bezier(0.2,0.7,0.3,1);
         }
         .cp-notice-spine.is-grown { transform: translateX(-50%) scaleY(1); }
@@ -193,7 +193,7 @@ export default function NoticeSection() {
           position: absolute;
           inset: -30px;
           border-radius: 32px;
-          background: radial-gradient(ellipse 70% 90% at 50% 40%, rgba(41,128,185,0.1), transparent 72%);
+          background: radial-gradient(ellipse 70% 90% at 50% 40%, rgba(0,191,255,0.14), transparent 72%);
           filter: blur(20px);
           opacity: 0;
           pointer-events: none;
@@ -206,12 +206,12 @@ export default function NoticeSection() {
           position: relative;
           border-radius: var(--radius-lg);
           padding: 2.4rem 2.2rem;
-          background: rgba(255,255,255,0.5);
+          background: radial-gradient(ellipse at center, rgba(224,247,255,0.75) 0%, rgba(255,255,255,0.55) 65%, rgba(255,255,255,0.45) 100%);
           backdrop-filter: blur(24px) saturate(140%);
           -webkit-backdrop-filter: blur(24px) saturate(140%);
           border: 1px solid rgba(255,255,255,0.65);
-          border-left: 3px solid rgba(41,128,185,0.7);
-          box-shadow: 0 20px 50px rgba(15,52,96,0.1), inset 0 1px 0 rgba(255,255,255,0.75);
+          border-left: 3px solid #00BFFF;
+          box-shadow: 0 20px 50px rgba(0,191,255,0.14), inset 0 1px 0 rgba(255,255,255,0.75);
           opacity: 0;
           transform: translateY(18px);
           transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
@@ -227,7 +227,7 @@ export default function NoticeSection() {
           font-family: var(--font-display);
           font-size: 4.5rem;
           line-height: 1;
-          color: rgba(41,128,185,0.08);
+          color: rgba(0,191,255,0.1);
           user-select: none;
           pointer-events: none;
         }
@@ -250,20 +250,20 @@ export default function NoticeSection() {
         }
         .cp-notice-cta-btn {
           padding: 0.8rem 1.4rem; border-radius: 8px;
-          background: rgba(41,128,185,0.85);
+          background: rgba(0,191,255,0.85);
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
           border: 1px solid rgba(255,255,255,0.35);
           color: #fff;
           font-family: var(--font-body); font-weight: 700; font-size: 0.88rem;
           cursor: pointer; white-space: nowrap;
-          box-shadow: 0 8px 20px rgba(41,128,185,0.25), inset 0 1px 0 rgba(255,255,255,0.35);
+          box-shadow: 0 8px 20px rgba(0,191,255,0.3), inset 0 1px 0 rgba(255,255,255,0.35);
           transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
         .cp-notice-cta-btn:hover {
           transform: translateY(-2px);
-          background: rgba(37,109,158,0.9);
-          box-shadow: 0 12px 26px rgba(41,128,185,0.32), inset 0 1px 0 rgba(255,255,255,0.4);
+          background: rgba(0,170,230,0.92);
+          box-shadow: 0 12px 26px rgba(0,191,255,0.38), inset 0 1px 0 rgba(255,255,255,0.4);
         }
 
         @media (max-width: 760px) {
@@ -319,7 +319,7 @@ export default function NoticeSection() {
             const open = c.tone === 'open'
             const alignLeft = i % 2 === 0
             const isHovered = hovered === i
-            const accent = open ? '#2980b9' : '#8B8272'
+            const accent = open ? '#00BFFF' : '#8B8272'
             return (
               <div key={i} className={`cp-notice-row ${alignLeft ? 'align-left' : 'align-right'}`}>
                 <div
@@ -333,9 +333,9 @@ export default function NoticeSection() {
                   onMouseEnter={() => setHovered(i)}
                   onMouseLeave={() => setHovered(null)}
                   style={{
-                    borderColor: isHovered ? (open ? 'rgba(41,128,185,0.3)' : 'rgba(139,130,114,0.35)') : 'rgba(15,52,96,0.07)',
+                    borderColor: isHovered ? (open ? 'rgba(0,191,255,0.35)' : 'rgba(139,130,114,0.35)') : 'rgba(15,52,96,0.07)',
                     boxShadow: isHovered
-                      ? `0 16px 34px ${open ? 'rgba(41,128,185,0.14)' : 'rgba(139,130,114,0.14)'}`
+                      ? `0 16px 34px ${open ? 'rgba(0,191,255,0.16)' : 'rgba(139,130,114,0.14)'}`
                       : '0 6px 18px rgba(15,52,96,0.05)',
                     transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
                   }}
@@ -343,7 +343,7 @@ export default function NoticeSection() {
                   <span
                     className="cp-notice-icon-badge"
                     style={{
-                      background: open ? 'rgba(41,128,185,0.1)' : 'rgba(139,130,114,0.12)',
+                      background: open ? 'rgba(0,191,255,0.12)' : 'rgba(139,130,114,0.12)',
                     }}
                   >
                     {c.icon}
