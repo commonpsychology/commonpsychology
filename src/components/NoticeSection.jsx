@@ -81,9 +81,9 @@ export default function NoticeSection() {
           overflow: hidden;
           padding: 5rem 1.5rem;
           background:
-            radial-gradient(circle at 8% 0%, rgba(219,112,147,0.06), transparent 45%),
-            radial-gradient(circle at 100% 100%, rgba(41,128,185,0.045), transparent 45%),
-            linear-gradient(165deg, #fdf7f6 0%, #fbf0ee 45%, #f8ece9 100%);
+            radial-gradient(circle at 8% 0%, rgba(0,191,255,0.08), transparent 50%),
+            radial-gradient(circle at 100% 100%, rgba(0,191,255,0.06), transparent 50%),
+            linear-gradient(165deg, #f7fbfd 0%, #eef7fb 45%, #eaf5fa 100%);
         }
         .cp-notice-blob {
           position: absolute;
@@ -281,11 +281,11 @@ export default function NoticeSection() {
 
       <div className="cp-notice-blob" style={{
         width: 340, height: 340, top: -160, right: -120,
-        background: 'radial-gradient(circle, rgba(219,112,147,0.08), transparent 70%)',
+        background: 'radial-gradient(circle, rgba(0,191,255,0.1), transparent 70%)',
       }} />
       <div className="cp-notice-blob" style={{
         width: 300, height: 300, bottom: -140, left: -100,
-        background: 'radial-gradient(circle, rgba(139,130,114,0.05), transparent 70%)',
+        background: 'radial-gradient(circle, rgba(0,191,255,0.06), transparent 70%)',
       }} />
 
       <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', zIndex: 1 }}>
