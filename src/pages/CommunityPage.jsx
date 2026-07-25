@@ -496,6 +496,100 @@ function PostCard({ post, onLike, likedIds, onDelete, canDelete, rank }) {
   )
 }
 
+// ── Feed Filter Bar ───────────────────────────────────────────────────────────
+function FeedFilterBar({ groups, posts, activeFilter, onFilterChange, search, onSearchChange }) {
+  const countFor = (groupId) =>
+    groupId === 'all' ? posts.length : posts.filter(p => p.group_id === groupId).length
+
+  const chips = [
+    { id: 'all', label: 'All Posts', emoji: '🌐' },
+    ...groups.map(g => ({ id: g.id, label: g.name, emoji: g.emoji || '💙' })),
+  ]
+
+  return (
+    <div style={{
+      background: C.white, borderRadius: 18, border: `1.5px solid ${C.borderFaint}`,
+      padding: '1.1rem 1.25rem', marginBottom: '1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
+        <span style={{ fontSize: '1rem' }}>🧭</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.88rem', color: C.textDark }}>
+          Filter by topic
+        </span>
+      </div>
+
+      <div
+        style={{
+          display: 'flex', gap: '0.55rem', overflowX: 'auto', paddingBottom: '0.35rem',
+          marginBottom: '0.9rem', scrollbarWidth: 'thin',
+        }}
+      >
+        {chips.map(chip => {
+          const active = activeFilter === chip.id
+          const count  = countFor(chip.id)
+          return (
+            <button
+              key={chip.id}
+              onClick={() => onFilterChange(chip.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
+                padding: '0.5rem 0.95rem', borderRadius: 100,
+                border: `1.5px solid ${active ? 'transparent' : C.borderFaint}`,
+                background: active ? btnGrad : C.skyFainter,
+                color: active ? 'white' : C.textMid,
+                fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.8rem',
+                cursor: 'pointer', transition: 'all 0.18s',
+                boxShadow: active ? '0 4px 14px rgba(0,123,168,0.28)' : 'none',
+              }}
+            >
+              <span>{chip.emoji}</span>
+              <span>{chip.label}</span>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                minWidth: 18, height: 18, padding: '0 5px', borderRadius: 100,
+                background: active ? 'rgba(255,255,255,0.28)' : C.white,
+                color: active ? 'white' : C.textLight,
+                fontSize: '0.65rem', fontWeight: 800,
+                border: active ? 'none' : `1px solid ${C.borderFaint}`,
+              }}>
+                {count}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      <div style={{ position: 'relative' }}>
+        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: '0.9rem', color: C.textLight }}>
+          🔍
+        </span>
+        <input
+          value={search}
+          onChange={e => onSearchChange(e.target.value)}
+          placeholder="Search posts by keyword…"
+          style={{
+            width: '100%', padding: '0.65rem 0.9rem 0.65rem 2.4rem', borderRadius: 12,
+            border: `1.5px solid ${C.borderFaint}`, fontFamily: 'var(--font-body)',
+            fontSize: '0.84rem', color: C.textDark, outline: 'none', boxSizing: 'border-box',
+            background: C.skyFainter,
+          }}
+        />
+        {search && (
+          <button
+            onClick={() => onSearchChange('')}
+            style={{
+              position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', color: C.textLight, cursor: 'pointer', fontSize: '0.85rem',
+            }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // MAIN PAGE
 // ═════════════════════════════════════════════════════════════════════════════
@@ -517,6 +611,8 @@ export default function CommunityPage() {
   const [myMemberships,  setMyMemberships]  = useState([])
   const [likedPostIds,   setLikedPostIds]   = useState(new Set())
   const [showAllPosts, setShowAllPosts] = useState(false)
+  const [feedFilter, setFeedFilter] = useState('all')   // 'all' | group_id
+  const [feedSearch, setFeedSearch] = useState('')
   const [loading,        setLoading]        = useState({ groups:true, sessions:true, posts:true, myRes:false })
   const [toast,          setToast]          = useState(null)
   const [authGate,       setAuthGate]       = useState(false)
@@ -1159,19 +1255,24 @@ if (myGroupIds.has(group.id)) {
         )}
 
         {/* ════ FEED TAB ════ */}
-       {/* ════ FEED TAB ════ */}
         {activeTab === 'feed' && (() => {
-          const sortedPosts = [...posts].sort((a, b) => (b.like_count || 0) - (a.like_count || 0))
+          const filteredPosts = posts.filter(p => {
+            if (feedFilter !== 'all' && p.group_id !== feedFilter) return false
+            if (feedSearch.trim() && !p.content?.toLowerCase().includes(feedSearch.trim().toLowerCase())) return false
+            return true
+          })
+          const sortedPosts = [...filteredPosts].sort((a, b) => (b.like_count || 0) - (a.like_count || 0))
           const topPosts    = sortedPosts.slice(0, 10)
           const restPosts   = sortedPosts.slice(10)
+          const isFiltering = feedFilter !== 'all' || feedSearch.trim().length > 0
 
           return (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--blue-deep)' }}>Community Feed</div>
-                {posts.length > 0 && (
+                {filteredPosts.length > 0 && (
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: C.textLight, background: C.skyFainter, border: `1px solid ${C.borderFaint}`, borderRadius: 100, padding: '0.3rem 0.85rem', fontWeight: 600 }}>
-                    🔥 Showing top {Math.min(10, posts.length)} of {posts.length} posts
+                    🔥 Showing top {Math.min(10, filteredPosts.length)} of {filteredPosts.length}{isFiltering ? ' filtered' : ''} posts
                   </span>
                 )}
               </div>
@@ -1182,17 +1283,38 @@ if (myGroupIds.has(group.id)) {
 
               <PostComposer groups={groups} onPost={handlePost} />
 
+              <FeedFilterBar
+                groups={groups}
+                posts={posts}
+                activeFilter={feedFilter}
+                onFilterChange={(id) => { setFeedFilter(id); setShowAllPosts(false) }}
+                search={feedSearch}
+                onSearchChange={(v) => { setFeedSearch(v); setShowAllPosts(false) }}
+              />
+
               {loading.posts ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: C.textLight, fontFamily: 'var(--font-body)' }}>Loading posts…</div>
               ) : posts.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: C.textLight, fontFamily: 'var(--font-body)' }}>No posts yet. Be the first to share!</div>
+              ) : filteredPosts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🔍</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: C.textDark, marginBottom: '0.4rem' }}>No posts match this filter</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: C.textLight, marginBottom: '1rem' }}>Try a different topic or clear your search.</div>
+                  <button
+                    onClick={() => { setFeedFilter('all'); setFeedSearch('') }}
+                    style={{ padding: '0.55rem 1.1rem', borderRadius: 10, border: `1.5px solid ${C.borderFaint}`, background: C.white, color: C.textMid, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
+                  >
+                    Reset filters
+                  </button>
+                </div>
               ) : (
                 <>
                   {topPosts.map((p, i) => (
                     <PostCard
                       key={p.id}
                       post={p}
-                      rank={i + 1}
+                      rank={isFiltering ? null : i + 1}
                       onLike={handleLike}
                       likedIds={likedPostIds}
                       onDelete={handleDeletePost}
@@ -1218,7 +1340,7 @@ if (myGroupIds.has(group.id)) {
 
                       {showAllPosts && (
                         <div style={{ marginTop: '1rem' }}>
-                          {restPosts.map((p, i) => (
+                          {restPosts.map((p) => (
                             <PostCard
                               key={p.id}
                               post={p}
