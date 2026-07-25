@@ -70,7 +70,7 @@ export default function NoticeSection() {
           background:
             radial-gradient(circle at 12% 0%, rgba(14,165,233,0.12), transparent 55%),
             radial-gradient(circle at 100% 100%, rgba(41,128,185,0.10), transparent 55%),
-            linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(214,238,252,0.75) 55%, rgba(255,255,255,0.96) 100%);
+            linear-gradient(160deg, rgba(255,255,255,0.96) 0%, #00BFFF 55%, rgba(255,255,255,0.96) 100%);
         }
         .cp-notice-blob {
           position: absolute;
