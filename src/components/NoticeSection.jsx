@@ -81,9 +81,9 @@ export default function NoticeSection() {
           overflow: hidden;
           padding: 5rem 1.5rem;
           background:
-            radial-gradient(circle at 8% 0%, rgba(14,165,233,0.05), transparent 45%),
-            radial-gradient(circle at 100% 100%, rgba(41,128,185,0.05), transparent 45%),
-            linear-gradient(180deg, #fdfcfa 0%, #f7f5f1 100%);
+            radial-gradient(circle at 8% 0%, rgba(219,112,147,0.06), transparent 45%),
+            radial-gradient(circle at 100% 100%, rgba(41,128,185,0.045), transparent 45%),
+            linear-gradient(165deg, #fdf7f6 0%, #fbf0ee 45%, #f8ece9 100%);
         }
         .cp-notice-blob {
           position: absolute;
@@ -96,16 +96,16 @@ export default function NoticeSection() {
         .cp-notice-eyebrow-badge {
           display: inline-flex; align-items: center; gap: 0.4rem;
           padding: 0.3rem 0.85rem; margin-bottom: 1.4rem;
-          background: rgba(255,255,255,0.7);
+          background: rgba(255,255,255,0.55);
           backdrop-filter: blur(14px);
           -webkit-backdrop-filter: blur(14px);
-          border: 1.5px solid rgba(15,52,96,0.08);
+          border: 1px solid rgba(255,255,255,0.6);
           border-radius: 100px;
           font-family: var(--font-body);
           font-size: 0.7rem; font-weight: 700;
           letter-spacing: 0.06em; text-transform: uppercase;
           color: #3a6a86;
-          box-shadow: 0 4px 14px rgba(15,52,96,0.05);
+          box-shadow: 0 4px 14px rgba(15,52,96,0.05), inset 0 1px 0 rgba(255,255,255,0.7);
         }
 
         /* ── Flow track: zigzag cards connected by a growing line ── */
@@ -144,8 +144,11 @@ export default function NoticeSection() {
           border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           font-family: var(--font-body); font-weight: 700; font-size: 0.68rem;
-          background: #fdfcfa;
-          border: 2px solid;
+          background: rgba(255,255,255,0.55);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1.5px solid;
+          box-shadow: 0 4px 12px rgba(15,52,96,0.08), inset 0 1px 0 rgba(255,255,255,0.7);
           z-index: 2;
           transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1) var(--node-delay, 0s);
         }
@@ -156,18 +159,22 @@ export default function NoticeSection() {
           width: calc(50% - 2rem);
           padding: 1.3rem 1.4rem;
           border-radius: var(--radius-lg);
-          background: rgba(255,255,255,0.78);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(15,52,96,0.07);
-          box-shadow: 0 6px 18px rgba(15,52,96,0.05);
-          transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+          background: rgba(255,255,255,0.55);
+          backdrop-filter: blur(20px) saturate(140%);
+          -webkit-backdrop-filter: blur(20px) saturate(140%);
+          border: 1px solid rgba(255,255,255,0.6);
+          box-shadow: 0 8px 24px rgba(15,52,96,0.06), inset 0 1px 0 rgba(255,255,255,0.7);
+          transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
         }
         .cp-notice-icon-badge {
           width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           font-size: 1rem;
           filter: grayscale(0.25);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.5);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
         }
 
         @media (max-width: 760px) {
@@ -199,12 +206,12 @@ export default function NoticeSection() {
           position: relative;
           border-radius: var(--radius-lg);
           padding: 2.4rem 2.2rem;
-          background: rgba(255,255,255,0.85);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(15,52,96,0.09);
-          border-left: 3px solid #2980b9;
-          box-shadow: 0 20px 50px rgba(15,52,96,0.1);
+          background: rgba(255,255,255,0.5);
+          backdrop-filter: blur(24px) saturate(140%);
+          -webkit-backdrop-filter: blur(24px) saturate(140%);
+          border: 1px solid rgba(255,255,255,0.65);
+          border-left: 3px solid rgba(41,128,185,0.7);
+          box-shadow: 0 20px 50px rgba(15,52,96,0.1), inset 0 1px 0 rgba(255,255,255,0.75);
           opacity: 0;
           transform: translateY(18px);
           transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
@@ -242,18 +249,21 @@ export default function NoticeSection() {
           position: relative;
         }
         .cp-notice-cta-btn {
-          padding: 0.8rem 1.4rem; border: none; border-radius: 8px;
-          background: #2980b9;
+          padding: 0.8rem 1.4rem; border-radius: 8px;
+          background: rgba(41,128,185,0.85);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(255,255,255,0.35);
           color: #fff;
           font-family: var(--font-body); font-weight: 700; font-size: 0.88rem;
           cursor: pointer; white-space: nowrap;
-          box-shadow: 0 8px 20px rgba(41,128,185,0.22);
+          box-shadow: 0 8px 20px rgba(41,128,185,0.25), inset 0 1px 0 rgba(255,255,255,0.35);
           transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
         .cp-notice-cta-btn:hover {
           transform: translateY(-2px);
-          background: #256d9e;
-          box-shadow: 0 12px 26px rgba(41,128,185,0.3);
+          background: rgba(37,109,158,0.9);
+          box-shadow: 0 12px 26px rgba(41,128,185,0.32), inset 0 1px 0 rgba(255,255,255,0.4);
         }
 
         @media (max-width: 760px) {
@@ -271,11 +281,11 @@ export default function NoticeSection() {
 
       <div className="cp-notice-blob" style={{
         width: 340, height: 340, top: -160, right: -120,
-        background: 'radial-gradient(circle, rgba(41,128,185,0.07), transparent 70%)',
+        background: 'radial-gradient(circle, rgba(219,112,147,0.08), transparent 70%)',
       }} />
       <div className="cp-notice-blob" style={{
         width: 300, height: 300, bottom: -140, left: -100,
-        background: 'radial-gradient(circle, rgba(139,130,114,0.06), transparent 70%)',
+        background: 'radial-gradient(circle, rgba(139,130,114,0.05), transparent 70%)',
       }} />
 
       <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', zIndex: 1 }}>
