@@ -4,34 +4,34 @@ import { useLang } from '../context/LanguageContext'
 
 /* ─────────────────────────────────────────────────────────────
    Content — kept in one place so copy can be edited without
-   touching markup. `tone` drives the card's accent color:
-   'open'   → sky/blue accent  (things that welcome the right fit)
-   'muted'  → earth/gray accent (things that filter people out)
+   touching markup. `tone` decides which column a clause lands
+   in: 'open' → the "come if" column, 'muted' → the "not for
+   you" column. The split IS the structure now, not a mixed grid.
 ───────────────────────────────────────────────────────────── */
 const CLAUSES = [
   {
     tone: 'muted',
-    icon: '⏳',
+    mark: '⏳',
     np: 'समय र लगाव छैन भने, कमन साइकोलोजीमा नआउनुहोस्।',
     en: "No time, no real interest? Then Common Psychology isn't the place — please don't join us.",
   },
   {
+    tone: 'muted',
+    mark: '🚪',
+    np: 'यीमध्ये कुनै पनि नछोए, हामी तपाईंका लागि होइनौं — र साँच्चै भन्दा तपाईंलाई पनि हामी चाहिँदैन।',
+    en: "None of this resonate? We're not for you — and honestly, you don't need us either.",
+  },
+  {
     tone: 'open',
-    icon: '💳',
+    mark: '💳',
     np: 'तिर्न सक्नुहुन्छ भने, हामी हाम्रो सामान्य शुल्क मात्र लिन्छौं। थप केही होइन। यदि सक्नुहुन्न भने, हामी स्लाइडिङ स्केल वा प्रो बोनो व्यवस्था छलफल गर्न सक्छौं।',
     en: 'Can you pay for care? We charge our normal rates — nothing more. If you cannot, we can discuss a sliding scale or referral services.',
   },
   {
     tone: 'open',
-    icon: '🌱',
+    mark: '🌱',
     np: 'हामी बढ्न योग्य छौं भन्ने लाग्छ भने, दान गरेर, सिफारिस गरेर, वा नियमित ग्राहक बनेर सघाउनुहोस्।',
     en: 'Believe this work deserves to grow? Donate, refer us, or return as a regular member — support us however you can.',
-  },
-  {
-    tone: 'muted',
-    icon: '🚪',
-    np: 'यीमध्ये कुनै पनि नछोए, हामी तपाईंका लागि होइनौं — र साँच्चै भन्दा तपाईंलाई पनि हामी चाहिँदैन।',
-    en: "None of this resonate? We're not for you — and honestly, you don't need us either.",
   },
 ]
 
@@ -39,10 +39,12 @@ export default function NoticeSection() {
   const { lang }      = useLang()
   const { navigate }  = useRouter()
   const [hovered, setHovered] = useState(null)
-  const [bannerVisible, setBannerVisible] = useState(false)
-  const bannerRef = useRef(null)
+  const [visible, setVisible] = useState(false)
+  const rootRef = useRef(null)
 
   const isNP = lang === 'NP'
+  const openClauses  = CLAUSES.filter(c => c.tone === 'open')
+  const mutedClauses = CLAUSES.filter(c => c.tone === 'muted')
 
   function go(path) {
     navigate(path)
@@ -50,11 +52,11 @@ export default function NoticeSection() {
   }
 
   useEffect(() => {
-    const el = bannerRef.current
+    const el = rootRef.current
     if (!el) return
     const io = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setBannerVisible(true); io.disconnect() } },
-      { threshold: 0.35 }
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect() } },
+      { threshold: 0.2 }
     )
     io.observe(el)
     return () => io.disconnect()
@@ -65,301 +67,309 @@ export default function NoticeSection() {
       <style>{`
         .cp-notice {
           position: relative;
-          overflow: hidden;
-          padding: 5rem 1.5rem;
-          background:
-            radial-gradient(circle at 12% 0%, rgba(14,165,233,0.12), transparent 55%),
-            radial-gradient(circle at 100% 100%, rgba(41,128,185,0.10), transparent 55%),
-            linear-gradient(160deg, rgba(255,255,255,0.96) 0%, #00BFFF 55%, rgba(255,255,255,0.96) 100%);
-        }
-        .cp-notice-blob {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(60px);
-          pointer-events: none;
-        }
-        .cp-notice-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1.25rem;
-        }
-        .cp-notice-closing {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 2rem;
-          flex-wrap: wrap;
-        }
-        .cp-notice-cta {
-          display: flex;
-          gap: 0.75rem;
-          flex-wrap: wrap;
-        }
-
-        /* ── Eyebrow — glassy pill ── */
-        .cp-notice-eyebrow-badge {
-          display: inline-flex; align-items: center; gap: 0.4rem;
-          padding: 0.3rem 0.85rem; margin-bottom: 1.4rem;
-          background: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(214,238,252,0.5) 100%);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
-          border: 1.5px solid rgba(255,255,255,0.6);
-          border-radius: 100px;
-          font-family: var(--font-body);
-          font-size: 0.7rem; font-weight: 700;
-          letter-spacing: 0.06em; text-transform: uppercase;
-          color: #0369a1;
-          box-shadow: 0 4px 14px rgba(14,165,233,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
-        }
-
-        /* ── Clause cards — glassy bluish-white ── */
-        .cp-notice-card {
-          display: flex; gap: 1rem; align-items: flex-start;
-          padding: 1.5rem;
-          border-radius: var(--radius-lg);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
-        }
-        .cp-notice-icon-badge {
-          width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 1.15rem;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          box-shadow: 0 2px 8px rgba(0,60,90,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
-        }
-
-        /* ── Spotlight banner ── */
-        .cp-notice-spotlight {
-          position: relative;
-          margin-bottom: 2.4rem;
+          padding: 5.5rem 1.5rem;
+          background: linear-gradient(180deg, #FCFAF5 0%, #F5F0E5 100%);
         }
         .cp-notice-glow {
           position: absolute;
-          inset: -40px;
-          border-radius: 32px;
-          background: radial-gradient(ellipse 70% 90% at 50% 40%, rgba(41,128,185,0.22), transparent 72%);
-          filter: blur(18px);
-          opacity: 0;
+          width: 460px; height: 460px;
+          border-radius: 50%;
+          top: -180px; right: -160px;
+          background: radial-gradient(circle, rgba(28,126,168,0.06), transparent 70%);
           pointer-events: none;
-          transition: opacity 1.1s ease;
         }
-        .cp-notice-spotlight.is-visible .cp-notice-glow {
-          opacity: 1;
-          animation: cp-pulse-glow 3.6s ease-in-out infinite;
-        }
-        @keyframes cp-pulse-glow {
-          0%, 100% { opacity: 0.55; transform: scale(1); }
-          50%      { opacity: 0.9;  transform: scale(1.04); }
-        }
-        .cp-notice-banner {
+
+        /* ── the paper itself ── */
+        .cp-notice-paper {
           position: relative;
-          border-radius: var(--radius-lg);
-          padding: 2.6rem 2.4rem;
-          background: linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.8) 100%);
-          backdrop-filter: blur(22px);
-          -webkit-backdrop-filter: blur(22px);
-          border: 1.5px solid rgba(255,255,255,0.6);
-          box-shadow: 0 24px 60px rgba(0,123,168,0.16), inset 0 1px 0 rgba(255,255,255,0.65);
+          max-width: 980px;
+          margin: 0 auto;
+          background: #FFFEFB;
+          border: 1px solid rgba(27,40,56,0.09);
+          border-top: 3px solid #1C7EA8;
+          border-radius: 6px;
+          box-shadow: 0 30px 70px rgba(27,40,56,0.09), 0 2px 8px rgba(27,40,56,0.05);
+          padding: 3rem 3rem 2.6rem;
           opacity: 0;
-          transform: translateY(18px) scale(0.985);
-          transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
-          overflow: hidden;
+          transform: translateY(22px);
+          transition: opacity 0.85s ease, transform 0.85s cubic-bezier(0.2,0.8,0.2,1);
         }
-        .cp-notice-spotlight.is-visible .cp-notice-banner {
+        .cp-notice-paper.is-visible {
           opacity: 1;
-          transform: translateY(0) scale(1);
+          transform: translateY(0);
         }
-        .cp-notice-banner::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.65) 38%, transparent 56%);
-          background-size: 220% 220%;
-          background-position: -60% -60%;
-          pointer-events: none;
+
+        /* ── letterhead row ── */
+        .cp-notice-letterhead {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          margin-bottom: 1.6rem;
         }
-        .cp-notice-spotlight.is-visible .cp-notice-banner::before {
-          animation: cp-sheen 3.2s ease-in-out 0.9s;
+        .cp-notice-seal-row {
+          display: flex;
+          align-items: center;
+          gap: 0.85rem;
         }
-        @keyframes cp-sheen {
-          0%   { background-position: -60% -60%; }
-          100% { background-position: 160% 160%; }
+        .cp-notice-seal {
+          width: 46px; height: 46px;
+          border-radius: 50%;
+          flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          border: 1.5px dashed rgba(28,126,168,0.55);
+          background: rgba(28,126,168,0.06);
+          font-family: var(--font-display);
+          font-style: italic;
+          font-weight: 700;
+          font-size: 0.82rem;
+          color: #1C7EA8;
+          transform: rotate(-8deg) scale(0.6);
+          opacity: 0;
+          transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.5s, opacity 0.5s ease 0.5s;
+        }
+        .cp-notice-paper.is-visible .cp-notice-seal {
+          transform: rotate(-8deg) scale(1);
+          opacity: 1;
         }
         .cp-notice-eyebrow {
-          display: inline-flex; align-items: center; gap: 0.4rem;
           font-family: var(--font-body);
           font-size: 0.72rem; font-weight: 700;
-          letter-spacing: 0.1em; text-transform: uppercase;
-          color: #0f3460;
-          opacity: 0.72;
-          margin-bottom: 0.9rem;
+          letter-spacing: 0.14em; text-transform: uppercase;
+          color: #1C7EA8;
         }
-        .cp-notice-quote-mark {
-          position: absolute;
-          top: 0.6rem; left: 1.6rem;
-          font-family: var(--font-display);
-          font-size: 5rem;
-          line-height: 1;
-          color: rgba(41,128,185,0.14);
-          user-select: none;
-          pointer-events: none;
+        .cp-notice-eyebrow-sub {
+          display: block;
+          font-size: 0.68rem; font-weight: 500;
+          letter-spacing: 0.04em; text-transform: none;
+          color: var(--text-mid);
+          margin-top: 0.15rem;
+        }
+        .cp-notice-serial {
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: 0.72rem;
+          color: rgba(27,40,56,0.38);
+          letter-spacing: 0.02em;
+          white-space: nowrap;
+        }
+
+        .cp-notice-rule {
+          height: 1px;
+          background: linear-gradient(90deg, rgba(27,40,56,0.14), rgba(27,40,56,0.03));
+          margin-bottom: 1.8rem;
+        }
+
+        .cp-notice-title {
+          font-family: var(--font-display); font-weight: 800;
+          font-size: clamp(1.5rem, 3.6vw, 2.5rem); line-height: 1.2;
+          color: var(--text-dark);
+          margin: 0 0 0.65rem;
+        }
+        .cp-notice-subtitle {
+          font-family: var(--font-body); font-size: 1rem;
+          color: var(--text-mid); max-width: 560px;
+          line-height: 1.65; margin: 0 0 2.4rem;
+        }
+
+        /* ── two-column body ── */
+        .cp-notice-columns {
+          display: grid;
+          grid-template-columns: 1fr 1px 1fr;
+          gap: 2.2rem;
+          margin-bottom: 2.4rem;
+        }
+        .cp-notice-col-divider {
+          background: rgba(27,40,56,0.1);
+          position: relative;
+        }
+        .cp-notice-col-divider::before {
+          content: '✦';
+          position: absolute; top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          background: #FFFEFB;
+          color: rgba(28,126,168,0.5);
+          font-size: 0.7rem;
+          padding: 0.4rem 0;
+        }
+        .cp-notice-col-label {
+          display: flex; align-items: center; gap: 0.5rem;
+          font-family: var(--font-body); font-size: 0.72rem;
+          font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+          margin-bottom: 1.1rem;
+        }
+        .cp-notice-col-label-glyph {
+          width: 20px; height: 20px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 0.65rem; flex-shrink: 0;
+        }
+        .cp-notice-item {
+          display: flex; gap: 0.85rem; align-items: flex-start;
+          padding: 0.9rem 0;
+          border-bottom: 1px solid rgba(27,40,56,0.07);
+          transition: padding-left 0.25s ease, background 0.25s ease;
+        }
+        .cp-notice-item:last-child { border-bottom: none; }
+        .cp-notice-item.is-hovered { padding-left: 0.35rem; }
+        .cp-notice-item-mark {
+          font-size: 0.95rem;
+          flex-shrink: 0;
+          filter: grayscale(0.35);
+          opacity: 0.9;
+          line-height: 1.5;
+        }
+        .cp-notice-item-text {
+          margin: 0; font-family: var(--font-body);
+          font-size: 0.94rem; line-height: 1.6;
+          color: var(--text-mid);
+        }
+        .cp-notice-item.is-hovered .cp-notice-item-text { color: var(--text-dark); }
+
+        /* ── closing signature block ── */
+        .cp-notice-closing {
+          padding-top: 2.2rem;
+          border-top: 1px solid rgba(27,40,56,0.1);
+        }
+        .cp-notice-quote {
+          font-family: var(--font-display); font-weight: 600; font-style: italic;
+          font-size: clamp(1.1rem, 2.2vw, 1.4rem); line-height: 1.55;
+          color: #16324a;
+          max-width: 640px;
+          margin: 0 0 1.6rem;
+        }
+        .cp-notice-signoff {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 1.5rem; flex-wrap: wrap;
+        }
+        .cp-notice-signoff-name {
+          font-family: var(--font-body); font-size: 0.8rem;
+          color: var(--text-mid); letter-spacing: 0.02em;
+        }
+        .cp-notice-signoff-name strong {
+          color: var(--text-dark); font-weight: 700;
         }
         .cp-notice-cta-btn {
-          padding: 0.85rem 1.5rem; border: 1.5px solid rgba(255,255,255,0.5); border-radius: 100px;
-          background: linear-gradient(135deg, #0ea5e9 0%, #00BFFF 100%);
-          color: #fff;
-          font-family: var(--font-body); font-weight: 700; font-size: 0.9rem;
+          padding: 0.7rem 1.35rem;
+          border: 1.5px solid #1C7EA8;
+          border-radius: 4px;
+          background: transparent;
+          color: #1C7EA8;
+          font-family: var(--font-body); font-weight: 700; font-size: 0.86rem;
           cursor: pointer; white-space: nowrap;
-          box-shadow: 0 10px 26px rgba(14,165,233,0.32), inset 0 1px 0 rgba(255,255,255,0.4);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition: background 0.2s ease, color 0.2s ease;
         }
         .cp-notice-cta-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 14px 32px rgba(14,165,233,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+          background: #1C7EA8;
+          color: #fff;
         }
 
         @media (max-width: 760px) {
-          .cp-notice { padding: 3.5rem 1.25rem; }
-          .cp-notice-grid { grid-template-columns: 1fr; }
-          .cp-notice-closing { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
-          .cp-notice-closing-text { flex: none !important; width: 100%; }
-          .cp-notice-banner { padding: 2rem 1.5rem; }
-          .cp-notice-quote-mark { font-size: 3.6rem; top: 0.3rem; left: 1rem; }
-
-          /* ── Header block: center + resize, matching large-screen feel ── */
-          .cp-notice-header-item {
-            text-align: center;
-            margin-left: auto;
-            margin-right: auto;
-          }
-          .cp-notice-eyebrow-badge {
-            font-size: 0.62rem;
-            padding: 0.28rem 0.7rem;
-            margin-bottom: 1rem;
-          }
+          .cp-notice { padding: 3.5rem 1.1rem; }
+          .cp-notice-paper { padding: 2.2rem 1.4rem; }
+          .cp-notice-columns { grid-template-columns: 1fr; gap: 0; }
+          .cp-notice-col-divider { display: none; }
+          .cp-notice-columns > div:nth-child(1) { margin-bottom: 1.8rem; }
+          .cp-notice-letterhead { flex-wrap: wrap; }
+          .cp-notice-signoff { flex-direction: column; align-items: flex-start; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .cp-notice-banner, .cp-notice-glow { transition: opacity 0.4s ease; animation: none !important; }
-          .cp-notice-banner::before { animation: none !important; }
+          .cp-notice-paper, .cp-notice-seal { transition: opacity 0.3s ease !important; transform: none !important; }
         }
       `}</style>
 
-      {/* soft ambient blobs for depth, matching the sign-in gradient mark */}
-      <div className="cp-notice-blob" style={{
-        width: 380, height: 380, top: -160, right: -120,
-        background: 'radial-gradient(circle, rgba(41,128,185,0.16), transparent 70%)',
-      }} />
-      <div className="cp-notice-blob" style={{
-        width: 300, height: 300, bottom: -140, left: -100,
-        background: 'radial-gradient(circle, rgba(46,125,50,0.10), transparent 70%)',
-      }} />
+      <div className="cp-notice-glow" aria-hidden="true" />
 
-      <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', zIndex: 1 }}>
+      <div ref={rootRef} className={`cp-notice-paper${visible ? ' is-visible' : ''}`}>
 
-        {/* eyebrow */}
-        <div className="cp-notice-eyebrow-badge cp-notice-header-item">
-          📌 {isNP ? 'सूचना — विज्ञापन होइन' : 'A Notice — Not a Pitch'}
+        {/* letterhead */}
+        <div className="cp-notice-letterhead">
+          <div className="cp-notice-seal-row">
+            <div className="cp-notice-seal">CP</div>
+            <div>
+              <span className="cp-notice-eyebrow">
+                {isNP ? 'सूचना' : 'Notice'}
+              </span>
+              <span className="cp-notice-eyebrow-sub">
+                {isNP ? 'विज्ञापन होइन' : 'Not a pitch'}
+              </span>
+            </div>
+          </div>
+          <span className="cp-notice-serial">{isNP ? 'नं. ००४' : 'No. 004'}</span>
         </div>
 
-        {/* title */}
-        <h2 className="cp-notice-header-item" style={{
-          fontFamily: 'var(--font-display)', fontWeight: 800,
-          fontSize: 'clamp(1.5rem, 4.2vw, 2.9rem)', lineHeight: 1.25,
-          color: 'var(--text-dark)', margin: '0 0 0.6rem',
-        }}>
+        <div className="cp-notice-rule" />
+
+        <h2 className="cp-notice-title">
           {isNP ? 'हामी सबैका लागि होइनौं' : 'We Are Not For Everyone'}
         </h2>
-        <p className="cp-notice-header-item" style={{
-          fontFamily: 'var(--font-body)', fontSize: '1.02rem',
-          color: 'var(--text-mid)', maxWidth: 620, margin: '0 auto 2.4rem', lineHeight: 1.6,
-        }}>
+        <p className="cp-notice-subtitle">
           {isNP
             ? 'कमन साइकोलोजीमा आउनुअघि, यी केही कुरा हामी स्पष्ट राख्न चाहन्छौं।'
             : "Before you come to Common Psychology, here's what we want to be upfront about."}
         </p>
 
-        {/* clause grid */}
-        <div className="cp-notice-grid" style={{ marginBottom: '2.4rem' }}>
-          {CLAUSES.map((c, i) => {
-            const open = c.tone === 'open'
-            const isHovered = hovered === i
-            return (
-              <div
-                key={i}
-                className="cp-notice-card"
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
-                style={{
-                  background: open
-                    ? 'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(214,238,252,0.55) 55%, rgba(255,255,255,0.85) 100%)'
-                    : 'linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(224,242,254,0.35) 60%, rgba(255,255,255,0.72) 100%)',
-                  border: `1px solid ${open ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.45)'}`,
-                  boxShadow: isHovered
-                    ? '0 20px 44px rgba(0,123,168,0.16), inset 0 1px 0 rgba(255,255,255,0.6)'
-                    : '0 8px 24px rgba(15,52,96,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
-                  transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
-                }}
-              >
-                <span
-                  className="cp-notice-icon-badge"
-                  style={{
-                    background: open
-                      ? 'linear-gradient(135deg, rgba(224,242,254,0.9) 0%, rgba(186,230,253,0.7) 100%)'
-                      : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,244,248,0.6) 100%)',
-                    border: `1.5px solid ${open ? 'rgba(120,190,230,0.5)' : 'rgba(255,255,255,0.6)'}`,
-                  }}
-                >
-                  {c.icon}
-                </span>
-                <p style={{
-                  margin: 0, fontFamily: 'var(--font-body)',
-                  fontSize: '0.97rem', lineHeight: 1.65,
-                  color: open ? 'var(--text-dark)' : 'var(--text-mid)',
-                  fontWeight: open ? 600 : 500,
-                }}>
-                  {isNP ? c.np : c.en}
-                </p>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* ── spotlighted closing banner — the line we most want read ── */}
-        <div
-          ref={bannerRef}
-          className={`cp-notice-spotlight${bannerVisible ? ' is-visible' : ''}`}
-        >
-          <div className="cp-notice-glow" />
-          <div className="cp-notice-banner">
-            <span className="cp-notice-quote-mark" aria-hidden="true">"</span>
-            <div className="cp-notice-closing" style={{ position: 'relative' }}>
-              <div className="cp-notice-closing-text" style={{ flex: '1 1 380px' }}>
-                <div className="cp-notice-eyebrow">
-                  ✦ {isNP ? 'सबैभन्दा महत्त्वपूर्ण कुरा' : 'The One Thing to Remember'}
-                </div>
-                <p style={{
-                  margin: 0,
-                  fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic',
-                  fontSize: 'clamp(1.15rem, 2.7vw, 1.55rem)', lineHeight: 1.55,
-                  color: '#0f3460',
-                }}>
-                  {isNP
-                    ? 'इच्छा वा आवश्यकताले आउनुहोस् — हठात् मनले होइन, चर्चा वा दावीले तानिएर होइन।'
-                    : "Come out of want, or out of need — never on a whim, and never because we're being talked about."}
-                </p>
-              </div>
-
-              <div className="cp-notice-cta">
-                <button className="cp-notice-cta-btn" onClick={() => go('/book')}>
-                  {isNP ? 'सत्र बुक गर्नुहोस् →' : 'Book a Session →'}
-                </button>
-              </div>
+        {/* two real columns — the split is the structure */}
+        <div className="cp-notice-columns">
+          <div>
+            <div className="cp-notice-col-label" style={{ color: '#1C7EA8' }}>
+              <span className="cp-notice-col-label-glyph" style={{ background: 'rgba(28,126,168,0.1)', color: '#1C7EA8' }}>✓</span>
+              {isNP ? 'आउनुहोस्, यदि' : 'Come, if'}
             </div>
+            {openClauses.map((c, i) => {
+              const key = `open-${i}`
+              return (
+                <div
+                  key={key}
+                  className={`cp-notice-item${hovered === key ? ' is-hovered' : ''}`}
+                  onMouseEnter={() => setHovered(key)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  <span className="cp-notice-item-mark">{c.mark}</span>
+                  <p className="cp-notice-item-text">{isNP ? c.np : c.en}</p>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="cp-notice-col-divider" />
+
+          <div>
+            <div className="cp-notice-col-label" style={{ color: '#8B8272' }}>
+              <span className="cp-notice-col-label-glyph" style={{ background: 'rgba(139,130,114,0.14)', color: '#8B8272' }}>–</span>
+              {isNP ? 'हामी होइनौं, यदि' : 'Not for you, if'}
+            </div>
+            {mutedClauses.map((c, i) => {
+              const key = `muted-${i}`
+              return (
+                <div
+                  key={key}
+                  className={`cp-notice-item${hovered === key ? ' is-hovered' : ''}`}
+                  onMouseEnter={() => setHovered(key)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  <span className="cp-notice-item-mark">{c.mark}</span>
+                  <p className="cp-notice-item-text">{isNP ? c.np : c.en}</p>
+                </div>
+              )
+            })}
           </div>
         </div>
 
+        {/* closing signature */}
+        <div className="cp-notice-closing">
+          <p className="cp-notice-quote">
+            {isNP
+              ? '"इच्छा वा आवश्यकताले आउनुहोस् — हठात् मनले होइन, चर्चा वा दावीले तानिएर होइन।"'
+              : '"Come out of want, or out of need — never on a whim, and never because we\'re being talked about."'}
+          </p>
+          <div className="cp-notice-signoff">
+            <span className="cp-notice-signoff-name">
+              — <strong>{isNP ? 'कमन साइकोलोजी' : 'Common Psychology'}</strong>
+            </span>
+            <button className="cp-notice-cta-btn" onClick={() => go('/book')}>
+              {isNP ? 'सत्र बुक गर्नुहोस् →' : 'Book a Session →'}
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   )
