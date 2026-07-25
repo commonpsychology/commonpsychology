@@ -272,6 +272,7 @@ export default function OurNews() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
         html,body{overflow-x:hidden;max-width:100vw}
+        html,body{overflow-x:hidden;max-width:100vw}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         ::-webkit-scrollbar{width:6px}
@@ -351,10 +352,10 @@ export default function OurNews() {
 
         {/* Main layout */}
         <div className="news-layout" style={{ maxWidth:1200, margin:"0 auto", padding:"2.5rem 2rem",
-          display:"grid", gridTemplateColumns:"1fr 320px", gap:"2.5rem" }}>
+          display:"grid", gridTemplateColumns:"minmax(0,1fr) 320px", gap:"2.5rem" }}>
 
           {/* LEFT */}
-          <div>
+          <div style={{ minWidth:0 }}>
             {loading ? (
               <div style={{ display:"flex", flexDirection:"column", gap:"1.5rem" }}>
                 <Skeleton h={420} /><div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1.25rem" }}><Skeleton h={260}/><Skeleton h={260}/></div>
@@ -429,7 +430,7 @@ export default function OurNews() {
 
                 {/* SECONDARY 2-col */}
                 {secondary.length > 0 && (
-                  <div className="secondary-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
+                  <div className="secondary-grid" style={{ display:"grid", gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",
                     gap:"1.25rem", marginBottom:"1.25rem" }}>
                     {secondary.map((a,i)=>(
                       <div key={a.id} onClick={()=>goToArticle(a)}
@@ -490,7 +491,7 @@ export default function OurNews() {
                   borderRadius:6, overflow:"hidden", marginBottom:"2rem" }}>
                   {paginated.map((a,i)=>(
                     <div key={a.id} onClick={()=>goToArticle(a)}
-                      style={{ display:"grid", gridTemplateColumns:"120px 1fr",
+                      style={{ display:"grid", gridTemplateColumns:"120px minmax(0,1fr)",
                         background:T.white, cursor:"pointer", transition:"background 0.18s",
                         animation:`fadeUp ${0.3+i*0.06}s ease both` }}
                       onMouseEnter={e=>e.currentTarget.style.background=T.paperDeep}
