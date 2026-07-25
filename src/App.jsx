@@ -18,6 +18,7 @@ import ResourcesPage       from './pages/ResourcesPage'
 import VerifyAccountPage   from './pages/VerifyAccountPage'
 import NoticeDemoCheck      from './pages/NoticeDemoCheck'
 import OurNews             from './pages/OurNews'
+import ReturnRefundPage      from './pages/ReturnRefundPage'
 import DisasterManagement  from './pages/DisasterManagement'
 import NewsDetailPage      from './pages/NewsDetailPage'
 import PsychologicalArticlePage from './pages/PsychologicalArticlePage'
@@ -102,6 +103,7 @@ const ROUTES = {
   '/payment/esewa/failure':      EsewaFailurePage,
   '/courses-videos':     OnlineCourses,
   '/register':           RegisterPage,
+  '/return-refund':       ReturnRefundPage,
   '/integrate':          IntegratePage,
   '/disaster-management': DisasterManagement,
   '/store':              StorePage,
