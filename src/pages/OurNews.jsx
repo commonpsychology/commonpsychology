@@ -271,6 +271,7 @@ export default function OurNews() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
+        html,body{overflow-x:hidden;max-width:100vw}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         ::-webkit-scrollbar{width:6px}
@@ -288,7 +289,7 @@ export default function OurNews() {
 }
       `}</style>
 
-      <div style={{ paddingTop:72, background:'linear-gradient(160deg, #d8f0ff 0%, #eaf6ff 40%, #ffffff 100%)', minHeight:"100vh" }}>
+      <div style={{ paddingTop:72, background:'linear-gradient(160deg, #d8f0ff 0%, #eaf6ff 40%, #ffffff 100%)', minHeight:"100vh", overflowX:"hidden" }}>
         <BreakingTicker />
 
         {/* Masthead / hero header */}
@@ -322,8 +323,8 @@ export default function OurNews() {
         <div className="news-filter" style={{ background:T.paper, borderBottom:`1px solid ${T.ink}`,
           padding:"1rem 6rem", position:"sticky", top:72, zIndex:50 }}>
           <div style={{ maxWidth:1200, margin:"0 auto", display:"flex", alignItems:"center",
-            justifyContent:"space-between", gap:"1.5rem", flexWrap:"wrap" }}>
-            <div className="news-filter-pills" style={{ display:"flex", gap:"0.5rem", flexWrap:"wrap" }}>
+            justifyContent:"space-between", gap:"1.5rem", flexWrap:"wrap", minWidth:0 }}>
+            <div className="news-filter-pills" style={{ display:"flex", gap:"0.5rem", flexWrap:"wrap", minWidth:0, flex:"1 1 auto" }}>
               {categories.map(c=>(
                 <CatPill key={c} label={c} active={activeCategory===c}
                   onClick={()=>{ setActiveCategory(c); setPage(1) }} />
