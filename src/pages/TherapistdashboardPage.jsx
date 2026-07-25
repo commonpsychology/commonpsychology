@@ -344,7 +344,7 @@ export default function TherapistDashboard() {
   }
 
   useEffect(() => {
-    apiFetch('/therapist-portal/live-session').then(d => {
+    apiFetch('/admin/live-session').then(d => {
       if (d.liveStatus?.status === 'in_session') {
         setLiveSession({ ...d.liveStatus, client_name: d.liveStatus.clients?.full_name })
       }
@@ -359,7 +359,7 @@ export default function TherapistDashboard() {
 
   async function startLiveSessionFor(appt) {
     try {
-      const d = await apiFetch('/therapist-portal/live-session/start', {
+      const d = await apiFetch('/admin/live-session/start', {
         method: 'POST', body: JSON.stringify({ appointment_id: appt.id }),
       })
       setLiveSession({ ...d.liveStatus, client_name: d.client_name })
@@ -369,7 +369,7 @@ export default function TherapistDashboard() {
 
   async function endLiveSessionNow() {
     try {
-      await apiFetch('/therapist-portal/live-session/end', { method: 'POST' })
+      await apiFetch('/admin/live-session/end', { method: 'POST' })
       setLiveSession(null)
       showToast('Session ended', 'success')
     } catch (e) { showToast(e.message) }
@@ -650,14 +650,25 @@ export default function TherapistDashboard() {
                           </button>
                         )}
                         {a.status === 'confirmed' && (
-                          <button
-                            className="th-action-btn"
-                            disabled={isUpdating}
-                            onClick={() => requestMarkDone(a)}
-                            style={{ border:`1px solid #22c55e`, background:'#e8f8f0', color:'#1a7a4a' }}>
-                            {isUpdating ? 'Saving…' : 'Mark Done'}
-                          </button>
-                        )}
+  <>
+    {!liveSession && (
+      <button
+        className="th-action-btn"
+        disabled={isUpdating}
+        onClick={() => startLiveSessionFor(a)}
+        style={{ border:'1px solid #007BA8', background:'#e0f7ff', color:'#007BA8' }}>
+        ▶ Start Session
+      </button>
+    )}
+    <button
+      className="th-action-btn"
+      disabled={isUpdating}
+      onClick={() => requestMarkDone(a)}
+      style={{ border:`1px solid #22c55e`, background:'#e8f8f0', color:'#1a7a4a' }}>
+      {isUpdating ? 'Saving…' : 'Mark Done'}
+    </button>
+  </>
+)}
                       </div>
                     </div>
                   )
