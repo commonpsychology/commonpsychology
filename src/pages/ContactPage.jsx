@@ -17,18 +17,25 @@ const CONTACT_CSS = `
   }
 
   .cp3-card {
-    background: linear-gradient(180deg, #c7e3f7 0%, var(--white) 42%);
-    border-bottom: 1px solid var(--blue-pale);
+    background: var(--white);
     box-shadow: var(--shadow-soft, 0 20px 50px rgba(15,52,96,0.08));
     overflow: hidden;
   }
 
   .cp3-head {
-    padding: 2.75rem 3rem 1.75rem;
+    position: relative;
+    width: 100%;
+    padding: 3.5rem 3rem;
     text-align: center;
+    background: linear-gradient(160deg, rgba(255,255,255,0.85) 0%, rgba(214,238,252,0.6) 50%, rgba(199,227,247,0.75) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.65);
+    box-shadow: 0 10px 34px rgba(0,123,168,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+    overflow: hidden;
   }
   @media (max-width: 600px) {
-    .cp3-head { padding: 2.25rem 1.5rem 1.25rem; }
+    .cp3-head { padding: 2.5rem 1.5rem 2rem; }
   }
 
   .cp3-tag {
