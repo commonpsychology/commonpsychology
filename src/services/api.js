@@ -314,7 +314,14 @@ export const admin = {
 
     registerStaff: (body) => post('/admin/register-staff', body),
 
-registerRider: (payload) => post('/admin/delivery-riders', payload),
+  registerRider: (payload) => post('/admin/delivery-riders', payload),
+
+  staffMembers: (params = {}) => {
+    const q = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== ''))
+    ).toString()
+    return get(`/admin/staff-members${q ? `?${q}` : ''}`)
+  },
 
 }
 
