@@ -24,7 +24,7 @@ export default function ReturnRefundSection() {
     <section style={{
       position: 'relative',
       overflow: 'hidden',
-      padding: 'clamp(3rem,7vw,5rem) 1.5rem',
+      padding: 'clamp(5rem,10vw,7.5rem) 1.5rem clamp(3rem,7vw,5rem)',
       background:
         'radial-gradient(circle at 12% 0%, rgba(14,165,233,0.12), transparent 55%),' +
         'radial-gradient(circle at 100% 100%, rgba(41,128,185,0.10), transparent 55%),' +
