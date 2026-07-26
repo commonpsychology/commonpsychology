@@ -111,7 +111,7 @@ export default function Therapists() {
           padding: 0.95rem 3rem; border-radius: 100px; border: none;
           background: linear-gradient(135deg, ${TOKENS.oceanCore} 0%, ${TOKENS.oceanBright} 100%);
           color: white; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 1rem;
-          cursor: pointer; box-shadow: 0 8px 28px rgba(0,123,168,0.35); transition: all 0.2s;
+          cursor: pointer; box-shadow: 0 8px 28px #00BFFF; transition: all 0.2s;
         }
         .th-cta:hover { transform: translateY(-2px); }
 
