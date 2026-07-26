@@ -560,6 +560,19 @@ export default function Navbar() {
             box-shadow: 0 2px 8px rgba(0,60,90,0.06);
           }
         }
+
+        @media (max-width: 480px) {
+          .logo-text-cp {
+            font-size: 0.82rem !important;
+            line-height: 1.35 !important;
+            color: #17b978 !important;
+          }
+          .logo-sub-cp {
+            font-size: 0.62rem !important;
+            line-height: 1.3 !important;
+            color: #17b978 !important;
+          }
+        }
       `}</style>
       <nav className="navbar">
         <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}>
@@ -569,8 +582,8 @@ export default function Navbar() {
                 style={{ width:'100%', height:'100%', objectFit:'contain', display:'block' }} />
             </div>
             <div>
-              <div className="logo-text" style={{
-                fontSize: window.innerWidth <= 480 ? '0.62rem' : '1.05rem',
+              <div className="logo-text logo-text-cp" style={{
+                fontSize: '1.05rem',
                 fontWeight: 800,
                 letterSpacing: '0.02em',
                 color: '#1d9e75',
@@ -578,11 +591,11 @@ export default function Navbar() {
               }}>
   {lang==='NP' ? 'साझा मनोविज्ञान' : 'COMMON PSYCHOLOGY'}
 </div>
-              <div className="logo-sub" style={{
+              <div className="logo-sub logo-sub-cp" style={{
                 fontWeight: 700,
                 letterSpacing: '0.03em',
                 color: '#1d9e75',
-                fontSize: window.innerWidth <= 480 ? '0.52rem' : '0.7rem',
+                fontSize: '0.7rem',
               }}>{lang==='NP' ? 'मानसिक स्वास्थ्य केन्द्र' : 'Mental Wellness Center'}</div>
             </div>
           </div>

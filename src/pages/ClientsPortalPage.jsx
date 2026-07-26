@@ -1054,7 +1054,7 @@ export default function ClientPortalPage() {
             ) : upcoming.length === 0 ? (
               <div style={{ background:GLASS.base, backdropFilter:GLASS.blur, WebkitBackdropFilter:GLASS.blur, borderRadius:'var(--radius-md)', padding:'2rem', textAlign:'center', border:GLASS.borderIdle, boxShadow:GLASS.shadowIdle, marginBottom:'2rem' }}>
                 <p style={{ color:'var(--text-light)', marginBottom:'1rem' }}>No upcoming appointments.</p>
-                <button className="btn btn-primary" onClick={() => navigate('/book')}>Book Your First Session →</button>
+                <button className="btn btn-primary" onClick={() => navigate('/book')}>Book A Session →</button>
               </div>
             ) : upcoming.map((a) => {
 
