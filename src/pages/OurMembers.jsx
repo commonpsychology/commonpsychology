@@ -32,7 +32,14 @@ export default function OurMembersPage() {
       style={{
         position: "relative",
         minHeight: "100vh",
-        background: PALETTE.bg,
+        // Bluish-white glassy gradient backdrop, matching NameCloud's page
+        // background — layered radial highlights over a soft diagonal wash.
+        background: `
+          radial-gradient(circle at 15% 10%, #EAF8FC 0%, transparent 45%),
+          radial-gradient(circle at 85% 0%, #DDF3FA 0%, transparent 50%),
+          radial-gradient(circle at 50% 100%, #CDEBF5 0%, transparent 55%),
+          linear-gradient(135deg, #F4FBFD 0%, #E3F4FA 40%, #D3EDF7 70%, #EAF7FB 100%)
+        `,
         color: PALETTE.text,
         fontFamily: UI_FONT,
         overflow: "hidden",
