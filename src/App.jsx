@@ -1,4 +1,41 @@
+import { useEffect } from 'react'
 import { RouterProvider, useRouter } from './context/RouterContext'
+
+const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL}/api`
+
+async function checkUnreadNotifications() {
+  console.log('[notif] checkUnreadNotifications fired')
+  const token = localStorage.getItem('accessToken')
+  if (!token) {
+    console.log('[notif] no token, skipping')
+    return
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/notifications?unread=true`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) return
+    const data = await res.json()
+
+    console.log('[notif] unreadCount:', data.unreadCount)
+    if (data.unreadCount > 0) {
+      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const perm = await LocalNotifications.requestPermissions()
+      console.log('[notif] permission result:', perm)
+      await LocalNotifications.schedule({
+        notifications: [{
+          title: 'Common Psychology',
+          body: `You have ${data.unreadCount} new notification(s)`,
+          id: Date.now() % 100000,
+        }],
+      })
+      console.log('[notif] scheduled successfully')
+    }
+  } catch (err) {
+    console.log('[notif] ERROR:', err)
+  }
+}
 import { AuthProvider } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
 import { PaymentProvider } from './components/PaymentModal'
@@ -157,6 +194,27 @@ function resolveDynamicRoute(path) {
   return null
 }
 
+function BackButtonHandler() {
+  useEffect(() => {
+    if (window.Capacitor) {
+      import('@capacitor/app').then(({ App }) => {
+        App.addListener('backButton', () => {
+          if (window.location.pathname === '/' || window.location.pathname === '') {
+            App.exitApp()
+          } else {
+            window.history.back()
+          }
+        })
+
+        App.addListener('appStateChange', ({ isActive }) => {
+          if (isActive) checkUnreadNotifications()
+        })
+      })
+    }
+  }, [])
+  return null
+}
+
 function AppRoutes() {
   const { currentPath } = useRouter()
 
@@ -193,6 +251,7 @@ export default function App() {
           <PaymentProvider>
             <TherapistsProvider>
               <div className="app">
+                <BackButtonHandler />
                 <AppRoutes />
                 <BookingDebugPanel />
                 <TawkChat />
