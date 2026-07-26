@@ -40,7 +40,7 @@ function watermarkBg(color = '#4f9cf9', opacity = 0.07) {
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
 }
 
-export default function SmartDatePicker({ value, onChange, minDate, disabledDay, placeholder = 'YYYY-MM-DD' }) {
+export default function SmartDatePicker({ value, onChange, minDate, maxDate, disabledDay, placeholder = 'YYYY-MM-DD', yearsBack = 1, yearsForward = 10 }) {
   const [open, setOpen] = useState(false)
   const [text, setText] = useState(value || '')
   const [viewYear, setViewYear] = useState(value ? +value.slice(0, 4) : new Date().getFullYear())
@@ -100,7 +100,7 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
   function isDisabled(y, m, d) {
     const iso = toISO(y, m, d)
     const dObj = new Date(y, m, d)
-    return (minDate && iso < minDate) || (disabledDay && disabledDay(dObj))
+    return (minDate && iso < minDate) || (maxDate && iso > maxDate) || (disabledDay && disabledDay(dObj))
   }
 
   function goToday() {
@@ -130,7 +130,7 @@ export default function SmartDatePicker({ value, onChange, minDate, disabledDay,
   const cells = [...Array(startOffset).fill(null), ...Array(daysInMonth)].map((_, i) =>
     i < startOffset ? null : i - startOffset + 1
   )
-  const years = Array.from({ length: 12 }, (_, i) => new Date().getFullYear() + i - 1)
+  const years = Array.from({ length: yearsBack + yearsForward + 1 }, (_, i) => new Date().getFullYear() + i - yearsBack)
   const monthKey = `${viewYear}-${viewMonth}`
 
   return (
