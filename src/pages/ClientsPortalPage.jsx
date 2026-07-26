@@ -254,6 +254,11 @@ function paymentStatusBadge(paymentStatus, paymentMethod) {
 const UNPAID_GRACE_MINUTES = 20
 
 function isStaleUnpaid(appt) {
+  // Confirmed appointments are real, active bookings — never hide these,
+  // even if payment is still pending/unpaid (e.g. cash/in-person payment,
+  // or staff confirmed manually before the gateway callback fired).
+  if (appt.status === 'confirmed') return false
+
   const unpaidStates = ['unpaid', 'pending', undefined, null]
   if (!unpaidStates.includes(appt.payment_status)) return false
   const createdAt = new Date(appt.created_at || appt.scheduled_at).getTime()
