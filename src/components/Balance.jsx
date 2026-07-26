@@ -47,18 +47,18 @@ const INF_PATH = `M ${CX},${CY} C ${CX+55},${CY-72} ${CX+200},${CY-72} ${CX+260}
 
 const PARTICLES = [
   { r: 5,   color: "#93c5fd", dur: "6s",   begin: "0s"    },
-  { r: 3.5, color: "#a78bfa", dur: "7.5s", begin: "-1.5s" },
-  { r: 4,   color: "#818cf8", dur: "5.5s", begin: "-3s"   },
-  { r: 3,   color: "#c4b5fd", dur: "8.2s", begin: "-4.8s" },
+  { r: 3.5, color: "#7dd3fc", dur: "7.5s", begin: "-1.5s" },
+  { r: 4,   color: "#38bdf8", dur: "5.5s", begin: "-3s"   },
+  { r: 3,   color: "#bae6fd", dur: "8.2s", begin: "-4.8s" },
   { r: 4.5, color: "#60a5fa", dur: "6.5s", begin: "-2.2s" },
-  { r: 3,   color: "#e0e7ff", dur: "9s",   begin: "-5.5s" },
-  { r: 2.5, color: "#ddd6fe", dur: "7s",   begin: "-1s"   },
+  { r: 3,   color: "#e0f2fe", dur: "9s",   begin: "-5.5s" },
+  { r: 2.5, color: "#bfe9fb", dur: "7s",   begin: "-1s"   },
   { r: 4,   color: "#bfdbfe", dur: "8.5s", begin: "-6.5s" },
 ];
 
 // ─── Infinity Scale SVG ───────────────────────────────────────────────────────
 function InfinityScaleSVG({ bodyWeights, mindWeights, tilt }) {
-  const angle   = Math.max(-12, Math.min(12, tilt * 12));
+  const angle   = Math.max(-12, Math.min(12, -tilt * 12));
   const DISH_Y  = 262;
   const L       = 80;
   const R       = 600;
@@ -74,13 +74,13 @@ function InfinityScaleSVG({ bodyWeights, mindWeights, tilt }) {
       <defs>
         <path id="infMP" d={INF_PATH} />
         <linearGradient id="infG" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   stopColor="#7c3aed" stopOpacity="0.95" />
-          <stop offset="45%"  stopColor="#818cf8" />
+          <stop offset="0%"   stopColor="#0077b6" stopOpacity="0.95" />
+          <stop offset="45%"  stopColor="#00BFFF" />
           <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.95" />
         </linearGradient>
         <radialGradient id="centreGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stopColor="#818cf8" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#818cf8" stopOpacity="0"   />
+          <stop offset="0%"   stopColor="#00BFFF" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#00BFFF" stopOpacity="0"   />
         </radialGradient>
         <linearGradient id="ldg" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%"   stopColor="rgba(255,255,255,0.98)" />
@@ -88,7 +88,7 @@ function InfinityScaleSVG({ bodyWeights, mindWeights, tilt }) {
         </linearGradient>
         <linearGradient id="rdg" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%"   stopColor="rgba(255,255,255,0.98)" />
-          <stop offset="100%" stopColor="rgba(237,233,254,0.82)" />
+          <stop offset="100%" stopColor="rgba(219,238,252,0.82)" />
         </linearGradient>
       </defs>
 
@@ -122,12 +122,12 @@ function InfinityScaleSVG({ bodyWeights, mindWeights, tilt }) {
 
         <ellipse cx={R} cy={DISH_Y} rx={64} ry={25} fill="url(#rdg)" stroke="#c4b5fd" strokeWidth="1.8" />
         {mindWeights.slice(0, 8).map((w, i) => (
-          <circle key={w.id} cx={R - 22 + (i % 4) * 14} cy={DISH_Y - 5 + Math.floor(i / 4) * 13} r={5.5} fill="#7c3aed" fillOpacity="0.88" />
+          <circle key={w.id} cx={R - 22 + (i % 4) * 14} cy={DISH_Y - 5 + Math.floor(i / 4) * 13} r={5.5} fill="#00BFFF" fillOpacity="0.88" />
         ))}
         {mindWeights.length === 0 && (
           <text x={R} y={DISH_Y + 7} textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="Lato,sans-serif" fontStyle="italic">empty</text>
         )}
-        <text x={R} y={DISH_Y + 44} textAnchor="middle" fill="#5b21b6" fontSize="9" fontFamily="Lato,sans-serif" fontWeight="700" letterSpacing="0.14em">MENTAL</text>
+        <text x={R} y={DISH_Y + 44} textAnchor="middle" fill="#007BA8" fontSize="9" fontFamily="Lato,sans-serif" fontWeight="700" letterSpacing="0.14em">MENTAL</text>
       </g>
     </svg>
   );
@@ -136,8 +136,8 @@ function InfinityScaleSVG({ bodyWeights, mindWeights, tilt }) {
 // ─── WeightChip ───────────────────────────────────────────────────────────────
 function WeightChip({ item, selected, onToggle, side }) {
   const isBody   = side === "body";
-  const accent   = isBody ? "#2563eb" : "#5b21b6";
-  const accentBg = isBody ? "#dbeafe" : "#ede9fe";
+  const accent   = isBody ? "#2563eb" : "#0077b6";
+  const accentBg = isBody ? "#dbeafe" : "#d6f3fd";
 
   return (
     <button
@@ -226,10 +226,10 @@ export default function BalanceWithin() {
       }
       @keyframes glowPulse {
         0%, 100% {
-          text-shadow: 0 0 40px rgba(167,139,250,0.5), 0 0 80px rgba(124,58,237,0.2);
+          text-shadow: 0 0 40px rgba(56,189,248,0.5), 0 0 80px rgba(0,191,255,0.2);
         }
         50% {
-          text-shadow: 0 0 80px rgba(167,139,250,0.95), 0 0 150px rgba(124,58,237,0.6);
+          text-shadow: 0 0 80px rgba(56,189,248,0.95), 0 0 150px rgba(0,191,255,0.6);
         }
       }
     `;
@@ -257,7 +257,7 @@ export default function BalanceWithin() {
     neutral:  { bg: "#f0f9ff", border: "#bae6fd", title: "#0369a1", body: "#475569" },
     balanced: { bg: "#f0fdf4", border: "#bbf7d0", title: "#15803d", body: "#475569" },
     body:     { bg: "#eff6ff", border: "#bfdbfe", title: "#1d4ed8", body: "#475569" },
-    mind:     { bg: "#f5f3ff", border: "#ddd6fe", title: "#5b21b6", body: "#475569" },
+    mind:     { bg: "#eef8ff", border: "#bfe3fb", title: "#007BA8", body: "#475569" },
   }[insight.mood];
 
   return (
@@ -333,8 +333,8 @@ export default function BalanceWithin() {
             </div>
           </div>
           <div>
-            <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: "15px", color: "#5b21b6", marginBottom: "14px", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ display: "inline-flex", width: "8px", height: "8px", borderRadius: "50%", background: "#7c3aed", flexShrink: 0 }} />
+            <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: "15px", color: "#007BA8", marginBottom: "14px", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ display: "inline-flex", width: "8px", height: "8px", borderRadius: "50%", background: "#00BFFF", flexShrink: 0 }} />
               Mental
             </h3>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
