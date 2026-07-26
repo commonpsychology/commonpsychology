@@ -122,6 +122,7 @@ function NotificationBell({ onNavigate }) {
     <button
       onClick={handleClick}
       aria-label="Notifications"
+      className="navbar-icon-btn"
       style={{
         position: 'relative',
         width: 38, height: 38,
@@ -204,6 +205,7 @@ function AvatarDropdown({ onNavigate }) {
   return (
     <div ref={ref} style={{ position:'relative' }}>
       <button onClick={handleOpen} aria-label="Account menu"
+        className="navbar-icon-btn"
         style={{ width:38, height:38, borderRadius:'50%',
           border:`2px solid ${open ? 'var(--sky)' : 'var(--blue-pale)'}`,
           cursor:'pointer', padding:0, flexShrink:0,
@@ -561,16 +563,58 @@ export default function Navbar() {
           }
         }
 
+        @media (max-width: 768px) {
+          .navbar-cta { display: none !important; }
+          .navbar-lang-btn { display: none !important; }
+        }
+
         @media (max-width: 480px) {
+          .navbar {
+            padding: 0.5rem 0.5rem !important;
+            gap: 0.3rem !important;
+          }
+          .navbar-logo {
+            gap: 6px !important;
+            min-width: 0 !important;
+            flex-shrink: 1 !important;
+          }
+          .logo-mark {
+            width: 34px !important;
+            height: 34px !important;
+            flex-shrink: 0 !important;
+          }
           .logo-text-cp {
-            font-size: 0.82rem !important;
-            line-height: 1.35 !important;
+            font-size: 0.68rem !important;
+            line-height: 1.25 !important;
             color: #17b978 !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            max-width: none !important;
           }
           .logo-sub-cp {
-            font-size: 0.62rem !important;
-            line-height: 1.3 !important;
+            font-size: 0.52rem !important;
+            line-height: 1.25 !important;
             color: #17b978 !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+          }
+          .navbar-actions {
+            gap: 0.3rem !important;
+            flex-shrink: 0 !important;
+          }
+          .navbar-icon-btn {
+            width: 32px !important;
+            height: 32px !important;
+          }
+          .navbar-icon-btn svg {
+            width: 15px !important;
+            height: 15px !important;
+          }
+          .hamburger {
+            flex-shrink: 0 !important;
+            margin-left: 0 !important;
           }
         }
       `}</style>
@@ -611,7 +655,7 @@ export default function Navbar() {
         <div style={{ width:'3rem', flexShrink:0 }} />
         <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }} />
 
-        <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}>
+        <div className="navbar-actions" style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}>
 
           {/* ── Desktop language toggle ── */}
           <button onClick={toggle}

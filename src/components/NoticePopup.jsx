@@ -105,6 +105,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
         <img
           src={HEADER_IMAGE}
           alt="logo"
+          className="cp-corner-logo"
           style={{
             position: 'absolute',
             top: '1.2rem',
@@ -139,32 +140,81 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
           .cp-glow-btn:hover { transform: translateY(-1px); }
 
           @media (max-width: 480px) {
-            .cp-refblock { text-align: center !important; }
+            .cp-refblock {
+              text-align: center !important;
+              font-size: 10px !important;
+              line-height: 1.4 !important;
+              margin-bottom: 0 !important;
+            }
 
             .cp-header {
-              flex-direction: column !important;
-              text-align: center !important;
-              gap: 10px !important;
-              padding: 0.5rem 1rem 0.4rem !important;
+              flex-direction: row !important;
+              text-align: left !important;
+              gap: 8px !important;
+              padding: 0.3rem 0 0.2rem !important;
+              margin: 0.2rem 0 0.5rem !important;
+            }
+            .cp-header img {
+              width: 42px !important;
+              height: 42px !important;
             }
             .cp-heading-np {
               margin-left: 0 !important;
-              text-align: center !important;
+              text-align: left !important;
+              font-size: 15px !important;
+              line-height: 1.15 !important;
             }
-            .cp-heading-en { text-align: center !important; }
+            .cp-heading-en {
+              text-align: left !important;
+              font-size: 10px !important;
+              margin-top: 1px !important;
+            }
+
+            .cp-subject { font-size: 12px !important; margin-bottom: 0.5rem !important; }
+
+            .cp-body { font-size: 11px !important; line-height: 1.4 !important; }
+            .cp-body p { margin: 0 0 0.4rem !important; text-indent: 1.2em !important; }
 
             .cp-footer {
-              flex-direction: column !important;
-              align-items: center !important;
-              gap: 1.5rem !important;
-              text-align: center !important;
+              flex-direction: row !important;
+              align-items: flex-end !important;
+              gap: 0.5rem !important;
+              text-align: left !important;
+              margin-top: 0.8rem !important;
             }
+            .cp-footer > div:first-child { font-size: 10px !important; line-height: 1.3 !important; }
             .cp-sig-block { text-align: center !important; }
+            .cp-sig-block img { height: 32px !important; }
+            .cp-sig-block > div:nth-child(2) { font-size: 10px !important; padding-top: 2px !important; }
+            .cp-sig-block > div:nth-child(3) { font-size: 9px !important; }
 
-            .cp-actions { flex-direction: column !important; }
-            .cp-actions button { width: 100% !important; }
+            .cp-actions {
+              flex-direction: row !important;
+              margin-top: 0.7rem !important;
+              gap: 6px !important;
+            }
+            .cp-actions button {
+              width: 100% !important;
+              padding: 7px 10px !important;
+              font-size: 11px !important;
+            }
 
-            .cp-letter-body { padding: 1.75rem 1.4rem 2rem !important; }
+            .cp-letter-body { padding: 0.8rem 1rem 1rem !important; }
+
+            .cp-close-btn {
+              width: 24px !important;
+              height: 24px !important;
+              top: 8px !important;
+              right: 8px !important;
+              font-size: 12px !important;
+            }
+
+            .cp-corner-logo {
+              top: 0.6rem !important;
+              right: 2.6rem !important;
+              width: 30px !important;
+              height: 30px !important;
+            }
           }
         `}</style>
 
@@ -172,6 +222,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
         <button
           onClick={dismiss}
           aria-label="Close"
+          className="cp-close-btn"
           style={{
             position: 'absolute',
             top: 14,
@@ -255,7 +306,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
           </div>
 
           {/* Subject (dynamic) */}
-          <div style={{ textAlign: 'center', marginBottom: '1.4rem' }}>
+          <div className="cp-subject" style={{ textAlign: 'center', marginBottom: '1.4rem' }}>
             <span
               style={{
                 fontSize: 16,
@@ -269,7 +320,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
           </div>
 
           {/* Body (dynamic) */}
-          <div style={{ fontSize: 15, lineHeight: 2, textAlign: 'justify' }}>
+          <div className="cp-body" style={{ fontSize: 15, lineHeight: 2, textAlign: 'justify' }}>
             {notice.bodyParagraphs.map((p, i) => (
               <p key={i} style={{ margin: '0 0 1rem', textIndent: '2em' }}>
                 {p}
@@ -313,7 +364,7 @@ export default function NoticePopup({ storageKey = 'notice_v2', notice = NOTICE 
           </div>
 
           {/* Action buttons */}
-          <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: 10 }}>
+          <div className="cp-actions" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: 10 }}>
             <button
               onClick={dismiss}
               className="cp-glow-btn"
