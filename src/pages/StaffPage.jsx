@@ -362,7 +362,7 @@ useEffect(() => {
             radial-gradient(ellipse 80% 60% at 20% 40%, rgba(180,230,210,0.55) 0%, transparent 70%),
             radial-gradient(ellipse 70% 80% at 80% 20%, rgba(186,220,248,0.5) 0%, transparent 65%),
             radial-gradient(ellipse 60% 50% at 60% 80%, rgba(254,243,199,0.45) 0%, transparent 60%),
-            linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #f5e538 100%)
+            linear-gradient(160deg, #18ea81 0%, #0c9ff4 45%, #ecebe7 100%)
           `,
           textAlign: "center",
         }}
