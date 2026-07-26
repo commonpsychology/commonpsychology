@@ -47,7 +47,7 @@ const NAV = [
   ]},
 
   { label: 'Connect', labelNP: 'आश्रम', path: '/ashram', children: [
-    { label: 'Connect',           labelNP: 'आश्रम',             path: '/ashram',       icon: '🏠', desc: 'Place to connect',           descNP: 'जोडिने स्थान' },
+    { label: 'Your Place',           labelNP: 'तपाईंको स्थान',             path: '/ashram',       icon: '🏠', desc: 'Place to connect',           descNP: 'जोडिने स्थान' },
     { label: 'Our Members',         labelNP: 'हाम्रा सदस्यहरू',         path: '/our-members',    icon: '🤲', desc: 'Meet our members',    descNP: 'हाम्रा सदस्यहरूसँग भेट्नुहोस्' },
   ]},
 ]
