@@ -77,6 +77,35 @@ export default function NamasteLoader({ duration = 2800, onDone }) {
           50%  { background-position: 100% 50%; }
           100% { background-position: 0% 50%;   }
         }
+
+        .nm-values-bar {
+          background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(0,191,255,0.25));
+          border: 1.5px solid rgba(0,191,255,0.45);
+          box-shadow: 0 4px 24px rgba(0,191,255,0.25), inset 0 1px 1px rgba(255,255,255,0.6);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+        .nm-values-bar .nm-value-item {
+          border-right: 1px solid rgba(0,191,255,0.3);
+        }
+        .nm-values-bar .nm-value-item:last-child {
+          border-right: none;
+        }
+
+        @media (max-width: 480px) {
+          .nm-values-bar {
+            margin-top: 14px !important;
+            border-radius: 10px !important;
+          }
+          .nm-values-bar .nm-value-item {
+            padding: 6px 10px !important;
+            font-size: 9px !important;
+            gap: 2px !important;
+          }
+          .nm-values-bar .nm-value-item span {
+            font-size: 14px !important;
+          }
+        }
       `}</style>
 
       {/* Root overlay */}
@@ -175,21 +204,17 @@ export default function NamasteLoader({ duration = 2800, onDone }) {
         </div>
 
         {/* Values bar */}
-        <div style={{
+        <div className="nm-values-bar" style={{
           position: 'relative', zIndex: 2,
           display: 'flex', marginTop: 20,
-          border: '1.5px solid rgba(0,140,200,0.35)',
           borderRadius: 14, overflow: 'hidden',
-          background: 'rgba(255,255,255,0.45)',
-          backdropFilter: 'blur(6px)',
           animation: 'nm-text-rise 1s cubic-bezier(0.22,1,0.36,1) 0.65s both',
         }}>
           {VALUES.map((v, i) => (
-            <div key={i} style={{
+            <div key={i} className="nm-value-item" style={{
               padding: '10px 18px', textAlign: 'center',
               fontSize: 11, color: '#004d73', fontWeight: 600,
               letterSpacing: '0.06em', textTransform: 'uppercase',
-              borderRight: i < VALUES.length - 1 ? '1px solid rgba(0,140,200,0.25)' : 'none',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
             }}>
               <span style={{ fontSize: 18 }}>{v.icon}</span>
