@@ -159,11 +159,11 @@ export default function NoticeSection() {
           width: calc(50% - 2rem);
           padding: 1.3rem 1.4rem;
           border-radius: var(--radius-lg);
-          background: rgba(255,255,255,0.55);
+          background: radial-gradient(ellipse at center, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.8) 45%, rgba(214,238,252,0.6) 100%);
           backdrop-filter: blur(20px) saturate(140%);
           -webkit-backdrop-filter: blur(20px) saturate(140%);
-          border: 1px solid rgba(255,255,255,0.6);
-          box-shadow: 0 8px 24px rgba(15,52,96,0.06), inset 0 1px 0 rgba(255,255,255,0.7);
+          border: 1px solid rgba(255,255,255,0.65);
+          box-shadow: 0 10px 30px rgba(0,123,168,0.1), inset 0 1px 0 rgba(255,255,255,0.7);
           transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
         }
         .cp-notice-icon-badge {
@@ -206,12 +206,12 @@ export default function NoticeSection() {
           position: relative;
           border-radius: var(--radius-lg);
           padding: 2.4rem 2.2rem;
-          background: radial-gradient(ellipse at center, rgba(224,247,255,0.75) 0%, rgba(255,255,255,0.55) 65%, rgba(255,255,255,0.45) 100%);
+          background: radial-gradient(ellipse at center, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.8) 50%, rgba(199,227,247,0.6) 100%);
           backdrop-filter: blur(24px) saturate(140%);
           -webkit-backdrop-filter: blur(24px) saturate(140%);
           border: 1px solid rgba(255,255,255,0.65);
           border-left: 3px solid #00BFFF;
-          box-shadow: 0 20px 50px rgba(0,191,255,0.14), inset 0 1px 0 rgba(255,255,255,0.75);
+          box-shadow: 0 20px 50px rgba(0,123,168,0.14), inset 0 1px 0 rgba(255,255,255,0.75);
           opacity: 0;
           transform: translateY(18px);
           transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
