@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, Users, Loader2 } from "lucide-react";
+import { RefreshCw, Users, Loader2, UserPlus } from "lucide-react";
 
 /**
  * NameCloud
@@ -38,6 +38,13 @@ import { RefreshCw, Users, Loader2 } from "lucide-react";
  *     fetchCount={async () => (await fetch('/api/profiles/count')).json()}
  *     fetchSample={async (n) => (await fetch(`/api/profiles/sample?n=${n}`)).json()}
  *   />
+ *
+ * REGISTER CTA
+ * A "Register to be a Member" button sits at the top-right of the header,
+ * styled in the same accent blue as the rest of the palette. By default it
+ * navigates the browser to `/register`; pass `onRegister` to override that
+ * (e.g. to push a client-side route instead of a full navigation), or
+ * `registerHref` to point it somewhere else.
  */
 
 // ---------------------------------------------------------------------------
@@ -183,6 +190,8 @@ export default function NameCloud({
   maxFontPx = 64,
   className = "",
   height = 520,
+  registerHref = "/register",
+  onRegister,
 }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -197,6 +206,16 @@ export default function NameCloud({
     : {};
   const fetchCount = fetchCountProp || fetchers.fetchCount;
   const fetchSample = fetchSampleProp || fetchers.fetchSample;
+
+  const handleRegisterClick = useCallback(() => {
+    if (onRegister) {
+      onRegister();
+      return;
+    }
+    if (typeof window !== "undefined") {
+      window.location.href = registerHref;
+    }
+  }, [onRegister, registerHref]);
 
   const draw = useCallback(
     async (words, canvasWidth, canvasHeight) => {
@@ -337,111 +356,186 @@ export default function NameCloud({
   }, []);
 
   return (
-    <div className={className} style={{ fontFamily: UI_FONT }}>
+    <div
+      style={{
+        fontFamily: UI_FONT,
+        minHeight: "100vh",
+        width: "100%",
+        padding: "32px 24px",
+        boxSizing: "border-box",
+        // Bluish-white glassy gradient backdrop for the whole page, with a
+        // faint crackled/"brittle glass" texture layered on top via
+        // repeating conic gradients at very low opacity.
+        background: `
+          radial-gradient(circle at 15% 10%, #EAF8FC 0%, transparent 45%),
+          radial-gradient(circle at 85% 0%, #DDF3FA 0%, transparent 50%),
+          radial-gradient(circle at 50% 100%, #CDEBF5 0%, transparent 55%),
+          linear-gradient(135deg, #F4FBFD 0%, #E3F4FA 40%, #D3EDF7 70%, #EAF7FB 100%)
+        `,
+        position: "relative",
+      }}
+    >
+      {/* faint brittle-glass crackle texture, purely decorative */}
       <div
+        aria-hidden="true"
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 12,
-          gap: 12,
-          flexWrap: "wrap",
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          opacity: 0.35,
+          mixBlendMode: "overlay",
+          backgroundImage: `
+            repeating-linear-gradient(115deg, rgba(255,255,255,0.5) 0px, rgba(255,255,255,0.5) 1px, transparent 1px, transparent 90px),
+            repeating-linear-gradient(25deg, rgba(27,156,199,0.15) 0px, rgba(27,156,199,0.15) 1px, transparent 1px, transparent 130px)
+          `,
+        }}
+      />
+
+      <div
+        className={className}
+        style={{
+          position: "relative",
+          maxWidth: 1100,
+          margin: "0 auto",
+          background: "rgba(255, 255, 255, 0.45)",
+          backdropFilter: "blur(18px) saturate(160%)",
+          WebkitBackdropFilter: "blur(18px) saturate(160%)",
+          border: "1px solid rgba(255, 255, 255, 0.6)",
+          borderRadius: 24,
+          padding: 20,
+          boxShadow:
+            "0 8px 32px rgba(27, 156, 199, 0.12), inset 0 1px 0 rgba(255,255,255,0.8)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, color: PALETTE.subtext, fontSize: 13 }}>
-          <Users size={15} />
-          {totalCount !== null ? (
-            <span>
-              Showing{" "}
-              <strong style={{ color: PALETTE.text }}>
-                {shownCount.toLocaleString()}
-              </strong>{" "}
-              of{" "}
-              <strong style={{ color: PALETTE.text }}>
-                {totalCount.toLocaleString()}
-              </strong>{" "}
-              names
-            </span>
-          ) : (
-            <span>Loading name pool…</span>
-          )}
-        </div>
-        <button
-          onClick={() => setNonce((n) => n + 1)}
-          disabled={status === "loading"}
+        <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 6,
-            background: "transparent",
-            border: `1px solid ${PALETTE.inkMuted}`,
-            color: PALETTE.text,
-            borderRadius: 999,
-            padding: "6px 14px",
-            fontSize: 13,
-            cursor: status === "loading" ? "default" : "pointer",
-            opacity: status === "loading" ? 0.6 : 1,
+            justifyContent: "space-between",
+            marginBottom: 12,
+            gap: 12,
+            flexWrap: "wrap",
           }}
         >
-          {status === "loading" ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <RefreshCw size={14} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, color: PALETTE.subtext, fontSize: 13 }}>
+            <Users size={15} />
+            {totalCount !== null ? (
+              <span>
+                Showing{" "}
+                <strong style={{ color: PALETTE.text }}>
+                  {shownCount.toLocaleString()}
+                </strong>{" "}
+                of{" "}
+                <strong style={{ color: PALETTE.text }}>
+                  {totalCount.toLocaleString()}
+                </strong>{" "}
+                names
+              </span>
+            ) : (
+              <span>Loading name pool…</span>
+            )}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              onClick={() => setNonce((n) => n + 1)}
+              disabled={status === "loading"}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                background: "transparent",
+                border: `1px solid ${PALETTE.inkMuted}`,
+                color: PALETTE.text,
+                borderRadius: 999,
+                padding: "6px 14px",
+                fontSize: 13,
+                cursor: status === "loading" ? "default" : "pointer",
+                opacity: status === "loading" ? 0.6 : 1,
+              }}
+            >
+              {status === "loading" ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <RefreshCw size={14} />
+              )}
+              Shuffle
+            </button>
+
+            <button
+              onClick={handleRegisterClick}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                background: PALETTE.accent,
+                border: `1px solid ${PALETTE.accent}`,
+                color: "#FFFFFF",
+                borderRadius: 999,
+                padding: "6px 16px",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(27, 156, 199, 0.35)",
+              }}
+            >
+              <UserPlus size={14} />
+              Register to be a Member
+            </button>
+          </div>
+        </div>
+
+        <div
+          ref={containerRef}
+          style={{
+            position: "relative",
+            width: "100%",
+            height,
+            borderRadius: 16,
+            overflow: "hidden",
+            background: `linear-gradient(90deg, ${PALETTE.gradientStops[0].color}, ${PALETTE.gradientStops[1].color} 50%, ${PALETTE.gradientStops[2].color})`,
+            border: `1px solid ${PALETTE.inkMuted}66`,
+          }}
+        >
+          <canvas ref={canvasRef} style={{ display: "block" }} />
+
+          {status === "loading" && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: PALETTE.subtext,
+                fontSize: 13,
+                gap: 8,
+                background: `${PALETTE.gradientStops[2].color}CC`,
+              }}
+            >
+              <Loader2 size={16} className="animate-spin" />
+              Weaving names into place…
+            </div>
           )}
-          Shuffle
-        </button>
-      </div>
 
-      <div
-        ref={containerRef}
-        style={{
-          position: "relative",
-          width: "100%",
-          height,
-          borderRadius: 16,
-          overflow: "hidden",
-          background: `linear-gradient(90deg, ${PALETTE.gradientStops[0].color}, ${PALETTE.gradientStops[1].color} 50%, ${PALETTE.gradientStops[2].color})`,
-          border: `1px solid ${PALETTE.inkMuted}66`,
-        }}
-      >
-        <canvas ref={canvasRef} style={{ display: "block" }} />
-
-        {status === "loading" && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: PALETTE.subtext,
-              fontSize: 13,
-              gap: 8,
-              background: `${PALETTE.gradientStops[2].color}CC`,
-            }}
-          >
-            <Loader2 size={16} className="animate-spin" />
-            Weaving names into place…
-          </div>
-        )}
-
-        {status === "error" && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 24,
-              textAlign: "center",
-              color: "#D9645C",
-              fontSize: 13,
-            }}
-          >
-            {errorMsg}
-          </div>
-        )}
+          {status === "error" && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 24,
+                textAlign: "center",
+                color: "#D9645C",
+                fontSize: 13,
+              }}
+            >
+              {errorMsg}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
