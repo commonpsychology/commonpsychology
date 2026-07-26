@@ -5,7 +5,6 @@ import { LanguageProvider } from './context/LanguageContext'
 import { PaymentProvider } from './components/PaymentModal'
 import { TherapistsProvider } from './context/TherapistsContext'
 import Navbar from './components/Navbar'
-import TawkChat from './components/TawkChat'
 import Footer from './components/Footer'
 import MyOrdersPage from './pages/MyOrdersPage'
 import HomePage            from './pages/HomePage'
@@ -254,7 +253,7 @@ export default function App() {
                 <BackButtonHandler />
                 <AppRoutes />
                 <BookingDebugPanel />
-                <TawkChat />
+              
               </div>
             </TherapistsProvider>
           </PaymentProvider>
