@@ -195,20 +195,31 @@ function resolveDynamicRoute(path) {
 
 function BackButtonHandler() {
   useEffect(() => {
-    if (window.Capacitor) {
-      import('@capacitor/app').then(({ App }) => {
-        App.addListener('backButton', () => {
-          if (window.location.pathname === '/' || window.location.pathname === '') {
-            App.exitApp()
-          } else {
-            window.history.back()
-          }
-        })
+    console.log('[capacitor] window.Capacitor exists?', !!window.Capacitor)
+    if (!window.Capacitor) return
 
-        App.addListener('appStateChange', ({ isActive }) => {
-          if (isActive) checkUnreadNotifications()
-        })
+    let backListener, stateListener
+
+    import('@capacitor/app').then(async ({ App }) => {
+      backListener = await App.addListener('backButton', () => {
+        if (window.location.pathname === '/' || window.location.pathname === '') {
+          App.exitApp()
+        } else {
+          window.history.back()
+        }
       })
+
+      stateListener = await App.addListener('appStateChange', ({ isActive }) => {
+        if (isActive) checkUnreadNotifications()
+      })
+
+      // run once on cold launch too, not just on resume
+      checkUnreadNotifications()
+    }).catch(err => console.error('[capacitor] failed to load @capacitor/app', err))
+
+    return () => {
+      backListener?.remove()
+      stateListener?.remove()
     }
   }, [])
   return null
