@@ -45,13 +45,13 @@ import { RefreshCw, Users, Loader2 } from "lucide-react";
 // rather than the generic cream+terracotta or black+neon defaults.
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  bg: "#10152B",
-  bgVignette: "#171E3B",
-  ink: ["#F1C97B", "#E2A76B", "#D98E62", "#C9B8E8", "#F4EFE6"],
-  inkMuted: "#5A6289",
-  text: "#F4EFE6",
-  subtext: "#8B93B8",
-  accent: "#F1C97B",
+  bg: "#EEF4FB",
+  bgVignette: "#F7FAFF",
+  ink: ["#1E3A5F", "#2C4C7C", "#3E6FD9", "#5B7FB5", "#24405E"],
+  inkMuted: "#B9CEEA",
+  text: "#1E2A3D",
+  subtext: "#5C6B84",
+  accent: "#3E6FD9",
 };
 
 const DISPLAY_FONT =

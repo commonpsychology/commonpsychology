@@ -1,5 +1,5 @@
 import React from "react";
-import NameCloud from "./NameCloud";
+import NameCloud from "../components/NameCloud";
 
 // ---------------------------------------------------------------------------
 // API base URL
