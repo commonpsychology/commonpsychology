@@ -1,5 +1,5 @@
 import React from "react";
-import NameCloud from "../components/NameCloud";
+import NameCloud from "./NameCloud";
 
 // ---------------------------------------------------------------------------
 // API base URL
@@ -12,10 +12,13 @@ import NameCloud from "../components/NameCloud";
 const API = import.meta.env.VITE_API_URL
 
 const PALETTE = {
-  bg: "#0B0F22",
-  text: "#F4EFE6",
-  subtext: "#8B93B8",
-  accent: "#F1C97B",
+  bg: "#EEF4FB",
+  text: "#1E2A3D",
+  subtext: "#5C6B84",
+  accent: "#3E6FD9",
+  blob1: "rgba(163, 202, 255, 0.55)",
+  blob2: "rgba(214, 230, 255, 0.65)",
+  blob3: "rgba(190, 213, 250, 0.45)",
 };
 
 const DISPLAY_FONT =
@@ -27,22 +30,74 @@ export default function OurMembersPage() {
   return (
     <div
       style={{
+        position: "relative",
         minHeight: "100vh",
         background: PALETTE.bg,
         color: PALETTE.text,
         fontFamily: UI_FONT,
-        padding: "64px 24px",
+        overflow: "hidden",
       }}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
+      {/* Decorative blobs — soft, transparent, bluish-white, sit behind content */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: "-180px",
+          left: "-140px",
+          width: 480,
+          height: 480,
+          borderRadius: "42% 58% 63% 37% / 45% 40% 60% 55%",
+          background: PALETTE.blob1,
+          filter: "blur(70px)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: "120px",
+          right: "-160px",
+          width: 420,
+          height: 420,
+          borderRadius: "63% 37% 42% 58% / 55% 45% 55% 45%",
+          background: PALETTE.blob2,
+          filter: "blur(80px)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          bottom: "-200px",
+          left: "30%",
+          width: 560,
+          height: 560,
+          borderRadius: "50% 50% 38% 62% / 62% 38% 62% 38%",
+          background: PALETTE.blob3,
+          filter: "blur(90px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        style={{
+          position: "relative",
+          maxWidth: 1100,
+          margin: "0 auto",
+          padding: "112px 24px 96px",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: 56, padding: "0 16px" }}>
           <div
             style={{
               fontSize: 13,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               color: PALETTE.accent,
-              marginBottom: 14,
+              marginBottom: 16,
             }}
           >
             Community
@@ -52,7 +107,7 @@ export default function OurMembersPage() {
               fontFamily: DISPLAY_FONT,
               fontSize: "clamp(32px, 5vw, 52px)",
               fontWeight: 600,
-              margin: "0 0 14px",
+              margin: "0 0 16px",
               lineHeight: 1.1,
             }}
           >
