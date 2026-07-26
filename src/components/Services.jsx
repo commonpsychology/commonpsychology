@@ -99,14 +99,12 @@ export default function Services() {
 
         .svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
         .svc-card {
-          background: radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 45%, rgba(214,238,252,0.6) 100%);
-          backdrop-filter: blur(16px) saturate(140%);
-          -webkit-backdrop-filter: blur(16px) saturate(140%);
-          border: 1px solid rgba(255,255,255,0.65);
+          background: linear-gradient(160deg, #ffffff 0%, #eef8ff 60%, #86c8ec 100%);
+          border: 1.5px solid ${TOKENS.bluePale};
           border-radius: 18px;
           padding: 1.6rem 1.5rem;
           cursor: pointer;
-          box-shadow: 0 10px 30px rgba(0,123,168,0.1), inset 0 1px 0 rgba(255,255,255,0.7);
+          box-shadow: 0 4px 14px rgba(15,52,96,0.06);
           transition: all 0.25s;
           display: flex; flex-direction: column;
         }
