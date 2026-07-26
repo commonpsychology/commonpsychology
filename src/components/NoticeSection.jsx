@@ -204,7 +204,7 @@ export default function NoticeSection() {
           position: relative;
           border-radius: var(--radius-lg);
           padding: 2.4rem 2.2rem;
-          background: linear-gradient(160deg, #ffffff 0%, #eef8ff 55%, #dff2fc 100%);
+          background: linear-gradient(160deg, #ffffff 0%, #eef8ff 55%, #7bccf5 100%);
           border: 1.5px solid var(--blue-pale);
           border-left: 3px solid #00BFFF;
           box-shadow: 0 8px 24px rgba(15,52,96,0.08);

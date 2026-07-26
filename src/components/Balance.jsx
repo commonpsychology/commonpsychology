@@ -267,7 +267,7 @@ export default function BalanceWithin() {
       <section
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(155deg, #dbeafe 0%, #eff6ff 30%, #ffffff 60%, #eef2ff 85%, #e0e7ff 100%)",
+          background: "linear-gradient(180deg, #eaf6fc 0%, #ffffff 55%, #7bccf5 100%)",
           display: "flex", flexDirection: "column", alignItems: "center",
           padding: "72px 20px 88px", position: "relative", overflow: "hidden", boxSizing: "border-box",
         }}
