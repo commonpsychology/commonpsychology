@@ -3,6 +3,8 @@
 //   1. After credential check passes → show StaffOTPModal
 //   2. Navigate to dashboard only after OTP verified
 //   3. Cleaned up duplicate handleLogin function from original
+//   4. Glassy bluish-white frosted panel design
+//   5. Fixed mobile blank-space issue (form now vertically centered)
 
 import { useState, useEffect } from 'react'
 import { useRouter } from '../context/RouterContext'
@@ -20,25 +22,40 @@ const heroGrad = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyMid} 45%,${C.sky
 const btnGrad  = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyBright} 100%)`
 
 const CSS = `
-  .staff-root { min-height:100vh; background:${C.skyGhost}; display:flex; flex-direction:column; }
+  .staff-root { min-height:100vh; background:radial-gradient(circle at 15% 0%, #e6f9ff 0%, #f2fbff 45%, #eaf5fa 100%); display:flex; flex-direction:column; }
   .staff-strip { height:4px; background:${heroGrad}; }
   .staff-grid { flex:1; display:grid; grid-template-columns:1fr 1fr; min-height:calc(100vh - 4px); }
   .staff-left { background:${heroGrad}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:clamp(2rem,5vw,3rem) clamp(1.5rem,4vw,2.5rem); position:relative; overflow:hidden; }
-  .staff-right { display:flex; align-items:center; justify-content:center; padding:clamp(1.5rem,4vw,3rem) clamp(1rem,4vw,2rem); background:${C.white}; overflow-y:auto; }
-  .staff-form-wrap { width:100%; max-width:440px; }
-  .staff-input { width:100%; padding:0.85rem 1rem; border:1.5px solid ${C.borderFaint}; border-radius:12px; font-family:var(--font-body); font-size:0.92rem; color:${C.textDark}; background:${C.white}; outline:none; box-sizing:border-box; transition:all 0.2s; }
-  .staff-input:focus { border-color:${C.skyBright}; background:${C.skyGhost}; box-shadow:0 0 0 3.5px rgba(0,191,255,0.12); }
+  .staff-right { display:flex; align-items:center; justify-content:center; padding:clamp(1.5rem,4vw,3rem) clamp(1rem,4vw,2rem); background:transparent; overflow-y:auto; }
+  .staff-form-wrap {
+    width:100%; max-width:440px; position:relative; overflow:hidden;
+    background:rgba(255,255,255,0.55);
+    backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border:1px solid rgba(255,255,255,0.65);
+    border-radius:26px;
+    padding:clamp(1.75rem,4vw,2.5rem);
+    box-shadow:0 10px 40px rgba(0,123,168,0.14), inset 0 1px 0 rgba(255,255,255,0.85);
+  }
+  .staff-form-wrap::before {
+    content:''; position:absolute; inset:0; pointer-events:none; opacity:0.55; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg stroke='%23ffffff' stroke-width='0.6' fill='none' opacity='0.6'%3E%3Cpath d='M12 8 L58 42 L38 92 L104 58'/%3E%3Cpath d='M124 18 L162 70 L132 132'/%3E%3Cpath d='M18 152 L82 122 L152 182'/%3E%3Cpath d='M170 100 L200 140'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:220px 220px;
+  }
+  .staff-form-wrap > * { position:relative; z-index:1; }
+  .staff-input { width:100%; padding:0.85rem 1rem; border:1.5px solid ${C.borderFaint}; border-radius:12px; font-family:var(--font-body); font-size:0.92rem; color:${C.textDark}; background:rgba(255,255,255,0.75); outline:none; box-sizing:border-box; transition:all 0.2s; }
+  .staff-input:focus { border-color:${C.skyBright}; background:${C.white}; box-shadow:0 0 0 3.5px rgba(0,191,255,0.12); }
   .staff-submit { width:100%; padding:1rem; border-radius:14px; border:none; background:${btnGrad}; color:white; font-family:var(--font-body); font-weight:800; font-size:1rem; cursor:pointer; box-shadow:0 6px 22px rgba(0,191,255,0.35); transition:all 0.2s; letter-spacing:0.02em; }
   .staff-submit:hover:not(:disabled) { opacity:0.88; transform:translateY(-1px); }
   .staff-submit:disabled { background:${C.borderFaint}; color:${C.textLight}; box-shadow:none; cursor:not-allowed; }
-  .staff-client-btn { width:100%; padding:0.85rem; border-radius:14px; border:1.5px solid ${C.borderFaint}; background:${C.skyFainter}; color:${C.skyDeep}; font-family:var(--font-body); font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s; }
+  .staff-client-btn { width:100%; padding:0.85rem; border-radius:14px; border:1.5px solid ${C.borderFaint}; background:rgba(240,251,255,0.7); color:${C.skyDeep}; font-family:var(--font-body); font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s; }
   .staff-client-btn:hover { background:${C.skyFaint}; border-color:${C.skyBright}; }
   .staff-feature-pill { display:flex; align-items:center; gap:0.75rem; background:rgba(255,255,255,0.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:0.65rem 1rem; margin-bottom:0.6rem; }
-  @media (max-width:900px) { .staff-grid { grid-template-columns:380px 1fr; } }
+  @media (max-width:900px) { .staff-grid { grid-template-columns:1fr 1fr; } }
   @media (max-width:680px) {
-    .staff-grid { grid-template-columns:1fr; }
+    .staff-grid { grid-template-columns:1fr; min-height:auto; }
     .staff-left  { display:none; }
-    .staff-right { padding:2rem 1.25rem; align-items:flex-start; }
+    .staff-right { min-height:100vh; padding:2.5rem 1.25rem; align-items:center; }
     .staff-form-wrap { max-width:100%; }
   }
 `

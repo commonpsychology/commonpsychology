@@ -4,6 +4,8 @@
 //   1. Enter email + password → POST /api/delivery/check-credentials
 //   2. On success → show DeliveryOTPModal (auto-sends OTP to email)
 //   3. OTP verified → store token + rider in localStorage → navigate to /delivery/dashboard
+//   4. Glassy bluish-white frosted panel design
+//   5. Fixed mobile blank-space issue (form now vertically centered)
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from 'react'
@@ -33,25 +35,40 @@ const btnGrad  = `linear-gradient(135deg,${C.skyDeep} 0%,${C.skyBright} 100%)`
 
 // ── CSS ───────────────────────────────────────────────────────
 const CSS = `
-  .dlv-login-root { min-height:100vh; background:${C.skyGhost}; display:flex; flex-direction:column; }
+  .dlv-login-root { min-height:100vh; background:radial-gradient(circle at 15% 0%, #e6f9ff 0%, #f2fbff 45%, #eaf5fa 100%); display:flex; flex-direction:column; }
   .dlv-login-strip { height:4px; background:${heroGrad}; }
   .dlv-login-grid { flex:1; display:grid; grid-template-columns:1fr 1fr; min-height:calc(100vh - 4px); }
   .dlv-login-left { background:${heroGrad}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:clamp(2rem,5vw,3rem) clamp(1.5rem,4vw,2.5rem); position:relative; overflow:hidden; }
-  .dlv-login-right { display:flex; align-items:center; justify-content:center; padding:clamp(1.5rem,4vw,3rem) clamp(1rem,4vw,2rem); background:${C.white}; overflow-y:auto; }
-  .dlv-form-wrap { width:100%; max-width:440px; }
-  .dlv-input { width:100%; padding:0.85rem 1rem; border:1.5px solid ${C.borderFaint}; border-radius:12px; font-family:var(--font-body,sans-serif); font-size:0.92rem; color:${C.textDark}; background:${C.white}; outline:none; box-sizing:border-box; transition:all 0.2s; }
-  .dlv-input:focus { border-color:${C.skyBright}; background:${C.skyGhost}; box-shadow:0 0 0 3.5px rgba(0,191,255,0.12); }
+  .dlv-login-right { display:flex; align-items:center; justify-content:center; padding:clamp(1.5rem,4vw,3rem) clamp(1rem,4vw,2rem); background:transparent; overflow-y:auto; }
+  .dlv-form-wrap {
+    width:100%; max-width:440px; position:relative; overflow:hidden;
+    background:rgba(255,255,255,0.55);
+    backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border:1px solid rgba(255,255,255,0.65);
+    border-radius:26px;
+    padding:clamp(1.75rem,4vw,2.5rem);
+    box-shadow:0 10px 40px rgba(0,123,168,0.14), inset 0 1px 0 rgba(255,255,255,0.85);
+  }
+  .dlv-form-wrap::before {
+    content:''; position:absolute; inset:0; pointer-events:none; opacity:0.55; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg stroke='%23ffffff' stroke-width='0.6' fill='none' opacity='0.6'%3E%3Cpath d='M12 8 L58 42 L38 92 L104 58'/%3E%3Cpath d='M124 18 L162 70 L132 132'/%3E%3Cpath d='M18 152 L82 122 L152 182'/%3E%3Cpath d='M170 100 L200 140'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:220px 220px;
+  }
+  .dlv-form-wrap > * { position:relative; z-index:1; }
+  .dlv-input { width:100%; padding:0.85rem 1rem; border:1.5px solid ${C.borderFaint}; border-radius:12px; font-family:var(--font-body,sans-serif); font-size:0.92rem; color:${C.textDark}; background:rgba(255,255,255,0.75); outline:none; box-sizing:border-box; transition:all 0.2s; }
+  .dlv-input:focus { border-color:${C.skyBright}; background:${C.white}; box-shadow:0 0 0 3.5px rgba(0,191,255,0.12); }
   .dlv-submit { width:100%; padding:1rem; border-radius:14px; border:none; background:${btnGrad}; color:white; font-family:var(--font-body,sans-serif); font-weight:800; font-size:1rem; cursor:pointer; box-shadow:0 6px 22px rgba(0,191,255,0.35); transition:all 0.2s; letter-spacing:0.02em; }
   .dlv-submit:hover:not(:disabled) { opacity:0.88; transform:translateY(-1px); }
   .dlv-submit:disabled { background:${C.borderFaint}; color:${C.textLight}; box-shadow:none; cursor:not-allowed; }
   .dlv-feature-pill { display:flex; align-items:center; gap:0.75rem; background:rgba(255,255,255,0.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:0.65rem 1rem; margin-bottom:0.6rem; }
-  .dlv-client-btn { width:100%; padding:0.85rem; border-radius:14px; border:1.5px solid ${C.borderFaint}; background:${C.skyFainter}; color:${C.skyDeep}; font-family:var(--font-body,sans-serif); font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s; }
+  .dlv-client-btn { width:100%; padding:0.85rem; border-radius:14px; border:1.5px solid ${C.borderFaint}; background:rgba(240,251,255,0.7); color:${C.skyDeep}; font-family:var(--font-body,sans-serif); font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s; }
   .dlv-client-btn:hover { background:${C.skyFaint}; border-color:${C.skyBright}; }
   @media (max-width:900px) { .dlv-login-grid { grid-template-columns:340px 1fr; } }
   @media (max-width:680px) {
-    .dlv-login-grid  { grid-template-columns:1fr; }
+    .dlv-login-grid  { grid-template-columns:1fr; min-height:auto; }
     .dlv-login-left  { display:none; }
-    .dlv-login-right { padding:2rem 1.25rem; align-items:flex-start; }
+    .dlv-login-right { min-height:100vh; padding:2.5rem 1.25rem; align-items:center; }
     .dlv-form-wrap   { max-width:100%; }
   }
   @keyframes dlv-slide-up { from { transform:translateY(10px); opacity:0; } to { transform:none; opacity:1; } }
@@ -216,9 +233,12 @@ function DeliveryOTPModal({ email, name, user_id, onSuccess, onCancel }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem',
     }}>
       <div style={{
-        background: C.white, borderRadius: 20, width: '100%', maxWidth: 440,
+        background: 'rgba(255,255,255,0.75)',
+        backdropFilter: 'blur(18px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+        borderRadius: 20, width: '100%', maxWidth: 440,
         padding: '2rem', boxShadow: '0 20px 60px rgba(0,0,0,0.22)',
-        border: `1px solid ${C.borderFaint}`,
+        border: `1px solid rgba(255,255,255,0.7)`,
         animation: 'dlv-slide-up 0.18s ease',
       }}>
 
