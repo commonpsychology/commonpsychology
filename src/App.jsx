@@ -13,6 +13,7 @@ import TherapistsPage      from './pages/TherapistsPage'
 import TherapistDetailPage from './pages/TherapistDetailPage'
 import BookingPage         from './pages/BookingPage'
 import AssessmentsPage     from './pages/AssessmentsPage'
+import OurMembers from './pages/OurMembers'
 import AssessmentTakePage  from './pages/AssessmentTakePage'
 import ResourcesPage       from './pages/ResourcesPage'
 import VerifyAccountPage   from './pages/VerifyAccountPage'
@@ -94,6 +95,7 @@ const ROUTES = {
   '/neuro-science':       NeurosciencePage,
   '/mental-fitness':     MentalFitness,
   '/my-orders':          MyOrdersPage,
+  '/our-members':        OurMembers,
   '/notices-demo':       NoticeDemoCheck,
   '/our-news':           OurNews,
   '/my-bookings':        MyBookings,
