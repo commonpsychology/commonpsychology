@@ -41,17 +41,21 @@ import { RefreshCw, Users, Loader2 } from "lucide-react";
  */
 
 // ---------------------------------------------------------------------------
-// Palette — warm copper / gold ink on deep indigo, evokes ink-on-night-sky
-// rather than the generic cream+terracotta or black+neon defaults.
+// Palette — bright sky-cyan fading to white, left-to-right, matching the
+// site's header banner. Ink colors are cool blues/teals/greens so words stay
+// legible against the bright left edge as well as the white right edge.
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  bg: "#EEF4FB",
-  bgVignette: "#F7FAFF",
-  ink: ["#1E3A5F", "#2C4C7C", "#3E6FD9", "#5B7FB5", "#24405E"],
-  inkMuted: "#B9CEEA",
-  text: "#1E2A3D",
-  subtext: "#5C6B84",
-  accent: "#3E6FD9",
+  gradientStops: [
+    { stop: 0, color: "#FFFFFF" }, // white, left edge
+    { stop: 0.5, color: "#22C7EA" }, // saturated cyan, center
+    { stop: 1, color: "#FFFFFF" }, // white, right edge
+  ],
+  ink: ["#0E5C73", "#116B8F", "#1B7A9C", "#2C6E5C", "#144E63"],
+  inkMuted: "#BFE9F2",
+  text: "#0E3A4A",
+  subtext: "#4A7686",
+  accent: "#1B9CC7",
 };
 
 const DISPLAY_FONT =
@@ -207,17 +211,10 @@ export default function NameCloud({
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-      // Background
-      const grad = ctx.createRadialGradient(
-        canvasWidth / 2,
-        canvasHeight / 2,
-        0,
-        canvasWidth / 2,
-        canvasHeight / 2,
-        Math.max(canvasWidth, canvasHeight) / 1.2
-      );
-      grad.addColorStop(0, PALETTE.bgVignette);
-      grad.addColorStop(1, PALETTE.bg);
+      // Background — bright cyan on the left fading to white on the right,
+      // same direction and feel as the site header banner.
+      const grad = ctx.createLinearGradient(0, 0, canvasWidth, 0);
+      PALETTE.gradientStops.forEach(({ stop, color }) => grad.addColorStop(stop, color));
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
@@ -258,7 +255,7 @@ export default function NameCloud({
               const spot = engine.place(w, h);
               if (spot) {
                 ctx.fillStyle = PALETTE.ink[i % PALETTE.ink.length];
-                ctx.globalAlpha = 0.55 + t * 0.45;
+                ctx.globalAlpha = 0.6 + t * 0.4;
                 ctx.fillText(item.text, spot.x, spot.y + h * 0.78);
                 ctx.globalAlpha = 1;
                 placedCount++;
@@ -403,8 +400,8 @@ export default function NameCloud({
           height,
           borderRadius: 16,
           overflow: "hidden",
-          background: PALETTE.bg,
-          border: `1px solid ${PALETTE.inkMuted}33`,
+          background: `linear-gradient(90deg, ${PALETTE.gradientStops[0].color}, ${PALETTE.gradientStops[1].color} 50%, ${PALETTE.gradientStops[2].color})`,
+          border: `1px solid ${PALETTE.inkMuted}66`,
         }}
       >
         <canvas ref={canvasRef} style={{ display: "block" }} />
@@ -420,7 +417,7 @@ export default function NameCloud({
               color: PALETTE.subtext,
               fontSize: 13,
               gap: 8,
-              background: `${PALETTE.bg}CC`,
+              background: `${PALETTE.gradientStops[2].color}CC`,
             }}
           >
             <Loader2 size={16} className="animate-spin" />
@@ -438,7 +435,7 @@ export default function NameCloud({
               justifyContent: "center",
               padding: 24,
               textAlign: "center",
-              color: "#E7A0A0",
+              color: "#D9645C",
               fontSize: 13,
             }}
           >
