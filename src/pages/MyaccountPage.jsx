@@ -498,6 +498,9 @@ background:'rgba(0,123,168,0.08)', color:SKY_D,
                       value={form.date_of_birth}
                       onChange={up('date_of_birth')}
                       placeholder="YYYY-MM-DD"
+                      maxDate={new Date().toISOString().slice(0, 10)}
+                      yearsBack={100}
+                      yearsForward={0}
                     />
                   ) : (
                     <input type="text" value={form.date_of_birth} disabled style={inputSx}/>
