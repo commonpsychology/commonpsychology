@@ -572,14 +572,14 @@ export default function PsychologicalViewPage() {
           0%   { background-position: -200% 0 }
           100% { background-position:  200% 0 }
         }
+        @media (max-width: 1024px) {
+          .analyses-grid { grid-template-columns: repeat(2,1fr) !important }
+        }
         @media (max-width: 768px) {
           .video-grid    { grid-template-columns: 1fr !important }
           .analyses-grid { grid-template-columns: 1fr !important }
           .concepts-grid { grid-template-columns: 1fr !important }
           .psych-hero    { padding: 3rem 1.5rem 2rem !important }
-        }
-        @media (max-width: 1024px) {
-          .analyses-grid { grid-template-columns: repeat(2,1fr) !important }
         }
       `}</style>
 
