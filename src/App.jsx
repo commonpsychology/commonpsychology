@@ -246,6 +246,8 @@ function BackButtonHandler() {
   return null
 }
 
+
+
 function AppRoutes() {
   const { currentPath } = useRouter()
 
