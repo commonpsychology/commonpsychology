@@ -7,9 +7,9 @@ import NameCloud from "../components/NameCloud";
 const API = import.meta.env.VITE_API_URL
 
 const PALETTE = {
-  text: "#1E2A3D",
-  subtext: "#5C6B84",
-  accent: "#0e86d4",
+  text: "#0E3A4A",
+  subtext: "#3E6B78",
+  accent: "#1B9CC7",
 };
 
 const DISPLAY_FONT =
@@ -26,11 +26,11 @@ export default function OurMembersPage() {
         // Same glassy sky-blue gradient language as the navbar's dropdown /
         // mobile-menu panels — layered radial glows over a soft diagonal wash.
         background: `
-          radial-gradient(circle at 10% 0%, rgba(14,165,233,0.14), transparent 50%),
-          radial-gradient(circle at 95% 6%, rgba(41,128,185,0.12), transparent 55%),
-          radial-gradient(circle at 15% 95%, rgba(186,230,253,0.30), transparent 55%),
-          radial-gradient(circle at 90% 100%, rgba(224,242,254,0.4), transparent 60%),
-          linear-gradient(160deg, rgba(255,255,255,0.97) 0%, rgba(214,238,252,0.75) 45%, rgba(224,242,254,0.92) 100%)
+          radial-gradient(circle at 8% 4%, rgba(63,216,184,0.22), transparent 48%),
+          radial-gradient(circle at 92% 0%, rgba(34,199,234,0.18), transparent 52%),
+          radial-gradient(circle at 20% 96%, rgba(234,251,243,0.9), transparent 55%),
+          radial-gradient(circle at 88% 100%, rgba(34,199,234,0.14), transparent 60%),
+          linear-gradient(150deg, #F6FEFA 0%, #EAFBF3 30%, #DFF7F0 55%, #DCF4FA 78%, #FFFFFF 100%)
         `,
         color: PALETTE.text,
         fontFamily: UI_FONT,
@@ -48,7 +48,7 @@ export default function OurMembersPage() {
           height: 520,
           borderRadius: "38% 62% 65% 35% / 42% 38% 62% 58%",
           background:
-            "linear-gradient(160deg, rgba(14,165,233,0.18) 0%, rgba(186,230,253,0.35) 100%)",
+            "linear-gradient(160deg, rgba(63,216,184,0.28) 0%, rgba(234,251,243,0.4) 100%)",
           filter: "blur(80px)",
           pointerEvents: "none",
         }}
@@ -63,7 +63,7 @@ export default function OurMembersPage() {
           height: 460,
           borderRadius: "60% 40% 45% 55% / 55% 45% 55% 45%",
           background:
-            "linear-gradient(160deg, rgba(41,128,185,0.16) 0%, rgba(214,238,252,0.5) 100%)",
+            "linear-gradient(160deg, rgba(34,199,234,0.22) 0%, rgba(223,247,240,0.45) 100%)",
           filter: "blur(90px)",
           pointerEvents: "none",
         }}
@@ -78,7 +78,7 @@ export default function OurMembersPage() {
           height: 600,
           borderRadius: "48% 52% 35% 65% / 60% 40% 65% 35%",
           background:
-            "linear-gradient(160deg, rgba(186,230,253,0.45) 0%, rgba(224,242,254,0.2) 100%)",
+            "linear-gradient(160deg, rgba(234,251,243,0.55) 0%, rgba(63,216,184,0.15) 100%)",
           filter: "blur(100px)",
           pointerEvents: "none",
         }}
@@ -93,7 +93,7 @@ export default function OurMembersPage() {
           height: 260,
           borderRadius: "55% 45% 60% 40% / 45% 55% 45% 55%",
           background:
-            "linear-gradient(160deg, rgba(14,165,233,0.12) 0%, rgba(255,255,255,0.4) 100%)",
+            "linear-gradient(160deg, rgba(34,199,234,0.18) 0%, rgba(255,255,255,0.5) 100%)",
           filter: "blur(60px)",
           pointerEvents: "none",
         }}
@@ -118,9 +118,9 @@ export default function OurMembersPage() {
               marginBottom: 16,
               padding: "0.28rem 0.9rem",
               borderRadius: 100,
-              border: "1.5px solid rgba(41,128,185,0.25)",
+              border: "1.5px solid rgba(34,199,234,0.3)",
               background:
-                "linear-gradient(160deg, rgba(255,255,255,0.6) 0%, rgba(186,230,253,0.35) 100%)",
+                "linear-gradient(160deg, rgba(255,255,255,0.65) 0%, rgba(63,216,184,0.25) 100%)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
             }}
