@@ -104,6 +104,30 @@ const PORTAL_CSS = `
 
   @keyframes spin  { to { transform:rotate(360deg) } }
   @keyframes pulse { 0%,100% { box-shadow:0 4px 14px #10b98133; } 50% { box-shadow:0 4px 22px #10b98166; } }
+  @keyframes logoutGlow {
+    0%, 100% { box-shadow: 0 0 14px 2px rgba(14,165,233,0.45), 0 4px 18px rgba(14,165,233,0.12), inset 0 1px 0 rgba(255,255,255,0.6); }
+    50%      { box-shadow: 0 0 22px 6px rgba(14,165,233,0.65), 0 4px 18px rgba(14,165,233,0.12), inset 0 1px 0 rgba(255,255,255,0.6); }
+  }
+
+  /* ── Logout button: outside blue glow, mobile only ── */
+  @media (max-width: 600px) {
+    .portal-logout-btn {
+      box-shadow: 0 0 16px 3px rgba(14,165,233,0.5), 0 4px 18px rgba(14,165,233,0.12), inset 0 1px 0 rgba(255,255,255,0.6) !important;
+      animation: logoutGlow 2.6s ease-in-out infinite;
+    }
+  }
+  @keyframes logoutGlow {
+    0%, 100% { box-shadow: 0 0 14px 2px rgba(14,165,233,0.45), 0 4px 18px rgba(14,165,233,0.12), inset 0 1px 0 rgba(255,255,255,0.6); }
+    50%      { box-shadow: 0 0 22px 6px rgba(14,165,233,0.65), 0 4px 18px rgba(14,165,233,0.12), inset 0 1px 0 rgba(255,255,255,0.6); }
+  }
+
+  /* ── Logout button: outside blue glow, mobile only ── */
+  @media (max-width: 600px) {
+    .portal-logout-btn {
+      box-shadow: 0 0 16px 3px rgba(14,165,233,0.5), 0 4px 18px rgba(14,165,233,0.12), inset 0 1px 0 rgba(255,255,255,0.6) !important;
+      animation: logoutGlow 2.6s ease-in-out infinite;
+    }
+  }
 
   /* ════ MOBILE OVERRIDES (≤ 600px) ════ */
   @media (max-width: 600px) {
@@ -890,6 +914,7 @@ export default function ClientPortalPage() {
 
         <button
           onClick={logout}
+          className="portal-logout-btn"
           style={{
             position: 'relative',
             zIndex: 1,
