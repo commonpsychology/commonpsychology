@@ -274,35 +274,34 @@ export default function NameCloud({
               const h = fontSize * 1.05;
               const spot = engine.place(w, h);
               if (spot) {
-                const baseColor = PALETTE.ink[i % PALETTE.ink.length];
                 const x = spot.x;
                 const y = spot.y + h * 0.78;
-                const baseAlpha = 0.82 + t * 0.18;
+                const baseAlpha = 0.88 + t * 0.12;
                 const depth = Math.max(2, Math.round(fontSize * 0.09));
 
-                // 1) Extrusion — stacked dark copies trailing down-right, giving
+                // 1) Extrusion — stacked black copies trailing down-right, giving
                 // the letters a solid "3D side" like an embossed block.
-                ctx.fillStyle = "rgba(4, 46, 46, 0.9)";
+                ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
                 for (let d = depth; d >= 1; d--) {
-                  ctx.globalAlpha = baseAlpha * (0.12 + (d / depth) * 0.12);
+                  ctx.globalAlpha = baseAlpha * (0.14 + (d / depth) * 0.14);
                   ctx.fillText(item.text, x + d * 0.6, y + d * 0.6);
                 }
 
-                // 2) Top face — the real color, lifted off the page with a
+                // 2) Top face — solid black, lifted off the page with a
                 // soft drop shadow so it visually pops forward.
                 ctx.globalAlpha = baseAlpha;
-                ctx.shadowColor = "rgba(0,40,40,0.35)";
+                ctx.shadowColor = "rgba(0,0,0,0.4)";
                 ctx.shadowBlur = 6;
                 ctx.shadowOffsetX = 1.5;
                 ctx.shadowOffsetY = 3;
-                ctx.fillStyle = baseColor;
+                ctx.fillStyle = "#000000";
                 ctx.fillText(item.text, x, y);
                 ctx.shadowBlur = 0;
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
 
                 // 3) Glossy top-left highlight — the bevel edge catching light.
-                ctx.globalAlpha = 0.3 + t * 0.15;
+                ctx.globalAlpha = 0.35 + t * 0.15;
                 ctx.fillStyle = "rgba(255,255,255,0.9)";
                 ctx.fillText(item.text, x - 0.8, y - 0.8);
 
