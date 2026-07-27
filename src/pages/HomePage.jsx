@@ -17,6 +17,7 @@ import PsychologicalEye from '../components/PsychologicalEye'
 import Crisis           from '../components/Crisis'
 import Donate           from '../components/Donate'
 import Balance          from '../components/Balance'
+import BalanceBowl from '../components/BalanceBowl'
 import NoticePopup      from '../components/NoticePopup'
 import NamasteLoader    from '../components/NamasteLoader'
 import PollPopup        from '../components/Pollpopup'
@@ -91,6 +92,7 @@ export default function HomePage() {
       <Therapists />
       <Assessment />
       <Donate />
+      <BalanceBowl />
       <VideoReviews />
       <ImageSlider />
       <Resources />
