@@ -8,28 +8,28 @@ import { useLang } from '../context/LanguageContext'
 ───────────────────────────────────────────────────────────── */
 
 // Explicit sky-blue/white palette used for backgrounds & motion accents —
-// intentionally hard-coded so this page reads "sky blue" regardless of
-// what --off-white / --sky-light resolve to elsewhere in the app.
+// intentionally hard-coded (around #00BFFF) so this page reads "sky blue"
+// regardless of what --off-white / --sky-light resolve to elsewhere in the app.
 const BG = {
-  pageTop:    '#eaf6ff',
+  pageTop:    '#eaf8ff',
   pageMid:    '#ffffff',
-  pageBot:    '#f2fbff',
-  heroTop:    '#d8eeff',
+  pageBot:    '#eefbff',
+  heroTop:    '#d4f1ff',
   heroBot:    '#ffffff',
-  glow1:      'rgba(56,150,231,0.16)',
-  glow2:      'rgba(56,150,231,0.10)',
-  cardBorder: '#dceefc',
+  glow1:      'rgba(0,191,255,0.18)',
+  glow2:      'rgba(0,191,255,0.12)',
+  cardBorder: '#d2f0ff',
 }
 
 // Glass card treatment — same layered translucent gradient + blur used
-// on the Services page cards, tuned to this page's sky-blue palette.
+// on the Services page cards, tuned to this page's #00BFFF sky-blue palette.
 const GLASS = {
-  bg:        'linear-gradient(160deg, rgba(255,255,255,0.78) 0%, rgba(216,238,255,0.58) 55%, rgba(255,255,255,0.74) 100%)',
-  bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(200,228,255,0.7) 55%, rgba(255,255,255,0.84) 100%)',
-  border:    '1px solid #dceefc',
-  borderHov: '1px solid rgba(56,150,231,0.45)',
-  shadow:    '0 4px 18px rgba(56,150,231,0.10), inset 0 1px 0 rgba(255,255,255,0.5)',
-  shadowHov: '0 20px 44px rgba(56,150,231,0.24), 0 6px 16px rgba(56,150,231,0.14), inset 0 1px 0 rgba(255,255,255,0.6)',
+  bg:        'linear-gradient(160deg, rgba(255,255,255,0.78) 0%, rgba(200,240,255,0.58) 55%, rgba(255,255,255,0.74) 100%)',
+  bgHover:   'linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(180,232,255,0.7) 55%, rgba(255,255,255,0.84) 100%)',
+  border:    '1px solid #d2f0ff',
+  borderHov: '1px solid rgba(0,191,255,0.45)',
+  shadow:    '0 4px 18px rgba(0,191,255,0.12), inset 0 1px 0 rgba(255,255,255,0.5)',
+  shadowHov: '0 20px 44px rgba(0,191,255,0.26), 0 6px 16px rgba(0,191,255,0.16), inset 0 1px 0 rgba(255,255,255,0.6)',
 }
 
 const PILLARS = [
@@ -186,6 +186,17 @@ function injectMotionCSS() {
     @keyframes mfsFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
     @keyframes mfsFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-10px); } }
     @keyframes mfsShimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+    @keyframes mfsAmbientDrift { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(-2%,3%) scale(1.05); } }
+    .mfs-page-bg { position:relative; }
+    .mfs-page-bg::before, .mfs-page-bg::after {
+      content:''; position:fixed; border-radius:50%; pointer-events:none; z-index:0;
+      filter:blur(60px); animation: mfsAmbientDrift 14s ease-in-out infinite;
+    }
+    .mfs-page-bg::before { width:320px; height:320px; top:-6%; right:-4%; background:rgba(0,191,255,0.16); }
+    .mfs-page-bg::after  { width:250px; height:250px; bottom:2%; left:-5%; background:rgba(0,191,255,0.12); animation-delay:-7s; }
+    @media (prefers-reduced-motion: reduce) {
+      .mfs-page-bg::before, .mfs-page-bg::after { animation:none; }
+    }
     .mfs-step-anim { animation: mfsStepIn 0.32s cubic-bezier(.22,1,.36,1); }
     .mfs-pop-anim { animation: mfsPopIn 0.4s cubic-bezier(.22,1,.36,1); }
     .mfs-ring-anim { animation: mfsRingIn 0.5s cubic-bezier(.22,1,.36,1) both; }
@@ -197,9 +208,9 @@ function injectMotionCSS() {
     .mfs-level-btn:active { transform: translateX(1px) scale(0.99); }
     .mfs-glass-card:hover {
       transform: translateY(-4px) scale(1.01);
-      background: linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(200,228,255,0.7) 55%, rgba(255,255,255,0.84) 100%);
-      border-color: rgba(56,150,231,0.45);
-      box-shadow: 0 20px 44px rgba(56,150,231,0.24), 0 6px 16px rgba(56,150,231,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+      background: linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(180,232,255,0.7) 55%, rgba(255,255,255,0.84) 100%);
+      border-color: rgba(0,191,255,0.45);
+      box-shadow: 0 20px 44px rgba(0,191,255,0.26), 0 6px 16px rgba(0,191,255,0.16), inset 0 1px 0 rgba(255,255,255,0.6);
     }
   `
   document.head.appendChild(s)
@@ -270,14 +281,14 @@ export default function MentalFitnessScore({ onNavigate }) {
       : { en: 'Under real strain', np: 'वास्तविक तनावमा' }
 
   return (
-    <div style={{ background: `linear-gradient(180deg, ${BG.pageTop} 0%, ${BG.pageMid} 45%, ${BG.pageBot} 100%)` }}>
+    <div className="mfs-page-bg" style={{ background: `linear-gradient(180deg, ${BG.pageTop} 0%, ${BG.pageMid} 45%, ${BG.pageBot} 100%)` }}>
 
       {/* ───────────── HERO / QUIZ ───────────── */}
       <section style={{
         padding: stage === null ? '4.5rem 1.5rem 4rem' : '3.25rem 1.5rem 3.5rem',
         background: `linear-gradient(180deg, ${BG.heroTop} 0%, ${BG.heroBot} 100%)`,
         borderBottom: '1px solid var(--blue-pale)',
-        position: 'relative', overflow: 'hidden',
+        position: 'relative', overflow: 'hidden', zIndex: 1,
       }}>
         {/* soft floating sky-blue glows for a bit of life behind the content */}
         <div className="mfs-glow-a" style={{ position:'absolute', top:-60, left:'8%', width:220, height:220, borderRadius:'50%', background:BG.glow1, filter:'blur(46px)', pointerEvents:'none' }} />
