@@ -4,21 +4,12 @@ import NameCloud from "../components/NameCloud";
 // ---------------------------------------------------------------------------
 // API base URL
 // ---------------------------------------------------------------------------
-// Matches the same VITE_API_URL convention already used elsewhere in this
-// app (see src/pages/HomePage.jsx, e.g. `${API}/polls/has-answered`).
-// VITE_API_URL already includes the /api prefix, so routes below are
-// appended directly with no extra /api/ segment — same pattern as the
-// rest of the app.
 const API = import.meta.env.VITE_API_URL
 
 const PALETTE = {
-  bg: "#EEF4FB",
   text: "#1E2A3D",
   subtext: "#5C6B84",
-  accent: "#3E6FD9",
-  blob1: "rgba(163, 202, 255, 0.55)",
-  blob2: "rgba(214, 230, 255, 0.65)",
-  blob3: "rgba(190, 213, 250, 0.45)",
+  accent: "#0e86d4",
 };
 
 const DISPLAY_FONT =
@@ -32,44 +23,32 @@ export default function OurMembersPage() {
       style={{
         position: "relative",
         minHeight: "100vh",
-        // Bluish-white glassy gradient backdrop, matching NameCloud's page
-        // background — layered radial highlights over a soft diagonal wash.
+        // Same glassy sky-blue gradient language as the navbar's dropdown /
+        // mobile-menu panels — layered radial glows over a soft diagonal wash.
         background: `
-          radial-gradient(circle at 15% 10%, #EAF8FC 0%, transparent 45%),
-          radial-gradient(circle at 85% 0%, #DDF3FA 0%, transparent 50%),
-          radial-gradient(circle at 50% 100%, #CDEBF5 0%, transparent 55%),
-          linear-gradient(135deg, #F4FBFD 0%, #E3F4FA 40%, #D3EDF7 70%, #EAF7FB 100%)
+          radial-gradient(circle at 10% 0%, rgba(14,165,233,0.14), transparent 50%),
+          radial-gradient(circle at 95% 6%, rgba(41,128,185,0.12), transparent 55%),
+          radial-gradient(circle at 15% 95%, rgba(186,230,253,0.30), transparent 55%),
+          radial-gradient(circle at 90% 100%, rgba(224,242,254,0.4), transparent 60%),
+          linear-gradient(160deg, rgba(255,255,255,0.97) 0%, rgba(214,238,252,0.75) 45%, rgba(224,242,254,0.92) 100%)
         `,
         color: PALETTE.text,
         fontFamily: UI_FONT,
         overflow: "hidden",
       }}
     >
-      {/* Decorative blobs — soft, transparent, bluish-white, sit behind content */}
+      {/* Decorative blobs — soft, glassy, sky-blue, echo the navbar's palette */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
-          top: "-180px",
-          left: "-140px",
-          width: 480,
-          height: 480,
-          borderRadius: "42% 58% 63% 37% / 45% 40% 60% 55%",
-          background: PALETTE.blob1,
-          filter: "blur(70px)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: "120px",
-          right: "-160px",
-          width: 420,
-          height: 420,
-          borderRadius: "63% 37% 42% 58% / 55% 45% 55% 45%",
-          background: PALETTE.blob2,
+          top: "-200px",
+          left: "-160px",
+          width: 520,
+          height: 520,
+          borderRadius: "38% 62% 65% 35% / 42% 38% 62% 58%",
+          background:
+            "linear-gradient(160deg, rgba(14,165,233,0.18) 0%, rgba(186,230,253,0.35) 100%)",
           filter: "blur(80px)",
           pointerEvents: "none",
         }}
@@ -78,13 +57,44 @@ export default function OurMembersPage() {
         aria-hidden="true"
         style={{
           position: "absolute",
-          bottom: "-200px",
-          left: "30%",
-          width: 560,
-          height: 560,
-          borderRadius: "50% 50% 38% 62% / 62% 38% 62% 38%",
-          background: PALETTE.blob3,
+          top: "100px",
+          right: "-180px",
+          width: 460,
+          height: 460,
+          borderRadius: "60% 40% 45% 55% / 55% 45% 55% 45%",
+          background:
+            "linear-gradient(160deg, rgba(41,128,185,0.16) 0%, rgba(214,238,252,0.5) 100%)",
           filter: "blur(90px)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          bottom: "-220px",
+          left: "28%",
+          width: 600,
+          height: 600,
+          borderRadius: "48% 52% 35% 65% / 60% 40% 65% 35%",
+          background:
+            "linear-gradient(160deg, rgba(186,230,253,0.45) 0%, rgba(224,242,254,0.2) 100%)",
+          filter: "blur(100px)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: "35%",
+          right: "8%",
+          width: 260,
+          height: 260,
+          borderRadius: "55% 45% 60% 40% / 45% 55% 45% 55%",
+          background:
+            "linear-gradient(160deg, rgba(14,165,233,0.12) 0%, rgba(255,255,255,0.4) 100%)",
+          filter: "blur(60px)",
           pointerEvents: "none",
         }}
       />
@@ -100,11 +110,19 @@ export default function OurMembersPage() {
         <div style={{ textAlign: "center", marginBottom: 56, padding: "0 16px" }}>
           <div
             style={{
+              display: "inline-block",
               fontSize: 13,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               color: PALETTE.accent,
               marginBottom: 16,
+              padding: "0.28rem 0.9rem",
+              borderRadius: 100,
+              border: "1.5px solid rgba(41,128,185,0.25)",
+              background:
+                "linear-gradient(160deg, rgba(255,255,255,0.6) 0%, rgba(186,230,253,0.35) 100%)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
             }}
           >
             Community
