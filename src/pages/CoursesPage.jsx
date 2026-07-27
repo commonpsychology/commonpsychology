@@ -25,6 +25,7 @@ const sectionGrad = `linear-gradient(135deg,${C.skyFainter} 0%,${C.mint} 60%,${C
 // ── CSS ───────────────────────────────────────────────────────────────────────
 const COURSES_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
+@keyframes ambient-drift        { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-2%,3%) scale(1.05);} }
 @keyframes course-success-pop  { 0%{transform:scale(0.7);opacity:0;} 65%{transform:scale(1.08);} 100%{transform:scale(1);opacity:1;} }
 @keyframes course-enroll-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,191,255,0.4);} 50%{box-shadow:0 0 0 8px rgba(0,191,255,0);} }
 @keyframes free-badge-glow     { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.4);} 50%{box-shadow:0 0 0 6px rgba(34,197,94,0);} }
@@ -33,9 +34,23 @@ const COURSES_CSS = `
 @keyframes confirmation-appear { 0%{transform:translateY(12px);opacity:0;} 100%{transform:translateY(0);opacity:1;} }
 @keyframes pin-modal-in        { 0%{transform:scale(0.88) translateY(24px);opacity:0;} 100%{transform:scale(1) translateY(0);opacity:1;} }
 @keyframes pin-shake           { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-8px);} 40%,80%{transform:translateX(8px);} }
-.courses-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
-.course-card  { background:var(--off-white,#fff); border-radius:16px; overflow:hidden; border:1.5px solid var(--earth-cream,#f0ebe3); box-shadow:0 2px 12px rgba(0,0,0,0.06); transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1); cursor:pointer; position:relative; }
-.course-card:hover { transform:translateY(-6px); box-shadow:0 16px 48px rgba(0,123,168,0.13); border-color:rgba(0,191,255,0.3); }
+.courses-page-bg {
+  position:relative;
+  background:
+    radial-gradient(ellipse 60% 45% at 12% 8%, rgba(0,191,255,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 50% at 92% 18%, rgba(0,123,168,0.10) 0%, transparent 62%),
+    radial-gradient(ellipse 60% 55% at 50% 100%, rgba(0,191,255,0.08) 0%, transparent 58%),
+    linear-gradient(175deg, #ffffff 0%, #f4fbff 35%, #e9f7ff 68%, #eefbff 100%);
+}
+.courses-page-bg::before, .courses-page-bg::after {
+  content:''; position:fixed; border-radius:50%; pointer-events:none; z-index:0;
+  filter:blur(60px); animation:ambient-drift 14s ease-in-out infinite;
+}
+.courses-page-bg::before { width:340px; height:340px; top:-6%; right:-4%; background:rgba(0,191,255,0.16); }
+.courses-page-bg::after  { width:260px; height:260px; bottom:2%; left:-5%; background:rgba(0,123,168,0.12); animation-delay:-7s; }
+.courses-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; position:relative; z-index:1; }
+.course-card  { background:rgba(255,255,255,0.72); backdrop-filter:blur(14px) saturate(160%); -webkit-backdrop-filter:blur(14px) saturate(160%); border-radius:18px; overflow:hidden; border:1.5px solid rgba(0,191,255,0.16); box-shadow:0 4px 20px rgba(0,123,168,0.08); transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1); cursor:pointer; position:relative; }
+.course-card:hover { transform:translateY(-6px); box-shadow:0 18px 50px rgba(0,123,168,0.16); border-color:rgba(0,191,255,0.4); }
 .course-card.enrolled-free    { border-color:#22c55e; box-shadow:0 8px 32px rgba(34,197,94,0.15); }
 .course-card.enrolled-paid    { border-color:#00BFFF; box-shadow:0 8px 32px rgba(0,191,255,0.15); }
 .course-card.enrolled-pending { border-color:#f59e0b; box-shadow:0 8px 32px rgba(245,158,11,0.15); }
@@ -55,6 +70,7 @@ const COURSES_CSS = `
 .pin-dot.filled { background:${C.skyBright}; border-color:${C.skyBright}; transform:scale(1.15); }
 @media(max-width:900px){.courses-grid{grid-template-columns:repeat(2,1fr);gap:1.25rem;}}
 @media(max-width:600px){.courses-grid{grid-template-columns:1fr;gap:1rem;}}
+@media(prefers-reduced-motion:reduce){.courses-page-bg::before,.courses-page-bg::after{animation:none;}}
 `
 
 function injectCSS(id, css) {
@@ -494,8 +510,8 @@ function handleGoToCourse(course) {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   if (loading) return (
-    <div className="page-wrapper">
-      <div style={{ textAlign:'center', padding:'6rem', fontFamily:'var(--font-body,sans-serif)', color:C.textLight }}>
+    <div className="page-wrapper courses-page-bg">
+      <div style={{ textAlign:'center', padding:'6rem', fontFamily:'var(--font-body,sans-serif)', color:C.textLight, position:'relative', zIndex:1 }}>
         <div style={{ width:32, height:32, border:'3px solid #b0d4e8', borderTopColor:C.skyBright, borderRadius:'50%', margin:'0 auto 1rem', animation:'spin 0.7s linear infinite' }} />
         Loading courses…
       </div>
@@ -506,18 +522,19 @@ function handleGoToCourse(course) {
   const pendingCount   = Object.values(enrollments).filter(v => v.status==='pending').length
 
   return (
-    <div className="page-wrapper">
+    <div className="page-wrapper courses-page-bg">
       
 
       <div className="page-hero" style={{
   position: 'relative',
   overflow: 'hidden',
+  zIndex: 1,
   borderRadius: '0 0 50% 50% / 0 0 32px 32px',
   background: `
-    radial-gradient(ellipse 70% 60% at 10% 30%, rgba(0,191,255,0.12) 0%, transparent 65%),
-    radial-gradient(ellipse 60% 70% at 90% 20%, rgba(0,123,168,0.1) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 50% at 55% 90%, rgba(0,159,212,0.08) 0%, transparent 55%),
-    linear-gradient(160deg, #ffffff 0%, #f0f9ff 45%, #e8f6fb 100%)
+    radial-gradient(ellipse 70% 60% at 10% 30%, rgba(0,191,255,0.16) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 70% at 90% 20%, rgba(0,123,168,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 55% 90%, rgba(0,159,212,0.1) 0%, transparent 55%),
+    linear-gradient(160deg, rgba(255,255,255,0.4) 0%, rgba(224,247,255,0.55) 45%, rgba(0,191,255,0.12) 100%)
   `,
 }}>
   <div style={{ position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(0,191,255,0.08)', filter:'blur(36px)', top:-50, right:'3%', pointerEvents:'none' }} />
@@ -543,7 +560,7 @@ function handleGoToCourse(course) {
 </div>
 
       {/* Grid */}
-      <div className="section" style={{ background:'var(--white,#fff)' }}>
+      <div className="section" style={{ background:'transparent', position:'relative', zIndex:1 }}>
         <div className="courses-grid">
           {courses.map((c, i) => {
             const cid        = String(c.id)
