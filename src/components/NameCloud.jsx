@@ -53,11 +53,11 @@ import { RefreshCw, Users, Loader2, UserPlus } from "lucide-react";
 // legible against the bright left edge as well as the white right edge.
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  sky: "#0EA5E9", // solid sky-blue, no gradient
+  sky: "#00BFFF", // solid sky-blue, no gradient
   inkMuted: "#BFE9F2",
   text: "#0E3A4A",
   subtext: "#4A7686",
-  accent: "#1B9CC7",
+  accent: "#00BFFF",
 };
 
 const DISPLAY_FONT =
@@ -295,7 +295,7 @@ export default function NameCloud({
               }
               
 
-              
+
               
             }
             resolve();
