@@ -373,7 +373,7 @@ function MyEnrollments({ userEmail }) {
   const inactive = enrollments.filter(r => !active.includes(r))
 
   return (
-    <div id="my-enrollments-section" style={{ background: 'var(--white)', padding: '0 0 4rem' }}>
+    <div id="my-enrollments-section" style={{ background: 'transparent', padding: '0 0 4rem' }}>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 clamp(1rem,4vw,2rem)' }}>
 
         {/* Header card */}
@@ -1067,7 +1067,15 @@ export default function WorkshopsPage() {
 
   // ── SUCCESS SCREEN ───────────────────────────────────────────────────────
   if (screen === 'done') return (
-    <div className="page-wrapper" style={{ background: C.skyGhost }}>
+    <div className="page-wrapper" style={{
+      background:
+        'radial-gradient(circle at 10% 0%, rgba(14,165,233,0.14), transparent 52%),' +
+        'radial-gradient(circle at 100% 15%, rgba(41,128,185,0.12), transparent 55%),' +
+        'radial-gradient(circle at 50% 100%, rgba(125,211,252,0.16), transparent 60%),' +
+        'linear-gradient(175deg, rgba(224,242,254,0.75) 0%, rgba(240,249,255,0.85) 35%, rgba(214,238,252,0.7) 70%, rgba(232,247,255,0.85) 100%)',
+      backgroundAttachment: 'fixed',
+      minHeight: '100vh',
+    }}>
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '5rem 2rem' }}>
         <div style={{
           background: C.white, borderRadius: 24,
@@ -1263,7 +1271,15 @@ export default function WorkshopsPage() {
 
   // ── REGISTER FORM ────────────────────────────────────────────────────────
   if (screen === 'register') return (
-    <div className="page-wrapper" style={{ background: C.skyGhost }}>
+    <div className="page-wrapper" style={{
+      background:
+        'radial-gradient(circle at 10% 0%, rgba(14,165,233,0.14), transparent 52%),' +
+        'radial-gradient(circle at 100% 15%, rgba(41,128,185,0.12), transparent 55%),' +
+        'radial-gradient(circle at 50% 100%, rgba(125,211,252,0.16), transparent 60%),' +
+        'linear-gradient(175deg, rgba(224,242,254,0.75) 0%, rgba(240,249,255,0.85) 35%, rgba(214,238,252,0.7) 70%, rgba(232,247,255,0.85) 100%)',
+      backgroundAttachment: 'fixed',
+      minHeight: '100vh',
+    }}>
       <div style={{ background: heroGrad, padding: '4rem 3rem 3rem' }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
           <div style={{
@@ -1488,7 +1504,15 @@ export default function WorkshopsPage() {
 
   // ── WORKSHOP LIST ────────────────────────────────────────────────────────
   return (
-    <div className="page-wrapper">
+    <div className="page-wrapper" style={{
+      background:
+        'radial-gradient(circle at 10% 0%, rgba(14,165,233,0.14), transparent 52%),' +
+        'radial-gradient(circle at 100% 15%, rgba(41,128,185,0.12), transparent 55%),' +
+        'radial-gradient(circle at 50% 100%, rgba(125,211,252,0.16), transparent 60%),' +
+        'linear-gradient(175deg, rgba(224,242,254,0.75) 0%, rgba(240,249,255,0.85) 35%, rgba(214,238,252,0.7) 70%, rgba(232,247,255,0.85) 100%)',
+      backgroundAttachment: 'fixed',
+      minHeight: '100vh',
+    }}>
       <style>{`
         .workshops-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
         @media(max-width:1024px){ .workshops-grid { grid-template-columns:repeat(2,1fr); } }
@@ -1651,7 +1675,7 @@ export default function WorkshopsPage() {
         </div>
       </div>
 
-      <div className="section" style={{ background: 'var(--white)' }}>
+      <div className="section" style={{ background: 'transparent' }}>
         {loading && (
           <div style={{
             textAlign: 'center', padding: '4rem',
