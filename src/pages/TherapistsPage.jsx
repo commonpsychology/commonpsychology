@@ -224,6 +224,7 @@ export default function TherapistsPage() {
       background: 'linear-gradient(135deg, #dbf1fb 0%, #d7f5ec 100%)',
       backgroundAttachment: 'fixed',
       minHeight: '100vh',
+      overflow: 'hidden',
     }}>
      <div
   className="page-hero"
