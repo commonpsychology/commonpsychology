@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, Users, Loader2, UserPlus } from "lucide-react";
+import { RefreshCw, Users, Loader2, UserPlus, Star } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // API base URL
@@ -7,15 +7,23 @@ import { RefreshCw, Users, Loader2, UserPlus } from "lucide-react";
 const API = import.meta.env.VITE_API_URL;
 
 // ---------------------------------------------------------------------------
-// Palette
+// Palette — warm brick / stone / brass, no blue anywhere.
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  skyTop: "#0A6FA8",
-  skyMid: "#1C8FC7",
-  inkMuted: "#BFE9F2",
-  text: "#0E3A4A",
-  subtext: "#EAF9FF",
-  accent: "#00BFFF",
+  mortar: "#C9B693",
+  brickBase: ["#9C4A2E", "#A8532F", "#8C3E23", "#B15B34", "#7A3620", "#9E4E2B", "#8F3F21"],
+  engraveText: "#F3E4C4",
+  engraveLight: "rgba(255,238,205,0.22)",
+  engraveDark: "rgba(30,12,4,0.65)",
+  pinnedBrick: "#E8AC3E",
+  pinnedBrickDark: "#C68A26",
+  pinnedText: "#3A2107",
+  panelStart: "#E0A233",
+  panelEnd: "#8A5714",
+  plaque: "rgba(32,17,8,0.74)",
+  plaqueBorder: "rgba(255,224,160,0.28)",
+  cream: "#F6ECD9",
+  creamDim: "#E4D3AE",
 };
 
 const DISPLAY_FONT =
@@ -24,150 +32,253 @@ const UI_FONT =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif';
 
 // ---------------------------------------------------------------------------
-// Layout: spiral placement over a downsampled bitmap collision grid.
+// Brick geometry
 // ---------------------------------------------------------------------------
-function buildLayoutEngine(width, height, cellSize = 4, pad = 8) {
-  const cols = Math.ceil(width / cellSize);
-  const rows = Math.ceil(height / cellSize);
-  const grid = new Uint8Array(cols * rows);
+const BRICK_W = 150;
+const BRICK_H = 56;
+const GAP = 6;
+const NARROW_BREAK = 760;
 
-  const markOccupied = (x, y, w, h) => {
-    const x0 = Math.max(0, Math.floor((x - pad) / cellSize));
-    const y0 = Math.max(0, Math.floor((y - pad) / cellSize));
-    const x1 = Math.min(cols - 1, Math.ceil((x + w + pad) / cellSize));
-    const y1 = Math.min(rows - 1, Math.ceil((y + h + pad) / cellSize));
-    for (let gy = y0; gy <= y1; gy++) {
-      for (let gx = x0; gx <= x1; gx++) {
-        grid[gy * cols + gx] = 1;
+function pseudoRandom(seed) {
+  const x = Math.sin(seed) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+function fitFontSize(text, pinned) {
+  const len = text.length;
+  const base = pinned ? 17 : 15;
+  if (len <= 8) return base;
+  if (len <= 12) return base - 2;
+  if (len <= 16) return base - 3.5;
+  if (len <= 22) return base - 5;
+  return base - 6;
+}
+
+function computeGrid(width, height) {
+  const cols = Math.max(4, Math.ceil(width / (BRICK_W + GAP)));
+  const rows = Math.max(4, Math.ceil(height / (BRICK_H + GAP)));
+  return { cols, rows };
+}
+
+// Lay names into a running-bond brick grid (alternating rows start with a
+// half brick, like a real wall) and pin the current user's name into one
+// fixed, non-shuffling cell near the middle.
+function buildWall(names, cols, rows, currentUserName, reserveRightCols) {
+  const grid = [];
+  for (let r = 0; r < rows; r++) {
+    const isOffset = r % 2 === 1;
+    const row = [];
+    if (isOffset) row.push({ width: BRICK_W / 2, isHalf: true });
+    for (let c = 0; c < cols; c++) row.push({ width: BRICK_W, isHalf: false });
+    grid.push(row);
+  }
+
+  const pool = names.length ? names : [{ text: "Member" }];
+  let poolIdx = 0;
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      const cell = grid[r][c];
+      cell.row = r;
+      cell.col = c;
+      cell.pinned = false;
+      if (!cell.isHalf) {
+        cell.text = pool[poolIdx % pool.length].text;
+        poolIdx++;
+      } else {
+        cell.text = "";
       }
     }
-  };
+  }
 
-  const collides = (x, y, w, h) => {
-    const x0 = Math.floor((x - pad) / cellSize);
-    const y0 = Math.floor((y - pad) / cellSize);
-    const x1 = Math.ceil((x + w + pad) / cellSize);
-    const y1 = Math.ceil((y + h + pad) / cellSize);
-    if (x0 < 0 || y0 < 0 || x1 >= cols || y1 >= rows) return true;
-    for (let gy = y0; gy <= y1; gy++) {
-      const rowBase = gy * cols;
-      for (let gx = x0; gx <= x1; gx++) {
-        if (grid[rowBase + gx]) return true;
-      }
-    }
-    return false;
-  };
+  if (currentUserName) {
+    const pinnedRow = Math.min(rows - 1, Math.max(3, Math.round(rows * 0.55)));
+    const rowArr = grid[pinnedRow];
+    const maxCol = Math.max(1, rowArr.length - 1 - reserveRightCols);
+    let pinnedCol = Math.min(maxCol, Math.max(1, Math.floor(rowArr.length * 0.42)));
+    if (rowArr[pinnedCol]?.isHalf) pinnedCol = Math.min(maxCol, pinnedCol + 1);
+    rowArr[pinnedCol] = {
+      ...rowArr[pinnedCol],
+      text: currentUserName,
+      pinned: true,
+    };
+  }
 
-  const place = (w, h) => {
-    const cx = width / 2 - w / 2;
-    const cy = height / 2 - h / 2;
-    const maxR = Math.sqrt(width * width + height * height) / 1.6;
-    let angle = Math.random() * Math.PI * 2;
-    let radius = 0;
-    const step = Math.max(2, Math.min(w, h) / 6);
-
-    while (radius < maxR) {
-      const x = cx + radius * Math.cos(angle);
-      const y = cy + radius * Math.sin(angle) * 0.55;
-      if (!collides(x, y, w, h)) {
-        markOccupied(x, y, w, h);
-        return { x, y };
-      }
-      angle += 0.35;
-      radius += step * 0.12;
-    }
-    return null;
-  };
-
-  return { place, markOccupied };
+  return grid;
 }
 
 // ---------------------------------------------------------------------------
-// Build an offscreen "sprite" canvas for a single word: shadow + glow + crisp
-// text baked in ONCE at layout time. This is the key perf fix — the old
-// version called ctx.filter = "blur(...)" for every word, every frame,
-// which is extremely expensive on the main thread (blur is not
-// GPU-accelerated in most browsers) and was the cause of the animation
-// jank / slow scrolling. Now each frame just does a cheap drawImage() per
-// word with zero filter work.
+// A single brick
 // ---------------------------------------------------------------------------
-function buildWordSprite(text, fontSize, bold, dpr) {
-  const PAD = 16; // room for blur bleed + shadow offset
-  const font = `${bold ? "700" : "500"} ${fontSize}px ${DISPLAY_FONT}`;
+function BrickTile({ brick, shuffleNonce }) {
+  const { text, pinned, row, col, width, isHalf } = brick;
 
-  // Measure using a throwaway context first
-  const measureCanvas = document.createElement("canvas");
-  const mctx = measureCanvas.getContext("2d");
-  mctx.font = font;
-  const metrics = mctx.measureText(text);
-  const textW = metrics.width;
-  const textH = fontSize * 1.2;
+  if (!text) {
+    const shade = PALETTE.brickBase[
+      Math.floor(pseudoRandom(row * 97 + col * 57 + 13) * PALETTE.brickBase.length)
+    ];
+    return (
+      <div
+        style={{
+          width,
+          height: BRICK_H,
+          marginRight: GAP,
+          flexShrink: 0,
+          borderRadius: 3,
+          background: shade,
+          filter: `brightness(${0.88 + pseudoRandom(row * 13 + col * 29 + 7) * 0.28})`,
+          border: "1px solid rgba(0,0,0,0.15)",
+          boxShadow: "inset 0 -3px 5px rgba(0,0,0,0.28), inset 0 2px 2px rgba(255,255,255,0.08)",
+        }}
+      />
+    );
+  }
 
-  const spriteW = Math.ceil(textW) + PAD * 2;
-  const spriteH = Math.ceil(textH) + PAD * 2;
-  // Baseline sits this far down from the sprite's top edge
-  const baselineOffset = PAD + fontSize * 0.95;
+  const shadeIdx = Math.floor(
+    pseudoRandom(row * 97 + col * 57 + 13) * PALETTE.brickBase.length
+  );
+  const baseColor = PALETTE.brickBase[shadeIdx];
+  const brightness = 0.88 + pseudoRandom(row * 13 + col * 29 + 7) * 0.28;
+  const fontSize = fitFontSize(text, pinned);
+  const delay = Math.min(420, row * 34 + col * 11);
 
-  const sprite = document.createElement("canvas");
-  sprite.width = Math.ceil(spriteW * dpr);
-  sprite.height = Math.ceil(spriteH * dpr);
-  const ctx = sprite.getContext("2d");
-  ctx.scale(dpr, dpr);
-  ctx.font = font;
-  ctx.textBaseline = "alphabetic";
+  return (
+    <div
+      style={{
+        width,
+        height: BRICK_H,
+        marginRight: GAP,
+        flexShrink: 0,
+        position: "relative",
+        borderRadius: 3,
+        background: pinned
+          ? `linear-gradient(155deg, ${PALETTE.pinnedBrick}, ${PALETTE.pinnedBrickDark})`
+          : baseColor,
+        filter: pinned ? "none" : `brightness(${brightness})`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 8px",
+        boxShadow: pinned
+          ? "inset 0 -2px 4px rgba(0,0,0,0.2), inset 0 2px 2px rgba(255,255,255,0.25)"
+          : "inset 0 -3px 5px rgba(0,0,0,0.28), inset 0 2px 2px rgba(255,255,255,0.08)",
+        animation: pinned ? "pinnedGlow 2.6s ease-in-out infinite" : undefined,
+        border: pinned ? "1px solid rgba(255,230,165,0.95)" : "1px solid rgba(0,0,0,0.15)",
+        overflow: "hidden",
+        zIndex: pinned ? 2 : 1,
+      }}
+      title={text}
+    >
+      {pinned && (
+        <Star
+          size={11}
+          fill={PALETTE.pinnedText}
+          style={{ position: "absolute", top: 4, left: 6, color: PALETTE.pinnedText, opacity: 0.85 }}
+        />
+      )}
+      <span
+        key={pinned ? "pinned" : `${text}-${shuffleNonce}`}
+        style={{
+          fontFamily: DISPLAY_FONT,
+          fontSize,
+          fontWeight: pinned ? 800 : 600,
+          letterSpacing: "0.01em",
+          color: pinned ? PALETTE.pinnedText : PALETTE.engraveText,
+          textShadow: pinned
+            ? "0 1px 0 rgba(255,255,255,0.4), 0 -1px 1px rgba(0,0,0,0.25)"
+            : `0 1px 0 ${PALETTE.engraveLight}, 0 -1.5px 1.5px ${PALETTE.engraveDark}`,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          maxWidth: "100%",
+          animation: pinned ? undefined : "brickPop 0.5s ease both",
+          animationDelay: pinned ? undefined : `${delay}ms`,
+        }}
+      >
+        {text}
+      </span>
+    </div>
+  );
+}
 
-  const x = PAD;
-  const y = baselineOffset;
-
-  // Soft blurred shadow
-  ctx.save();
-  ctx.filter = "blur(3px)";
-  ctx.globalAlpha = 0.55;
-  ctx.fillStyle = "#0678B3";
-  ctx.fillText(text, x + 2, y + 2);
-  ctx.restore();
-
-  // Soft white glow
-  ctx.save();
-  ctx.filter = "blur(6px)";
-  ctx.globalAlpha = 0.55;
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillText(text, x, y);
-  ctx.restore();
-
-  // Crisp white core
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillText(text, x, y);
-
-  return { canvas: sprite, w: spriteW, h: spriteH, padX: PAD, baselineOffset, textW };
+// ---------------------------------------------------------------------------
+// The glowing "Become a Member" brick — reused as a tall side panel on
+// wide screens and an inline bar on narrow ones.
+// ---------------------------------------------------------------------------
+function MemberGlowButton({ onClick, variant }) {
+  const isPanel = variant === "panel";
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "flex",
+        flexDirection: isPanel ? "column" : "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: isPanel ? 10 : 8,
+        width: isPanel ? 168 : "auto",
+        minHeight: isPanel ? 220 : "auto",
+        padding: isPanel ? "20px 14px" : "12px 24px",
+        borderRadius: 10,
+        background: `linear-gradient(160deg, ${PALETTE.panelStart}, ${PALETTE.panelEnd})`,
+        border: "2px solid rgba(255,228,170,0.9)",
+        color: PALETTE.cream,
+        cursor: "pointer",
+        textAlign: "center",
+        animation: "memberGlow 2.4s ease-in-out infinite",
+        transition: "transform 0.15s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px) scale(1.02)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0) scale(1)";
+      }}
+    >
+      <UserPlus size={isPanel ? 26 : 18} />
+      <span
+        style={{
+          fontFamily: DISPLAY_FONT,
+          fontWeight: 800,
+          lineHeight: 1.25,
+          textShadow: "0 1px 0 rgba(255,255,255,0.35), 0 -1px 1px rgba(0,0,0,0.3)",
+        }}
+      >
+        {isPanel ? (
+          <>
+            <div style={{ fontSize: 12, letterSpacing: "0.14em", opacity: 0.9 }}>BECOME A</div>
+            <div style={{ fontSize: 20 }}>MEMBER</div>
+          </>
+        ) : (
+          <span style={{ fontSize: 15 }}>Become a Member</span>
+        )}
+      </span>
+    </button>
+  );
 }
 
 // ---------------------------------------------------------------------------
 // OurMembersPage
 // ---------------------------------------------------------------------------
 export default function OurMembersPage({
-  maxWords = 260,
-  minWords = 40,
-  sampleRatio = 0.05,
-  minFontPx = 12,
-  maxFontPx = 64,
+  maxWords = 220,
+  minWords = 30,
   registerHref = "/register",
   onRegister,
   headerOffset = 0, // height in px of any fixed/sticky site nav above this section
+  currentUserName = null, // pass the logged-in member's display name to pin their brick
 }) {
   const containerRef = useRef(null);
-  const canvasRef = useRef(null);
-  const wordsRef = useRef([]);
-  const rafRef = useRef(null);
-  const startTimeRef = useRef(null);
-  const sizeRef = useRef({ w: 0, h: 0 });
 
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [totalCount, setTotalCount] = useState(null);
   const [shownCount, setShownCount] = useState(0);
+  const [wallGrid, setWallGrid] = useState([]);
+  const [dims, setDims] = useState({ w: 0, h: 0 });
   const [nonce, setNonce] = useState(0);
+  const [shuffleNonce, setShuffleNonce] = useState(0);
+
+  const isNarrow = dims.w > 0 && dims.w < NARROW_BREAK;
 
   const fetchCount = useCallback(async () => {
     const res = await fetch(`${API}/profiles-directory/count`);
@@ -194,131 +305,6 @@ export default function OurMembersPage({
     }
   }, [onRegister, registerHref]);
 
-  // -------------------------------------------------------------------------
-  // Lay the words out once (spiral collision layout), pre-bake each word's
-  // sprite (shadow+glow+text), and attach drift params for the animation.
-  // -------------------------------------------------------------------------
-  const layoutWords = useCallback(
-    (rawWords, canvasWidth, canvasHeight) => {
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-
-      const n = rawWords.length;
-      const densityFactor = Math.max(0.28, 1 - Math.log10(n + 1) / 5);
-      const effMaxFont = Math.max(minFontPx + 4, maxFontPx * densityFactor);
-
-      const weights = rawWords.map((w) => w.weight);
-      const wMin = Math.min(...weights);
-      const wMax = Math.max(...weights);
-      const wRange = wMax - wMin || 1;
-
-      const sorted = [...rawWords].sort((a, b) => b.weight - a.weight);
-      const MAX_AMP_X = 14;
-      const MAX_AMP_Y = 9;
-      const engine = buildLayoutEngine(
-        canvasWidth,
-        canvasHeight,
-        4,
-        8 + Math.max(MAX_AMP_X, MAX_AMP_Y)
-      );
-
-      // Reserve the header/status-bar band so no word can land under the
-      // title, intro paragraph, or the shuffle/register bar.
-      const headerReserve = Math.max(160, Math.min(260, canvasHeight * 0.3));
-      engine.markOccupied(0, 0, canvasWidth, headerReserve);
-
-      const placed = [];
-      for (let i = 0; i < sorted.length; i++) {
-        const item = sorted[i];
-        const t = (item.weight - wMin) / wRange;
-        const fontSize = Math.round(
-          minFontPx + Math.pow(t, 0.65) * (effMaxFont - minFontPx)
-        );
-        const bold = i % 7 === 0;
-
-        const sprite = buildWordSprite(item.text, fontSize, bold, dpr);
-        const w = sprite.textW;
-        const h = fontSize * 1.05;
-
-        const spot = engine.place(w, h);
-        if (spot) {
-          placed.push({
-            baseX: spot.x,
-            baseY: spot.y,
-            h,
-            sprite,
-            ampX: 4 + Math.random() * (MAX_AMP_X - 4),
-            ampY: 3 + Math.random() * (MAX_AMP_Y - 3),
-            speedX: 0.15 + Math.random() * 0.25,
-            speedY: 0.12 + Math.random() * 0.22,
-            phaseX: Math.random() * Math.PI * 2,
-            phaseY: Math.random() * Math.PI * 2,
-          });
-        }
-      }
-      wordsRef.current = placed;
-      setShownCount(placed.length);
-    },
-    [minFontPx, maxFontPx]
-  );
-
-  // -------------------------------------------------------------------------
-  // Continuous animation loop — now just a background fill + one drawImage
-  // per word. No per-frame blur/filter work, so this stays cheap even with
-  // ~260 words animating at once, and no longer competes with page scroll.
-  // -------------------------------------------------------------------------
-  const renderFrame = useCallback((timestamp) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    if (startTimeRef.current === null) startTimeRef.current = timestamp;
-    const t = (timestamp - startTimeRef.current) / 1000;
-
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const { w: canvasWidth, h: canvasHeight } = sizeRef.current;
-    const ctx = canvas.getContext("2d");
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-    bgGrad.addColorStop(0, PALETTE.skyTop);
-    bgGrad.addColorStop(0.55, PALETTE.skyMid);
-    bgGrad.addColorStop(1, PALETTE.skyTop);
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    const words = wordsRef.current;
-    for (let i = 0; i < words.length; i++) {
-      const wd = words[i];
-      const s = wd.sprite;
-
-      const xBaseline = wd.baseX + Math.sin(t * wd.speedX + wd.phaseX) * wd.ampX;
-      const yBaseline =
-        wd.baseY +
-        Math.cos(t * wd.speedY + wd.phaseY) * wd.ampY +
-        wd.h * 0.78;
-
-      const drawX = xBaseline - s.padX;
-      const drawY = yBaseline - s.baselineOffset;
-
-      ctx.drawImage(s.canvas, drawX, drawY, s.w, s.h);
-    }
-
-    rafRef.current = requestAnimationFrame(renderFrame);
-  }, []);
-
-  const resizeCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    sizeRef.current = { w, h };
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    canvas.style.width = `${w}px`;
-    canvas.style.height = `${h}px`;
-  }, []);
-
   const load = useCallback(
     async (isStale) => {
       setStatus("loading");
@@ -328,30 +314,36 @@ export default function OurMembersPage({
         if (isStale()) return;
         setTotalCount(total);
 
-        const sampleSize = Math.min(
-          maxWords,
-          Math.max(minWords, Math.round(total * sampleRatio))
-        );
+        const container = containerRef.current;
+        const width = container ? container.clientWidth : 1200;
+        const height = container ? container.clientHeight : 700;
+        setDims({ w: width, h: height });
 
-        const rows = await fetchSample(sampleSize);
+        const { cols, rows } = computeGrid(width, height);
+        const totalSlots = rows * cols;
+        const sampleSize = Math.min(maxWords, Math.max(minWords, totalSlots));
+
+        const rowsData = await fetchSample(sampleSize);
         if (isStale()) return;
 
-        const words = rows
-          .map((r) => {
-            const text = (r.full_name || "").toString().trim();
-            const weight = Math.random();
-            return text ? { text, weight } : null;
-          })
-          .filter(Boolean);
+        const names = rowsData
+          .map((r) => (r.full_name || "").toString().trim())
+          .filter(Boolean)
+          .map((text) => ({ text }));
 
-        resizeCanvas();
-        layoutWords(words, sizeRef.current.w, sizeRef.current.h);
+        for (let i = names.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [names[i], names[j]] = [names[j], names[i]];
+        }
+
+        const reserveRightCols = width < NARROW_BREAK ? 0 : 2;
+        const grid = buildWall(names, cols, rows, currentUserName, reserveRightCols);
         if (isStale()) return;
+
+        setWallGrid(grid);
+        setShownCount(Math.min(names.length, totalSlots));
         setStatus("ready");
-
-        if (rafRef.current) cancelAnimationFrame(rafRef.current);
-        startTimeRef.current = null;
-        rafRef.current = requestAnimationFrame(renderFrame);
+        setShuffleNonce((n) => n + 1);
       } catch (err) {
         if (isStale()) return;
         console.error("OurMembersPage load error:", err);
@@ -359,16 +351,7 @@ export default function OurMembersPage({
         setErrorMsg(err.message || "Something went wrong loading names.");
       }
     },
-    [
-      fetchCount,
-      fetchSample,
-      maxWords,
-      minWords,
-      sampleRatio,
-      resizeCanvas,
-      layoutWords,
-      renderFrame,
-    ]
+    [fetchCount, fetchSample, maxWords, minWords, currentUserName]
   );
 
   useEffect(() => {
@@ -376,7 +359,6 @@ export default function OurMembersPage({
     load(() => stale);
     return () => {
       stale = true;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nonce]);
@@ -406,101 +388,114 @@ export default function OurMembersPage({
         height: `calc(100vh - ${headerOffset}px)`,
         overflow: "hidden",
         fontFamily: UI_FONT,
-        color: PALETTE.text,
-        zIndex: 0, // establishes a fresh stacking context for this section
+        color: PALETTE.cream,
+        background: PALETTE.mortar,
+        zIndex: 0,
       }}
     >
-      {/* Fullscreen, drifting name-cloud canvas — the page background */}
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "block",
-          width: "100%",
-          height: "100%",
-          zIndex: 0,
-        }}
-      />
+      <style>{`
+        @keyframes brickPop {
+          0% { opacity: 0; transform: scale(0.82) translateY(2px); }
+          60% { opacity: 1; transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        @keyframes pinnedGlow {
+          0%, 100% { box-shadow: 0 0 0 2px rgba(255,205,110,0.55), 0 0 14px 3px rgba(255,190,80,0.4); }
+          50% { box-shadow: 0 0 0 2px rgba(255,205,110,0.9), 0 0 26px 8px rgba(255,190,80,0.75); }
+        }
+        @keyframes memberGlow {
+          0%, 100% { box-shadow: 0 0 22px 4px rgba(255,193,90,0.55), inset 0 0 14px rgba(255,224,150,0.25); }
+          50% { box-shadow: 0 0 40px 10px rgba(255,193,90,0.85), inset 0 0 20px rgba(255,224,150,0.4); }
+        }
+      `}</style>
 
-      {/* Header row — badge/title/intro on the left, Shuffle + Become a
-          Member on the right, both vertically centered on the same row so
-          the buttons sit level with the "Our Members" line, not floating
-          above it. zIndex is explicit so an outside app header/nav can't
-          cover it. */}
+      {/* The brick wall itself */}
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" }}>
+        {wallGrid.map((row, rIdx) => (
+          <div
+            key={`row-${rIdx}`}
+            style={{ display: "flex", height: BRICK_H, marginBottom: GAP, overflow: "hidden" }}
+          >
+            {row.map((brick, cIdx) => (
+              <BrickTile key={`${rIdx}-${cIdx}`} brick={brick} shuffleNonce={shuffleNonce} />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Header plaque — title, blurb, member count, shuffle */}
       <div
         style={{
           position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
+          top: 24,
+          left: "50%",
+          transform: "translateX(-50%)",
           zIndex: 1000,
-          padding: "32px 24px 0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 24,
-          flexWrap: "wrap",
+          width: "calc(100% - 48px)",
+          maxWidth: 620,
+          padding: "22px 28px",
+          borderRadius: 16,
+          background: PALETTE.plaque,
+          border: `1px solid ${PALETTE.plaqueBorder}`,
+          boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          textAlign: "center",
         }}
       >
-        {/* Title block */}
-        <div style={{ flex: "1 1 320px", minWidth: 260 }}>
-          <div
-            style={{
-              display: "inline-block",
-              fontSize: 13,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "#FFFFFF",
-              marginBottom: 14,
-              padding: "0.28rem 0.9rem",
-              borderRadius: 100,
-              border: "1.5px solid rgba(255,255,255,0.4)",
-              background: "rgba(255,255,255,0.15)",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
-            }}
-          >
-            Community
-          </div>
-          <h1
-            style={{
-              fontFamily: DISPLAY_FONT,
-              fontSize: "clamp(32px, 5vw, 52px)",
-              fontWeight: 600,
-              margin: "0 0 12px",
-              lineHeight: 1.1,
-              color: "#FFFFFF",
-              textShadow: "0 2px 12px rgba(6,120,179,0.5)",
-            }}
-          >
-            Our Members
-          </h1>
-          <p
-            style={{
-              color: PALETTE.subtext,
-              fontSize: 16,
-              maxWidth: 560,
-              margin: 0,
-              lineHeight: 1.6,
-              textShadow: "0 1px 8px rgba(6,120,179,0.5)",
-            }}
-          >
-            Every name floating above belongs to someone who's part of this
-            community. The cloud drifts and reshuffles as more people join.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              color: "#FFFFFF",
-              fontSize: 13,
-              marginTop: 14,
-              textShadow: "0 1px 6px rgba(6,120,179,0.6)",
-            }}
-          >
-            <Users size={15} />
+        <div
+          style={{
+            display: "inline-block",
+            fontSize: 12,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: PALETTE.cream,
+            marginBottom: 12,
+            padding: "0.26rem 0.85rem",
+            borderRadius: 100,
+            border: "1.5px solid rgba(255,224,160,0.4)",
+            background: "rgba(255,224,160,0.1)",
+          }}
+        >
+          Community
+        </div>
+        <h1
+          style={{
+            fontFamily: DISPLAY_FONT,
+            fontSize: "clamp(28px, 4.6vw, 44px)",
+            fontWeight: 600,
+            margin: "0 0 10px",
+            lineHeight: 1.1,
+            color: PALETTE.cream,
+          }}
+        >
+          Our Members
+        </h1>
+        <p
+          style={{
+            color: PALETTE.creamDim,
+            fontSize: 15,
+            maxWidth: 520,
+            margin: "0 auto 16px",
+            lineHeight: 1.55,
+          }}
+        >
+          Every name on the wall belongs to someone who's part of this
+          community. Shuffle to see more, and your own brick always stays
+          put, right in the middle.
+        </p>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 14,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: PALETTE.creamDim }}>
+            <Users size={14} />
             {totalCount !== null ? (
               <span>
                 Showing <strong>{shownCount.toLocaleString()}</strong> of{" "}
@@ -510,19 +505,7 @@ export default function OurMembersPage({
               <span>Loading name pool…</span>
             )}
           </div>
-        </div>
 
-        {/* Actions: Shuffle + Become a Member, aligned with the title line */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            flexShrink: 0,
-            alignSelf: "flex-start",
-            marginTop: "clamp(6px, 1.2vw, 14px)",
-          }}
-        >
           <button
             onClick={() => setNonce((n) => n + 1)}
             disabled={status === "loading"}
@@ -530,17 +513,14 @@ export default function OurMembersPage({
               display: "flex",
               alignItems: "center",
               gap: 6,
-              background: "rgba(255,255,255,0.15)",
-              border: `1px solid rgba(255,255,255,0.5)`,
-              color: "#FFFFFF",
+              background: "rgba(255,224,160,0.12)",
+              border: "1px solid rgba(255,224,160,0.5)",
+              color: PALETTE.cream,
               borderRadius: 999,
               padding: "6px 14px",
               fontSize: 13,
               cursor: status === "loading" ? "default" : "pointer",
               opacity: status === "loading" ? 0.6 : 1,
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
-              whiteSpace: "nowrap",
             }}
           >
             {status === "loading" ? (
@@ -551,42 +531,24 @@ export default function OurMembersPage({
             Shuffle
           </button>
 
-          <button
-            onClick={handleRegisterClick}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              background: "#FFFFFF",
-              border: "2px solid #FFFFFF",
-              color: "#0A6FA8",
-              borderRadius: 999,
-              padding: "10px 22px",
-              fontSize: 14.5,
-              fontWeight: 800,
-              letterSpacing: "0.01em",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              boxShadow:
-                "0 4px 16px rgba(6,120,179,0.45), 0 0 0 4px rgba(255,255,255,0.18)",
-              transition: "transform 0.15s ease, box-shadow 0.15s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow =
-                "0 8px 22px rgba(6,120,179,0.5), 0 0 0 4px rgba(255,255,255,0.28)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow =
-                "0 4px 16px rgba(6,120,179,0.45), 0 0 0 4px rgba(255,255,255,0.18)";
-            }}
-          >
-            <UserPlus size={16} />
-            Become a Member
-          </button>
+          {isNarrow && <MemberGlowButton onClick={handleRegisterClick} variant="inline" />}
         </div>
       </div>
+
+      {/* Become a Member — glowing brick panel on the right side of the wall */}
+      {!isNarrow && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            right: 28,
+            transform: "translateY(-50%)",
+            zIndex: 1000,
+          }}
+        >
+          <MemberGlowButton onClick={handleRegisterClick} variant="panel" />
+        </div>
+      )}
 
       {status === "error" && (
         <div
@@ -599,9 +561,9 @@ export default function OurMembersPage({
             justifyContent: "center",
             padding: 24,
             textAlign: "center",
-            color: "#FFFFFF",
+            color: PALETTE.cream,
             fontSize: 14,
-            background: "rgba(6,120,179,0.85)",
+            background: "rgba(35,18,8,0.88)",
           }}
         >
           {errorMsg}
