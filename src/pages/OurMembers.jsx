@@ -10,10 +10,6 @@ const API = import.meta.env.VITE_API_URL;
 // Palette
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  // A softer, deeper ocean gradient instead of a single flat, very
-  // saturated cyan — the gradient is built from these two stops each
-  // frame (see renderFrame), so the canvas reads as a calm sky/sea
-  // rather than a neon-bright block.
   skyTop: "#0A6FA8",
   skyMid: "#1C8FC7",
   inkMuted: "#BFE9F2",
@@ -29,9 +25,6 @@ const UI_FONT =
 
 // ---------------------------------------------------------------------------
 // Layout: spiral placement over a downsampled bitmap collision grid.
-// Used once, up front, to find non-overlapping starting positions. After
-// that the words drift gently (like clouds) via a per-frame sine offset
-// rather than being re-laid-out every frame (which would be far too slow).
 // ---------------------------------------------------------------------------
 function buildLayoutEngine(width, height, cellSize = 4, pad = 8) {
   const cols = Math.ceil(width / cellSize);
@@ -86,22 +79,75 @@ function buildLayoutEngine(width, height, cellSize = 4, pad = 8) {
     return null;
   };
 
-  // markOccupied is exposed so callers can reserve regions (like the
-  // header) BEFORE any words are placed, so the spiral placement can
-  // never put a word there in the first place.
   return { place, markOccupied };
 }
 
 // ---------------------------------------------------------------------------
+// Build an offscreen "sprite" canvas for a single word: shadow + glow + crisp
+// text baked in ONCE at layout time. This is the key perf fix — the old
+// version called ctx.filter = "blur(...)" for every word, every frame,
+// which is extremely expensive on the main thread (blur is not
+// GPU-accelerated in most browsers) and was the cause of the animation
+// jank / slow scrolling. Now each frame just does a cheap drawImage() per
+// word with zero filter work.
+// ---------------------------------------------------------------------------
+function buildWordSprite(text, fontSize, bold, dpr) {
+  const PAD = 16; // room for blur bleed + shadow offset
+  const font = `${bold ? "700" : "500"} ${fontSize}px ${DISPLAY_FONT}`;
+
+  // Measure using a throwaway context first
+  const measureCanvas = document.createElement("canvas");
+  const mctx = measureCanvas.getContext("2d");
+  mctx.font = font;
+  const metrics = mctx.measureText(text);
+  const textW = metrics.width;
+  const textH = fontSize * 1.2;
+
+  const spriteW = Math.ceil(textW) + PAD * 2;
+  const spriteH = Math.ceil(textH) + PAD * 2;
+  // Baseline sits this far down from the sprite's top edge
+  const baselineOffset = PAD + fontSize * 0.95;
+
+  const sprite = document.createElement("canvas");
+  sprite.width = Math.ceil(spriteW * dpr);
+  sprite.height = Math.ceil(spriteH * dpr);
+  const ctx = sprite.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.font = font;
+  ctx.textBaseline = "alphabetic";
+
+  const x = PAD;
+  const y = baselineOffset;
+
+  // Soft blurred shadow
+  ctx.save();
+  ctx.filter = "blur(3px)";
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = "#0678B3";
+  ctx.fillText(text, x + 2, y + 2);
+  ctx.restore();
+
+  // Soft white glow
+  ctx.save();
+  ctx.filter = "blur(6px)";
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillText(text, x, y);
+  ctx.restore();
+
+  // Crisp white core
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillText(text, x, y);
+
+  return { canvas: sprite, w: spriteW, h: spriteH, padX: PAD, baselineOffset, textW };
+}
+
+// ---------------------------------------------------------------------------
 // OurMembersPage
-// ----------------------------------------------------------------------------
-// Everything that used to live in the separate <NameCloud /> component is
-// now inlined here. The word-cloud canvas fills the entire viewport (it's
-// the page background, not a boxed widget), and the words drift slowly and
-// continuously — like clouds — rather than sitting static once laid out.
 // ---------------------------------------------------------------------------
 export default function OurMembersPage({
-  maxWords = 260, // kept lower than the old 4000 cap so a 60fps drift stays smooth
+  maxWords = 260,
   minWords = 40,
   sampleRatio = 0.05,
   minFontPx = 12,
@@ -111,12 +157,12 @@ export default function OurMembersPage({
 }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
-  const wordsRef = useRef([]); // laid-out words with drift params
+  const wordsRef = useRef([]);
   const rafRef = useRef(null);
   const startTimeRef = useRef(null);
   const sizeRef = useRef({ w: 0, h: 0 });
 
-  const [status, setStatus] = useState("idle"); // idle | loading | ready | error
+  const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [totalCount, setTotalCount] = useState(null);
   const [shownCount, setShownCount] = useState(0);
@@ -134,7 +180,7 @@ export default function OurMembersPage({
       `${API}/profiles-directory/sample?limit=${sampleSize}`
     );
     if (!res.ok) throw new Error(`Sample request failed (${res.status})`);
-    return res.json(); // expects [{ full_name: "..." }, ...]
+    return res.json();
   }, []);
 
   const handleRegisterClick = useCallback(() => {
@@ -148,15 +194,12 @@ export default function OurMembersPage({
   }, [onRegister, registerHref]);
 
   // -------------------------------------------------------------------------
-  // Lay the words out once (spiral collision layout), attaching random drift
-  // parameters (amplitude, speed, phase) so the animation loop can move each
-  // word along its own gentle, cloud-like orbit.
+  // Lay the words out once (spiral collision layout), pre-bake each word's
+  // sprite (shadow+glow+text), and attach drift params for the animation.
   // -------------------------------------------------------------------------
   const layoutWords = useCallback(
     (rawWords, canvasWidth, canvasHeight) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
 
       const n = rawWords.length;
       const densityFactor = Math.max(0.28, 1 - Math.log10(n + 1) / 5);
@@ -168,10 +211,6 @@ export default function OurMembersPage({
       const wRange = wMax - wMin || 1;
 
       const sorted = [...rawWords].sort((a, b) => b.weight - a.weight);
-      // Pad the collision grid by the max possible drift amplitude so that
-      // words swaying during the animation can never sway into a neighbor's
-      // space — collisions are only safe to ignore post-layout if the sway
-      // radius was already reserved up front.
       const MAX_AMP_X = 14;
       const MAX_AMP_Y = 9;
       const engine = buildLayoutEngine(
@@ -181,12 +220,8 @@ export default function OurMembersPage({
         8 + Math.max(MAX_AMP_X, MAX_AMP_Y)
       );
 
-      // Reserve the header/status-bar band up front so no word can ever be
-      // placed underneath the "Our Members" title, the intro paragraph, or
-      // the shuffle/register bar — this is what previously let a large
-      // word land directly on top of the heading text. The band scales
-      // with viewport height so it doesn't eat too much space on short
-      // screens, but never shrinks below what the header actually needs.
+      // Reserve the header/status-bar band so no word can land under the
+      // title, intro paragraph, or the shuffle/register bar.
       const headerReserve = Math.max(160, Math.min(260, canvasHeight * 0.3));
       engine.markOccupied(0, 0, canvasWidth, headerReserve);
 
@@ -197,26 +232,19 @@ export default function OurMembersPage({
         const fontSize = Math.round(
           minFontPx + Math.pow(t, 0.65) * (effMaxFont - minFontPx)
         );
-        ctx.font = `${i % 7 === 0 ? "700" : "500"} ${fontSize}px ${DISPLAY_FONT}`;
-        const metrics = ctx.measureText(item.text);
-        const w = metrics.width;
+        const bold = i % 7 === 0;
+
+        const sprite = buildWordSprite(item.text, fontSize, bold, dpr);
+        const w = sprite.textW;
         const h = fontSize * 1.05;
+
         const spot = engine.place(w, h);
         if (spot) {
           placed.push({
-            text: item.text,
-            fontSize,
-            bold: i % 7 === 0,
             baseX: spot.x,
             baseY: spot.y,
-            w,
             h,
-            // Drift parameters — each word floats along its own slow,
-            // independent sine path so the whole cloud feels alive rather
-            // than static. Amplitudes stay within MAX_AMP_X/MAX_AMP_Y above,
-            // which is exactly how much extra space the layout reserved
-            // around every word, so drifting words can never sway into a
-            // neighbor's spot (or back up into the header band).
+            sprite,
             ampX: 4 + Math.random() * (MAX_AMP_X - 4),
             ampY: 3 + Math.random() * (MAX_AMP_Y - 3),
             speedX: 0.15 + Math.random() * 0.25,
@@ -233,15 +261,15 @@ export default function OurMembersPage({
   );
 
   // -------------------------------------------------------------------------
-  // Continuous animation loop — redraws every word each frame at its base
-  // position plus a sine-wave offset and a slow wind drift, wrapping around
-  // the screen edges so the cloud endlessly, gently flows.
+  // Continuous animation loop — now just a background fill + one drawImage
+  // per word. No per-frame blur/filter work, so this stays cheap even with
+  // ~260 words animating at once, and no longer competes with page scroll.
   // -------------------------------------------------------------------------
   const renderFrame = useCallback((timestamp) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     if (startTimeRef.current === null) startTimeRef.current = timestamp;
-    const t = (timestamp - startTimeRef.current) / 1000; // seconds
+    const t = (timestamp - startTimeRef.current) / 1000;
 
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const { w: canvasWidth, h: canvasHeight } = sizeRef.current;
@@ -249,8 +277,6 @@ export default function OurMembersPage({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    // Soft vertical gradient instead of a single flat, very saturated
-    // cyan fill — reads as a calm sky/sea rather than a neon block.
     const bgGrad = ctx.createLinearGradient(0, 0, 0, canvasHeight);
     bgGrad.addColorStop(0, PALETTE.skyTop);
     bgGrad.addColorStop(0.55, PALETTE.skyMid);
@@ -261,33 +287,18 @@ export default function OurMembersPage({
     const words = wordsRef.current;
     for (let i = 0; i < words.length; i++) {
       const wd = words[i];
+      const s = wd.sprite;
 
-      const x = wd.baseX + Math.sin(t * wd.speedX + wd.phaseX) * wd.ampX;
-      const y =
-        wd.baseY + Math.cos(t * wd.speedY + wd.phaseY) * wd.ampY + wd.h * 0.78;
+      const xBaseline = wd.baseX + Math.sin(t * wd.speedX + wd.phaseX) * wd.ampX;
+      const yBaseline =
+        wd.baseY +
+        Math.cos(t * wd.speedY + wd.phaseY) * wd.ampY +
+        wd.h * 0.78;
 
-      ctx.font = `${wd.bold ? "700" : "500"} ${wd.fontSize}px ${DISPLAY_FONT}`;
+      const drawX = xBaseline - s.padX;
+      const drawY = yBaseline - s.baselineOffset;
 
-      // Soft blurred shadow
-      ctx.save();
-      ctx.filter = "blur(3px)";
-      ctx.globalAlpha = 0.55;
-      ctx.fillStyle = "#0678B3";
-      ctx.fillText(wd.text, x + 2, y + 2);
-      ctx.restore();
-
-      // Soft white glow
-      ctx.save();
-      ctx.filter = "blur(6px)";
-      ctx.globalAlpha = 0.55;
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillText(wd.text, x, y);
-      ctx.restore();
-
-      // Crisp white core
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillText(wd.text, x, y);
+      ctx.drawImage(s.canvas, drawX, drawY, s.w, s.h);
     }
 
     rafRef.current = requestAnimationFrame(renderFrame);
@@ -327,7 +338,7 @@ export default function OurMembersPage({
         const words = rows
           .map((r) => {
             const text = (r.full_name || "").toString().trim();
-            const weight = Math.random(); // no weight column -> organic random sizing
+            const weight = Math.random();
             return text ? { text, weight } : null;
           })
           .filter(Boolean);
@@ -337,9 +348,6 @@ export default function OurMembersPage({
         if (isStale()) return;
         setStatus("ready");
 
-        // (Re)start the drift animation loop — cancel any previous loop
-        // first so a duplicate effect run (e.g. React StrictMode in dev)
-        // can never leave two loops drawing on the same canvas at once.
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
         startTimeRef.current = null;
         rafRef.current = requestAnimationFrame(renderFrame);
@@ -372,8 +380,6 @@ export default function OurMembersPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nonce]);
 
-  // Re-layout (debounced) on window resize so the cloud keeps covering the
-  // whole screen at any viewport size.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -393,22 +399,19 @@ export default function OurMembersPage({
     <div
       ref={containerRef}
       style={{
-        // This MUST be a positioned element (relative/absolute/fixed) —
-        // every absolutely-positioned child below (the header, and the
-        // status bar that holds the "Become a Member" button) anchors
-        // to the nearest positioned ancestor. Without this, that
-        // ancestor could be something else entirely further up the
-        // app's DOM tree, which is what was pushing the button out of
-        // this section.
         position: "relative",
         width: "100%",
-        height: "100vh", // fills the screen, but stays in normal page flow
+        // If this page sits below a fixed/sticky app header outside this
+        // component, subtract its height here, e.g.:
+        // height: "calc(100vh - 64px)"
+        height: "100vh",
         overflow: "hidden",
         fontFamily: UI_FONT,
         color: PALETTE.text,
+        zIndex: 0, // establishes a fresh stacking context for this section
       }}
     >
-      {/* Fullscreen, drifting name-cloud canvas — this IS the page background */}
+      {/* Fullscreen, drifting name-cloud canvas — the page background */}
       <canvas
         ref={canvasRef}
         style={{
@@ -417,6 +420,7 @@ export default function OurMembersPage({
           display: "block",
           width: "100%",
           height: "100%",
+          zIndex: 0,
         }}
       />
 
@@ -427,12 +431,13 @@ export default function OurMembersPage({
           top: 0,
           left: 0,
           right: 0,
+          zIndex: 10,
           padding: "32px 24px 0",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           textAlign: "center",
-          pointerEvents: "none", // let clicks pass through to the cloud, except on buttons below
+          pointerEvents: "none",
         }}
       >
         <div
@@ -481,13 +486,16 @@ export default function OurMembersPage({
         </p>
       </div>
 
-      {/* Status / actions bar, floating at the top, pointer-events re-enabled */}
+      {/* Status / actions bar — this is where "Become a Member" lives.
+          zIndex is higher than the header above it AND explicit, so an
+          outside app header/nav can no longer cover it. */}
       <div
         style={{
           position: "absolute",
           top: 24,
           left: 24,
           right: 24,
+          zIndex: 20,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -585,6 +593,7 @@ export default function OurMembersPage({
           style={{
             position: "absolute",
             inset: 0,
+            zIndex: 30,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
