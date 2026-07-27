@@ -28,16 +28,16 @@ const UI_FONT =
 // that the words drift gently (like clouds) via a per-frame sine offset
 // rather than being re-laid-out every frame (which would be far too slow).
 // ---------------------------------------------------------------------------
-function buildLayoutEngine(width, height, cellSize = 4) {
+function buildLayoutEngine(width, height, cellSize = 4, pad = 8) {
   const cols = Math.ceil(width / cellSize);
   const rows = Math.ceil(height / cellSize);
   const grid = new Uint8Array(cols * rows);
 
   const markOccupied = (x, y, w, h) => {
-    const x0 = Math.max(0, Math.floor(x / cellSize));
-    const y0 = Math.max(0, Math.floor(y / cellSize));
-    const x1 = Math.min(cols - 1, Math.ceil((x + w) / cellSize));
-    const y1 = Math.min(rows - 1, Math.ceil((y + h) / cellSize));
+    const x0 = Math.max(0, Math.floor((x - pad) / cellSize));
+    const y0 = Math.max(0, Math.floor((y - pad) / cellSize));
+    const x1 = Math.min(cols - 1, Math.ceil((x + w + pad) / cellSize));
+    const y1 = Math.min(rows - 1, Math.ceil((y + h + pad) / cellSize));
     for (let gy = y0; gy <= y1; gy++) {
       for (let gx = x0; gx <= x1; gx++) {
         grid[gy * cols + gx] = 1;
@@ -46,10 +46,10 @@ function buildLayoutEngine(width, height, cellSize = 4) {
   };
 
   const collides = (x, y, w, h) => {
-    const x0 = Math.floor(x / cellSize);
-    const y0 = Math.floor(y / cellSize);
-    const x1 = Math.ceil((x + w) / cellSize);
-    const y1 = Math.ceil((y + h) / cellSize);
+    const x0 = Math.floor((x - pad) / cellSize);
+    const y0 = Math.floor((y - pad) / cellSize);
+    const x1 = Math.ceil((x + w + pad) / cellSize);
+    const y1 = Math.ceil((y + h + pad) / cellSize);
     if (x0 < 0 || y0 < 0 || x1 >= cols || y1 >= rows) return true;
     for (let gy = y0; gy <= y1; gy++) {
       const rowBase = gy * cols;
@@ -101,6 +101,7 @@ export default function OurMembersPage({
   registerHref = "/register",
   onRegister,
 }) {
+  const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const wordsRef = useRef([]); // laid-out words with drift params
   const rafRef = useRef(null);
@@ -159,7 +160,18 @@ export default function OurMembersPage({
       const wRange = wMax - wMin || 1;
 
       const sorted = [...rawWords].sort((a, b) => b.weight - a.weight);
-      const engine = buildLayoutEngine(canvasWidth, canvasHeight);
+      // Pad the collision grid by the max possible drift amplitude so that
+      // words swaying during the animation can never sway into a neighbor's
+      // space — collisions are only safe to ignore post-layout if the sway
+      // radius was already reserved up front.
+      const MAX_AMP_X = 14;
+      const MAX_AMP_Y = 9;
+      const engine = buildLayoutEngine(
+        canvasWidth,
+        canvasHeight,
+        4,
+        8 + Math.max(MAX_AMP_X, MAX_AMP_Y)
+      );
 
       const placed = [];
       for (let i = 0; i < sorted.length; i++) {
@@ -184,15 +196,16 @@ export default function OurMembersPage({
             h,
             // Drift parameters — each word floats along its own slow,
             // independent sine path so the whole cloud feels alive rather
-            // than static, without ever colliding-checking per frame.
-            ampX: 10 + Math.random() * 18,
-            ampY: 6 + Math.random() * 12,
+            // than static. Amplitudes stay within MAX_AMP_X/MAX_AMP_Y above,
+            // which is exactly how much extra space the layout reserved
+            // around every word, so drifting words can never sway into a
+            // neighbor's spot.
+            ampX: 4 + Math.random() * (MAX_AMP_X - 4),
+            ampY: 3 + Math.random() * (MAX_AMP_Y - 3),
             speedX: 0.15 + Math.random() * 0.25,
             speedY: 0.12 + Math.random() * 0.22,
             phaseX: Math.random() * Math.PI * 2,
             phaseY: Math.random() * Math.PI * 2,
-            // Slow overall horizontal drift, like clouds pushed by wind.
-            windSpeed: 4 + Math.random() * 8,
           });
         }
       }
@@ -226,12 +239,7 @@ export default function OurMembersPage({
     for (let i = 0; i < words.length; i++) {
       const wd = words[i];
 
-      // Slow rightward wind drift, wrapping seamlessly around the canvas.
-      const driftX = (t * wd.windSpeed) % (canvasWidth + wd.w * 2);
-      let x = wd.baseX + driftX - wd.w;
-      if (x > canvasWidth) x -= canvasWidth + wd.w * 2;
-
-      x += Math.sin(t * wd.speedX + wd.phaseX) * wd.ampX;
+      const x = wd.baseX + Math.sin(t * wd.speedX + wd.phaseX) * wd.ampX;
       const y =
         wd.baseY + Math.cos(t * wd.speedY + wd.phaseY) * wd.ampY + wd.h * 0.78;
 
@@ -264,10 +272,11 @@ export default function OurMembersPage({
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w = container.clientWidth;
+    const h = container.clientHeight;
     sizeRef.current = { w, h };
     canvas.width = w * dpr;
     canvas.height = h * dpr;
@@ -275,54 +284,66 @@ export default function OurMembersPage({
     canvas.style.height = `${h}px`;
   }, []);
 
-  const load = useCallback(async () => {
-    setStatus("loading");
-    setErrorMsg("");
-    try {
-      const total = await fetchCount();
-      setTotalCount(total);
+  const load = useCallback(
+    async (isStale) => {
+      setStatus("loading");
+      setErrorMsg("");
+      try {
+        const total = await fetchCount();
+        if (isStale()) return;
+        setTotalCount(total);
 
-      const sampleSize = Math.min(
-        maxWords,
-        Math.max(minWords, Math.round(total * sampleRatio))
-      );
+        const sampleSize = Math.min(
+          maxWords,
+          Math.max(minWords, Math.round(total * sampleRatio))
+        );
 
-      const rows = await fetchSample(sampleSize);
-      const words = rows
-        .map((r) => {
-          const text = (r.full_name || "").toString().trim();
-          const weight = Math.random(); // no weight column -> organic random sizing
-          return text ? { text, weight } : null;
-        })
-        .filter(Boolean);
+        const rows = await fetchSample(sampleSize);
+        if (isStale()) return;
 
-      resizeCanvas();
-      layoutWords(words, sizeRef.current.w, sizeRef.current.h);
-      setStatus("ready");
+        const words = rows
+          .map((r) => {
+            const text = (r.full_name || "").toString().trim();
+            const weight = Math.random(); // no weight column -> organic random sizing
+            return text ? { text, weight } : null;
+          })
+          .filter(Boolean);
 
-      // (Re)start the drift animation loop.
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      startTimeRef.current = null;
-      rafRef.current = requestAnimationFrame(renderFrame);
-    } catch (err) {
-      console.error("OurMembersPage load error:", err);
-      setStatus("error");
-      setErrorMsg(err.message || "Something went wrong loading names.");
-    }
-  }, [
-    fetchCount,
-    fetchSample,
-    maxWords,
-    minWords,
-    sampleRatio,
-    resizeCanvas,
-    layoutWords,
-    renderFrame,
-  ]);
+        resizeCanvas();
+        layoutWords(words, sizeRef.current.w, sizeRef.current.h);
+        if (isStale()) return;
+        setStatus("ready");
+
+        // (Re)start the drift animation loop — cancel any previous loop
+        // first so a duplicate effect run (e.g. React StrictMode in dev)
+        // can never leave two loops drawing on the same canvas at once.
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        startTimeRef.current = null;
+        rafRef.current = requestAnimationFrame(renderFrame);
+      } catch (err) {
+        if (isStale()) return;
+        console.error("OurMembersPage load error:", err);
+        setStatus("error");
+        setErrorMsg(err.message || "Something went wrong loading names.");
+      }
+    },
+    [
+      fetchCount,
+      fetchSample,
+      maxWords,
+      minWords,
+      sampleRatio,
+      resizeCanvas,
+      layoutWords,
+      renderFrame,
+    ]
+  );
 
   useEffect(() => {
-    load();
+    let stale = false;
+    load(() => stale);
     return () => {
+      stale = true;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -331,25 +352,27 @@ export default function OurMembersPage({
   // Re-layout (debounced) on window resize so the cloud keeps covering the
   // whole screen at any viewport size.
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
     let timeout;
-    const onResize = () => {
+    const observer = new ResizeObserver(() => {
       clearTimeout(timeout);
       timeout = setTimeout(() => setNonce((n) => n + 1), 300);
-    };
-    window.addEventListener("resize", onResize);
+    });
+    observer.observe(container);
     return () => {
       clearTimeout(timeout);
-      window.removeEventListener("resize", onResize);
+      observer.disconnect();
     };
   }, []);
 
   return (
     <div
+      ref={containerRef}
       style={{
-        position: "fixed",
-        inset: 0,
-        width: "100vw",
-        height: "100vh",
+        position: "relative",
+        width: "100%",
+        height: "100vh", // fills the screen, but stays in normal page flow
         overflow: "hidden",
         fontFamily: UI_FONT,
         color: PALETTE.text,
