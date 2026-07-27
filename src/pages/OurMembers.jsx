@@ -154,6 +154,7 @@ export default function OurMembersPage({
   maxFontPx = 64,
   registerHref = "/register",
   onRegister,
+  headerOffset = 0, // height in px of any fixed/sticky site nav above this section
 }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -401,10 +402,7 @@ export default function OurMembersPage({
       style={{
         position: "relative",
         width: "100%",
-        // If this page sits below a fixed/sticky app header outside this
-        // component, subtract its height here, e.g.:
-        // height: "calc(100vh - 64px)"
-        height: "100vh",
+        height: `calc(100vh - ${headerOffset}px)`,
         overflow: "hidden",
         fontFamily: UI_FONT,
         color: PALETTE.text,
@@ -431,7 +429,7 @@ export default function OurMembersPage({
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 10,
+          zIndex: 1000,
           padding: "32px 24px 0",
           display: "flex",
           flexDirection: "column",
@@ -495,7 +493,7 @@ export default function OurMembersPage({
           top: 24,
           left: 24,
           right: 24,
-          zIndex: 20,
+          zIndex: 1000,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -593,7 +591,7 @@ export default function OurMembersPage({
           style={{
             position: "absolute",
             inset: 0,
-            zIndex: 30,
+            zIndex: 1000,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
