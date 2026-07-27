@@ -10,7 +10,12 @@ const API = import.meta.env.VITE_API_URL;
 // Palette
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  sky: "#00BFFF",
+  // A softer, deeper ocean gradient instead of a single flat, very
+  // saturated cyan — the gradient is built from these two stops each
+  // frame (see renderFrame), so the canvas reads as a calm sky/sea
+  // rather than a neon-bright block.
+  skyTop: "#0A6FA8",
+  skyMid: "#1C8FC7",
   inkMuted: "#BFE9F2",
   text: "#0E3A4A",
   subtext: "#EAF9FF",
@@ -81,7 +86,10 @@ function buildLayoutEngine(width, height, cellSize = 4, pad = 8) {
     return null;
   };
 
-  return { place };
+  // markOccupied is exposed so callers can reserve regions (like the
+  // header) BEFORE any words are placed, so the spiral placement can
+  // never put a word there in the first place.
+  return { place, markOccupied };
 }
 
 // ---------------------------------------------------------------------------
@@ -173,6 +181,15 @@ export default function OurMembersPage({
         8 + Math.max(MAX_AMP_X, MAX_AMP_Y)
       );
 
+      // Reserve the header/status-bar band up front so no word can ever be
+      // placed underneath the "Our Members" title, the intro paragraph, or
+      // the shuffle/register bar — this is what previously let a large
+      // word land directly on top of the heading text. The band scales
+      // with viewport height so it doesn't eat too much space on short
+      // screens, but never shrinks below what the header actually needs.
+      const headerReserve = Math.max(160, Math.min(260, canvasHeight * 0.3));
+      engine.markOccupied(0, 0, canvasWidth, headerReserve);
+
       const placed = [];
       for (let i = 0; i < sorted.length; i++) {
         const item = sorted[i];
@@ -199,7 +216,7 @@ export default function OurMembersPage({
             // than static. Amplitudes stay within MAX_AMP_X/MAX_AMP_Y above,
             // which is exactly how much extra space the layout reserved
             // around every word, so drifting words can never sway into a
-            // neighbor's spot.
+            // neighbor's spot (or back up into the header band).
             ampX: 4 + Math.random() * (MAX_AMP_X - 4),
             ampY: 3 + Math.random() * (MAX_AMP_Y - 3),
             speedX: 0.15 + Math.random() * 0.25,
@@ -232,7 +249,13 @@ export default function OurMembersPage({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    ctx.fillStyle = PALETTE.sky;
+    // Soft vertical gradient instead of a single flat, very saturated
+    // cyan fill — reads as a calm sky/sea rather than a neon block.
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+    bgGrad.addColorStop(0, PALETTE.skyTop);
+    bgGrad.addColorStop(0.55, PALETTE.skyMid);
+    bgGrad.addColorStop(1, PALETTE.skyTop);
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     const words = wordsRef.current;
@@ -552,10 +575,6 @@ export default function OurMembersPage({
             background: "rgba(6,120,179,0.85)",
           }}
         >
-
-
-
-          
           {errorMsg}
         </div>
       )}
