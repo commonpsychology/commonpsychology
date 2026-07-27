@@ -308,6 +308,7 @@ export default function NameCloud({
                 ctx.globalAlpha = 1;
                 placedCount++;
               }
+              
             }
             resolve();
           });
