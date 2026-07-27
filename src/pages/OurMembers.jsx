@@ -393,6 +393,13 @@ export default function OurMembersPage({
     <div
       ref={containerRef}
       style={{
+        // This MUST be a positioned element (relative/absolute/fixed) —
+        // every absolutely-positioned child below (the header, and the
+        // status bar that holds the "Become a Member" button) anchors
+        // to the nearest positioned ancestor. Without this, that
+        // ancestor could be something else entirely further up the
+        // app's DOM tree, which is what was pushing the button out of
+        // this section.
         position: "relative",
         width: "100%",
         height: "100vh", // fills the screen, but stays in normal page flow
@@ -588,8 +595,6 @@ export default function OurMembersPage({
             background: "rgba(6,120,179,0.85)",
           }}
         >
-
-        
           {errorMsg}
         </div>
       )}
