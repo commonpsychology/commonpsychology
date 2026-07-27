@@ -281,6 +281,7 @@ export default function NameCloud({
                 placedCount++;
               }
               
+              
             }
             resolve();
           });
