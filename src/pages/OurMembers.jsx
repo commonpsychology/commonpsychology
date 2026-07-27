@@ -402,6 +402,7 @@ export default function OurMembersPage({
       style={{
         position: "relative",
         width: "100%",
+        marginTop: headerOffset,
         height: `calc(100vh - ${headerOffset}px)`,
         overflow: "hidden",
         fontFamily: UI_FONT,
