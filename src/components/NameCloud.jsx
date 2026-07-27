@@ -53,13 +53,7 @@ import { RefreshCw, Users, Loader2, UserPlus } from "lucide-react";
 // legible against the bright left edge as well as the white right edge.
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  gradientStops: [
-    { stop: 0, color: "#EAFBF3" },   // pale mint, left edge
-    { stop: 0.32, color: "#3FD8B8" }, // teal-green
-    { stop: 0.62, color: "#22C7EA" }, // saturated cyan, center-right
-    { stop: 1, color: "#FFFFFF" },   // white, right edge
-  ],
-  ink: ["#0B5C4A", "#0E5C73", "#116B8F", "#1B7A9C", "#166B4F", "#144E63"],
+  sky: "#0EA5E9", // solid sky-blue, no gradient
   inkMuted: "#BFE9F2",
   text: "#0E3A4A",
   subtext: "#4A7686",
@@ -231,11 +225,8 @@ export default function NameCloud({
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-      // Background — bright cyan on the left fading to white on the right,
-      // same direction and feel as the site header banner.
-      const grad = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-      PALETTE.gradientStops.forEach(({ stop, color }) => grad.addColorStop(stop, color));
-      ctx.fillStyle = grad;
+      // Background — solid sky blue, no gradient. Names float on it like clouds.
+      ctx.fillStyle = PALETTE.sky;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
       if (!words.length) return;
@@ -276,36 +267,17 @@ export default function NameCloud({
               if (spot) {
                 const x = spot.x;
                 const y = spot.y + h * 0.78;
-                const baseAlpha = 0.88 + t * 0.12;
-                const depth = Math.max(2, Math.round(fontSize * 0.09));
 
-                // 1) Extrusion — stacked black copies trailing down-right, giving
-                // the letters a solid "3D side" like an embossed block.
-                ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
-                for (let d = depth; d >= 1; d--) {
-                  ctx.globalAlpha = baseAlpha * (0.14 + (d / depth) * 0.14);
-                  ctx.fillText(item.text, x + d * 0.6, y + d * 0.6);
-                }
-
-                // 2) Top face — solid black, lifted off the page with a
-                // soft drop shadow so it visually pops forward.
-                ctx.globalAlpha = baseAlpha;
-                ctx.shadowColor = "rgba(0,0,0,0.4)";
-                ctx.shadowBlur = 6;
-                ctx.shadowOffsetX = 1.5;
-                ctx.shadowOffsetY = 3;
-                ctx.fillStyle = "#000000";
-                ctx.fillText(item.text, x, y);
-                ctx.shadowBlur = 0;
+                // 100% opaque pure white — no alpha, no gradient, no tint.
+                ctx.globalAlpha = 1;
+                ctx.shadowColor = "rgba(255,255,255,0.85)";
+                ctx.shadowBlur = 10;
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillText(item.text, x, y);
+                ctx.shadowBlur = 0;
 
-                // 3) Glossy top-left highlight — the bevel edge catching light.
-                ctx.globalAlpha = 0.35 + t * 0.15;
-                ctx.fillStyle = "rgba(255,255,255,0.9)";
-                ctx.fillText(item.text, x - 0.8, y - 0.8);
-
-                ctx.globalAlpha = 1;
                 placedCount++;
               }
               
@@ -488,7 +460,7 @@ export default function NameCloud({
           height,
           borderRadius: 16,
           overflow: "hidden",
-          background: `linear-gradient(90deg, ${PALETTE.gradientStops[0].color}, ${PALETTE.gradientStops[1].color} 35%, ${PALETTE.gradientStops[2].color} 65%, ${PALETTE.gradientStops[3].color})`,
+          background: PALETTE.sky,
           border: `1px solid ${PALETTE.inkMuted}66`,
         }}
       >
@@ -505,7 +477,7 @@ export default function NameCloud({
               color: PALETTE.subtext,
               fontSize: 13,
               gap: 8,
-              background: `${PALETTE.gradientStops[2].color}CC`,
+              background: `${PALETTE.sky}CC`,
             }}
           >
             <Loader2 size={16} className="animate-spin" />
