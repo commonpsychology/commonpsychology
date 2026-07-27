@@ -423,7 +423,11 @@ export default function OurMembersPage({
         }}
       />
 
-      {/* Header overlay, floating above the cloud */}
+      {/* Header row — badge/title/intro on the left, Shuffle + Become a
+          Member on the right, both vertically centered on the same row so
+          the buttons sit level with the "Our Members" line, not floating
+          above it. zIndex is explicit so an outside app header/nav can't
+          cover it. */}
       <div
         style={{
           position: "absolute",
@@ -433,97 +437,92 @@ export default function OurMembersPage({
           zIndex: 1000,
           padding: "32px 24px 0",
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          textAlign: "center",
-          pointerEvents: "none",
-        }}
-      >
-        <div
-          style={{
-            display: "inline-block",
-            fontSize: 13,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#FFFFFF",
-            marginBottom: 14,
-            padding: "0.28rem 0.9rem",
-            borderRadius: 100,
-            border: "1.5px solid rgba(255,255,255,0.4)",
-            background: "rgba(255,255,255,0.15)",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-          }}
-        >
-          Community
-        </div>
-        <h1
-          style={{
-            fontFamily: DISPLAY_FONT,
-            fontSize: "clamp(32px, 5vw, 52px)",
-            fontWeight: 600,
-            margin: "0 0 12px",
-            lineHeight: 1.1,
-            color: "#FFFFFF",
-            textShadow: "0 2px 12px rgba(6,120,179,0.5)",
-          }}
-        >
-          Our Members
-        </h1>
-        <p
-          style={{
-            color: PALETTE.subtext,
-            fontSize: 16,
-            maxWidth: 560,
-            margin: "0 auto",
-            lineHeight: 1.6,
-            textShadow: "0 1px 8px rgba(6,120,179,0.5)",
-          }}
-        >
-          Every name floating above belongs to someone who's part of this
-          community. The cloud drifts and reshuffles as more people join.
-        </p>
-      </div>
-
-      {/* Status / actions bar — this is where "Become a Member" lives.
-          zIndex is higher than the header above it AND explicit, so an
-          outside app header/nav can no longer cover it. */}
-      <div
-        style={{
-          position: "absolute",
-          top: 24,
-          left: 24,
-          right: 24,
-          zIndex: 1000,
-          display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 12,
+          gap: 24,
           flexWrap: "wrap",
         }}
       >
+        {/* Title block */}
+        <div style={{ flex: "1 1 320px", minWidth: 260 }}>
+          <div
+            style={{
+              display: "inline-block",
+              fontSize: 13,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#FFFFFF",
+              marginBottom: 14,
+              padding: "0.28rem 0.9rem",
+              borderRadius: 100,
+              border: "1.5px solid rgba(255,255,255,0.4)",
+              background: "rgba(255,255,255,0.15)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+            }}
+          >
+            Community
+          </div>
+          <h1
+            style={{
+              fontFamily: DISPLAY_FONT,
+              fontSize: "clamp(32px, 5vw, 52px)",
+              fontWeight: 600,
+              margin: "0 0 12px",
+              lineHeight: 1.1,
+              color: "#FFFFFF",
+              textShadow: "0 2px 12px rgba(6,120,179,0.5)",
+            }}
+          >
+            Our Members
+          </h1>
+          <p
+            style={{
+              color: PALETTE.subtext,
+              fontSize: 16,
+              maxWidth: 560,
+              margin: 0,
+              lineHeight: 1.6,
+              textShadow: "0 1px 8px rgba(6,120,179,0.5)",
+            }}
+          >
+            Every name floating above belongs to someone who's part of this
+            community. The cloud drifts and reshuffles as more people join.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              color: "#FFFFFF",
+              fontSize: 13,
+              marginTop: 14,
+              textShadow: "0 1px 6px rgba(6,120,179,0.6)",
+            }}
+          >
+            <Users size={15} />
+            {totalCount !== null ? (
+              <span>
+                Showing <strong>{shownCount.toLocaleString()}</strong> of{" "}
+                <strong>{totalCount.toLocaleString()}</strong> names
+              </span>
+            ) : (
+              <span>Loading name pool…</span>
+            )}
+          </div>
+        </div>
+
+        {/* Actions: Shuffle + Become a Member, aligned with the title line */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
-            color: "#FFFFFF",
-            fontSize: 13,
-            textShadow: "0 1px 6px rgba(6,120,179,0.6)",
+            gap: 10,
+            flexShrink: 0,
+            alignSelf: "flex-start",
+            marginTop: "clamp(6px, 1.2vw, 14px)",
           }}
         >
-          <Users size={15} />
-          {totalCount !== null ? (
-            <span>
-              Showing <strong>{shownCount.toLocaleString()}</strong> of{" "}
-              <strong>{totalCount.toLocaleString()}</strong> names
-            </span>
-          ) : (
-            <span>Loading name pool…</span>
-          )}
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
             onClick={() => setNonce((n) => n + 1)}
             disabled={status === "loading"}
@@ -541,6 +540,7 @@ export default function OurMembersPage({
               opacity: status === "loading" ? 0.6 : 1,
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
+              whiteSpace: "nowrap",
             }}
           >
             {status === "loading" ? (
@@ -566,6 +566,7 @@ export default function OurMembersPage({
               fontWeight: 800,
               letterSpacing: "0.01em",
               cursor: "pointer",
+              whiteSpace: "nowrap",
               boxShadow:
                 "0 4px 16px rgba(6,120,179,0.45), 0 0 0 4px rgba(255,255,255,0.18)",
               transition: "transform 0.15s ease, box-shadow 0.15s ease",

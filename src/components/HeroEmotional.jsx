@@ -15,7 +15,7 @@ const HERO_COPY = {
     h1_your:         ', Your ',
     h1_choice:       'Choice',
     tagline:         "Believe Us, We Deliver",
-    desc:            'You are responsible for noone but yourself. We dont promise,direct,help,or cure. You yourself do. We just provide a space and energy if you want to connect with us. We have our own way of healing and its not easy. If you feel we can help and understand you, only then connect with us.You matter to us and we will do our best to help you.',
+    desc:            'You are responsible for noone but yourself. We dont promise to help, but can help you. You yourself do. We just provide a space and energy if you want to connect with us. We have our own way of healing and its not easy. If you feel we can help and understand you, only then connect with us.You matter to us and we will do our best to help you.',
     btn_book:        'Book Consultation →',
     btn_assess:      'Take an Assessment',
     stat_clients:    'Clients Helped',
