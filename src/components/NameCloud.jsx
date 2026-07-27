@@ -54,11 +54,12 @@ import { RefreshCw, Users, Loader2, UserPlus } from "lucide-react";
 // ---------------------------------------------------------------------------
 const PALETTE = {
   gradientStops: [
-    { stop: 0, color: "#FFFFFF" }, // white, left edge
-    { stop: 0.5, color: "#22C7EA" }, // saturated cyan, center
-    { stop: 1, color: "#FFFFFF" }, // white, right edge
+    { stop: 0, color: "#EAFBF3" },   // pale mint, left edge
+    { stop: 0.32, color: "#3FD8B8" }, // teal-green
+    { stop: 0.62, color: "#22C7EA" }, // saturated cyan, center-right
+    { stop: 1, color: "#FFFFFF" },   // white, right edge
   ],
-  ink: ["#0E5C73", "#116B8F", "#1B7A9C", "#2C6E5C", "#144E63"],
+  ink: ["#0B5C4A", "#0E5C73", "#116B8F", "#1B7A9C", "#166B4F", "#144E63"],
   inkMuted: "#BFE9F2",
   text: "#0E3A4A",
   subtext: "#4A7686",
@@ -274,8 +275,11 @@ export default function NameCloud({
               const spot = engine.place(w, h);
               if (spot) {
                 ctx.fillStyle = PALETTE.ink[i % PALETTE.ink.length];
-                ctx.globalAlpha = 0.6 + t * 0.4;
+                ctx.globalAlpha = 0.82 + t * 0.18;
+                ctx.shadowColor = "rgba(255,255,255,0.55)";
+                ctx.shadowBlur = 2;
                 ctx.fillText(item.text, spot.x, spot.y + h * 0.78);
+                ctx.shadowBlur = 0;
                 ctx.globalAlpha = 1;
                 placedCount++;
               }
@@ -363,10 +367,10 @@ export default function NameCloud({
         // Bluish-white glassy gradient background for the page, layered so
         // it reads as frosted glass rather than a flat fill.
         background: `
-          radial-gradient(circle at 15% 10%, #EAF8FC 0%, transparent 45%),
+          radial-gradient(circle at 15% 10%, #E4FAF0 0%, transparent 45%),
           radial-gradient(circle at 85% 0%, #DDF3FA 0%, transparent 50%),
           radial-gradient(circle at 50% 100%, #CDEBF5 0%, transparent 55%),
-          linear-gradient(135deg, #F4FBFD 0%, #E3F4FA 40%, #D3EDF7 70%, #EAF7FB 100%)
+          linear-gradient(135deg, #F1FBF6 0%, #E3F4FA 35%, #D3EDF7 65%, #E9F9F2 100%)
         `,
         backdropFilter: "blur(18px) saturate(160%)",
         WebkitBackdropFilter: "blur(18px) saturate(160%)",
@@ -458,7 +462,7 @@ export default function NameCloud({
           height,
           borderRadius: 16,
           overflow: "hidden",
-          background: `linear-gradient(90deg, ${PALETTE.gradientStops[0].color}, ${PALETTE.gradientStops[1].color} 50%, ${PALETTE.gradientStops[2].color})`,
+          background: `linear-gradient(90deg, ${PALETTE.gradientStops[0].color}, ${PALETTE.gradientStops[1].color} 35%, ${PALETTE.gradientStops[2].color} 65%, ${PALETTE.gradientStops[3].color})`,
           border: `1px solid ${PALETTE.inkMuted}66`,
         }}
       >
