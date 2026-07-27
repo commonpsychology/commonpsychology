@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Swords, Users, Loader2, ShieldPlus, Flame } from "lucide-react";
+import { Shuffle, Users, Loader2, UserPlus, Shield, Heart, Star } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // API base URL
@@ -7,35 +7,29 @@ import { Swords, Users, Loader2, ShieldPlus, Flame } from "lucide-react";
 const API = import.meta.env.VITE_API_URL;
 
 // ---------------------------------------------------------------------------
-// Palette — Wall of Warriors: forged stone, torchlight, no blue.
+// Palette — bluish-white glow, accent locked to the requested #00BFFF.
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  bgDeep: "#171310",       // page background — near-black stone
-  mortar: "#211D18",       // gaps between bricks
-  brickBase: "#4A4030",    // brick fill (mid)
-  brickLight: "#6E5F45",   // brick top-left bevel highlight
-  brickShadow: "#15110D",  // brick bottom-right bevel shadow
-  parchment: "#E9DEC2",    // engraved name — light stroke
-  parchmentDim: "#7C7360", // faint texture on blank bricks
-  ember: "#D98A34",        // torch / accent
-  emberBright: "#FFC078",  // glow highlight
-  gold: "#D9B26A",         // "you" brick accent
-  goldDeep: "#8C6A2F",
-  steel: "#9AA6AC",         // shuffle button
-  text: "#EFE7D6",
-  subtext: "rgba(239,231,214,0.72)",
+  glow: "#00BFFF",              // required accent
+  glowSoft: "rgba(0,191,255,0.35)",
+  bgTop: "#EAF6FE",             // page gradient — white to sky blue
+  bgBottom: "#CFEBFB",
+  navy: "#123A63",              // heading / engraved text
+  navySoft: "#3E6690",
+  card: "#1670C9",              // sidebar panel base
+  cardDeep: "#0E4F9E",
+  white: "#FFFFFF",
 };
 
-const DISPLAY_FONT = '"Cinzel", Georgia, "Times New Roman", serif';
+const BRICK_TONES = ["#F6EFE2", "#ECEAF7", "#E3F4FC", "#F8E9EE", "#EDF6EC"];
+
+const DISPLAY_FONT = '"Playfair Display", Georgia, "Times New Roman", serif';
+const SCRIPT_FONT = '"Dancing Script", "Brush Script MT", cursive';
 const UI_FONT =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif';
 
-const JOIN_STRIP_WIDTH = 92;
-const JOIN_STRIP_WIDTH_MOBILE = 56;
-
 // ---------------------------------------------------------------------------
-// Small seeded PRNG so per-brick stone texture stays stable between redraws
-// that aren't full reshuffles (keeps the wall feeling solid, not jittery).
+// Seeded PRNG so brick texture stays stable between non-shuffle redraws.
 // ---------------------------------------------------------------------------
 function mulberry32(seed) {
   return function () {
@@ -47,47 +41,25 @@ function mulberry32(seed) {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Compute a running-bond brick grid for the given area.
-// ---------------------------------------------------------------------------
-function computeBrickGrid(width, height, topReserve) {
+function computeBrickGrid(width, height, topReserve, bottomReserve) {
   const scale = Math.max(0.72, Math.min(1.25, width / 1400));
-  const brickW = 148 * scale;
-  const brickH = 46 * scale;
-  const gap = 6 * scale;
+  const brickW = 140 * scale;
+  const brickH = 50 * scale;
+  const gap = 7 * scale;
 
-  const availH = Math.max(0, height - topReserve);
+  const availH = Math.max(0, height - topReserve - bottomReserve);
   const rows = Math.max(1, Math.floor((availH + gap) / (brickH + gap)));
-  const cols = Math.max(1, Math.ceil((width + brickW) / (brickW + gap)) + 1);
+  const cols = Math.max(1, Math.floor((width + gap) / (brickW + gap)));
 
   const cells = [];
   for (let r = 0; r < rows; r++) {
-    const offset = r % 2 === 1 ? (brickW + gap) / 2 : 0;
     for (let c = 0; c < cols; c++) {
-      const x = c * (brickW + gap) - offset;
+      const x = c * (brickW + gap);
       const y = topReserve + r * (brickH + gap);
-      if (x + brickW < 0 || x > width) continue;
       cells.push({ x, y, w: brickW, h: brickH, row: r, col: c });
     }
   }
-
-  // Find the cell nearest the visual center to reserve for the logged-in
-  // warrior's name.
-  const cx = width / 2;
-  const cy = topReserve + availH / 2;
-  let centerIdx = 0;
-  let bestDist = Infinity;
-  cells.forEach((cell, i) => {
-    const mx = cell.x + cell.w / 2;
-    const my = cell.y + cell.h / 2;
-    const d = (mx - cx) ** 2 + (my - cy) ** 2;
-    if (d < bestDist) {
-      bestDist = d;
-      centerIdx = i;
-    }
-  });
-
-  return { cells, centerIdx, brickW, brickH, gap, rows, cols };
+  return { cells, brickW, brickH, rows, cols };
 }
 
 function shuffleArray(arr) {
@@ -99,53 +71,43 @@ function shuffleArray(arr) {
   return a;
 }
 
-function fitFontSize(ctx, text, maxWidth, startSize, minSize, bold) {
+function fitFontSize(ctx, text, maxWidth, startSize, minSize) {
   let size = startSize;
   while (size > minSize) {
-    ctx.font = `${bold ? "700" : "500"} ${size}px ${DISPLAY_FONT}`;
+    ctx.font = `700 ${size}px ${UI_FONT}`;
     if (ctx.measureText(text.toUpperCase()).width <= maxWidth) break;
     size -= 1;
   }
   return size;
 }
 
-function drawShield(ctx, cx, cy, size, fill, stroke) {
-  const w = size;
-  const h = size * 1.15;
-  ctx.save();
+function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(cx, cy - h / 2);
-  ctx.bezierCurveTo(cx + w / 2, cy - h / 2, cx + w / 2, cy - h / 8, cx + w / 2, cy);
-  ctx.bezierCurveTo(cx + w / 2, cy + h / 3, cx + w / 6, cy + h / 2, cx, cy + h / 2);
-  ctx.bezierCurveTo(cx - w / 6, cy + h / 2, cx - w / 2, cy + h / 3, cx - w / 2, cy);
-  ctx.bezierCurveTo(cx - w / 2, cy - h / 8, cx - w / 2, cy - h / 2, cx, cy - h / 2);
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
-  ctx.fillStyle = fill;
-  ctx.fill();
-  ctx.lineWidth = Math.max(1, size * 0.08);
-  ctx.strokeStyle = stroke;
-  ctx.stroke();
-  ctx.restore();
 }
 
 // ---------------------------------------------------------------------------
-// OurMembersPage — Wall of Warriors
+// OurMembersPage — Wall of Names
 // ---------------------------------------------------------------------------
 export default function OurMembersPage({
   maxWords = 260,
   minWords = 40,
   sampleRatio = 0.05,
   minFontPx = 11,
-  maxFontPx = 20,
+  maxFontPx = 16,
   registerHref = "/register",
   onRegister,
   headerOffset = 0,
-  currentUserName = null, // the logged-in warrior's display name, if any
+  currentUserName = null, // logged-in member's display name
 }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
-  const namePoolRef = useRef([]); // fetched names, excluding currentUserName
-  const sizeRef = useRef({ w: 0, h: 0 });
+  const namePoolRef = useRef([]);
 
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -153,7 +115,7 @@ export default function OurMembersPage({
   const [shownCount, setShownCount] = useState(0);
   const [nonce, setNonce] = useState(0);
   const [isShuffling, setIsShuffling] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
 
   const fetchCount = useCallback(async () => {
     const res = await fetch(`${API}/profiles-directory/count`);
@@ -181,15 +143,12 @@ export default function OurMembersPage({
   }, [onRegister, registerHref]);
 
   // -------------------------------------------------------------------------
-  // Draw the full wall: mortar bed, every brick's bevel + stone texture,
-  // and every engraved name. Called on layout, resize, and shuffle — no
-  // continuous animation loop, since a wall of bricks should feel solid,
-  // not drifting.
+  // Draw the wall of bricks.
   // -------------------------------------------------------------------------
   const drawWall = useCallback(
-    (names, width, height, topReserve) => {
+    (names, width, height, topReserve, bottomReserve) => {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas || width <= 0 || height <= 0) return;
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.ceil(width * dpr);
       canvas.height = Math.ceil(height * dpr);
@@ -199,143 +158,64 @@ export default function OurMembersPage({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      // Mortar bed
-      ctx.fillStyle = PALETTE.mortar;
-      ctx.fillRect(0, 0, width, height);
-
-      const { cells, centerIdx, brickW, brickH } = computeBrickGrid(
+      const { cells, brickW, brickH } = computeBrickGrid(
         width,
         height,
-        topReserve
+        topReserve,
+        bottomReserve
       );
 
-      // Build the assignment: center cell reserved for the logged-in
-      // warrior (if any); the rest filled with the shuffled name pool.
       const pool = [...names];
-      const assignment = new Array(cells.length).fill(null);
-      let poolIdx = 0;
-      cells.forEach((_, i) => {
-        if (currentUserName && i === centerIdx) return; // filled below
-        if (poolIdx < pool.length) {
-          assignment[i] = pool[poolIdx++];
-        }
-      });
-      if (currentUserName) assignment[centerIdx] = currentUserName;
-
-      const r = Math.round(brickH * 0.16);
+      const r = Math.round(brickH * 0.22);
 
       cells.forEach((cell, i) => {
-        const isYou = currentUserName && i === centerIdx;
-        const rand = mulberry32(cell.row * 9973 + cell.col * 613 + 17);
-        const tint = (rand() - 0.5) * 14;
-
         const { x, y, w, h } = cell;
+        const rand = mulberry32(cell.row * 9973 + cell.col * 613 + 17);
+        const tone = BRICK_TONES[Math.floor(rand() * BRICK_TONES.length)];
+        const isYou =
+          currentUserName &&
+          pool[i] &&
+          pool[i].trim().toLowerCase() === currentUserName.trim().toLowerCase();
 
-        // Brick body — subtle bevel gradient
-        const grad = ctx.createLinearGradient(x, y, x + w, y + h);
-        if (isYou) {
-          grad.addColorStop(0, "#3A2E14");
-          grad.addColorStop(0.5, PALETTE.goldDeep);
-          grad.addColorStop(1, "#2A2010");
-        } else {
-          grad.addColorStop(0, shadeColor(PALETTE.brickLight, tint));
-          grad.addColorStop(0.55, shadeColor(PALETTE.brickBase, tint));
-          grad.addColorStop(1, PALETTE.brickShadow);
-        }
+        // Brick fill
         roundRect(ctx, x, y, w, h, r);
+        const grad = ctx.createLinearGradient(x, y, x, y + h);
+        grad.addColorStop(0, "#FFFFFF");
+        grad.addColorStop(1, tone);
         ctx.fillStyle = grad;
         ctx.fill();
 
-        // Fine stone speckle texture
-        ctx.save();
-        roundRect(ctx, x, y, w, h, r);
-        ctx.clip();
-        for (let s = 0; s < 5; s++) {
-          const sx = x + rand() * w;
-          const sy = y + rand() * h;
-          ctx.fillStyle = `rgba(0,0,0,${0.08 + rand() * 0.08})`;
-          ctx.fillRect(sx, sy, 1.4, 1.4);
-        }
-        ctx.restore();
-
-        // Top-left bevel highlight edge
-        ctx.save();
-        roundRect(ctx, x, y, w, h, r);
-        ctx.clip();
-        ctx.strokeStyle = isYou
-          ? "rgba(255,224,160,0.35)"
-          : "rgba(255,255,255,0.08)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(x + 2, y + h - 2);
-        ctx.lineTo(x + 2, y + 2);
-        ctx.lineTo(x + w - 2, y + 2);
-        ctx.stroke();
-        ctx.restore();
-
-        // Gold outline ring for the logged-in warrior's brick
+        // Subtle border
+        roundRect(ctx, x + 0.75, y + 0.75, w - 1.5, h - 1.5, r);
+        ctx.strokeStyle = isYou ? PALETTE.glow : "rgba(18,58,99,0.10)";
+        ctx.lineWidth = isYou ? 2 : 1;
         if (isYou) {
-          roundRect(ctx, x + 1.5, y + 1.5, w - 3, h - 3, r);
-          ctx.strokeStyle = PALETTE.gold;
-          ctx.lineWidth = 2;
-          ctx.shadowColor = "rgba(217,138,52,0.55)";
-          ctx.shadowBlur = 10;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
+          ctx.shadowColor = PALETTE.glowSoft;
+          ctx.shadowBlur = 12;
         }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
 
-        // Engraved name
-        const name = assignment[i];
+        // Name
+        const name = pool[i];
         if (name) {
-          const maxTextW = w - (isYou ? 22 : 14);
-          const startSize = isYou
-            ? maxFontPx + 3
-            : minFontPx + ((maxFontPx - minFontPx) * (0.4 + rand() * 0.6));
+          const maxTextW = w - 14;
           const size = fitFontSize(
             ctx,
             name,
             maxTextW,
-            Math.min(startSize, h * 0.5),
-            9,
-            !!isYou
+            Math.min(maxFontPx, h * 0.4),
+            minFontPx
           );
-          ctx.font = `${isYou ? "700" : "500"} ${size}px ${DISPLAY_FONT}`;
+          ctx.font = `${isYou ? "800" : "700"} ${size}px ${UI_FONT}`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          const tx = x + w / 2 + (isYou ? 6 : 0);
-          const ty = y + h / 2 + 1;
-          const label = name.toUpperCase();
-
-          // Engraved effect: dark incised shadow, light emboss edge, fill
-          ctx.fillStyle = "rgba(0,0,0,0.55)";
-          ctx.fillText(label, tx + 1, ty + 1.4);
-          ctx.fillStyle = isYou
-            ? "rgba(255,236,196,0.5)"
-            : "rgba(255,255,255,0.18)";
-          ctx.fillText(label, tx - 0.8, ty - 0.8);
-          ctx.fillStyle = isYou ? "#FFF3D9" : PALETTE.parchment;
-          if (isYou) {
-            ctx.shadowColor = "rgba(255,178,90,0.6)";
-            ctx.shadowBlur = 6;
-          }
-          ctx.fillText(label, tx, ty);
-          ctx.shadowBlur = 0;
-
-          if (isYou) {
-            drawShield(ctx, x + 13, y + h / 2, h * 0.42, "#C89A4A", "#3A2A0F");
-          }
-        } else {
-          // Blank brick: faint carved dashes, awaiting the next warrior
-          ctx.strokeStyle = "rgba(233,222,194,0.10)";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(x + w * 0.32, y + h / 2);
-          ctx.lineTo(x + w * 0.68, y + h / 2);
-          ctx.stroke();
+          ctx.fillStyle = isYou ? PALETTE.card : PALETTE.navy;
+          ctx.fillText(name.toUpperCase(), x + w / 2, y + h / 2 + 1);
         }
       });
 
-      setShownCount(assignment.filter(Boolean).length - (currentUserName ? 1 : 0));
+      setShownCount(pool.filter(Boolean).length);
     },
     [currentUserName, maxFontPx, minFontPx]
   );
@@ -345,12 +225,13 @@ export default function OurMembersPage({
     if (!container) return;
     const w = container.clientWidth;
     const h = container.clientHeight;
-    sizeRef.current = { w, h };
-    const mobile = w < 640;
-    setIsMobile(mobile);
-    const topReserve = Math.max(150, Math.min(220, h * 0.32));
-    const stripW = mobile ? JOIN_STRIP_WIDTH_MOBILE : JOIN_STRIP_WIDTH;
-    drawWall(namePoolRef.current, Math.max(0, w - stripW), h, topReserve);
+    const narrow = w < 860;
+    setIsNarrow(narrow);
+    const wallW = narrow ? w : w - 300;
+    const wallH = narrow ? Math.max(280, h * 0.55) : h;
+    const topReserve = Math.max(150, Math.min(210, wallH * 0.28));
+    const bottomReserve = 88;
+    drawWall(namePoolRef.current, wallW, wallH, topReserve, bottomReserve);
   }, [drawWall]);
 
   const load = useCallback(
@@ -370,11 +251,10 @@ export default function OurMembersPage({
         const rows = await fetchSample(sampleSize);
         if (isStale()) return;
 
-        const lowerYou = (currentUserName || "").trim().toLowerCase();
         const names = shuffleArray(
           rows
             .map((row) => (row.full_name || "").toString().trim())
-            .filter((n) => n && n.toLowerCase() !== lowerYou)
+            .filter(Boolean)
         );
 
         namePoolRef.current = names;
@@ -385,10 +265,10 @@ export default function OurMembersPage({
         if (isStale()) return;
         console.error("OurMembersPage load error:", err);
         setStatus("error");
-        setErrorMsg(err.message || "The wall could not be raised.");
+        setErrorMsg(err.message || "The wall could not be loaded.");
       }
     },
-    [fetchCount, fetchSample, maxWords, minWords, sampleRatio, currentUserName, relayout]
+    [fetchCount, fetchSample, maxWords, minWords, sampleRatio, relayout]
   );
 
   useEffect(() => {
@@ -422,13 +302,16 @@ export default function OurMembersPage({
     window.setTimeout(() => {
       relayout();
       setIsShuffling(false);
-    }, 180);
-    // Occasionally pull a fresh sample from the server too, so the wall
-    // isn't limited to the first batch fetched.
+    }, 160);
     setNonce((n) => n + 1);
   }, [status, relayout]);
 
-  const stripW = isMobile ? JOIN_STRIP_WIDTH_MOBILE : JOIN_STRIP_WIDTH;
+  const benefits = [
+    { icon: Shield, text: "Your trust inspires us." },
+    { icon: Users, text: "Your support strengthens us." },
+    { icon: Star, text: "Your presence matters." },
+    { icon: Heart, text: "You are part of our story." },
+  ];
 
   return (
     <div
@@ -438,268 +321,436 @@ export default function OurMembersPage({
         width: "100%",
         marginTop: headerOffset,
         height: `calc(100vh - ${headerOffset}px)`,
-        overflow: "hidden",
+        overflow: "auto",
         fontFamily: UI_FONT,
-        color: PALETTE.text,
-        background: PALETTE.bgDeep,
-        zIndex: 0,
+        color: PALETTE.navy,
+        background: `linear-gradient(180deg, ${PALETTE.bgTop} 0%, ${PALETTE.bgBottom} 100%)`,
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap');
-        @keyframes wow-ember-pulse {
-          0%, 100% { box-shadow: 0 0 14px 2px rgba(217,138,52,0.45), inset 0 0 18px rgba(217,138,52,0.25); }
-          50% { box-shadow: 0 0 26px 6px rgba(255,178,90,0.65), inset 0 0 24px rgba(255,178,90,0.35); }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Dancing+Script:wght@600&display=swap');
+        @keyframes wow-glow-pulse {
+          0%, 100% { box-shadow: 0 0 14px 2px ${PALETTE.glowSoft}, inset 0 0 12px rgba(0,191,255,0.25); }
+          50% { box-shadow: 0 0 26px 6px rgba(0,191,255,0.55), inset 0 0 18px rgba(0,191,255,0.4); }
         }
-        @keyframes wow-flicker {
-          0%, 100% { opacity: 0.9; }
-          45% { opacity: 1; }
-          50% { opacity: 0.75; }
-          55% { opacity: 1; }
-        }
-        .wow-canvas-wrap { transition: opacity 0.18s ease; }
-        .wow-join-btn { animation: wow-ember-pulse 2.6s ease-in-out infinite; }
-        .wow-flame { animation: wow-flicker 2.2s ease-in-out infinite; }
+        .wow-canvas-wrap { transition: opacity 0.16s ease; }
+        .wow-glow { animation: wow-glow-pulse 2.4s ease-in-out infinite; }
       `}</style>
 
-      {/* Header row */}
       <div
         style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: stripW,
-          zIndex: 1000,
-          padding: "28px 24px 0",
           display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 20,
-          flexWrap: "wrap",
+          flexDirection: isNarrow ? "column" : "row",
+          minHeight: "100%",
         }}
       >
-        <div style={{ flex: "1 1 320px", minWidth: 240 }}>
+        {/* Left: header + wall + bottom action bar */}
+        <div style={{ flex: 1, position: "relative", minWidth: 0 }}>
+          {/* Header */}
           <div
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 12,
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
-              color: PALETTE.emberBright,
-              marginBottom: 14,
-              padding: "0.28rem 0.9rem",
-              borderRadius: 3,
-              border: `1px solid rgba(217,138,52,0.45)`,
-              background: "rgba(217,138,52,0.08)",
+              textAlign: "center",
+              padding: "36px 24px 8px",
             }}
           >
-            <Flame size={12} className="wow-flame" />
-            Hall of Warriors
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 18,
+              }}
+            >
+              <LeafOrnament flip={false} />
+              <h1
+                style={{
+                  fontFamily: DISPLAY_FONT,
+                  fontWeight: 800,
+                  fontSize: "clamp(30px, 4.6vw, 48px)",
+                  letterSpacing: "0.03em",
+                  color: PALETTE.navy,
+                  margin: 0,
+                }}
+              >
+                Wall of Names
+              </h1>
+              <LeafOrnament flip={true} />
+            </div>
+            <p
+              style={{
+                marginTop: 6,
+                fontSize: 13,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: PALETTE.navySoft,
+              }}
+            >
+              To respect. To appreciate. Together we grow.
+            </p>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                margin: "14px auto 0",
+                maxWidth: 420,
+              }}
+            >
+              <span style={{ flex: 1, height: 1, background: "rgba(18,58,99,0.18)" }} />
+              <Heart size={13} color={PALETTE.glow} fill={PALETTE.glow} />
+              <span style={{ flex: 1, height: 1, background: "rgba(18,58,99,0.18)" }} />
+            </div>
+            <p
+              style={{
+                fontStyle: "italic",
+                color: PALETTE.navySoft,
+                fontSize: 14,
+                marginTop: 10,
+              }}
+            >
+              Every name here is a part of our journey and our purpose.
+            </p>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                marginTop: 8,
+                fontSize: 12.5,
+                color: PALETTE.navySoft,
+              }}
+            >
+              <Users size={13} />
+              {totalCount !== null ? (
+                <span>
+                  <strong style={{ color: PALETTE.navy }}>
+                    {shownCount.toLocaleString()}
+                  </strong>{" "}
+                  of{" "}
+                  <strong style={{ color: PALETTE.navy }}>
+                    {totalCount.toLocaleString()}
+                  </strong>{" "}
+                  names shown
+                </span>
+              ) : (
+                <span>Building the wall…</span>
+              )}
+            </div>
           </div>
-          <h1
+
+          {/* Wall */}
+          <div
+            className="wow-canvas-wrap"
             style={{
-              fontFamily: DISPLAY_FONT,
-              fontSize: "clamp(28px, 4.6vw, 46px)",
-              fontWeight: 700,
-              letterSpacing: "0.02em",
-              margin: "0 0 10px",
-              lineHeight: 1.08,
-              color: PALETTE.text,
-              textShadow: "0 2px 0 #000, 0 0 18px rgba(217,138,52,0.25)",
+              position: "relative",
+              width: "100%",
+              height: isNarrow ? "55vh" : "calc(100% - 0px)",
+              minHeight: 280,
+              opacity: isShuffling ? 0.35 : 1,
             }}
           >
-            Wall of Warriors
-          </h1>
-          <p
-            style={{
-              color: PALETTE.subtext,
-              fontSize: 15,
-              maxWidth: 540,
-              margin: 0,
-              lineHeight: 1.6,
-            }}
-          >
-            Every name struck into this stone belongs to a fighter who never
-            gave up. Shuffle the wall to meet more of the guild.
-          </p>
+            <canvas ref={canvasRef} style={{ display: "block" }} />
+          </div>
+
+          {/* Bottom action bar */}
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: 8,
-              color: PALETTE.steel,
-              fontSize: 13,
-              marginTop: 14,
+              justifyContent: "center",
+              padding: "0 24px 32px",
+              marginTop: isNarrow ? 12 : -78,
+              position: "relative",
+              zIndex: 5,
             }}
           >
-            <Users size={14} />
-            {totalCount !== null ? (
-              <span>
-                <strong style={{ color: PALETTE.text }}>
-                  {shownCount.toLocaleString()}
-                </strong>{" "}
-                of{" "}
-                <strong style={{ color: PALETTE.text }}>
-                  {totalCount.toLocaleString()}
-                </strong>{" "}
-                names on the wall
-              </span>
-            ) : (
-              <span>Raising the wall…</span>
-            )}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "stretch",
+                background: "rgba(255,255,255,0.85)",
+                border: `1px solid ${PALETTE.glowSoft}`,
+                boxShadow: "0 8px 28px rgba(18,58,99,0.14)",
+                borderRadius: 16,
+                overflow: "hidden",
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              <ActionCell
+                icon={
+                  status === "loading" ? (
+                    <Loader2 size={17} className="animate-spin" />
+                  ) : (
+                    <Shuffle size={17} />
+                  )
+                }
+                title="Shuffle Names"
+                subtitle="Celebrate everyone equally. Click to shuffle the wall."
+                onClick={handleShuffle}
+                disabled={status === "loading"}
+              />
+              <div style={{ width: 1, background: "rgba(18,58,99,0.12)" }} />
+              <ActionCell
+                icon={<UserPlus size={17} />}
+                title="Be a Member"
+                subtitle="Join our family and add your name to the wall."
+                onClick={handleRegisterClick}
+              />
+            </div>
           </div>
+
+          {status === "error" && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 1000,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 24,
+                textAlign: "center",
+                color: PALETTE.navy,
+                fontSize: 14,
+                background: "rgba(234,246,254,0.95)",
+              }}
+            >
+              {errorMsg}
+            </div>
+          )}
         </div>
 
-        <button
-          onClick={handleShuffle}
-          disabled={status === "loading"}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 7,
-            background: "rgba(154,166,172,0.10)",
-            border: `1.5px solid ${PALETTE.steel}`,
-            color: PALETTE.steel,
-            borderRadius: 4,
-            padding: "9px 18px",
-            fontSize: 13,
-            fontFamily: UI_FONT,
-            fontWeight: 600,
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
-            cursor: status === "loading" ? "default" : "pointer",
-            opacity: status === "loading" ? 0.6 : 1,
-            whiteSpace: "nowrap",
-            marginTop: 4,
-            transition: "background 0.15s ease, color 0.15s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(154,166,172,0.2)";
-            e.currentTarget.style.color = PALETTE.text;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(154,166,172,0.10)";
-            e.currentTarget.style.color = PALETTE.steel;
-          }}
-        >
-          {status === "loading" ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : (
-            <Swords size={15} />
-          )}
-          Shuffle
-        </button>
-      </div>
-
-      {/* The wall */}
-      <div
-        className="wow-canvas-wrap"
-        style={{
-          position: "absolute",
-          inset: 0,
-          right: stripW,
-          opacity: isShuffling ? 0.35 : 1,
-        }}
-      >
-        <canvas ref={canvasRef} style={{ display: "block" }} />
-      </div>
-
-      {/* Right-side glowing "Become a Member" brick column */}
-      <button
-        onClick={handleRegisterClick}
-        className="wow-join-btn"
-        aria-label="Become a member"
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: stripW,
-          zIndex: 1000,
-          border: "none",
-          borderLeft: `2px solid ${PALETTE.ember}`,
-          background:
-            "linear-gradient(180deg, #3A2410 0%, #2A1A0C 50%, #3A2410 100%)",
-          color: PALETTE.emberBright,
-          cursor: "pointer",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 14,
-          padding: "18px 8px",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background =
-            "linear-gradient(180deg, #4A2E12 0%, #34210E 50%, #4A2E12 100%)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background =
-            "linear-gradient(180deg, #3A2410 0%, #2A1A0C 50%, #3A2410 100%)";
-        }}
-      >
-        <ShieldPlus size={isMobile ? 18 : 22} />
-        <span
-          style={{
-            fontFamily: DISPLAY_FONT,
-            fontWeight: 700,
-            fontSize: isMobile ? 12 : 14,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            writingMode: "vertical-rl",
-            transform: "rotate(180deg)",
-            textShadow: "0 0 10px rgba(255,178,90,0.6)",
-          }}
-        >
-          Become a Member
-        </span>
-      </button>
-
-      {status === "error" && (
+        {/* Right: member card */}
         <div
           style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 1000,
+            width: isNarrow ? "100%" : 300,
+            flexShrink: 0,
+            padding: isNarrow ? "0 20px 28px" : "36px 22px",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 24,
-            textAlign: "center",
-            color: PALETTE.text,
-            fontSize: 14,
-            background: "rgba(23,19,16,0.92)",
+            alignItems: "flex-start",
           }}
         >
-          {errorMsg}
+          <div
+            style={{
+              width: "100%",
+              borderRadius: 20,
+              padding: "26px 22px 22px",
+              background: `linear-gradient(160deg, ${PALETTE.card} 0%, ${PALETTE.cardDeep} 100%)`,
+              boxShadow: `0 0 0 1px rgba(255,255,255,0.15) inset, 0 14px 34px rgba(14,79,158,0.35)`,
+              color: PALETTE.white,
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: SCRIPT_FONT,
+                fontSize: 30,
+                lineHeight: 1,
+              }}
+            >
+              Thank you
+            </div>
+            <div
+              style={{
+                fontSize: 12.5,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                opacity: 0.85,
+                marginTop: 8,
+              }}
+            >
+              For being a part of us
+            </div>
+
+            <div
+              style={{
+                marginTop: 20,
+                paddingTop: 16,
+                borderTop: "1px solid rgba(255,255,255,0.2)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11.5,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  opacity: 0.85,
+                  marginBottom: 10,
+                }}
+              >
+                ★ Our Member ★
+              </div>
+              <div
+                className={currentUserName ? "wow-glow" : ""}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  background: "rgba(0,191,255,0.18)",
+                  border: `1.5px solid ${PALETTE.glow}`,
+                  borderRadius: 10,
+                  padding: "12px 10px",
+                }}
+              >
+                <Users size={16} color={PALETTE.white} />
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 17,
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {currentUserName || "Sign in"}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 18, textAlign: "left" }}>
+              {benefits.map(({ icon: Icon, text }, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "7px 0",
+                    borderBottom:
+                      i < benefits.length - 1
+                        ? "1px dashed rgba(255,255,255,0.18)"
+                        : "none",
+                    fontSize: 13,
+                    opacity: 0.95,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      border: "1px solid rgba(255,255,255,0.4)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon size={11} />
+                  </span>
+                  {text}
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleRegisterClick}
+              className="wow-glow"
+              style={{
+                marginTop: 20,
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                background: "rgba(0,191,255,0.22)",
+                border: `1.5px solid ${PALETTE.glow}`,
+                borderRadius: 10,
+                color: PALETTE.white,
+                fontWeight: 800,
+                fontSize: 13.5,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                padding: "12px 14px",
+                cursor: "pointer",
+              }}
+            >
+              <UserPlus size={16} />
+              Become Member
+            </button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// helpers
+// small presentational pieces
 // ---------------------------------------------------------------------------
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
+function ActionCell({ icon, title, subtitle, onClick, disabled }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "14px 20px",
+        background: "transparent",
+        border: "none",
+        cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.6 : 1,
+        textAlign: "left",
+      }}
+    >
+      <span
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: "50%",
+          background: PALETTE.glow,
+          color: PALETTE.white,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          boxShadow: `0 0 10px ${PALETTE.glowSoft}`,
+        }}
+      >
+        {icon}
+      </span>
+      <span>
+        <div style={{ fontWeight: 700, fontSize: 13.5, color: PALETTE.navy }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 11.5, color: PALETTE.navySoft, maxWidth: 210 }}>
+          {subtitle}
+        </div>
+      </span>
+    </button>
+  );
 }
 
-function shadeColor(hex, percent) {
-  const num = parseInt(hex.replace("#", ""), 16);
-  let r = (num >> 16) + percent;
-  let g = ((num >> 8) & 0x00ff) + percent;
-  let b = (num & 0x0000ff) + percent;
-  r = Math.max(0, Math.min(255, r));
-  g = Math.max(0, Math.min(255, g));
-  b = Math.max(0, Math.min(255, b));
-  return `rgb(${r},${g},${b})`;
+function LeafOrnament({ flip }) {
+  return (
+    <svg
+      width="46"
+      height="20"
+      viewBox="0 0 46 20"
+      style={{ transform: flip ? "scaleX(-1)" : "none", flexShrink: 0 }}
+    >
+      <path
+        d="M2 10 C 14 2, 28 2, 44 10"
+        stroke={PALETTE.glow}
+        strokeWidth="1.4"
+        fill="none"
+        opacity="0.7"
+      />
+      {[8, 18, 28, 38].map((cx, i) => (
+        <ellipse
+          key={i}
+          cx={cx}
+          cy={9 - (i % 2)}
+          rx="4.5"
+          ry="2.6"
+          fill={PALETTE.glow}
+          opacity={0.35 + i * 0.1}
+          transform={`rotate(${-20 + i * 12} ${cx} ${9 - (i % 2)})`}
+        />
+      ))}
+    </svg>
+  );
 }
