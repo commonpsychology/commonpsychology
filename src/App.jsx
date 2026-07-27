@@ -199,15 +199,36 @@ function BackButtonHandler() {
     if (!window.Capacitor) return
 
     let backListener, stateListener
+    let lastBackPressTime = 0
 
     import('@capacitor/app').then(async ({ App }) => {
-      backListener = await App.addListener('backButton', () => {
-        if (window.location.pathname === '/' || window.location.pathname === '') {
+      console.log('[capacitor] @capacitor/app loaded, registering backButton listener')
+
+      backListener = await App.addListener('backButton', ({ canGoBack }) => {
+        console.log('[capacitor] backButton fired, canGoBack:', canGoBack, 'pathname:', window.location.pathname)
+
+        const atHome = window.location.pathname === '/' || window.location.pathname === ''
+
+        if (!atHome) {
+          // Not on the home screen — always just go back a step, regardless
+          // of what canGoBack reports (it can be stale/false right after a
+          // programmatic pushState on some Android WebView versions).
+          window.history.back()
+          return
+        }
+
+        // On home screen: require a second press within 2s to actually exit,
+        // so a single accidental back-press doesn't kill the app.
+        const now = Date.now()
+        if (now - lastBackPressTime < 2000) {
           App.exitApp()
         } else {
-          window.history.back()
+          lastBackPressTime = now
+          console.log('[capacitor] press back again to exit')
         }
       })
+
+      console.log('[capacitor] backButton listener registered:', !!backListener)
 
       stateListener = await App.addListener('appStateChange', ({ isActive }) => {
         if (isActive) checkUnreadNotifications()
