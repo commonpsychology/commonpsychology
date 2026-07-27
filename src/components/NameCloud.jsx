@@ -268,20 +268,33 @@ export default function NameCloud({
                 const x = spot.x;
                 const y = spot.y + h * 0.78;
 
-                // 100% opaque pure white — no alpha, no gradient, no tint.
-                ctx.globalAlpha = 1;
-                ctx.shadowColor = "rgba(255,255,255,0.85)";
-                ctx.shadowBlur = 10;
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 0;
+                // 1) Soft blurred shadow — darker sky-blue, offset down-right,
+                // heavily blurred so it reads as a puffy cloud shadow rather
+                // than a hard-edged emboss.
+                ctx.save();
+                ctx.filter = "blur(3px)";
+                ctx.globalAlpha = 0.55;
+                ctx.fillStyle = "#0678B3";
+                ctx.fillText(item.text, x + 2, y + 2);
+                ctx.restore();
+
+                // 2) Soft white outer glow — fuzzy halo around the letters.
+                ctx.save();
+                ctx.filter = "blur(6px)";
+                ctx.globalAlpha = 0.55;
                 ctx.fillStyle = "#FFFFFF";
                 ctx.fillText(item.text, x, y);
-                ctx.shadowBlur = 0;
+                ctx.restore();
+
+                // 3) Crisp white core on top — the sharp, readable center.
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillText(item.text, x, y);
 
                 placedCount++;
               }
               
-              
+
             }
             resolve();
           });
