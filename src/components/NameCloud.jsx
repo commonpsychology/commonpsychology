@@ -471,7 +471,7 @@ export default function NameCloud({
               fontSize: 13,
               fontWeight: 600,
               cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(27, 156, 199, 0.35)",
+              boxShadow: "0 2px 8px rgb(4, 150, 255)",
             }}
           >
             <UserPlus size={14} />
