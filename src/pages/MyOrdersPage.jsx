@@ -47,7 +47,15 @@ const CSS = `
 body { font-family:'DM Sans',system-ui,sans-serif; background:${C.bg}; min-height:100vh }
 
 :root { --navbar-height:64px }
-.mo-wrap { min-height:100vh; background:${C.bg} }
+.mo-wrap {
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(14,165,233,0.14), transparent 52%),
+    radial-gradient(circle at 100% 15%, rgba(41,128,185,0.12), transparent 55%),
+    radial-gradient(circle at 50% 100%, rgba(125,211,252,0.16), transparent 60%),
+    linear-gradient(175deg, rgba(224,242,254,0.75) 0%, rgba(240,249,255,0.85) 35%, rgba(214,238,252,0.7) 70%, rgba(232,247,255,0.85) 100%);
+  background-attachment: fixed;
+}
 
 /* ── Hero: padding-top accounts for fixed navbar ── */
 .mo-hero {

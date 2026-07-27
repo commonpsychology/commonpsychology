@@ -13,6 +13,11 @@ const SKY_D  = '#007BA8'
 const WHITE  = '#fff'
 const BG     = '#f4f8fb'
 const BORDER = '#daeef8'
+const PAGE_GRADIENT =
+  'radial-gradient(circle at 10% 0%, rgba(14,165,233,0.14), transparent 52%),' +
+  'radial-gradient(circle at 100% 15%, rgba(41,128,185,0.12), transparent 55%),' +
+  'radial-gradient(circle at 50% 100%, rgba(125,211,252,0.16), transparent 60%),' +
+  'linear-gradient(175deg, rgba(224,242,254,0.75) 0%, rgba(240,249,255,0.85) 35%, rgba(214,238,252,0.7) 70%, rgba(232,247,255,0.85) 100%)'
 const MID    = '#4a6a7a'
 
 const TABS = [
@@ -37,7 +42,7 @@ const ORDER_STATUS_COLORS = {
 const STATUS_STEPS = ['pending', 'confirmed', 'processing', 'shipped', 'delivered']
 
 const CSS = `
-  .acc-layout { min-height:100vh; background:${BG}; }
+  .acc-layout { min-height:100vh; background:${PAGE_GRADIENT}; background-attachment:fixed; }
 .acc-hero { position:relative; overflow:hidden; padding:clamp(1.25rem,4vw,2rem); padding-top:calc(clamp(1.25rem,4vw,2rem) + 72px); border-radius:0 0 40% 40% / 0 0 24px 24px; background:radial-gradient(ellipse 75% 60% at 12% 30%, rgba(0,191,255,0.11) 0%, transparent 65%), radial-gradient(ellipse 60% 70% at 88% 10%, rgba(0,123,168,0.09) 0%, transparent 60%), linear-gradient(158deg, #ffffff 0%, #f0f9ff 42%, #e6f5fc 100%); }  .acc-hero-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; }
   .acc-main { max-width:900px; margin:0 auto; padding:clamp(1rem,4vw,2rem); display:grid; grid-template-columns:200px 1fr; gap:1.5rem; align-items:start; }
   .acc-sidebar { background:${WHITE}; border-radius:14px; border:1px solid ${BORDER}; padding:0.85rem; position:sticky; top:1rem; }
