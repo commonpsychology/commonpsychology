@@ -542,20 +542,33 @@ export default function OurMembersPage({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 8,
               background: "#FFFFFF",
-              border: `1px solid #FFFFFF`,
-              color: PALETTE.accent,
+              border: "2px solid #FFFFFF",
+              color: "#0A6FA8",
               borderRadius: 999,
-              padding: "6px 16px",
-              fontSize: 13,
-              fontWeight: 600,
+              padding: "10px 22px",
+              fontSize: 14.5,
+              fontWeight: 800,
+              letterSpacing: "0.01em",
               cursor: "pointer",
-              boxShadow: "0 2px 10px rgba(6,120,179,0.35)",
+              boxShadow:
+                "0 4px 16px rgba(6,120,179,0.45), 0 0 0 4px rgba(255,255,255,0.18)",
+              transition: "transform 0.15s ease, box-shadow 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow =
+                "0 8px 22px rgba(6,120,179,0.5), 0 0 0 4px rgba(255,255,255,0.28)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow =
+                "0 4px 16px rgba(6,120,179,0.45), 0 0 0 4px rgba(255,255,255,0.18)";
             }}
           >
-            <UserPlus size={14} />
-            Register to be a Member
+            <UserPlus size={16} />
+            Become a Member
           </button>
         </div>
       </div>
