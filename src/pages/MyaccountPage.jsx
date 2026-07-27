@@ -13,11 +13,7 @@ const SKY_D  = '#007BA8'
 const WHITE  = '#fff'
 const BG     = '#f4f8fb'
 const BORDER = '#daeef8'
-const PAGE_GRADIENT =
-  'radial-gradient(circle at 10% 0%, rgba(14,165,233,0.14), transparent 52%),' +
-  'radial-gradient(circle at 100% 15%, rgba(41,128,185,0.12), transparent 55%),' +
-  'radial-gradient(circle at 50% 100%, rgba(125,211,252,0.16), transparent 60%),' +
-  'linear-gradient(175deg, rgba(224,242,254,0.75) 0%, rgba(240,249,255,0.85) 35%, rgba(214,238,252,0.7) 70%, rgba(232,247,255,0.85) 100%)'
+const PAGE_GRADIENT = 'linear-gradient(135deg, #dbf1fb 0%, #d7f5ec 100%)'
 const MID    = '#4a6a7a'
 
 const TABS = [
