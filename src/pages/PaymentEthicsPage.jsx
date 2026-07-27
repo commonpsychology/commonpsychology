@@ -469,8 +469,8 @@ export default function PaymentEthicsPage() {
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem' }}>
                 {docs.map((item, i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:'0.75rem',
-                    justifyContent:'space-between', padding:'0.85rem 1rem', borderRadius:10,
+                  <div key={i} style={{ display:'flex', flexDirection:'column', gap:'0.75rem',
+                    padding:'0.85rem 1rem', borderRadius:10,
                     background:sectionGrad, border:`1px solid ${C.borderFaint}` }}>
                     <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
                       <span style={{ fontSize:'1.1rem' }}>{item.icon}</span>
