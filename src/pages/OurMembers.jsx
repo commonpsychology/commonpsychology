@@ -722,7 +722,7 @@ export default function OurMembersPage({
         width: "100%",
         maxWidth: "100vw",
         boxSizing: "border-box",
-        paddingTop: headerOffset + 24,
+        paddingTop: headerOffset + 24 + 5,
         minHeight: `calc(100vh - ${headerOffset}px)`,
         overflowX: "hidden",
         display: "flex",
@@ -761,7 +761,7 @@ export default function OurMembersPage({
       {/* Header — its own soft card, matching the wall panel / member card visual language */}
       <div
         style={{
-          padding: isTiny ? "14px 12px 0" : isNarrow ? "20px 16px 0" : "32px 24px 0",
+          padding: isTiny ? "19px 12px 0" : isNarrow ? "25px 16px 0" : "37px 24px 0",
           flexShrink: 0,
           boxSizing: "border-box",
           maxWidth: 720,
