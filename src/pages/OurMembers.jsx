@@ -7,6 +7,14 @@ import { Shuffle, Users, Loader2, UserPlus, Shield, Heart, Star } from "lucide-r
 const API = import.meta.env.VITE_API_URL;
 
 // ---------------------------------------------------------------------------
+// Real cement/plaster texture asset — used for the page background and the
+// wall's mortar backdrop. Place the file at this path in your public/
+// (or static assets) folder — e.g. public/textures/mortar-texture.jpg — or
+// swap in an imported asset path from your bundler.
+// ---------------------------------------------------------------------------
+const MORTAR_TEXTURE_URL = "/textures/mortar-texture.jpg";
+
+// ---------------------------------------------------------------------------
 // Palette — mortar/plaster tones throughout the page, bluish gradient
 // reserved for the Shuffle / Become Member / Sign-in buttons.
 // ---------------------------------------------------------------------------
@@ -245,6 +253,8 @@ export default function OurMembersPage({
   const lastLayoutRef = useRef({ width: 0, height: 0, topReserve: 0, bottomReserve: 0, sidePad: 0, isNarrow: false });
   const hoveredIndexRef = useRef(-1);
   const noiseCacheRef = useRef(null);
+  const mortarImgRef = useRef(null);
+  const mortarPatternRef = useRef(null);
 
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -254,6 +264,20 @@ export default function OurMembersPage({
   const [isShuffling, setIsShuffling] = useState(false);
   const [isNarrow, setIsNarrow] = useState(false);
   const [isTiny, setIsTiny] = useState(false);
+  const [mortarImgLoaded, setMortarImgLoaded] = useState(false);
+
+  // Preload the real cement/plaster texture once. It gets drawn as a tiled
+  // canvas pattern behind the bricks, replacing the procedurally-generated
+  // mottle + grain that was there before.
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      mortarImgRef.current = img;
+      setMortarImgLoaded(true);
+    };
+    img.src = MORTAR_TEXTURE_URL;
+  }, []);
 
   const fetchCount = useCallback(async () => {
     const res = await fetch(`${API}/profiles-directory/count`);
@@ -344,13 +368,38 @@ export default function OurMembersPage({
         roundRect(ctx, panelX, panelY, panelW, panelH, panelR);
         ctx.clip();
 
-        // Mottled plaster gradient
-        const mottle = ctx.createLinearGradient(panelX, panelY, panelX + panelW, panelY + panelH);
-        mottle.addColorStop(0, MORTAR_LIGHT);
-        mottle.addColorStop(0.5, MORTAR_MID);
-        mottle.addColorStop(1, MORTAR_DARK);
-        ctx.fillStyle = mottle;
-        ctx.fillRect(panelX, panelY, panelW, panelH);
+        // Real cement/plaster texture, tiled as a canvas pattern, so the
+        // backdrop is an actual photographed wall surface rather than a
+        // procedurally-generated mottle. Falls back to the old mottled
+        // gradient for the brief window before the image has loaded.
+        const img = mortarImgRef.current;
+        if (img) {
+          if (!mortarPatternRef.current) {
+            mortarPatternRef.current = ctx.createPattern(img, "repeat");
+          }
+          if (mortarPatternRef.current) {
+            ctx.fillStyle = mortarPatternRef.current;
+            ctx.fillRect(panelX, panelY, panelW, panelH);
+          }
+        } else {
+          const mottle = ctx.createLinearGradient(panelX, panelY, panelX + panelW, panelY + panelH);
+          mottle.addColorStop(0, MORTAR_LIGHT);
+          mottle.addColorStop(0.5, MORTAR_MID);
+          mottle.addColorStop(1, MORTAR_DARK);
+          ctx.fillStyle = mottle;
+          ctx.fillRect(panelX, panelY, panelW, panelH);
+
+          const grain = ctx.createPattern(
+            getNoiseCanvas(noiseCacheRef, "mortar", { size: 64, base: 150, range: 90, alphaMax: 55 }),
+            "repeat"
+          );
+          if (grain) {
+            ctx.globalAlpha = 0.5;
+            ctx.fillStyle = grain;
+            ctx.fillRect(panelX, panelY, panelW, panelH);
+            ctx.globalAlpha = 1;
+          }
+        }
 
         // Inset vignette for depth (mortar recedes behind the bricks)
         const vign = ctx.createRadialGradient(
@@ -361,18 +410,6 @@ export default function OurMembersPage({
         vign.addColorStop(1, "rgba(90,78,60,0.18)");
         ctx.fillStyle = vign;
         ctx.fillRect(panelX, panelY, panelW, panelH);
-
-        // Coarse mortar grain
-        const grain = ctx.createPattern(
-          getNoiseCanvas(noiseCacheRef, "mortar", { size: 64, base: 150, range: 90, alphaMax: 55 }),
-          "repeat"
-        );
-        if (grain) {
-          ctx.globalAlpha = 0.5;
-          ctx.fillStyle = grain;
-          ctx.fillRect(panelX, panelY, panelW, panelH);
-          ctx.globalAlpha = 1;
-        }
 
         // Faint grout joint lines running through the whole panel, matching
         // the brick pitch, so uncovered mortar between/around bricks still
@@ -570,6 +607,13 @@ export default function OurMembersPage({
     drawWall(namePoolRef.current, w, h, topReserve, BOTTOM_RESERVE, sidePad, narrow);
   }, [drawWall]);
 
+  // Redraw once the real mortar texture has finished loading, so the
+  // procedural placeholder swaps over to the actual photographed texture.
+  useEffect(() => {
+    if (mortarImgLoaded) relayout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mortarImgLoaded]);
+
   const load = useCallback(
     async (isStale) => {
       setStatus("loading");
@@ -666,19 +710,22 @@ export default function OurMembersPage({
         width: "100%",
         maxWidth: "100vw",
         boxSizing: "border-box",
-        marginTop: headerOffset + 24,
-        minHeight: `calc(100vh - ${headerOffset + 24}px)`,
+        marginTop: headerOffset + 110,
+        minHeight: `calc(100vh - ${headerOffset + 110}px)`,
         overflowX: "hidden",
         display: "flex",
         flexDirection: "column",
         fontFamily: UI_FONT,
         color: PALETTE.navy,
         background: `
-          radial-gradient(ellipse 60% 40% at 15% 0%, rgba(255,255,255,0.4), transparent 60%),
-          radial-gradient(ellipse 55% 45% at 90% 15%, rgba(255,255,255,0.25), transparent 55%),
-          radial-gradient(ellipse 70% 50% at 50% 100%, rgba(120,108,90,0.15), transparent 60%),
-          linear-gradient(180deg, ${PALETTE.bgTop} 0%, ${PALETTE.bgBottom} 100%)
+          radial-gradient(ellipse 60% 40% at 15% 0%, rgba(255,255,255,0.25), transparent 60%),
+          radial-gradient(ellipse 55% 45% at 90% 15%, rgba(255,255,255,0.15), transparent 55%),
+          radial-gradient(ellipse 70% 50% at 50% 100%, rgba(90,78,60,0.12), transparent 60%),
+          url(${MORTAR_TEXTURE_URL})
         `,
+        backgroundSize: "auto, auto, auto, 340px",
+        backgroundRepeat: "no-repeat, no-repeat, no-repeat, repeat",
+        backgroundColor: PALETTE.bgBottom,
       }}
     >
       <style>{`
@@ -715,7 +762,7 @@ export default function OurMembersPage({
             textAlign: "center",
             padding: isTiny ? "22px 16px 20px" : isNarrow ? "28px 20px 24px" : "36px 32px 30px",
             borderRadius: 20,
-            background: "linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%)",
+            background: `linear-gradient(160deg, ${PALETTE.card} 0%, ${PALETTE.cardDeep} 100%)`,
             boxShadow: "0 1px 0 rgba(255,255,255,0.7) inset, 0 10px 26px rgba(90,72,45,0.12)",
             border: "1px solid rgba(255,255,255,0.7)",
             boxSizing: "border-box",
@@ -867,7 +914,7 @@ export default function OurMembersPage({
                 textAlign: "center",
                 color: PALETTE.navy,
                 fontSize: 14,
-                background: "rgba(234,246,254,0.95)",
+                background: `rgba(216,208,194,0.95)`,
               }}
             >
               {errorMsg}
