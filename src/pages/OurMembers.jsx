@@ -697,15 +697,28 @@ export default function OurMembersPage({
         }
       `}</style>
 
-      {/* Header — spans the full width so it's centered on the whole page, not just the left column */}
+      {/* Header — its own soft card, matching the wall panel / member card visual language */}
       <div
         style={{
-          textAlign: "center",
-          padding: isTiny ? "28px 14px 8px" : isNarrow ? "40px 18px 8px" : "64px 24px 10px",
+          padding: isTiny ? "14px 12px 0" : isNarrow ? "20px 16px 0" : "32px 24px 0",
           flexShrink: 0,
           boxSizing: "border-box",
+          maxWidth: 720,
+          margin: "0 auto",
+          width: "100%",
         }}
       >
+        <div
+          style={{
+            textAlign: "center",
+            padding: isTiny ? "22px 16px 20px" : isNarrow ? "28px 20px 24px" : "36px 32px 30px",
+            borderRadius: 20,
+            background: "linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%)",
+            boxShadow: "0 1px 0 rgba(255,255,255,0.7) inset, 0 10px 26px rgba(90,72,45,0.12)",
+            border: "1px solid rgba(255,255,255,0.7)",
+            boxSizing: "border-box",
+          }}
+        >
         <div
           style={{
             display: "flex",
@@ -794,6 +807,49 @@ export default function OurMembersPage({
             <span>Building the wall…</span>
           )}
         </div>
+        </div>
+      </div>
+
+      {/* Shuffle — its own standalone pill between the header and the wall,
+          instead of floating attached to the member card's top edge. */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          padding: isTiny ? "16px 12px 0" : "20px 16px 0",
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={handleShuffle}
+          disabled={status === "loading"}
+          title="Shuffle the wall of names"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            background: PALETTE.glow,
+            border: `2px solid ${PALETTE.white}`,
+            borderRadius: 999,
+            color: PALETTE.white,
+            fontWeight: 700,
+            fontSize: 12.5,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
+            padding: "10px 20px",
+            cursor: status === "loading" ? "default" : "pointer",
+            opacity: status === "loading" ? 0.7 : 1,
+            boxShadow: `0 6px 16px rgba(0,191,255,0.45)`,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {status === "loading" ? (
+            <Loader2 size={15} className="animate-spin" />
+          ) : (
+            <Shuffle size={15} />
+          )}
+          Shuffle
+        </button>
       </div>
 
       <div
@@ -886,48 +942,11 @@ export default function OurMembersPage({
               boxSizing: "border-box",
             }}
           >
-            {/* Shuffle — kept exactly as the blue accent button */}
-            <button
-              onClick={handleShuffle}
-              disabled={status === "loading"}
-              title="Shuffle the wall of names"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-                background: PALETTE.glow,
-                border: `2px solid ${PALETTE.white}`,
-                borderRadius: 999,
-                color: PALETTE.white,
-                fontWeight: 700,
-                fontSize: 12.5,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-                padding: "9px 16px",
-                cursor: status === "loading" ? "default" : "pointer",
-                opacity: status === "loading" ? 0.7 : 1,
-                boxShadow: `0 6px 16px rgba(0,191,255,0.45)`,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {status === "loading" ? (
-                <Loader2 size={15} className="animate-spin" />
-              ) : (
-                <Shuffle size={15} />
-              )}
-              Shuffle
-            </button>
-
             <div
               style={{
                 fontFamily: SCRIPT_FONT,
                 fontSize: 30,
                 lineHeight: 1,
-                marginTop: 8,
               }}
             >
               Thank you
