@@ -134,7 +134,7 @@ export default function OurMembersPage({
   currentUserName = null, // logged-in member's display name
 }) {
   const containerRef = useRef(null);
-  const headerRef = useRef(null);
+  const wallWrapRef = useRef(null);
   const canvasRef = useRef(null);
   const namePoolRef = useRef([]);
 
@@ -207,23 +207,30 @@ export default function OurMembersPage({
           currentUserName &&
           name.trim().toLowerCase() === currentUserName.trim().toLowerCase();
 
-        // Brick fill — terracotta gradient
+        // Brick fill — terracotta gradient. The signed-in user's own brick
+        // gets a soft glowing halo behind it.
+        ctx.save();
+        if (isYou) {
+          ctx.shadowColor = PALETTE.glow;
+          ctx.shadowBlur = 24;
+        }
         roundRect(ctx, x, y, w, h, r);
         ctx.fillStyle = brickGradient(ctx, x, y, w, h);
         ctx.fill();
+        ctx.restore();
 
-        // Subtle border
+        // Border — glows for the signed-in user's brick
         roundRect(ctx, x + 0.75, y + 0.75, w - 1.5, h - 1.5, r);
         ctx.strokeStyle = isYou ? PALETTE.glow : "rgba(0,0,0,0.18)";
-        ctx.lineWidth = isYou ? 2 : 1;
+        ctx.lineWidth = isYou ? 2.5 : 1;
         if (isYou) {
-          ctx.shadowColor = PALETTE.glowSoft;
-          ctx.shadowBlur = 12;
+          ctx.shadowColor = PALETTE.glow;
+          ctx.shadowBlur = 16;
         }
         ctx.stroke();
         ctx.shadowBlur = 0;
 
-        // Name
+        // Name — glows for the signed-in user's brick
         const maxTextW = w - 10;
         const size = fitFontSize(
           ctx,
@@ -232,11 +239,17 @@ export default function OurMembersPage({
           Math.min(maxFontPx, h * 0.4),
           minFontPx
         );
+        ctx.save();
         ctx.font = `${isYou ? "800" : "700"} ${size}px ${UI_FONT}`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = isYou ? PALETTE.glow : "#FDF3EE";
+        ctx.fillStyle = isYou ? "#EAFBFF" : "#FDF3EE";
+        if (isYou) {
+          ctx.shadowColor = PALETTE.glow;
+          ctx.shadowBlur = 10;
+        }
         ctx.fillText(name.toUpperCase(), x + w / 2, y + h / 2 + 1);
+        ctx.restore();
       });
 
       setShownCount(pool.filter(Boolean).length);
@@ -246,24 +259,16 @@ export default function OurMembersPage({
 
   const relayout = useCallback(() => {
     const container = containerRef.current;
-    if (!container) return;
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    const narrow = w < 860;
+    const wrap = wallWrapRef.current;
+    if (!container || !wrap) return;
+    const totalW = container.clientWidth;
+    const narrow = totalW < 860;
     setIsNarrow(narrow);
 
-    const headerH = headerRef.current ? headerRef.current.offsetHeight : 0;
-
-    const wallW = narrow ? w : w - 300;
-    // Subtract the header's real rendered height so the canvas never grows
-    // taller than what's actually left in the viewport (this was the cause
-    // of the wall trailing off far past the visible area).
-    const wallH = narrow
-      ? Math.max(280, h * 0.55)
-      : Math.max(320, h - headerH);
-
-    const topReserve = narrow ? Math.max(20, Math.min(48, wallH * 0.12)) : 24;
-    drawWall(namePoolRef.current, wallW, wallH, topReserve, BOTTOM_RESERVE);
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    const topReserve = narrow ? Math.max(20, Math.min(48, h * 0.12)) : 24;
+    drawWall(namePoolRef.current, w, h, topReserve, BOTTOM_RESERVE);
   }, [drawWall]);
 
   const load = useCallback(
@@ -356,9 +361,15 @@ export default function OurMembersPage({
         height: `calc(100vh - ${headerOffset}px)`,
         overflowY: "auto",
         overflowX: "hidden",
+        display: "flex",
+        flexDirection: "column",
         fontFamily: UI_FONT,
         color: PALETTE.navy,
-        background: `linear-gradient(180deg, ${PALETTE.bgTop} 0%, ${PALETTE.bgBottom} 100%)`,
+        background: `
+          linear-gradient(180deg, ${PALETTE.bgTop} 0%, ${PALETTE.bgBottom} 100%),
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.55) 0px, rgba(255,255,255,0.55) 1px, transparent 1px, transparent 46px),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 1px, transparent 1px, transparent 96px)
+        `,
       }}
     >
       <style>{`
@@ -371,124 +382,125 @@ export default function OurMembersPage({
         .wow-glow { animation: wow-glow-pulse 2.4s ease-in-out infinite; }
       `}</style>
 
+      {/* Header — spans the full width so it's centered on the whole page, not just the left column */}
+      <div
+        style={{
+          textAlign: "center",
+          padding: "64px 24px 10px",
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 18,
+          }}
+        >
+          <LeafOrnament flip={false} />
+          <h1
+            style={{
+              fontFamily: DISPLAY_FONT,
+              fontWeight: 800,
+              fontSize: "clamp(28px, 4vw, 44px)",
+              letterSpacing: "0.03em",
+              color: PALETTE.navy,
+              margin: 0,
+              lineHeight: 1.2,
+            }}
+          >
+            Wall of Names
+          </h1>
+          <LeafOrnament flip={true} />
+        </div>
+        <p
+          style={{
+            marginTop: 6,
+            fontSize: 13,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: PALETTE.navySoft,
+          }}
+        >
+          To respect. To appreciate. Together we grow.
+        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            margin: "12px auto 0",
+            maxWidth: 420,
+          }}
+        >
+          <span style={{ flex: 1, height: 1, background: "rgba(18,58,99,0.18)" }} />
+          <Heart size={13} color={PALETTE.glow} fill={PALETTE.glow} />
+          <span style={{ flex: 1, height: 1, background: "rgba(18,58,99,0.18)" }} />
+        </div>
+        <p
+          style={{
+            fontStyle: "italic",
+            color: PALETTE.navySoft,
+            fontSize: 14,
+            marginTop: 8,
+          }}
+        >
+          Every name here is a part of our journey and our purpose.
+        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            marginTop: 6,
+            fontSize: 12.5,
+            color: PALETTE.navySoft,
+          }}
+        >
+          <Users size={13} />
+          {totalCount !== null ? (
+            <span>
+              <strong style={{ color: PALETTE.navy }}>
+                {shownCount.toLocaleString()}
+              </strong>{" "}
+              of{" "}
+              <strong style={{ color: PALETTE.navy }}>
+                {totalCount.toLocaleString()}
+              </strong>{" "}
+              names shown
+            </span>
+          ) : (
+            <span>Building the wall…</span>
+          )}
+        </div>
+      </div>
+
       <div
         style={{
           display: "flex",
           flexDirection: isNarrow ? "column" : "row",
-          height: isNarrow ? "auto" : "100%",
-          minHeight: "100%",
+          flex: 1,
+          minHeight: 0,
           boxSizing: "border-box",
         }}
       >
-        {/* Left: header + wall + bottom action bar */}
+        {/* Left: wall */}
         <div
           style={{
             flex: 1,
             position: "relative",
             minWidth: 0,
+            minHeight: 0,
             display: "flex",
             flexDirection: "column",
           }}
         >
-          {/* Header */}
-          <div
-            ref={headerRef}
-            style={{
-              textAlign: "center",
-              padding: "64px 24px 10px",
-              flexShrink: 0,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 18,
-              }}
-            >
-              <LeafOrnament flip={false} />
-              <h1
-                style={{
-                  fontFamily: DISPLAY_FONT,
-                  fontWeight: 800,
-                  fontSize: "clamp(28px, 4vw, 44px)",
-                  letterSpacing: "0.03em",
-                  color: PALETTE.navy,
-                  margin: 0,
-                  lineHeight: 1.2,
-                }}
-              >
-                Wall of Names
-              </h1>
-              <LeafOrnament flip={true} />
-            </div>
-            <p
-              style={{
-                marginTop: 6,
-                fontSize: 13,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: PALETTE.navySoft,
-              }}
-            >
-              To respect. To appreciate. Together we grow.
-            </p>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                margin: "12px auto 0",
-                maxWidth: 420,
-              }}
-            >
-              <span style={{ flex: 1, height: 1, background: "rgba(18,58,99,0.18)" }} />
-              <Heart size={13} color={PALETTE.glow} fill={PALETTE.glow} />
-              <span style={{ flex: 1, height: 1, background: "rgba(18,58,99,0.18)" }} />
-            </div>
-            <p
-              style={{
-                fontStyle: "italic",
-                color: PALETTE.navySoft,
-                fontSize: 14,
-                marginTop: 8,
-              }}
-            >
-              Every name here is a part of our journey and our purpose.
-            </p>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                marginTop: 6,
-                fontSize: 12.5,
-                color: PALETTE.navySoft,
-              }}
-            >
-              <Users size={13} />
-              {totalCount !== null ? (
-                <span>
-                  <strong style={{ color: PALETTE.navy }}>
-                    {shownCount.toLocaleString()}
-                  </strong>{" "}
-                  of{" "}
-                  <strong style={{ color: PALETTE.navy }}>
-                    {totalCount.toLocaleString()}
-                  </strong>{" "}
-                  names shown
-                </span>
-              ) : (
-                <span>Building the wall…</span>
-              )}
-            </div>
-          </div>
-
           {/* Wall */}
           <div
+            ref={wallWrapRef}
             className="wow-canvas-wrap"
             style={{
               position: "relative",
