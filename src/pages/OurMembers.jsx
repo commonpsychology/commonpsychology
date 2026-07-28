@@ -168,18 +168,30 @@ function computeBrickGrid(width, height, topReserve, bottomReserve, count, sideP
   const minBrickH = isNarrow ? 22 : 28;
   const maxBrickH = isNarrow ? 40 : 52;
 
-  const rawW = (availW - gap * (cols - 1)) / cols;
-  const rawH = (availH - gap * (rows - 1)) / rows;
+  const computeRawW = (colCount) => (availW - gap * (colCount - 1)) / colCount;
+  let rawW = computeRawW(cols);
   let brickW = Math.max(minBrickW, Math.min(maxBrickW, rawW));
-  let brickH = Math.max(minBrickH, Math.min(maxBrickH, brickW * 0.32, rawH));
-  brickW = Math.min(brickW, rawW > 0 ? rawW : brickW);
 
   // If the floor width still doesn't fit the available space at this column
   // count, drop columns until it does (guards very narrow phones).
   while (cols > 1 && (brickW * cols + gap * (cols - 1)) > availW) {
     cols -= 1;
     rows = Math.max(1, Math.ceil(n / cols));
+    rawW = computeRawW(cols);
+    brickW = Math.max(minBrickW, Math.min(maxBrickW, rawW)); // recompute against the new column count
   }
+
+  // Last-resort safety net: even at cols === 1, the minBrickW floor can
+  // still exceed availW on very narrow phones, which is what was pushing
+  // the wall (and its rightmost brick) past the visible canvas edge.
+  // Never let the grid exceed what's actually available.
+  const maxPossibleW = computeRawW(cols);
+  if (brickW > maxPossibleW) {
+    brickW = Math.max(1, maxPossibleW);
+  }
+
+  const rawH = (availH - gap * (rows - 1)) / rows;
+  let brickH = Math.max(minBrickH, Math.min(maxBrickH, brickW * 0.32, rawH));
 
   const gridW = cols * brickW + (cols - 1) * gap;
   const gridH = rows * brickH + (rows - 1) * gap;
