@@ -592,7 +592,7 @@ export default function OurMembersPage({
               lineHeight: 1.2,
             }}
           >
-            Wall of Balance
+            Wall of Names
           </h1>
           <LeafOrnament flip={true} />
         </div>
@@ -946,6 +946,3 @@ function LeafOrnament({ flip }) {
     </svg>
   );
 }
-
-
-
