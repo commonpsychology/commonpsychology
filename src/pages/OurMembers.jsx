@@ -10,14 +10,17 @@ const API = import.meta.env.VITE_API_URL;
 // Palette — bluish-white glow, accent locked to the requested #00BFFF.
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  glow: "#00BFFF",              // required accent
+  glow: "#00BFFF",               // reserved ONLY for the Shuffle / Become Member / Sign-in buttons
   glowSoft: "rgba(0,191,255,0.35)",
-  bgTop: "#EAF6FE",             // page gradient — white to sky blue
-  bgBottom: "#CFEBFB",
-  navy: "#123A63",              // heading / engraved text
-  navySoft: "#3E6690",
-  card: "#1670C9",              // sidebar panel base
-  cardDeep: "#0E4F9E",
+  bgTop: "#F4EDDD",              // page gradient — warm plaster, matches the wall's mortar
+  bgBottom: "#E2D4B8",
+  navy: "#3A3128",                // heading / body text — warm charcoal stone, not blue
+  navySoft: "#7A6C58",
+  card: "#EFE6D4",                // sidebar panel — light plaster (was blue)
+  cardDeep: "#CBB78F",            // sidebar panel — deeper plaster/tan
+  cardText: "#3A3128",
+  accent: "#B8834A",              // brass/terracotta accent for dividers, "you" highlight — not blue
+  accentSoft: "rgba(184,131,74,0.32)",
   white: "#FFFFFF",
 };
 
@@ -91,9 +94,9 @@ function drawEngravedText(ctx, text, cx, cy, font, isYou) {
   ctx.fillText(text, cx + 1, cy + 1);
 
   ctx.save();
-  ctx.fillStyle = isYou ? "#EAFBFF" : "#F5E9E1";
+  ctx.fillStyle = isYou ? "#FFF6E2" : "#F5E9E1";
   if (isYou) {
-    ctx.shadowColor = PALETTE.glow;
+    ctx.shadowColor = PALETTE.accent;
     ctx.shadowBlur = 10;
   }
   ctx.fillText(text, cx, cy);
@@ -420,7 +423,7 @@ export default function OurMembersPage({
         // Brick fill
         ctx.save();
         if (isYou || isHover) {
-          ctx.shadowColor = PALETTE.glow;
+          ctx.shadowColor = PALETTE.accent;
           ctx.shadowBlur = isYou ? 22 : 18;
           ctx.shadowOffsetY = isHover ? 2 : 0;
         } else {
@@ -440,9 +443,9 @@ export default function OurMembersPage({
         if (isYou) {
           ctx.save();
           roundRect(ctx, x + 1, y + 1, w - 2, h - 2, r);
-          ctx.strokeStyle = PALETTE.glow;
+          ctx.strokeStyle = PALETTE.accent;
           ctx.lineWidth = 2;
-          ctx.shadowColor = PALETTE.glow;
+          ctx.shadowColor = PALETTE.accent;
           ctx.shadowBlur = 14;
           ctx.stroke();
           ctx.restore();
@@ -467,18 +470,19 @@ export default function OurMembersPage({
         );
       });
 
-      // 3) Ambient cool-blue glow from the top corners
+      // 3) Ambient warm-light wash from the top corners — sunlight on plaster,
+      // not a blue UI glow, so it matches the mortar/brick theme.
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       const glowRadius = Math.max(width, height) * 0.55;
       const glowTL = ctx.createRadialGradient(0, 0, 0, 0, 0, glowRadius);
-      glowTL.addColorStop(0, "rgba(0,191,255,0.20)");
-      glowTL.addColorStop(1, "rgba(0,191,255,0)");
+      glowTL.addColorStop(0, "rgba(230,190,130,0.16)");
+      glowTL.addColorStop(1, "rgba(230,190,130,0)");
       ctx.fillStyle = glowTL;
       ctx.fillRect(0, 0, width, height);
       const glowTR = ctx.createRadialGradient(width, 0, 0, width, 0, glowRadius);
-      glowTR.addColorStop(0, "rgba(0,191,255,0.20)");
-      glowTR.addColorStop(1, "rgba(0,191,255,0)");
+      glowTR.addColorStop(0, "rgba(230,190,130,0.16)");
+      glowTR.addColorStop(1, "rgba(230,190,130,0)");
       ctx.fillStyle = glowTR;
       ctx.fillRect(0, 0, width, height);
       ctx.restore();
@@ -661,17 +665,17 @@ export default function OurMembersPage({
         maxWidth: "100vw",
         boxSizing: "border-box",
         marginTop: headerOffset,
-        height: `calc(100vh - ${headerOffset}px)`,
-        overflowY: "auto",
+        minHeight: `calc(100vh - ${headerOffset}px)`,
         overflowX: "hidden",
         display: "flex",
         flexDirection: "column",
         fontFamily: UI_FONT,
         color: PALETTE.navy,
         background: `
-          linear-gradient(180deg, ${PALETTE.bgTop} 0%, ${PALETTE.bgBottom} 100%),
-          repeating-linear-gradient(0deg, rgba(255,255,255,0.55) 0px, rgba(255,255,255,0.55) 1px, transparent 1px, transparent 46px),
-          repeating-linear-gradient(90deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 1px, transparent 1px, transparent 96px)
+          radial-gradient(ellipse 60% 40% at 15% 0%, rgba(255,255,255,0.55), transparent 60%),
+          radial-gradient(ellipse 55% 45% at 90% 15%, rgba(255,255,255,0.35), transparent 55%),
+          radial-gradient(ellipse 70% 50% at 50% 100%, rgba(120,102,74,0.12), transparent 60%),
+          linear-gradient(180deg, ${PALETTE.bgTop} 0%, ${PALETTE.bgBottom} 100%)
         `,
       }}
     >
@@ -681,10 +685,15 @@ export default function OurMembersPage({
           0%, 100% { box-shadow: 0 0 14px 2px ${PALETTE.glowSoft}, inset 0 0 12px rgba(0,191,255,0.25); }
           50% { box-shadow: 0 0 26px 6px rgba(0,191,255,0.55), inset 0 0 18px rgba(0,191,255,0.4); }
         }
+        @keyframes wow-glow-pulse-brass {
+          0%, 100% { box-shadow: 0 0 12px 1px ${PALETTE.accentSoft}, inset 0 0 10px rgba(184,131,74,0.18); }
+          50% { box-shadow: 0 0 20px 4px rgba(184,131,74,0.45), inset 0 0 14px rgba(184,131,74,0.3); }
+        }
         .wow-canvas-wrap { transition: opacity 0.16s ease; }
         .wow-glow { animation: wow-glow-pulse 2.4s ease-in-out infinite; }
+        .wow-glow-brass { animation: wow-glow-pulse-brass 2.4s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .wow-glow { animation: none; }
+          .wow-glow, .wow-glow-brass { animation: none; }
         }
       `}</style>
 
@@ -717,12 +726,10 @@ export default function OurMembersPage({
               lineHeight: 1.2,
             }}
           >
-            Wall of Balance
+            Wall of Names
           </h1>
           {!isTiny && <LeafOrnament flip={true} />}
         </div>
-
-        
         <p
           style={{
             marginTop: 6,
@@ -744,9 +751,9 @@ export default function OurMembersPage({
             maxWidth: 420,
           }}
         >
-          <span style={{ flex: 1, height: 1, background: "rgba(18,58,99,0.18)" }} />
-          <Heart size={13} color={PALETTE.glow} fill={PALETTE.glow} />
-          <span style={{ flex: 1, height: 1, background: "rgba(18,58,99,0.18)" }} />
+          <span style={{ flex: 1, height: 1, background: "rgba(58,49,40,0.2)" }} />
+          <Heart size={13} color={PALETTE.accent} fill={PALETTE.accent} />
+          <span style={{ flex: 1, height: 1, background: "rgba(58,49,40,0.2)" }} />
         </div>
         {!isTiny && (
           <p
@@ -802,12 +809,15 @@ export default function OurMembersPage({
         {/* Left: wall */}
         <div
           style={{
-            flex: 1,
+            flex: isNarrow ? "0 0 auto" : 1,
             position: "relative",
             minWidth: 0,
             minHeight: 0,
             display: "flex",
             flexDirection: "column",
+            overflow: "hidden", // hard guarantee: wall content can never visually bleed into the card below it
+            width: isNarrow ? "100%" : "auto",
+            height: isNarrow ? (isTiny ? "48vh" : "55vh") : "auto",
           }}
         >
           {/* Wall */}
@@ -817,11 +827,12 @@ export default function OurMembersPage({
             style={{
               position: "relative",
               width: "100%",
-              flex: isNarrow ? "none" : 1,
-              height: isNarrow ? (isTiny ? "48vh" : "55vh") : "auto",
-              minHeight: 240,
+              flex: isNarrow ? "1 1 auto" : 1,
+              height: isNarrow ? "100%" : "auto",
+              minHeight: isNarrow ? 0 : 240,
               opacity: isShuffling ? 0.35 : 1,
               boxSizing: "border-box",
+              overflow: "hidden",
             }}
           >
             <canvas ref={canvasRef} style={{ display: "block", maxWidth: "100%" }} />
@@ -869,13 +880,13 @@ export default function OurMembersPage({
               borderRadius: 20,
               padding: isTiny ? "22px 16px 18px" : "26px 22px 22px",
               background: `linear-gradient(160deg, ${PALETTE.card} 0%, ${PALETTE.cardDeep} 100%)`,
-              boxShadow: `0 0 0 1px rgba(255,255,255,0.15) inset, 0 14px 34px rgba(14,79,158,0.35)`,
-              color: PALETTE.white,
+              boxShadow: `0 0 0 1px rgba(255,255,255,0.5) inset, 0 1px 0 rgba(0,0,0,0.05) inset, 0 14px 30px rgba(90,72,45,0.22)`,
+              color: PALETTE.cardText,
               textAlign: "center",
               boxSizing: "border-box",
             }}
           >
-            {/* Shuffle — floats on top of the blue card */}
+            {/* Shuffle — kept exactly as the blue accent button */}
             <button
               onClick={handleShuffle}
               disabled={status === "loading"}
@@ -937,7 +948,7 @@ export default function OurMembersPage({
               style={{
                 marginTop: 20,
                 paddingTop: 16,
-                borderTop: "1px solid rgba(255,255,255,0.2)",
+                borderTop: "1px solid rgba(58,49,40,0.15)",
               }}
             >
               <div
@@ -952,19 +963,19 @@ export default function OurMembersPage({
                 ★ Our Member ★
               </div>
               <div
-                className={currentUserName ? "wow-glow" : ""}
+                className={currentUserName ? "wow-glow-brass" : ""}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
-                  background: "rgba(0,191,255,0.18)",
-                  border: `1.5px solid ${PALETTE.glow}`,
+                  background: "rgba(184,131,74,0.14)",
+                  border: `1.5px solid ${PALETTE.accent}`,
                   borderRadius: 10,
                   padding: "12px 10px",
                 }}
               >
-                <Users size={16} color={PALETTE.white} />
+                <Users size={16} color={PALETTE.accent} />
                 <span
                   style={{
                     fontWeight: 800,
@@ -990,7 +1001,7 @@ export default function OurMembersPage({
                     padding: "7px 0",
                     borderBottom:
                       i < benefits.length - 1
-                        ? "1px dashed rgba(255,255,255,0.18)"
+                        ? "1px dashed rgba(58,49,40,0.18)"
                         : "none",
                     fontSize: 13,
                     opacity: 0.95,
@@ -1001,7 +1012,7 @@ export default function OurMembersPage({
                       width: 22,
                       height: 22,
                       borderRadius: "50%",
-                      border: "1px solid rgba(255,255,255,0.4)",
+                      border: "1px solid rgba(58,49,40,0.35)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1060,7 +1071,7 @@ function LeafOrnament({ flip }) {
     >
       <path
         d="M2 10 C 14 2, 28 2, 44 10"
-        stroke={PALETTE.glow}
+        stroke={PALETTE.accent}
         strokeWidth="1.4"
         fill="none"
         opacity="0.7"
@@ -1072,7 +1083,7 @@ function LeafOrnament({ flip }) {
           cy={9 - (i % 2)}
           rx="4.5"
           ry="2.6"
-          fill={PALETTE.glow}
+          fill={PALETTE.accent}
           opacity={0.35 + i * 0.1}
           transform={`rotate(${-20 + i * 12} ${cx} ${9 - (i % 2)})`}
         />
