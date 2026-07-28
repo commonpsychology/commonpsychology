@@ -788,7 +788,7 @@ export default function OurMembersPage({
               lineHeight: 1.2,
             }}
           >
-            Wall of Names
+            Wall of Balance
           </h1>
           {!isTiny && <LeafOrnament flip={true} />}
         </div>
