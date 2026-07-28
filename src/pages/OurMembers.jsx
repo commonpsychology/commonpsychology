@@ -21,14 +21,12 @@ const PALETTE = {
   white: "#FFFFFF",
 };
 
-// Brick color — terracotta linear gradient, 135° (top-left -> bottom-right)
-const BRICK_GRADIENT_STOPS = [
-  { stop: 0.0, color: "#A54A3A" },
-  { stop: 0.2, color: "#B85C4B" },
-  { stop: 0.5, color: "#C96D5A" },
-  { stop: 0.8, color: "#9E473A" },
-  { stop: 1.0, color: "#7D342C" },
-];
+// Brick color — warm red-brown per design spec
+const BRICK_BASE = "#9E4B34";
+const BRICK_DARK = "#6D3324";
+const BRICK_HIGHLIGHT = "#B86445";
+const MORTAR = "#E3E3E3";
+const BRICK_SHADOW = "rgba(0,0,0,0.18)";
 
 const DISPLAY_FONT = '"Playfair Display", Georgia, "Times New Roman", serif';
 const SCRIPT_FONT = '"Dancing Script", "Brush Script MT", cursive';
@@ -39,12 +37,83 @@ const UI_FONT =
 // bar has been removed.
 const BOTTOM_RESERVE = 24;
 
-function brickGradient(ctx, x, y, w, h) {
-  // 135deg in CSS points from top-left toward bottom-right, so a diagonal
-  // canvas gradient across the brick's own box reproduces it.
+function brickFillGradient(ctx, x, y, w, h) {
+  // 135deg diagonal: highlight (top-left) -> base -> dark (bottom-right)
   const grad = ctx.createLinearGradient(x, y, x + w, y + h);
-  BRICK_GRADIENT_STOPS.forEach(({ stop, color }) => grad.addColorStop(stop, color));
+  grad.addColorStop(0, BRICK_HIGHLIGHT);
+  grad.addColorStop(0.45, BRICK_BASE);
+  grad.addColorStop(1, BRICK_DARK);
   return grad;
+}
+
+// Thin light/dark rim strokes along the top-left / bottom-right edges so
+// each brick reads as a beveled, slightly raised block.
+function drawBrickBevel(ctx, x, y, w, h, r, bevel) {
+  ctx.save();
+  roundRect(ctx, x, y, w, h, r);
+  ctx.clip();
+
+  ctx.lineWidth = bevel;
+  ctx.strokeStyle = "rgba(255,255,255,0.32)";
+  ctx.beginPath();
+  ctx.moveTo(x, y + h);
+  ctx.lineTo(x, y);
+  ctx.lineTo(x + w, y);
+  ctx.stroke();
+
+  ctx.strokeStyle = "rgba(0,0,0,0.32)";
+  ctx.beginPath();
+  ctx.moveTo(x + w, y);
+  ctx.lineTo(x + w, y + h);
+  ctx.lineTo(x, y + h);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// Engraved-looking name: a dark shadow pass and a light highlight pass,
+// offset by a pixel each way, with the main fill in between.
+function drawEngravedText(ctx, text, cx, cy, font, isYou) {
+  ctx.font = font;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  ctx.fillStyle = "rgba(0,0,0,0.45)";
+  ctx.fillText(text, cx - 1, cy - 1);
+
+  ctx.fillStyle = "rgba(255,255,255,0.3)";
+  ctx.fillText(text, cx + 1, cy + 1);
+
+  ctx.save();
+  ctx.fillStyle = isYou ? "#EAFBFF" : "#F5E9E1";
+  if (isYou) {
+    ctx.shadowColor = PALETTE.glow;
+    ctx.shadowBlur = 10;
+  }
+  ctx.fillText(text, cx, cy);
+  ctx.restore();
+}
+
+// A tiny cached noise tile, reused as a canvas pattern for the dust texture.
+function getNoiseCanvas(cacheRef) {
+  if (cacheRef.current) return cacheRef.current;
+  const size = 96;
+  const c = document.createElement("canvas");
+  c.width = size;
+  c.height = size;
+  const nctx = c.getContext("2d");
+  const img = nctx.createImageData(size, size);
+  for (let p = 0; p < img.data.length; p += 4) {
+    const v = 200 + Math.floor(Math.random() * 55);
+    const a = Math.random() * 40;
+    img.data[p] = v;
+    img.data[p + 1] = v;
+    img.data[p + 2] = v;
+    img.data[p + 3] = a;
+  }
+  nctx.putImageData(img, 0, 0);
+  cacheRef.current = c;
+  return c;
 }
 
 // ---------------------------------------------------------------------------
@@ -56,7 +125,7 @@ function computeBrickGrid(width, height, topReserve, bottomReserve, count) {
   const availW = Math.max(50, width);
   const availH = Math.max(50, height - topReserve - bottomReserve);
   const n = Math.max(1, count);
-  const gap = 6;
+  const gap = 10; // mortar joint width
 
   // Pick a column count that roughly matches the container's aspect ratio.
   let cols = Math.max(1, Math.round(Math.sqrt((n * availW) / availH)));
@@ -79,9 +148,11 @@ function computeBrickGrid(width, height, topReserve, bottomReserve, count) {
   const cells = [];
   let idx = 0;
   outer: for (let r = 0; r < rows; r++) {
+    // Running (staggered) bond: every other course shifts half a brick over.
+    const rowShift = r % 2 === 1 ? (brickW + gap) / 2 : 0;
     for (let c = 0; c < cols; c++) {
       if (idx >= n) break outer;
-      const x = offsetX + c * (brickW + gap);
+      const x = offsetX + rowShift + c * (brickW + gap);
       const y = offsetY + r * (brickH + gap);
       cells.push({ x, y, w: brickW, h: brickH, row: r, col: c });
       idx++;
@@ -137,6 +208,10 @@ export default function OurMembersPage({
   const wallWrapRef = useRef(null);
   const canvasRef = useRef(null);
   const namePoolRef = useRef([]);
+  const cellsRef = useRef([]);
+  const lastLayoutRef = useRef({ width: 0, height: 0, topReserve: 0, bottomReserve: 0 });
+  const hoveredIndexRef = useRef(-1);
+  const noiseCanvasRef = useRef(null);
 
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -178,6 +253,8 @@ export default function OurMembersPage({
     (names, width, height, topReserve, bottomReserve) => {
       const canvas = canvasRef.current;
       if (!canvas || width <= 0 || height <= 0) return;
+      lastLayoutRef.current = { width, height, topReserve, bottomReserve };
+
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.ceil(width * dpr);
       canvas.height = Math.ceil(height * dpr);
@@ -188,50 +265,86 @@ export default function OurMembersPage({
       ctx.clearRect(0, 0, width, height);
 
       const pool = [...names];
-      const { cells, brickH } = computeBrickGrid(
+      const { cells, brickW, brickH } = computeBrickGrid(
         width,
         height,
         topReserve,
         bottomReserve,
         Math.max(1, pool.length)
       );
+      cellsRef.current = cells;
 
-      const r = Math.round(brickH * 0.22);
+      const r = Math.round(Math.min(brickW, brickH) * 0.16);
+      const bevel = Math.max(3, Math.min(7, brickH * 0.14));
 
+      // 1) Mortar backdrop panel behind the whole grid
+      if (cells.length) {
+        const minX = Math.min(...cells.map((c) => c.x));
+        const maxX = Math.max(...cells.map((c) => c.x + c.w));
+        const minY = Math.min(...cells.map((c) => c.y));
+        const maxY = Math.max(...cells.map((c) => c.y + c.h));
+        const pad = 14;
+        const panelX = Math.max(0, minX - pad);
+        const panelY = Math.max(0, minY - pad);
+        const panelW = Math.min(width, maxX + pad) - panelX;
+        const panelH = Math.min(height, maxY + pad) - panelY;
+
+        ctx.save();
+        ctx.shadowColor = BRICK_SHADOW;
+        ctx.shadowBlur = 18;
+        ctx.shadowOffsetY = 6;
+        roundRect(ctx, panelX, panelY, panelW, panelH, 18);
+        ctx.fillStyle = MORTAR;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 2) Bricks — running bond, beveled, engraved names
       cells.forEach((cell, i) => {
-        const { x, y, w, h } = cell;
         const name = pool[i];
         if (!name) return;
 
+        const { w, h } = cell;
+        let { x, y } = cell;
         const isYou =
           currentUserName &&
           name.trim().toLowerCase() === currentUserName.trim().toLowerCase();
+        const isHover = hoveredIndexRef.current === i;
+        if (isHover) y -= 4; // lift on hover
 
-        // Brick fill — terracotta gradient. The signed-in user's own brick
-        // gets a soft glowing halo behind it.
+        // Brick fill
         ctx.save();
-        if (isYou) {
+        if (isYou || isHover) {
           ctx.shadowColor = PALETTE.glow;
-          ctx.shadowBlur = 24;
+          ctx.shadowBlur = isYou ? 22 : 18;
+          ctx.shadowOffsetY = isHover ? 2 : 0;
+        } else {
+          ctx.shadowColor = BRICK_SHADOW;
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetY = 2;
         }
         roundRect(ctx, x, y, w, h, r);
-        ctx.fillStyle = brickGradient(ctx, x, y, w, h);
+        ctx.fillStyle = brickFillGradient(ctx, x, y, w, h);
         ctx.fill();
         ctx.restore();
 
-        // Border — glows for the signed-in user's brick
-        roundRect(ctx, x + 0.75, y + 0.75, w - 1.5, h - 1.5, r);
-        ctx.strokeStyle = isYou ? PALETTE.glow : "rgba(0,0,0,0.18)";
-        ctx.lineWidth = isYou ? 2.5 : 1;
-        if (isYou) {
-          ctx.shadowColor = PALETTE.glow;
-          ctx.shadowBlur = 16;
-        }
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+        // Bevel — raised-block edge lighting
+        drawBrickBevel(ctx, x, y, w, h, r, bevel);
 
-        // Name — glows for the signed-in user's brick
-        const maxTextW = w - 10;
+        // Glowing outline for the signed-in user's own brick
+        if (isYou) {
+          ctx.save();
+          roundRect(ctx, x + 1, y + 1, w - 2, h - 2, r);
+          ctx.strokeStyle = PALETTE.glow;
+          ctx.lineWidth = 2;
+          ctx.shadowColor = PALETTE.glow;
+          ctx.shadowBlur = 14;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Engraved name
+        const maxTextW = w - 12;
         const size = fitFontSize(
           ctx,
           name,
@@ -239,23 +352,92 @@ export default function OurMembersPage({
           Math.min(maxFontPx, h * 0.4),
           minFontPx
         );
-        ctx.save();
-        ctx.font = `${isYou ? "800" : "700"} ${size}px ${UI_FONT}`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = isYou ? "#EAFBFF" : "#FDF3EE";
-        if (isYou) {
-          ctx.shadowColor = PALETTE.glow;
-          ctx.shadowBlur = 10;
-        }
-        ctx.fillText(name.toUpperCase(), x + w / 2, y + h / 2 + 1);
-        ctx.restore();
+        drawEngravedText(
+          ctx,
+          name.toUpperCase(),
+          x + w / 2,
+          y + h / 2 + 1,
+          `${isYou ? "800" : "700"} ${size}px ${UI_FONT}`,
+          isYou
+        );
       });
+
+      // 3) Ambient cool-blue glow from the top corners
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const glowRadius = Math.max(width, height) * 0.55;
+      const glowTL = ctx.createRadialGradient(0, 0, 0, 0, 0, glowRadius);
+      glowTL.addColorStop(0, "rgba(0,191,255,0.20)");
+      glowTL.addColorStop(1, "rgba(0,191,255,0)");
+      ctx.fillStyle = glowTL;
+      ctx.fillRect(0, 0, width, height);
+      const glowTR = ctx.createRadialGradient(width, 0, 0, width, 0, glowRadius);
+      glowTR.addColorStop(0, "rgba(0,191,255,0.20)");
+      glowTR.addColorStop(1, "rgba(0,191,255,0)");
+      ctx.fillStyle = glowTR;
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
+
+      // 4) Slight dust/noise texture
+      const noisePattern = ctx.createPattern(getNoiseCanvas(noiseCanvasRef), "repeat");
+      if (noisePattern) {
+        ctx.save();
+        ctx.globalAlpha = 0.07;
+        ctx.fillStyle = noisePattern;
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+      }
 
       setShownCount(pool.filter(Boolean).length);
     },
     [currentUserName, maxFontPx, minFontPx]
   );
+
+  // Track hover so a brick can lift + glow under the cursor.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const redraw = () => {
+      const L = lastLayoutRef.current;
+      drawWall(namePoolRef.current, L.width, L.height, L.topReserve, L.bottomReserve);
+    };
+
+    const handleMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      let found = -1;
+      const cells = cellsRef.current;
+      for (let i = 0; i < cells.length; i++) {
+        const c = cells[i];
+        if (mx >= c.x && mx <= c.x + c.w && my >= c.y && my <= c.y + c.h) {
+          found = i;
+          break;
+        }
+      }
+      if (found !== hoveredIndexRef.current) {
+        hoveredIndexRef.current = found;
+        canvas.style.cursor = found >= 0 ? "pointer" : "default";
+        redraw();
+      }
+    };
+
+    const handleLeave = () => {
+      if (hoveredIndexRef.current !== -1) {
+        hoveredIndexRef.current = -1;
+        canvas.style.cursor = "default";
+        redraw();
+      }
+    };
+
+    canvas.addEventListener("mousemove", handleMove);
+    canvas.addEventListener("mouseleave", handleLeave);
+    return () => {
+      canvas.removeEventListener("mousemove", handleMove);
+      canvas.removeEventListener("mouseleave", handleLeave);
+    };
+  }, [drawWall]);
 
   const relayout = useCallback(() => {
     const container = containerRef.current;
@@ -410,7 +592,7 @@ export default function OurMembersPage({
               lineHeight: 1.2,
             }}
           >
-            Wall of Balance
+            Wall of Names
           </h1>
           <LeafOrnament flip={true} />
         </div>
