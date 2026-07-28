@@ -18,8 +18,8 @@ const PALETTE = {
   bgBottom: "#BEB4A2",
   navy: "#3A3128",                // heading / body text — warm charcoal stone, not blue
   navySoft: "#7A6C58",
-  card: "#EDE7DC",                // sidebar panel — same mortar light as the wall
-  cardDeep: "#BEB4A2",            // sidebar panel — mortar dark
+  card: "#FFFFFF",                // sidebar panel — bluish-white gradient, distinct from the mortar page
+  cardDeep: "#D6EFFF",            // sidebar panel — soft blue-white
   cardText: "#3A3128",
   accent: "#B8834A",              // brass/terracotta accent for dividers, "you" highlight — not blue
   accentSoft: "rgba(184,131,74,0.32)",
@@ -881,9 +881,9 @@ export default function OurMembersPage({
             width: isNarrow ? "100%" : 300,
             flexShrink: 0,
             boxSizing: "border-box",
-            padding: isNarrow ? `0 ${isTiny ? 14 : 20}px 24px` : "8px 22px 22px",
+            padding: isNarrow ? `0 ${isTiny ? 14 : 20}px 24px` : "22px 22px 22px",
             display: "flex",
-            alignItems: "flex-start",
+            alignItems: isNarrow ? "flex-start" : "center",
             justifyContent: "center",
             height: isNarrow ? "auto" : "100%",
           }}
@@ -893,6 +893,7 @@ export default function OurMembersPage({
               position: "relative",
               width: "100%",
               maxWidth: isNarrow ? 420 : "100%",
+              transform: isNarrow ? "none" : "translateY(-18%)",
               borderRadius: 20,
               padding: isTiny ? "22px 16px 18px" : "26px 22px 22px",
               background: `linear-gradient(160deg, ${PALETTE.card} 0%, ${PALETTE.cardDeep} 100%)`,
@@ -1104,5 +1105,3 @@ function LeafOrnament({ flip }) {
     </svg>
   );
 }
-
-
