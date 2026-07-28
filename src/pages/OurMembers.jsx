@@ -25,8 +25,14 @@ const PALETTE = {
 const BRICK_BASE = "#9E4B34";
 const BRICK_DARK = "#6D3324";
 const BRICK_HIGHLIGHT = "#B86445";
-const MORTAR = "#E3E3E3";
 const BRICK_SHADOW = "rgba(0,0,0,0.18)";
+
+// Mortar / grout — warm putty-grey instead of a flat neutral grey, so it
+// reads as real cementitious mortar rather than a plain UI panel.
+const MORTAR_LIGHT = "#EDE7DC";
+const MORTAR_MID = "#D8D0C2";
+const MORTAR_DARK = "#BEB4A2";
+const MORTAR_JOINT = "rgba(120,108,90,0.28)";
 
 const DISPLAY_FONT = '"Playfair Display", Georgia, "Times New Roman", serif';
 const SCRIPT_FONT = '"Dancing Script", "Brush Script MT", cursive';
@@ -95,24 +101,28 @@ function drawEngravedText(ctx, text, cx, cy, font, isYou) {
 }
 
 // A tiny cached noise tile, reused as a canvas pattern for the dust texture.
-function getNoiseCanvas(cacheRef) {
-  if (cacheRef.current) return cacheRef.current;
-  const size = 96;
+function getNoiseCanvas(cacheRef, key = "default", opts = {}) {
+  cacheRef.current = cacheRef.current || {};
+  if (cacheRef.current[key]) return cacheRef.current[key];
+  const size = opts.size || 96;
   const c = document.createElement("canvas");
   c.width = size;
   c.height = size;
   const nctx = c.getContext("2d");
   const img = nctx.createImageData(size, size);
+  const base = opts.base ?? 200;
+  const range = opts.range ?? 55;
+  const alphaMax = opts.alphaMax ?? 40;
   for (let p = 0; p < img.data.length; p += 4) {
-    const v = 200 + Math.floor(Math.random() * 55);
-    const a = Math.random() * 40;
+    const v = base + Math.floor(Math.random() * range);
+    const a = Math.random() * alphaMax;
     img.data[p] = v;
     img.data[p + 1] = v;
     img.data[p + 2] = v;
     img.data[p + 3] = a;
   }
   nctx.putImageData(img, 0, 0);
-  cacheRef.current = c;
+  cacheRef.current[key] = c;
   return c;
 }
 
@@ -120,12 +130,17 @@ function getNoiseCanvas(cacheRef) {
 // Build a brick grid sized and CENTERED for the actual number of names we
 // have — instead of always tiling the full container (which used to leave a
 // huge trailing block of empty bricks when the member count was small).
+//
+// sidePad keeps the wall from ever running flush to the canvas edge (which
+// is what made bricks look "cut off" on narrow/mobile viewports), and
+// isNarrow lets bricks shrink further than the desktop minimum so small
+// phones still fit a sensible number of columns without overflowing.
 // ---------------------------------------------------------------------------
-function computeBrickGrid(width, height, topReserve, bottomReserve, count) {
-  const availW = Math.max(50, width);
+function computeBrickGrid(width, height, topReserve, bottomReserve, count, sidePad = 0, isNarrow = false) {
+  const availW = Math.max(50, width - sidePad * 2);
   const availH = Math.max(50, height - topReserve - bottomReserve);
   const n = Math.max(1, count);
-  const gap = 10; // mortar joint width
+  const gap = isNarrow ? 7 : 10; // mortar joint width
 
   // Pick a column count that roughly matches the container's aspect ratio.
   let cols = Math.max(1, Math.round(Math.sqrt((n * availW) / availH)));
@@ -133,12 +148,25 @@ function computeBrickGrid(width, height, topReserve, bottomReserve, count) {
 
   // Brick size that fills the chosen grid, clamped to a smaller/tighter
   // range so the wall stays dense and legible as the member count grows
-  // toward ~100 names, rather than always sizing for a handful.
+  // toward ~100 names, rather than always sizing for a handful. On narrow
+  // viewports the floor drops so bricks never force horizontal overflow.
+  const minBrickW = isNarrow ? 46 : 68;
+  const maxBrickW = isNarrow ? 128 : 170;
+  const minBrickH = isNarrow ? 22 : 28;
+  const maxBrickH = isNarrow ? 40 : 52;
+
   const rawW = (availW - gap * (cols - 1)) / cols;
   const rawH = (availH - gap * (rows - 1)) / rows;
-  let brickW = Math.max(68, Math.min(170, rawW));
-  let brickH = Math.max(28, Math.min(52, brickW * 0.32, rawH));
-  brickW = Math.min(brickW, rawW);
+  let brickW = Math.max(minBrickW, Math.min(maxBrickW, rawW));
+  let brickH = Math.max(minBrickH, Math.min(maxBrickH, brickW * 0.32, rawH));
+  brickW = Math.min(brickW, rawW > 0 ? rawW : brickW);
+
+  // If the floor width still doesn't fit the available space at this column
+  // count, drop columns until it does (guards very narrow phones).
+  while (cols > 1 && (brickW * cols + gap * (cols - 1)) > availW) {
+    cols -= 1;
+    rows = Math.max(1, Math.ceil(n / cols));
+  }
 
   const gridW = cols * brickW + (cols - 1) * gap;
   const gridH = rows * brickH + (rows - 1) * gap;
@@ -197,7 +225,7 @@ export default function OurMembersPage({
   maxWords = 260,
   minWords = 40,
   sampleRatio = 0.05,
-  minFontPx = 11,
+  minFontPx = 10,
   maxFontPx = 16,
   registerHref = "/register",
   onRegister,
@@ -209,9 +237,9 @@ export default function OurMembersPage({
   const canvasRef = useRef(null);
   const namePoolRef = useRef([]);
   const cellsRef = useRef([]);
-  const lastLayoutRef = useRef({ width: 0, height: 0, topReserve: 0, bottomReserve: 0 });
+  const lastLayoutRef = useRef({ width: 0, height: 0, topReserve: 0, bottomReserve: 0, sidePad: 0, isNarrow: false });
   const hoveredIndexRef = useRef(-1);
-  const noiseCanvasRef = useRef(null);
+  const noiseCacheRef = useRef(null);
 
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -220,6 +248,7 @@ export default function OurMembersPage({
   const [nonce, setNonce] = useState(0);
   const [isShuffling, setIsShuffling] = useState(false);
   const [isNarrow, setIsNarrow] = useState(false);
+  const [isTiny, setIsTiny] = useState(false);
 
   const fetchCount = useCallback(async () => {
     const res = await fetch(`${API}/profiles-directory/count`);
@@ -247,13 +276,15 @@ export default function OurMembersPage({
   }, [onRegister, registerHref]);
 
   // -------------------------------------------------------------------------
-  // Draw the wall of bricks — exactly one brick per name, centered.
+  // Draw the wall of bricks — exactly one brick per name, centered, sitting
+  // on a genuinely textured mortar backdrop (grout joints + mottled plaster
+  // noise), not a flat grey panel.
   // -------------------------------------------------------------------------
   const drawWall = useCallback(
-    (names, width, height, topReserve, bottomReserve) => {
+    (names, width, height, topReserve, bottomReserve, sidePad, narrow) => {
       const canvas = canvasRef.current;
       if (!canvas || width <= 0 || height <= 0) return;
-      lastLayoutRef.current = { width, height, topReserve, bottomReserve };
+      lastLayoutRef.current = { width, height, topReserve, bottomReserve, sidePad, isNarrow: narrow };
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.ceil(width * dpr);
@@ -270,32 +301,106 @@ export default function OurMembersPage({
         height,
         topReserve,
         bottomReserve,
-        Math.max(1, pool.length)
+        Math.max(1, pool.length),
+        sidePad,
+        narrow
       );
       cellsRef.current = cells;
 
       const r = Math.round(Math.min(brickW, brickH) * 0.16);
       const bevel = Math.max(3, Math.min(7, brickH * 0.14));
 
-      // 1) Mortar backdrop panel behind the whole grid
+      // 1) Mortar backdrop panel behind the whole grid — mottled plaster
+      // tone, a soft radial vignette for depth, and faint grout joint lines
+      // so the gaps between bricks read as real mortar rather than a flat
+      // fill color.
       if (cells.length) {
         const minX = Math.min(...cells.map((c) => c.x));
         const maxX = Math.max(...cells.map((c) => c.x + c.w));
         const minY = Math.min(...cells.map((c) => c.y));
         const maxY = Math.max(...cells.map((c) => c.y + c.h));
-        const pad = 14;
+        const pad = narrow ? 10 : 14;
         const panelX = Math.max(0, minX - pad);
         const panelY = Math.max(0, minY - pad);
         const panelW = Math.min(width, maxX + pad) - panelX;
         const panelH = Math.min(height, maxY + pad) - panelY;
+        const panelR = narrow ? 14 : 18;
 
         ctx.save();
         ctx.shadowColor = BRICK_SHADOW;
         ctx.shadowBlur = 18;
         ctx.shadowOffsetY = 6;
-        roundRect(ctx, panelX, panelY, panelW, panelH, 18);
-        ctx.fillStyle = MORTAR;
+        roundRect(ctx, panelX, panelY, panelW, panelH, panelR);
+        ctx.fillStyle = MORTAR_MID;
         ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        roundRect(ctx, panelX, panelY, panelW, panelH, panelR);
+        ctx.clip();
+
+        // Mottled plaster gradient
+        const mottle = ctx.createLinearGradient(panelX, panelY, panelX + panelW, panelY + panelH);
+        mottle.addColorStop(0, MORTAR_LIGHT);
+        mottle.addColorStop(0.5, MORTAR_MID);
+        mottle.addColorStop(1, MORTAR_DARK);
+        ctx.fillStyle = mottle;
+        ctx.fillRect(panelX, panelY, panelW, panelH);
+
+        // Inset vignette for depth (mortar recedes behind the bricks)
+        const vign = ctx.createRadialGradient(
+          panelX + panelW / 2, panelY + panelH / 2, Math.min(panelW, panelH) * 0.15,
+          panelX + panelW / 2, panelY + panelH / 2, Math.max(panelW, panelH) * 0.7
+        );
+        vign.addColorStop(0, "rgba(0,0,0,0)");
+        vign.addColorStop(1, "rgba(90,78,60,0.18)");
+        ctx.fillStyle = vign;
+        ctx.fillRect(panelX, panelY, panelW, panelH);
+
+        // Coarse mortar grain
+        const grain = ctx.createPattern(
+          getNoiseCanvas(noiseCacheRef, "mortar", { size: 64, base: 150, range: 90, alphaMax: 55 }),
+          "repeat"
+        );
+        if (grain) {
+          ctx.globalAlpha = 0.5;
+          ctx.fillStyle = grain;
+          ctx.fillRect(panelX, panelY, panelW, panelH);
+          ctx.globalAlpha = 1;
+        }
+
+        // Faint grout joint lines running through the whole panel, matching
+        // the brick pitch, so uncovered mortar between/around bricks still
+        // reads as jointed masonry rather than a blank card.
+        ctx.strokeStyle = MORTAR_JOINT;
+        ctx.lineWidth = 1;
+        const pitchX = brickW * 0.5;
+        const pitchY = brickH + (narrow ? 7 : 10);
+        for (let gx = panelX; gx < panelX + panelW; gx += pitchX) {
+          ctx.beginPath();
+          ctx.moveTo(gx, panelY);
+          ctx.lineTo(gx, panelY + panelH);
+          ctx.globalAlpha = 0.35;
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        for (let gy = panelY; gy < panelY + panelH; gy += pitchY) {
+          ctx.beginPath();
+          ctx.moveTo(panelX, gy);
+          ctx.lineTo(panelX + panelW, gy);
+          ctx.globalAlpha = 0.3;
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+
+        // Inner top-edge highlight / bottom-edge shade for a slight recess
+        ctx.strokeStyle = "rgba(255,255,255,0.5)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(panelX + panelR, panelY + 1);
+        ctx.lineTo(panelX + panelW - panelR, panelY + 1);
+        ctx.stroke();
+
         ctx.restore();
       }
 
@@ -378,8 +483,11 @@ export default function OurMembersPage({
       ctx.fillRect(0, 0, width, height);
       ctx.restore();
 
-      // 4) Slight dust/noise texture
-      const noisePattern = ctx.createPattern(getNoiseCanvas(noiseCanvasRef), "repeat");
+      // 4) Slight dust/noise texture over the whole scene
+      const noisePattern = ctx.createPattern(
+        getNoiseCanvas(noiseCacheRef, "dust", { size: 96, base: 200, range: 55, alphaMax: 40 }),
+        "repeat"
+      );
       if (noisePattern) {
         ctx.save();
         ctx.globalAlpha = 0.07;
@@ -400,7 +508,7 @@ export default function OurMembersPage({
 
     const redraw = () => {
       const L = lastLayoutRef.current;
-      drawWall(namePoolRef.current, L.width, L.height, L.topReserve, L.bottomReserve);
+      drawWall(namePoolRef.current, L.width, L.height, L.topReserve, L.bottomReserve, L.sidePad, L.isNarrow);
     };
 
     const handleMove = (e) => {
@@ -445,12 +553,15 @@ export default function OurMembersPage({
     if (!container || !wrap) return;
     const totalW = container.clientWidth;
     const narrow = totalW < 860;
+    const tiny = totalW < 420;
     setIsNarrow(narrow);
+    setIsTiny(tiny);
 
     const w = wrap.clientWidth;
     const h = wrap.clientHeight;
-    const topReserve = narrow ? Math.max(20, Math.min(48, h * 0.12)) : 24;
-    drawWall(namePoolRef.current, w, h, topReserve, BOTTOM_RESERVE);
+    const topReserve = narrow ? Math.max(16, Math.min(40, h * 0.1)) : 24;
+    const sidePad = tiny ? 10 : narrow ? 16 : 24;
+    drawWall(namePoolRef.current, w, h, topReserve, BOTTOM_RESERVE, sidePad, narrow);
   }, [drawWall]);
 
   const load = useCallback(
@@ -499,18 +610,27 @@ export default function OurMembersPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nonce]);
 
+  // Re-layout on container resize AND on window resize/orientation change —
+  // some mobile browsers don't reliably fire ResizeObserver on rotation or
+  // on address-bar collapse, which previously left the wall laid out for a
+  // stale width until the next interaction.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     let timeout;
-    const observer = new ResizeObserver(() => {
+    const scheduleRelayout = () => {
       clearTimeout(timeout);
-      timeout = setTimeout(relayout, 200);
-    });
+      timeout = setTimeout(relayout, 150);
+    };
+    const observer = new ResizeObserver(scheduleRelayout);
     observer.observe(container);
+    window.addEventListener("resize", scheduleRelayout);
+    window.addEventListener("orientationchange", scheduleRelayout);
     return () => {
       clearTimeout(timeout);
       observer.disconnect();
+      window.removeEventListener("resize", scheduleRelayout);
+      window.removeEventListener("orientationchange", scheduleRelayout);
     };
   }, [relayout]);
 
@@ -538,6 +658,7 @@ export default function OurMembersPage({
       style={{
         position: "relative",
         width: "100%",
+        maxWidth: "100vw",
         boxSizing: "border-box",
         marginTop: headerOffset,
         height: `calc(100vh - ${headerOffset}px)`,
@@ -562,14 +683,18 @@ export default function OurMembersPage({
         }
         .wow-canvas-wrap { transition: opacity 0.16s ease; }
         .wow-glow { animation: wow-glow-pulse 2.4s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .wow-glow { animation: none; }
+        }
       `}</style>
 
       {/* Header — spans the full width so it's centered on the whole page, not just the left column */}
       <div
         style={{
           textAlign: "center",
-          padding: "64px 24px 10px",
+          padding: isTiny ? "28px 14px 8px" : isNarrow ? "40px 18px 8px" : "64px 24px 10px",
           flexShrink: 0,
+          boxSizing: "border-box",
         }}
       >
         <div
@@ -577,29 +702,29 @@ export default function OurMembersPage({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: 18,
+            gap: isTiny ? 8 : 18,
           }}
         >
-          <LeafOrnament flip={false} />
+          {!isTiny && <LeafOrnament flip={false} />}
           <h1
             style={{
               fontFamily: DISPLAY_FONT,
               fontWeight: 800,
-              fontSize: "clamp(28px, 4vw, 44px)",
+              fontSize: "clamp(22px, 6vw, 44px)",
               letterSpacing: "0.03em",
               color: PALETTE.navy,
               margin: 0,
               lineHeight: 1.2,
             }}
           >
-            Wall of Names
+            Wall of Balance
           </h1>
-          <LeafOrnament flip={true} />
+          {!isTiny && <LeafOrnament flip={true} />}
         </div>
         <p
           style={{
             marginTop: 6,
-            fontSize: 13,
+            fontSize: isTiny ? 11 : 13,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
             color: PALETTE.navySoft,
@@ -621,16 +746,18 @@ export default function OurMembersPage({
           <Heart size={13} color={PALETTE.glow} fill={PALETTE.glow} />
           <span style={{ flex: 1, height: 1, background: "rgba(18,58,99,0.18)" }} />
         </div>
-        <p
-          style={{
-            fontStyle: "italic",
-            color: PALETTE.navySoft,
-            fontSize: 14,
-            marginTop: 8,
-          }}
-        >
-          Every name here is a part of our journey and our purpose.
-        </p>
+        {!isTiny && (
+          <p
+            style={{
+              fontStyle: "italic",
+              color: PALETTE.navySoft,
+              fontSize: 14,
+              marginTop: 8,
+            }}
+          >
+            Every name here is a part of our journey and our purpose.
+          </p>
+        )}
         <div
           style={{
             display: "flex",
@@ -666,6 +793,7 @@ export default function OurMembersPage({
           flexDirection: isNarrow ? "column" : "row",
           flex: 1,
           minHeight: 0,
+          minWidth: 0,
           boxSizing: "border-box",
         }}
       >
@@ -688,12 +816,13 @@ export default function OurMembersPage({
               position: "relative",
               width: "100%",
               flex: isNarrow ? "none" : 1,
-              height: isNarrow ? "55vh" : "auto",
-              minHeight: 280,
+              height: isNarrow ? (isTiny ? "48vh" : "55vh") : "auto",
+              minHeight: 240,
               opacity: isShuffling ? 0.35 : 1,
+              boxSizing: "border-box",
             }}
           >
-            <canvas ref={canvasRef} style={{ display: "block" }} />
+            <canvas ref={canvasRef} style={{ display: "block", maxWidth: "100%" }} />
           </div>
 
           {status === "error" && (
@@ -723,7 +852,7 @@ export default function OurMembersPage({
             width: isNarrow ? "100%" : 300,
             flexShrink: 0,
             boxSizing: "border-box",
-            padding: isNarrow ? "0 20px 28px" : "28px 22px",
+            padding: isNarrow ? `0 ${isTiny ? 14 : 20}px 24px` : "28px 22px",
             display: "flex",
             alignItems: isNarrow ? "flex-start" : "center",
             justifyContent: "center",
@@ -734,12 +863,14 @@ export default function OurMembersPage({
             style={{
               position: "relative",
               width: "100%",
+              maxWidth: isNarrow ? 420 : "100%",
               borderRadius: 20,
-              padding: "26px 22px 22px",
+              padding: isTiny ? "22px 16px 18px" : "26px 22px 22px",
               background: `linear-gradient(160deg, ${PALETTE.card} 0%, ${PALETTE.cardDeep} 100%)`,
               boxShadow: `0 0 0 1px rgba(255,255,255,0.15) inset, 0 14px 34px rgba(14,79,158,0.35)`,
               color: PALETTE.white,
               textAlign: "center",
+              boxSizing: "border-box",
             }}
           >
             {/* Shuffle — floats on top of the blue card */}
@@ -838,6 +969,7 @@ export default function OurMembersPage({
                     fontSize: 17,
                     letterSpacing: "0.05em",
                     textTransform: "uppercase",
+                    overflowWrap: "anywhere",
                   }}
                 >
                   {currentUserName || "Sign in"}
@@ -946,5 +1078,3 @@ function LeafOrnament({ flip }) {
     </svg>
   );
 }
-
-
