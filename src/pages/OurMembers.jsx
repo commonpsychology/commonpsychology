@@ -7,17 +7,19 @@ import { Shuffle, Users, Loader2, UserPlus, Shield, Heart, Star } from "lucide-r
 const API = import.meta.env.VITE_API_URL;
 
 // ---------------------------------------------------------------------------
-// Palette — bluish-white glow, accent locked to the requested #00BFFF.
+// Palette — mortar/plaster tones throughout the page, bluish gradient
+// reserved for the Shuffle / Become Member / Sign-in buttons.
 // ---------------------------------------------------------------------------
 const PALETTE = {
-  glow: "#00BFFF",               // reserved ONLY for the Shuffle / Become Member / Sign-in buttons
+  glow: "#00BFFF",               // bluish accent for Shuffle / Become Member / Sign-in
+  glowDeep: "#0077FF",
   glowSoft: "rgba(0,191,255,0.35)",
-  bgTop: "#F4EDDD",              // page gradient — warm plaster, matches the wall's mortar
-  bgBottom: "#E2D4B8",
+  bgTop: "#EDE7DC",              // page gradient — same mortar tone as the wall
+  bgBottom: "#BEB4A2",
   navy: "#3A3128",                // heading / body text — warm charcoal stone, not blue
   navySoft: "#7A6C58",
-  card: "#EFE6D4",                // sidebar panel — light plaster (was blue)
-  cardDeep: "#CBB78F",            // sidebar panel — deeper plaster/tan
+  card: "#EDE7DC",                // sidebar panel — same mortar light as the wall
+  cardDeep: "#BEB4A2",            // sidebar panel — mortar dark
   cardText: "#3A3128",
   accent: "#B8834A",              // brass/terracotta accent for dividers, "you" highlight — not blue
   accentSoft: "rgba(184,131,74,0.32)",
@@ -672,9 +674,9 @@ export default function OurMembersPage({
         fontFamily: UI_FONT,
         color: PALETTE.navy,
         background: `
-          radial-gradient(ellipse 60% 40% at 15% 0%, rgba(255,255,255,0.55), transparent 60%),
-          radial-gradient(ellipse 55% 45% at 90% 15%, rgba(255,255,255,0.35), transparent 55%),
-          radial-gradient(ellipse 70% 50% at 50% 100%, rgba(120,102,74,0.12), transparent 60%),
+          radial-gradient(ellipse 60% 40% at 15% 0%, rgba(255,255,255,0.4), transparent 60%),
+          radial-gradient(ellipse 55% 45% at 90% 15%, rgba(255,255,255,0.25), transparent 55%),
+          radial-gradient(ellipse 70% 50% at 50% 100%, rgba(120,108,90,0.15), transparent 60%),
           linear-gradient(180deg, ${PALETTE.bgTop} 0%, ${PALETTE.bgBottom} 100%)
         `,
       }}
@@ -810,48 +812,6 @@ export default function OurMembersPage({
         </div>
       </div>
 
-      {/* Shuffle — its own standalone pill between the header and the wall,
-          instead of floating attached to the member card's top edge. */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          padding: isTiny ? "16px 12px 0" : "20px 16px 0",
-          flexShrink: 0,
-        }}
-      >
-        <button
-          onClick={handleShuffle}
-          disabled={status === "loading"}
-          title="Shuffle the wall of names"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 7,
-            background: PALETTE.glow,
-            border: `2px solid ${PALETTE.white}`,
-            borderRadius: 999,
-            color: PALETTE.white,
-            fontWeight: 700,
-            fontSize: 12.5,
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
-            padding: "10px 20px",
-            cursor: status === "loading" ? "default" : "pointer",
-            opacity: status === "loading" ? 0.7 : 1,
-            boxShadow: `0 6px 16px rgba(0,191,255,0.45)`,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {status === "loading" ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : (
-            <Shuffle size={15} />
-          )}
-          Shuffle
-        </button>
-      </div>
-
       <div
         style={{
           display: "flex",
@@ -921,9 +881,9 @@ export default function OurMembersPage({
             width: isNarrow ? "100%" : 300,
             flexShrink: 0,
             boxSizing: "border-box",
-            padding: isNarrow ? `0 ${isTiny ? 14 : 20}px 24px` : "28px 22px",
+            padding: isNarrow ? `0 ${isTiny ? 14 : 20}px 24px` : "8px 22px 22px",
             display: "flex",
-            alignItems: isNarrow ? "flex-start" : "center",
+            alignItems: "flex-start",
             justifyContent: "center",
             height: isNarrow ? "auto" : "100%",
           }}
@@ -942,6 +902,40 @@ export default function OurMembersPage({
               boxSizing: "border-box",
             }}
           >
+            <button
+              onClick={handleShuffle}
+              disabled={status === "loading"}
+              title="Shuffle the wall of names"
+              className="wow-glow"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 7,
+                margin: "0 auto 18px",
+                background: `linear-gradient(135deg, ${PALETTE.glow} 0%, ${PALETTE.glowDeep} 100%)`,
+                border: `2px solid ${PALETTE.white}`,
+                borderRadius: 999,
+                color: PALETTE.white,
+                fontWeight: 700,
+                fontSize: 12.5,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                padding: "10px 20px",
+                cursor: status === "loading" ? "default" : "pointer",
+                opacity: status === "loading" ? 0.7 : 1,
+                boxShadow: `0 6px 16px rgba(0,191,255,0.45)`,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {status === "loading" ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : (
+                <Shuffle size={15} />
+              )}
+              Shuffle
+            </button>
+
             <div
               style={{
                 fontFamily: SCRIPT_FONT,
@@ -1055,8 +1049,8 @@ export default function OurMembersPage({
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
-                background: "rgba(0,191,255,0.22)",
-                border: `1.5px solid ${PALETTE.glow}`,
+                background: `linear-gradient(135deg, ${PALETTE.glow} 0%, ${PALETTE.glowDeep} 100%)`,
+                border: `1.5px solid ${PALETTE.white}`,
                 borderRadius: 10,
                 color: PALETTE.white,
                 fontWeight: 800,
