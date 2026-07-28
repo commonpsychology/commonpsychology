@@ -1110,4 +1110,3 @@ function LeafOrnament({ flip }) {
     </svg>
   );
 }
-
