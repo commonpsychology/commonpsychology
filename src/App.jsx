@@ -74,7 +74,9 @@ import EsewaFailurePage from './pages/EsewaFailurePage'
 import DeliveryDashboardPage from './pages/DeliveryDashboardPage'
 import DeliveryLoginPage from './pages/DeliveryLoginPage'  
 
-const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL}/api`
+// Set VITE_API_URL to your bare backend origin, e.g. https://api.yourapp.com
+// (no trailing /api — it's added below).
+const API_BASE = `${import.meta.env.VITE_API_URL}/api`
 
 async function checkUnreadNotifications() {
   console.log('[notif] checkUnreadNotifications fired')
@@ -194,6 +196,8 @@ function resolveDynamicRoute(path) {
 }
 
 function BackButtonHandler() {
+  const { goBack } = useRouter()
+
   useEffect(() => {
     console.log('[capacitor] window.Capacitor exists?', !!window.Capacitor)
     if (!window.Capacitor) return
@@ -204,16 +208,16 @@ function BackButtonHandler() {
     import('@capacitor/app').then(async ({ App }) => {
       console.log('[capacitor] @capacitor/app loaded, registering backButton listener')
 
-      backListener = await App.addListener('backButton', ({ canGoBack }) => {
+      backListener = await App.addListener('backButton', () => {
         console.log('[capacitor] backButton fired, canGoBack:', canGoBack, 'pathname:', window.location.pathname)
 
         const atHome = window.location.pathname === '/' || window.location.pathname === ''
 
         if (!atHome) {
-          // Not on the home screen — always just go back a step, regardless
-          // of what canGoBack reports (it can be stale/false right after a
-          // programmatic pushState on some Android WebView versions).
-          window.history.back()
+          // Use our own tracked stack instead of raw window.history.back(),
+          // which silently no-ops if there's no real history entry behind
+          // the current one (e.g. deep-linked or opened via a notification).
+          goBack()
           return
         }
 

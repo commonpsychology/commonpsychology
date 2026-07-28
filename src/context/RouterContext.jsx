@@ -49,17 +49,31 @@ export function RouterProvider({ children }) {
   const [currentPath, setCurrentPath] = useState(
     () => window.location.pathname || '/'
   )
-  // Initialise params from the URL immediately (handles hard-refresh)
   const [params, setParams] = useState(
     () => extractParams(window.location.pathname || '/')
   )
 
-  // Listen to browser back/forward
+  // Our own in-app navigation stack, since window.history's length/state
+  // isn't reliably readable and popstate doesn't tell us if there's more
+  // history behind the current entry.
+  const [stack, setStack] = useState(() => [window.location.pathname || '/'])
+
   useEffect(() => {
     function onPopState() {
       const path = window.location.pathname || '/'
       setCurrentPath(path)
       setParams(extractParams(path))
+      // Keep our stack roughly in sync when the browser itself navigates
+      // (e.g. swipe-back gesture, or hardware back going through real history)
+      setStack(s => {
+        if (s.length > 1 && s[s.length - 2] === path) {
+          return s.slice(0, -1) // went back one
+        }
+        if (s[s.length - 1] === path) {
+          return s // no change
+        }
+        return [...s, path] // treat as a forward navigation we didn't track
+      })
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
@@ -69,8 +83,8 @@ export function RouterProvider({ children }) {
     if (path === currentPath) return
     window.history.pushState({ path }, '', path)
     setCurrentPath(path)
-    // Merge URL-parsed params with any extra params passed programmatically
     setParams({ ...extractParams(path), ...extraParams })
+    setStack(s => [...s, path])
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [currentPath])
 
@@ -78,10 +92,31 @@ export function RouterProvider({ children }) {
     window.history.replaceState({ path }, '', path)
     setCurrentPath(path)
     setParams({ ...extractParams(path), ...extraParams })
+    setStack(s => (s.length ? [...s.slice(0, -1), path] : [path]))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
-  const goBack    = useCallback(() => window.history.back(),    [])
+  // Reliable back: if we have somewhere in-app to go, use it;
+  // otherwise fall back to home instead of silently doing nothing.
+  const goBack = useCallback(() => {
+    setStack(s => {
+      if (s.length <= 1) {
+        if (window.location.pathname !== '/') {
+          window.history.pushState({ path: '/' }, '', '/')
+          setCurrentPath('/')
+          setParams({})
+        }
+        return ['/']
+      }
+      const next = s.slice(0, -1)
+      const target = next[next.length - 1]
+      window.history.pushState({ path: target }, '', target)
+      setCurrentPath(target)
+      setParams(extractParams(target))
+      return next
+    })
+  }, [])
+
   const goForward = useCallback(() => window.history.forward(), [])
 
   return (
