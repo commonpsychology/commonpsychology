@@ -410,7 +410,7 @@ export default function OurMembersPage({
               lineHeight: 1.2,
             }}
           >
-            Wall of Names
+            Wall of Balance
           </h1>
           <LeafOrnament flip={true} />
         </div>
