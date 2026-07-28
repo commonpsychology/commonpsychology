@@ -21,27 +21,30 @@ const PALETTE = {
   white: "#FFFFFF",
 };
 
-const BRICK_TONES = ["#F6EFE2", "#ECEAF7", "#E3F4FC", "#F8E9EE", "#EDF6EC"];
+// Brick color — terracotta linear gradient, 135° (top-left -> bottom-right)
+const BRICK_GRADIENT_STOPS = [
+  { stop: 0.0, color: "#A54A3A" },
+  { stop: 0.2, color: "#B85C4B" },
+  { stop: 0.5, color: "#C96D5A" },
+  { stop: 0.8, color: "#9E473A" },
+  { stop: 1.0, color: "#7D342C" },
+];
 
 const DISPLAY_FONT = '"Playfair Display", Georgia, "Times New Roman", serif';
 const SCRIPT_FONT = '"Dancing Script", "Brush Script MT", cursive';
 const UI_FONT =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif';
 
-// Reserved space (px) below the wall canvas for the floating action bar.
-const BOTTOM_RESERVE = 88;
+// Small breathing room below the wall canvas now that the floating action
+// bar has been removed.
+const BOTTOM_RESERVE = 24;
 
-// ---------------------------------------------------------------------------
-// Seeded PRNG so brick texture stays stable between non-shuffle redraws.
-// ---------------------------------------------------------------------------
-function mulberry32(seed) {
-  return function () {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+function brickGradient(ctx, x, y, w, h) {
+  // 135deg in CSS points from top-left toward bottom-right, so a diagonal
+  // canvas gradient across the brick's own box reproduces it.
+  const grad = ctx.createLinearGradient(x, y, x + w, y + h);
+  BRICK_GRADIENT_STOPS.forEach(({ stop, color }) => grad.addColorStop(stop, color));
+  return grad;
 }
 
 // ---------------------------------------------------------------------------
@@ -53,18 +56,19 @@ function computeBrickGrid(width, height, topReserve, bottomReserve, count) {
   const availW = Math.max(50, width);
   const availH = Math.max(50, height - topReserve - bottomReserve);
   const n = Math.max(1, count);
-  const gap = 10;
+  const gap = 6;
 
   // Pick a column count that roughly matches the container's aspect ratio.
   let cols = Math.max(1, Math.round(Math.sqrt((n * availW) / availH)));
   let rows = Math.max(1, Math.ceil(n / cols));
 
-  // Brick size that fills the chosen grid, clamped to a pleasant range so a
-  // handful of names read as "up close" instead of tiny and scattered.
+  // Brick size that fills the chosen grid, clamped to a smaller/tighter
+  // range so the wall stays dense and legible as the member count grows
+  // toward ~100 names, rather than always sizing for a handful.
   const rawW = (availW - gap * (cols - 1)) / cols;
   const rawH = (availH - gap * (rows - 1)) / rows;
-  let brickW = Math.max(90, Math.min(230, rawW));
-  let brickH = Math.max(34, Math.min(84, brickW * 0.34, rawH));
+  let brickW = Math.max(68, Math.min(170, rawW));
+  let brickH = Math.max(28, Math.min(52, brickW * 0.32, rawH));
   brickW = Math.min(brickW, rawW);
 
   const gridW = cols * brickW + (cols - 1) * gap;
@@ -199,23 +203,18 @@ export default function OurMembersPage({
         const name = pool[i];
         if (!name) return;
 
-        const rand = mulberry32(cell.row * 9973 + cell.col * 613 + 17);
-        const tone = BRICK_TONES[Math.floor(rand() * BRICK_TONES.length)];
         const isYou =
           currentUserName &&
           name.trim().toLowerCase() === currentUserName.trim().toLowerCase();
 
-        // Brick fill
+        // Brick fill — terracotta gradient
         roundRect(ctx, x, y, w, h, r);
-        const grad = ctx.createLinearGradient(x, y, x, y + h);
-        grad.addColorStop(0, "#FFFFFF");
-        grad.addColorStop(1, tone);
-        ctx.fillStyle = grad;
+        ctx.fillStyle = brickGradient(ctx, x, y, w, h);
         ctx.fill();
 
         // Subtle border
         roundRect(ctx, x + 0.75, y + 0.75, w - 1.5, h - 1.5, r);
-        ctx.strokeStyle = isYou ? PALETTE.glow : "rgba(18,58,99,0.10)";
+        ctx.strokeStyle = isYou ? PALETTE.glow : "rgba(0,0,0,0.18)";
         ctx.lineWidth = isYou ? 2 : 1;
         if (isYou) {
           ctx.shadowColor = PALETTE.glowSoft;
@@ -225,7 +224,7 @@ export default function OurMembersPage({
         ctx.shadowBlur = 0;
 
         // Name
-        const maxTextW = w - 14;
+        const maxTextW = w - 10;
         const size = fitFontSize(
           ctx,
           name,
@@ -236,7 +235,7 @@ export default function OurMembersPage({
         ctx.font = `${isYou ? "800" : "700"} ${size}px ${UI_FONT}`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = isYou ? PALETTE.card : PALETTE.navy;
+        ctx.fillStyle = isYou ? PALETTE.glow : "#FDF3EE";
         ctx.fillText(name.toUpperCase(), x + w / 2, y + h / 2 + 1);
       });
 
@@ -396,7 +395,7 @@ export default function OurMembersPage({
             ref={headerRef}
             style={{
               textAlign: "center",
-              padding: "28px 24px 10px",
+              padding: "64px 24px 10px",
               flexShrink: 0,
             }}
           >
@@ -503,53 +502,6 @@ export default function OurMembersPage({
             <canvas ref={canvasRef} style={{ display: "block" }} />
           </div>
 
-          {/* Bottom action bar — sits inside the reserved gap at canvas bottom */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "0 24px 28px",
-              marginTop: isNarrow ? 12 : -BOTTOM_RESERVE,
-              position: "relative",
-              zIndex: 5,
-              flexShrink: 0,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "stretch",
-                background: "rgba(255,255,255,0.85)",
-                border: `1px solid ${PALETTE.glowSoft}`,
-                boxShadow: "0 8px 28px rgba(18,58,99,0.14)",
-                borderRadius: 16,
-                overflow: "hidden",
-                backdropFilter: "blur(6px)",
-              }}
-            >
-              <ActionCell
-                icon={
-                  status === "loading" ? (
-                    <Loader2 size={17} className="animate-spin" />
-                  ) : (
-                    <Shuffle size={17} />
-                  )
-                }
-                title="Shuffle Names"
-                subtitle="Celebrate everyone equally. Click to shuffle the wall."
-                onClick={handleShuffle}
-                disabled={status === "loading"}
-              />
-              <div style={{ width: 1, background: "rgba(18,58,99,0.12)" }} />
-              <ActionCell
-                icon={<UserPlus size={17} />}
-                title="Be a Member"
-                subtitle="Join our family and add your name to the wall."
-                onClick={handleRegisterClick}
-              />
-            </div>
-          </div>
-
           {status === "error" && (
             <div
               style={{
@@ -586,6 +538,7 @@ export default function OurMembersPage({
         >
           <div
             style={{
+              position: "relative",
               width: "100%",
               borderRadius: 20,
               padding: "26px 22px 22px",
@@ -595,11 +548,48 @@ export default function OurMembersPage({
               textAlign: "center",
             }}
           >
+            {/* Shuffle — floats on top of the blue card */}
+            <button
+              onClick={handleShuffle}
+              disabled={status === "loading"}
+              title="Shuffle the wall of names"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                background: PALETTE.glow,
+                border: `2px solid ${PALETTE.white}`,
+                borderRadius: 999,
+                color: PALETTE.white,
+                fontWeight: 700,
+                fontSize: 12.5,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                padding: "9px 16px",
+                cursor: status === "loading" ? "default" : "pointer",
+                opacity: status === "loading" ? 0.7 : 1,
+                boxShadow: `0 6px 16px rgba(0,191,255,0.45)`,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {status === "loading" ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : (
+                <Shuffle size={15} />
+              )}
+              Shuffle
+            </button>
+
             <div
               style={{
                 fontFamily: SCRIPT_FONT,
                 fontSize: 30,
                 lineHeight: 1,
+                marginTop: 8,
               }}
             >
               Thank you
@@ -732,51 +722,6 @@ export default function OurMembersPage({
 // ---------------------------------------------------------------------------
 // small presentational pieces
 // ---------------------------------------------------------------------------
-function ActionCell({ icon, title, subtitle, onClick, disabled }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "14px 20px",
-        background: "transparent",
-        border: "none",
-        cursor: disabled ? "default" : "pointer",
-        opacity: disabled ? 0.6 : 1,
-        textAlign: "left",
-      }}
-    >
-      <span
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: "50%",
-          background: PALETTE.glow,
-          color: PALETTE.white,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          boxShadow: `0 0 10px ${PALETTE.glowSoft}`,
-        }}
-      >
-        {icon}
-      </span>
-      <span>
-        <div style={{ fontWeight: 700, fontSize: 13.5, color: PALETTE.navy }}>
-          {title}
-        </div>
-        <div style={{ fontSize: 11.5, color: PALETTE.navySoft, maxWidth: 210 }}>
-          {subtitle}
-        </div>
-      </span>
-    </button>
-  );
-}
-
 function LeafOrnament({ flip }) {
   return (
     <svg
