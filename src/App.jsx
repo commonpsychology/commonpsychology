@@ -209,9 +209,9 @@ function BackButtonHandler() {
       console.log('[capacitor] @capacitor/app loaded, registering backButton listener')
 
       backListener = await App.addListener('backButton', () => {
-        console.log('[capacitor] backButton fired, canGoBack:', canGoBack, 'pathname:', window.location.pathname)
+  console.log('[capacitor] backButton fired, pathname:', window.location.pathname)
 
-        const atHome = window.location.pathname === '/' || window.location.pathname === ''
+  const atHome = window.location.pathname === '/' || window.location.pathname === ''
 
         if (!atHome) {
           // Use our own tracked stack instead of raw window.history.back(),
