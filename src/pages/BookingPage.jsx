@@ -273,6 +273,9 @@ export default function BookingPage() {
 
   const [step,         setStep]         = useState(params?.therapist ? 2 : 1)
   const [selected,     setSelected]     = useState({ therapist: params?.therapist || null, type:'online', date:'', time:'', notes:'' })
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [step])
   const [bookedSlots,  setBookedSlots]  = useState([])
   const [userSlots,    setUserSlots]    = useState([])
   const [loadingSlots, setLoadingSlots] = useState(false)
