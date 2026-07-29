@@ -199,7 +199,6 @@ function resolveDynamicRoute(path) {
 
 let backButtonListenersRegistered = false
 
-let backButtonListenersRegistered = false
 
 function BackButtonHandler() {
   const { goBack } = useRouter()
