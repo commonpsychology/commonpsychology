@@ -85,11 +85,13 @@ async function checkUnreadNotifications() {
     console.log('[notif] no token, skipping')
     return
   }
+  console.log('[notif] token found, fetching:', `${API_BASE}/notifications?unread=true`)
 
   try {
     const res = await fetch(`${API_BASE}/notifications?unread=true`, {
       headers: { Authorization: `Bearer ${token}` },
     })
+    console.log('[notif] fetch responded, status:', res.status)
     if (!res.ok) return
     const data = await res.json()
 
@@ -195,12 +197,19 @@ function resolveDynamicRoute(path) {
   return null
 }
 
+let backButtonListenersRegistered = false
+
 function BackButtonHandler() {
   const { goBack } = useRouter()
 
   useEffect(() => {
     console.log('[capacitor] window.Capacitor exists?', !!window.Capacitor)
     if (!window.Capacitor) return
+    if (backButtonListenersRegistered) {
+      console.log('[capacitor] listeners already registered, skipping duplicate setup')
+      return
+    }
+    backButtonListenersRegistered = true
 
     let backListener, stateListener
     let lastBackPressTime = 0
@@ -245,6 +254,7 @@ function BackButtonHandler() {
     return () => {
       backListener?.remove()
       stateListener?.remove()
+      backButtonListenersRegistered = false
     }
   }, [])
   return null
