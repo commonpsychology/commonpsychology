@@ -76,7 +76,7 @@ import DeliveryLoginPage from './pages/DeliveryLoginPage'
 
 // Set VITE_API_URL to your bare backend origin, e.g. https://api.yourapp.com
 // (no trailing /api — it's added below).
-const API_BASE = `${import.meta.env.VITE_API_URL}/api`
+const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
 async function checkUnreadNotifications() {
   console.log('[notif] checkUnreadNotifications fired')
@@ -199,6 +199,8 @@ function resolveDynamicRoute(path) {
 
 let backButtonListenersRegistered = false
 
+let backButtonListenersRegistered = false
+
 function BackButtonHandler() {
   const { goBack } = useRouter()
 
@@ -251,7 +253,7 @@ function BackButtonHandler() {
       checkUnreadNotifications()
     }).catch(err => console.error('[capacitor] failed to load @capacitor/app', err))
 
-    return () => {
+   return () => {
       backListener?.remove()
       stateListener?.remove()
       backButtonListenersRegistered = false
@@ -259,7 +261,6 @@ function BackButtonHandler() {
   }, [])
   return null
 }
-
 
 
 function AppRoutes() {
