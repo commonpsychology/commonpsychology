@@ -211,7 +211,8 @@ function BackButtonHandler() {
       console.log('[capacitor] listeners already registered, skipping duplicate setup')
       return
     }
-    backButtonListenersRegistered = true
+    backButtonListenersRegistered = true // set synchronously BEFORE the async import,
+    // and never reset this back to false — see cleanup below
 
     let backListener, stateListener
     let lastBackPressTime = 0
@@ -264,7 +265,12 @@ function BackButtonHandler() {
    return () => {
       backListener?.remove()
       stateListener?.remove()
-      backButtonListenersRegistered = false
+      // Do NOT reset backButtonListenersRegistered here. Resetting it lets a
+      // second effect run (e.g. a fast unmount/remount at startup) register a
+      // second, permanent native listener before this cleanup's async plugin
+      // import even resolves — which is what was causing every back-press to
+      // fire goBack() twice. The registration guard must live for the whole
+      // app session, not just this component instance.
     }
   }, [])
   return null
