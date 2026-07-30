@@ -219,7 +219,15 @@ function BackButtonHandler() {
     import('@capacitor/app').then(async ({ App }) => {
       console.log('[capacitor] @capacitor/app loaded, registering backButton listener')
 
+      let lastBackFireTime = 0
       backListener = await App.addListener('backButton', () => {
+  const now = Date.now()
+  if (now - lastBackFireTime < 400) {
+    console.log('[capacitor] backButton fired again within 400ms — ignoring duplicate event')
+    return
+  }
+  lastBackFireTime = now
+
   console.log('[capacitor] backButton fired, pathname:', window.location.pathname)
 
   const atHome = window.location.pathname === '/' || window.location.pathname === ''
