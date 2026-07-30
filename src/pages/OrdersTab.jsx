@@ -213,7 +213,7 @@ function AppointmentCard({ appt }) {
 }
 
 // ── Course enrollment card ────────────────────────────────────────────────────
-function EnrollmentCard({ enrollment }) {
+function EnrollmentCard({ enrollment, navigate }) {
   const course = enrollment.courses || {}
   const pct    = Math.round(enrollment.progress || 0)
 
@@ -244,10 +244,10 @@ function EnrollmentCard({ enrollment }) {
           </div>
         </div>
         <div>
-          <a href={`/courses/${course.slug}`}
-            style={{ display:'inline-block', padding:'0.4rem 0.9rem', borderRadius:8, background:SKY, color:'white', fontWeight:700, fontSize:'0.8rem', textDecoration:'none' }}>
+          <button onClick={() => navigate(`/courses/${course.slug}`)}
+            style={{ display:'inline-block', padding:'0.4rem 0.9rem', borderRadius:8, background:SKY, color:'white', fontWeight:700, fontSize:'0.8rem', textDecoration:'none', border:'none', cursor:'pointer' }}>
             ▶ Continue
-          </a>
+          </button>
         </div>
       </div>
     </Card>
@@ -404,7 +404,7 @@ export default function OrdersTab() {
         <Section icon="🎓" title="Course Enrollments" count={data?.enrollments?.length}>
           {!data?.enrollments?.length
             ? <EmptyState icon="📚" text="No courses enrolled yet." />
-            : data.enrollments.map(e => <EnrollmentCard key={e.id} enrollment={e}/>)
+            : data.enrollments.map(e => <EnrollmentCard key={e.id} enrollment={e} navigate={navigate}/>)
           }
           {!data?.enrollments?.length && (
             <button onClick={() => navigate('/courses')} style={{ width:'100%', padding:'0.75rem', borderRadius:10, border:`1.5px solid ${BORDER}`, background:BG, color:SKY, fontWeight:700, fontSize:'0.88rem', cursor:'pointer', marginTop:'0.5rem' }}>

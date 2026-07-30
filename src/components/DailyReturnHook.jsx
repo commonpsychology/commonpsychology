@@ -1,6 +1,7 @@
 // src/components/DailyReturnHook.jsx
 // Shown after poll closes — designed to pull users back daily
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from '../context/RouterContext'
 
 // ── Daily affirmations rotate every visit ────────────────────
 const AFFIRMATIONS = [
@@ -88,6 +89,7 @@ const MOOD_MESSAGES = [
 ]
 
 export default function DailyReturnHook({ visible = true }) {
+  const { navigate } = useRouter()
   const { streak, checked, checkIn } = useStreak()
   const [selectedMood, setSelectedMood]     = useState(null)
   const [completedHabit, setCompletedHabit] = useState(null)
@@ -804,7 +806,7 @@ export default function DailyReturnHook({ visible = true }) {
                   { icon:'📖', title:'Understanding Anxiety', sub:'Article · 4 min read', href:'/resources' },
                   { icon:'🩺', title:'Talk to a therapist today', sub:'Book a free 15-min call', href:'/book' },
                 ].map((r, i) => (
-                  <a key={i} href={r.href} className="drh-resource-item">
+                  <a key={i} href={r.href} className="drh-resource-item" onClick={e => { e.preventDefault(); navigate(r.href) }}>
                     <div className="drh-resource-icon">{r.icon}</div>
                     <div>
                       <div className="drh-resource-title">{r.title}</div>
@@ -823,7 +825,7 @@ export default function DailyReturnHook({ visible = true }) {
             <p className="drh-cta-text">
               "The best investment you'll ever make is in your mental health."
             </p>
-            <a href="/book" className="drh-cta-btn">
+            <a href="/book" className="drh-cta-btn" onClick={e => { e.preventDefault(); navigate('/book') }}>
               🩺 Book a free session
             </a>
             <button className="drh-notify-badge" onClick={() => {

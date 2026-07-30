@@ -6,6 +6,28 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 
 const RouterContext = createContext(null)
 
+// ── Persist the in-app back-stack across full page reloads ──────
+// sessionStorage survives a hard reload within the same WebView tab,
+// so if something forces a real navigation (a stray <a href>, a
+// window.location.reload(), etc.) the back stack rehydrates instead
+// of collapsing to a single entry and sending back-button presses home.
+const STACK_KEY = '__nav_stack__'
+
+function loadStack(fallbackPath) {
+  try {
+    const raw = sessionStorage.getItem(STACK_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length) return parsed
+    }
+  } catch {}
+  return [fallbackPath]
+}
+
+function saveStack(stack) {
+  try { sessionStorage.setItem(STACK_KEY, JSON.stringify(stack)) } catch {}
+}
+
 // ── Route definitions — ADD every dynamic route here ──────────
 // Order matters: more specific patterns first
 const DYNAMIC_ROUTES = [
@@ -56,7 +78,11 @@ export function RouterProvider({ children }) {
   // Our own in-app navigation stack, since window.history's length/state
   // isn't reliably readable and popstate doesn't tell us if there's more
   // history behind the current entry.
-  const [stack, setStack] = useState(() => [window.location.pathname || '/'])
+  const [stack, setStack] = useState(() => loadStack(window.location.pathname || '/'))
+
+  // Keep sessionStorage in sync whenever the stack changes, so a hard
+  // reload (or Android killing/recreating the WebView) doesn't wipe it.
+  useEffect(() => { saveStack(stack) }, [stack])
 
   useEffect(() => {
     function onPopState() {
