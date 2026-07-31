@@ -43,6 +43,7 @@ import MessagesPage        from './pages/MessagesPage'
 import PrivacyPage         from './pages/PrivacyPage'
 import OurPlacePage        from './pages/OurplacePage'
 import BookingDebugPanel from './components/BookingDebugPanel'
+import BackButton from './components/BackButton'
 import IntegratePage from './pages/IntegratePage'
 import Storepage     from './pages/StorePage'
 import NoticePage    from './pages/NoticePage'
@@ -211,7 +212,7 @@ function BackButtonHandler() {
       console.log('[capacitor] listeners already registered, skipping duplicate setup')
       return
     }
-    backButtonListenersRegistered = true // set synchronously BEFORE the async import,
+    backButtonListenersRegistered = true // set synchronously BEFORE the async import // set synchronously BEFORE the async import // set synchronously BEFORE the async import // set synchronously BEFORE the async import // set synchronously BEFORE the async import // set synchronously BEFORE the async import // set synchronously BEFORE the async import // set synchronously BEFORE the async import // set synchronously BEFORE the async import // set synchronously BEFORE the async import,
     // and never reset this back to false — see cleanup below
 
     let backListener, stateListener
@@ -314,6 +315,7 @@ export default function App() {
             <TherapistsProvider>
               <div className="app">
                 <BackButtonHandler />
+                <BackButton />
                 <AppRoutes />
                 <BookingDebugPanel />
               
