@@ -56,12 +56,20 @@ const UI_FONT =
 // bar has been removed.
 const BOTTOM_RESERVE = 24;
 
-function brickFillGradient(ctx, x, y, w, h) {
+function brickFillGradient(ctx, x, y, w, h, isYou) {
   // 135deg diagonal: highlight (top-left) -> base -> dark (bottom-right)
   const grad = ctx.createLinearGradient(x, y, x + w, y + h);
-  grad.addColorStop(0, BRICK_HIGHLIGHT);
-  grad.addColorStop(0.45, BRICK_BASE);
-  grad.addColorStop(1, BRICK_DARK);
+  if (isYou) {
+    // distinct brass/gold gradient so the signed-in user's own brick
+    // stands out from the crowd, not just via glow/outline
+    grad.addColorStop(0, "#E8C084");
+    grad.addColorStop(0.45, PALETTE.accent);
+    grad.addColorStop(1, "#8C5A2E");
+  } else {
+    grad.addColorStop(0, BRICK_HIGHLIGHT);
+    grad.addColorStop(0.45, BRICK_BASE);
+    grad.addColorStop(1, BRICK_DARK);
+  }
   return grad;
 }
 
@@ -483,7 +491,7 @@ export default function OurMembersPage({
           ctx.shadowOffsetY = 2;
         }
         roundRect(ctx, x, y, w, h, r);
-        ctx.fillStyle = brickFillGradient(ctx, x, y, w, h);
+        ctx.fillStyle = brickFillGradient(ctx, x, y, w, h, isYou);
         ctx.fill();
         ctx.restore();
 
@@ -1100,8 +1108,10 @@ export default function OurMembersPage({
             </div>
 
             <button
-              onClick={handleRegisterClick}
-              className="wow-glow"
+              onClick={currentUserName ? undefined : handleRegisterClick}
+              disabled={!!currentUserName}
+              className={currentUserName ? "" : "wow-glow"}
+              title={currentUserName ? "You're already a member" : "Become a member"}
               style={{
                 marginTop: 20,
                 width: "100%",
@@ -1109,20 +1119,25 @@ export default function OurMembersPage({
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
-                background: `linear-gradient(135deg, ${PALETTE.glow} 0%, ${PALETTE.glowDeep} 100%)`,
-                border: `1.5px solid ${PALETTE.white}`,
+                background: currentUserName
+                  ? "rgba(58,49,40,0.15)"
+                  : `linear-gradient(135deg, ${PALETTE.glow} 0%, ${PALETTE.glowDeep} 100%)`,
+                border: currentUserName
+                  ? "1.5px solid rgba(58,49,40,0.25)"
+                  : `1.5px solid ${PALETTE.white}`,
                 borderRadius: 10,
-                color: PALETTE.white,
+                color: currentUserName ? PALETTE.navySoft : PALETTE.white,
                 fontWeight: 800,
                 fontSize: 13.5,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
                 padding: "12px 14px",
-                cursor: "pointer",
+                cursor: currentUserName ? "default" : "pointer",
+                opacity: currentUserName ? 0.75 : 1,
               }}
             >
               <UserPlus size={16} />
-              Become Member
+              {currentUserName ? "Already a Member" : "Become Member"}
             </button>
           </div>
         </div>
