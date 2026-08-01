@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Shuffle, Users, Loader2, UserPlus, Shield, Heart, Star } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 // ---------------------------------------------------------------------------
 // API base URL
@@ -263,8 +264,13 @@ export default function OurMembersPage({
   registerHref = "/register",
   onRegister,
   headerOffset = 0,
-  currentUserName = null, // logged-in member's display name
+  currentUserName: currentUserNameProp = null, // optional override
 }) {
+  const { user } = useAuth();
+  // Prefer the prop if explicitly passed in; otherwise fall back to the
+  // logged-in user's name from AuthContext. Adjust `user?.name` to whatever
+  // field your /auth/me response actually uses (e.g. user?.full_name).
+  const currentUserName = currentUserNameProp ?? user?.name ?? null;
   const containerRef = useRef(null);
   const wallWrapRef = useRef(null);
   const canvasRef = useRef(null);
