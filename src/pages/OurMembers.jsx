@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Shuffle, Users, Loader2, UserPlus, Shield, Heart, Star } from "lucide-react";
+import { Shuffle, Users, Loader2, UserPlus, Shield, Heart, Star, LogIn } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 // ---------------------------------------------------------------------------
@@ -33,6 +33,8 @@ const PALETTE = {
   accent: "#B8834A",              // brass/terracotta accent for dividers, "you" highlight — not blue
   accentSoft: "rgba(184,131,74,0.32)",
   white: "#FFFFFF",
+  disabled: "#9C9284",            // muted stone tone for disabled buttons / guest state
+  disabledSoft: "rgba(156,146,132,0.16)",
 };
 
 // Brick color — warm red-brown per design spec
@@ -263,6 +265,8 @@ export default function OurMembersPage({
   maxFontPx = 16,
   registerHref = "/register",
   onRegister,
+  signInHref = "/login",
+  onSignIn,
   headerOffset = 0,
   currentUserName: currentUserNameProp = null, // optional override
 }) {
@@ -271,6 +275,7 @@ export default function OurMembersPage({
   // logged-in user's name from AuthContext. Adjust `user?.name` to whatever
   // field your /auth/me response actually uses (e.g. user?.full_name).
   const currentUserName = currentUserNameProp ?? user?.name ?? null;
+  const isLoggedIn = !!currentUserName;
   const containerRef = useRef(null);
   const wallWrapRef = useRef(null);
   const canvasRef = useRef(null);
@@ -321,6 +326,7 @@ export default function OurMembersPage({
   }, []);
 
   const handleRegisterClick = useCallback(() => {
+    if (isLoggedIn) return;
     if (onRegister) {
       onRegister();
       return;
@@ -328,7 +334,18 @@ export default function OurMembersPage({
     if (typeof window !== "undefined") {
       window.location.href = registerHref;
     }
-  }, [onRegister, registerHref]);
+  }, [isLoggedIn, onRegister, registerHref]);
+
+  const handleSignInClick = useCallback(() => {
+    if (isLoggedIn) return;
+    if (onSignIn) {
+      onSignIn();
+      return;
+    }
+    if (typeof window !== "undefined") {
+      window.location.href = signInHref;
+    }
+  }, [isLoggedIn, onSignIn, signInHref]);
 
   // -------------------------------------------------------------------------
   // Draw the wall of bricks — exactly one brick per name, centered, sitting
@@ -1031,6 +1048,12 @@ export default function OurMembersPage({
               For being a part of us
             </div>
 
+            {/* -----------------------------------------------------------
+                Signed-in-user block. ALWAYS rendered (member or guest) so
+                there's a consistent, prominent, colored slot here at all
+                times — brass/glowing when a real user is signed in, muted
+                stone tone as a "Not signed in" placeholder otherwise.
+            ----------------------------------------------------------- */}
             <div
               style={{
                 marginTop: 20,
@@ -1047,22 +1070,24 @@ export default function OurMembersPage({
                   marginBottom: 10,
                 }}
               >
-                ★ Our Member ★
+                {isLoggedIn ? "★ Our Member ★" : "Not Signed In"}
               </div>
               <div
-                className={currentUserName ? "wow-glow-brass" : ""}
+                className={isLoggedIn ? "wow-glow-brass" : ""}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
-                  background: "rgba(184,131,74,0.14)",
-                  border: `1.5px solid ${PALETTE.accent}`,
+                  background: isLoggedIn
+                    ? "rgba(184,131,74,0.14)"
+                    : PALETTE.disabledSoft,
+                  border: `1.5px solid ${isLoggedIn ? PALETTE.accent : PALETTE.disabled}`,
                   borderRadius: 10,
                   padding: "12px 10px",
                 }}
               >
-                <Users size={16} color={PALETTE.accent} />
+                <Users size={16} color={isLoggedIn ? PALETTE.accent : PALETTE.disabled} />
                 <span
                   style={{
                     fontWeight: 800,
@@ -1070,9 +1095,10 @@ export default function OurMembersPage({
                     letterSpacing: "0.05em",
                     textTransform: "uppercase",
                     overflowWrap: "anywhere",
+                    color: isLoggedIn ? PALETTE.cardText : PALETTE.disabled,
                   }}
                 >
-                  {currentUserName || "Sign in"}
+                  {isLoggedIn ? currentUserName : "Guest"}
                 </span>
               </div>
             </div>
@@ -1113,38 +1139,76 @@ export default function OurMembersPage({
               ))}
             </div>
 
-            <button
-              onClick={currentUserName ? undefined : handleRegisterClick}
-              disabled={!!currentUserName}
-              className={currentUserName ? "" : "wow-glow"}
-              title={currentUserName ? "You're already a member" : "Become a member"}
-              style={{
-                marginTop: 20,
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                background: currentUserName
-                  ? "rgba(58,49,40,0.15)"
-                  : `linear-gradient(135deg, ${PALETTE.glow} 0%, ${PALETTE.glowDeep} 100%)`,
-                border: currentUserName
-                  ? "1.5px solid rgba(58,49,40,0.25)"
-                  : `1.5px solid ${PALETTE.white}`,
-                borderRadius: 10,
-                color: currentUserName ? PALETTE.navySoft : PALETTE.white,
-                fontWeight: 800,
-                fontSize: 13.5,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                padding: "12px 14px",
-                cursor: currentUserName ? "default" : "pointer",
-                opacity: currentUserName ? 0.75 : 1,
-              }}
-            >
-              <UserPlus size={16} />
-              {currentUserName ? "Already a Member" : "Become Member"}
-            </button>
+            {/* -----------------------------------------------------------
+                Sign In + Become Member — both always rendered, and both
+                fully disabled (no click handler, muted styling) once the
+                user is already logged in.
+            ----------------------------------------------------------- */}
+            <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                onClick={isLoggedIn ? undefined : handleSignInClick}
+                disabled={isLoggedIn}
+                className={isLoggedIn ? "" : "wow-glow"}
+                title={isLoggedIn ? "You're already signed in" : "Sign in"}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  background: isLoggedIn
+                    ? "rgba(58,49,40,0.15)"
+                    : `linear-gradient(135deg, ${PALETTE.glow} 0%, ${PALETTE.glowDeep} 100%)`,
+                  border: isLoggedIn
+                    ? "1.5px solid rgba(58,49,40,0.25)"
+                    : `1.5px solid ${PALETTE.white}`,
+                  borderRadius: 10,
+                  color: isLoggedIn ? PALETTE.navySoft : PALETTE.white,
+                  fontWeight: 800,
+                  fontSize: 13.5,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  padding: "12px 14px",
+                  cursor: isLoggedIn ? "default" : "pointer",
+                  opacity: isLoggedIn ? 0.75 : 1,
+                }}
+              >
+                <LogIn size={16} />
+                {isLoggedIn ? "Signed In" : "Sign In"}
+              </button>
+
+              <button
+                onClick={isLoggedIn ? undefined : handleRegisterClick}
+                disabled={isLoggedIn}
+                className={isLoggedIn ? "" : "wow-glow"}
+                title={isLoggedIn ? "You're already a member" : "Become a member"}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  background: isLoggedIn
+                    ? "rgba(58,49,40,0.15)"
+                    : `linear-gradient(135deg, ${PALETTE.glow} 0%, ${PALETTE.glowDeep} 100%)`,
+                  border: isLoggedIn
+                    ? "1.5px solid rgba(58,49,40,0.25)"
+                    : `1.5px solid ${PALETTE.white}`,
+                  borderRadius: 10,
+                  color: isLoggedIn ? PALETTE.navySoft : PALETTE.white,
+                  fontWeight: 800,
+                  fontSize: 13.5,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  padding: "12px 14px",
+                  cursor: isLoggedIn ? "default" : "pointer",
+                  opacity: isLoggedIn ? 0.75 : 1,
+                }}
+              >
+                <UserPlus size={16} />
+                {isLoggedIn ? "Already a Member" : "Become Member"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
