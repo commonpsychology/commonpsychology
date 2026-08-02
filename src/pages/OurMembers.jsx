@@ -234,6 +234,13 @@ function shuffleArray(arr) {
   return a;
 }
 
+// Case/whitespace-insensitive normalization so "  Sanjeev   Neupane" and
+// "sanjeev neupane" are treated as the same person when matching the
+// signed-in user against the wall's name pool.
+function normalizeName(s) {
+  return (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 function fitFontSize(ctx, text, maxWidth, startSize, minSize) {
   let size = startSize;
   while (size > minSize) {
@@ -498,7 +505,7 @@ export default function OurMembersPage({
         let { x, y } = cell;
         const isYou =
           currentUserName &&
-          name.trim().toLowerCase() === currentUserName.trim().toLowerCase();
+          normalizeName(name) === normalizeName(currentUserName);
         const isHover = hoveredIndexRef.current === i;
         if (isHover) y -= 4; // lift on hover
 
@@ -674,11 +681,25 @@ export default function OurMembersPage({
         const rows = await fetchSample(sampleSize);
         if (isStale()) return;
 
-        const names = shuffleArray(
+        let names = shuffleArray(
           rows
             .map((row) => (row.full_name || "").toString().trim())
             .filter(Boolean)
         );
+
+        // The backend only returns a random SAMPLE, not the full member
+        // list — so a signed-in user's own name can easily be left out of
+        // any given sample, and their brick would never appear no matter
+        // how correct the highlight-matching logic is. Guarantee it's
+        // always present when we know who's logged in.
+        if (currentUserName) {
+          const already = names.some(
+            (n) => normalizeName(n) === normalizeName(currentUserName)
+          );
+          if (!already) {
+            names = shuffleArray([currentUserName, ...names]);
+          }
+        }
 
         namePoolRef.current = names;
         if (isStale()) return;
@@ -691,7 +712,7 @@ export default function OurMembersPage({
         setErrorMsg(err.message || "The wall could not be loaded.");
       }
     },
-    [fetchCount, fetchSample, maxWords, minWords, sampleRatio, relayout]
+    [fetchCount, fetchSample, maxWords, minWords, sampleRatio, relayout, currentUserName]
   );
 
   useEffect(() => {
