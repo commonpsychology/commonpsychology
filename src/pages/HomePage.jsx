@@ -10,6 +10,7 @@ import VideoReviews     from '../components/Videoreviews'
 import Resources        from '../components/Resources'
 import FAQ              from '../components/Faq'
 import Umbrella         from '../components/Umbrella'
+import ToUnknown        from '../components/ToUnknown'
 import EleventhPaymentPromoHome from '../components/EleventhPaymentPromoHome'
 import NewsSection      from '../components/Newssection'
 import Testimonials     from '../components/Testimonials'
@@ -90,6 +91,7 @@ export default function HomePage() {
       <Services />
       <Balance />
       <Therapists />
+      <ToUnknown />
       <Assessment />
       <Donate />
       <BalanceBowl />
