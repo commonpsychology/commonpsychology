@@ -244,7 +244,6 @@ function BackButtonHandler() {
 
         // On home screen: require a second press within 2s to actually exit,
         // so a single accidental back-press doesn't kill the app.
-        const now = Date.now()
         if (now - lastBackPressTime < 2000) {
           App.exitApp()
         } else {
