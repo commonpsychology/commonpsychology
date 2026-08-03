@@ -146,9 +146,11 @@ function Wheel({ size = 46 }) {
 
 /* a metal strap with rivets, at any width/rotation */
 function Strap({ style }) {
+  const numericWidth = typeof style.width === "number" ? style.width : LEAF_W
+  const rivetCount = Math.max(2, Math.round(numericWidth / 22))
   return (
     <div style={{ position: "absolute", height: 10, background: `linear-gradient(180deg, ${T.metal1}, ${T.metal2})`, boxShadow: "0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 4px rgba(0,0,0,0.4)", ...style }}>
-      {[...Array(Math.max(2, Math.round((style.width || 60) / 22)))].map((_, i, arr) => (
+      {[...Array(rivetCount)].map((_, i, arr) => (
         <span
           key={i}
           style={{
