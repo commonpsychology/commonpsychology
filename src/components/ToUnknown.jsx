@@ -22,11 +22,11 @@ const T = {
   blueDeep: "#1a3a4a", blueMid: "#2e6080", sky: "#00BFFF", skyDark: "#009fd4",
   white: "#ffffff", cardLine: "#bfe3fb",
   void: "#03060c", voidMid: "#0a1830", voidGlow: "#123a52",
-  /* weathered stone, re-tinted to the header's cyan → teal-green gradient */
-  stone1: "#8fe3ec", stone2: "#3fa8b0", stone3: "#227b82", stone4: "#155459", stone5: "#0a2f33",
-  moss: "#6bc98a", mossDark: "#317a52",
-  patina: "#8fe3c0", patinaDark: "#3a8f6e",
-  metal1: "#2f6b70", metal2: "#123236",
+  /* re-tinted to the site's sky-blue variable set */
+  stone1: "#E0F7FF", stone2: "#00BFFF", stone3: "#009FD4", stone4: "#0a6f96", stone5: "#063f56",
+  moss: "#5bb8d9", mossDark: "#2d6f8c",
+  patina: "#8fdcf5", patinaDark: "#009FD4",
+  metal1: "#00BFFF", metal2: "#063f56",
 }
 
 /* deterministic pseudo-random — stable across renders, no hydration flicker */
