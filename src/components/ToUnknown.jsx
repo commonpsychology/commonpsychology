@@ -22,11 +22,11 @@ const T = {
   blueDeep: "#1a3a4a", blueMid: "#2e6080", sky: "#00BFFF", skyDark: "#009fd4",
   white: "#ffffff", cardLine: "#bfe3fb",
   void: "#03060c", voidMid: "#0a1830", voidGlow: "#123a52",
-  /* weathered rock, worn over eons */
-  stone1: "#8a97a0", stone2: "#5e6e78", stone3: "#3a4750", stone4: "#1e262c", stone5: "#12181c",
-  moss: "#57715a", mossDark: "#2f3f30",
-  patina: "#6fae9c", patinaDark: "#31544a",
-  metal1: "#4a5860", metal2: "#232c32",
+  /* weathered stone, re-tinted to the header's cyan → teal-green gradient */
+  stone1: "#8fe3ec", stone2: "#3fa8b0", stone3: "#227b82", stone4: "#155459", stone5: "#0a2f33",
+  moss: "#6bc98a", mossDark: "#317a52",
+  patina: "#8fe3c0", patinaDark: "#3a8f6e",
+  metal1: "#2f6b70", metal2: "#123236",
 }
 
 /* deterministic pseudo-random — stable across renders, no hydration flicker */
@@ -287,10 +287,7 @@ export default function ToUnknown() {
             {/* keystone crest — fixed to the stone, never moves */}
             <div style={styles.keystone}>
               <div style={styles.emblemPlate}>
-                <span style={styles.plateCrack} />
                 <img src="/header.png" alt="Common Psychology crest" style={styles.crestLogo} draggable={false} />
-                <span style={styles.flourishLine} />
-                <span style={styles.monogram}>CP</span>
               </div>
             </div>
 
@@ -692,42 +689,23 @@ const styles = {
 
   emblemPlate: {
     position: "relative",
-    width: 84,
-    height: 84,
+    width: 104,
+    height: 104,
     borderRadius: "50%",
     background: `radial-gradient(circle at 32% 26%, ${T.stone1} 0%, ${T.stone2} 55%, ${T.stone3} 100%)`,
-    border: `2px solid ${T.stone5}`,
-    boxShadow: `inset 0 3px 6px rgba(0,0,0,0.5), inset 0 -2px 3px rgba(255,255,255,0.1), 0 6px 16px rgba(0,0,0,0.4)`,
+    border: `3px solid ${T.stone5}`,
+    boxShadow: `inset 0 0 0 4px rgba(255,255,255,0.9), inset 0 2px 4px rgba(0,0,0,0.15), 0 8px 20px rgba(10,47,51,0.45)`,
     display: "flex",
-    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
-    padding: "7px 6px",
     overflow: "hidden",
   },
-  plateCrack: {
-    position: "absolute", top: "6%", left: "20%", width: "2px", height: "88%",
-    background: "rgba(3,6,12,0.55)", transform: "rotate(20deg)",
-    boxShadow: "0 0 4px rgba(0,191,255,0.25)",
-  },
   crestLogo: {
-    width: 22, height: 22, objectFit: "contain",
-    filter: `grayscale(1) contrast(1.05) brightness(1.5) drop-shadow(0.5px 0.5px 0 rgba(0,0,0,0.5)) drop-shadow(-0.5px -0.5px 0.5px rgba(200,215,225,0.35))`,
-    mixBlendMode: "luminosity",
-    opacity: 0.55,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
     userSelect: "none",
   },
-  monogram: {
-    fontFamily: "'DM Serif Display', Georgia, serif",
-    fontStyle: "italic",
-    fontSize: "1.15rem",
-    letterSpacing: "-0.05em",
-    color: "rgba(234,246,255,0.5)",
-    textShadow: `0.5px 0.5px 0px rgba(255,255,255,0.18), -1px -1px 1.5px rgba(0,0,0,0.6), 0 0 8px rgba(0,191,255,0.18)`,
-    lineHeight: 1,
-  },
-  flourishLine: { width: 16, height: 1, background: "rgba(234,246,255,0.35)", opacity: 0.6 },
 
   knobBtn: {
     position: "absolute",
