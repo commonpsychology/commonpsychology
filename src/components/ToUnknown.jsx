@@ -181,6 +181,16 @@ export default function ToUnknown() {
 
   return (
     <div style={styles.stage}>
+      <div style={{
+        position: "absolute", width: 360, height: 360, top: -140, left: -120,
+        borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none",
+        background: "radial-gradient(circle, rgba(41,128,185,0.14), transparent 70%)",
+      }} />
+      <div style={{
+        position: "absolute", width: 300, height: 300, bottom: -120, right: -100,
+        borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none",
+        background: "radial-gradient(circle, rgba(0,191,255,0.12), transparent 70%)",
+      }} />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Serif+4:ital,wght@0,400;1,400&family=Nunito:ital,wght@0,400;0,600;0,700;0,800&display=swap');
         .tu-scope * { box-sizing: border-box; }
@@ -474,9 +484,10 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: `radial-gradient(circle at 50% 30%, ${T.paperDeep} 0%, ${T.paper} 55%, #ffffff 100%)`,
+    background: `linear-gradient(180deg, ${T.paper} 0%, #ffffff 55%, ${T.paper} 100%)`,
     padding: "3rem 1.5rem",
     overflow: "hidden",
+    position: "relative",
   },
   scope: {
     position: "relative",
