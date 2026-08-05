@@ -13,7 +13,7 @@ const CLAUSES = [
     tone: 'muted',
     icon: '⏳',
     np: 'समय र लगाव छैन भने, कमन साइकोलोजीमा नआउनुहोस्।',
-    en: "No time, no real interest? Then Common Psychology isn't the place — please don't join us.",
+    en: "No time, no real interest, or Have any baggage? Then Common Psychology isn't the place — please don't join us.",
   },
   {
     tone: 'open',
