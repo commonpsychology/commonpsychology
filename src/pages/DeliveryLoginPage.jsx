@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from '../context/RouterContext'
+import { useAuth } from '../context/AuthContext'
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -202,8 +203,8 @@ function DeliveryOTPModal({ email, name, user_id, onSuccess, onCancel }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Verification failed')
-      // Pass token + rider back to parent
-      onSuccess(data.token, data.rider)
+      // Pass token + rider + linked profile (for main-site login) back to parent
+      onSuccess(data.token, data.rider, data.user)
     } catch (e) {
       setError(e.message)
       setOtp(['', '', '', '', '', ''])
@@ -372,6 +373,7 @@ export default function DeliveryLoginPage() {
 }, [])
 
   const { navigate } = useRouter()
+  const { loginWithToken } = useAuth()
 
   // Redirect if already logged in
   useEffect(() => {
@@ -431,10 +433,16 @@ export default function DeliveryLoginPage() {
     }
   }
 
-  // Called by OTP modal with token + rider from verify-otp response
-  function handleOTPSuccess(token, rider) {
+// Called by OTP modal with token + rider + linked profile from verify-otp response
+  function handleOTPSuccess(token, rider, user) {
     localStorage.setItem('deliveryToken', token)
     localStorage.setItem('deliveryRider', JSON.stringify(rider))
+
+    // Also log the rider into the main site's AuthContext (live state, not
+    // just localStorage) so they can browse the rest of the website as
+    // themselves, same as any client — per the 'rider' branch in useAuthGuard.
+    if (user) loginWithToken(token, user)
+
     setShowOTP(false)
     navigate('/delivery/dashboard')
   }
