@@ -236,6 +236,10 @@ export function useAuthGuard() {
     const role = user.role
     if (role === 'admin' || role === 'staff') navigate('/staff/admin')
     else if (role === 'therapist') navigate('/staff/therapist')
+    // Riders should be able to browse the home page and the rest of the
+    // public site with their own credentials, same as any regular visitor —
+    // don't force them into /portal like a client account.
+    else if (role === 'rider') return
     else navigate('/portal')
   }, [user, loading, navigate])
 }
