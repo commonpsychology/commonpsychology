@@ -188,6 +188,22 @@ const register = useCallback(async (name, email, password, metadata = {}) => {
     clearUser()
   }, [clearUser])
 
+  // ── Login from an external token (e.g. delivery rider OTP flow) ─────
+  // Used when a session is established outside AuthContext's own
+  // /auth/login call. The caller (DeliveryLoginPage) has already verified
+  // the rider server-side; this just syncs the resulting token/user into
+  // this context so useAuthGuard and the rest of the app see it immediately,
+  // without needing a page reload.
+  const loginWithToken = useCallback((accessToken, userObj) => {
+    if (!accessToken || !userObj) return
+    ls.setRaw('accessToken', accessToken)
+    ls.del('refreshToken') // no /auth/refresh counterpart for this token type
+    ls.set('user', userObj)
+    setUser(userObj)
+    clearTimeout(refreshTimer.current) // rider tokens are long-lived (30d);
+                                        // don't schedule the normal 13-min refresh
+  }, [])
+
   // ── Refresh user ────────────────────────────────────────────
   const refreshUser = useCallback(async () => {
     const token = ls.raw('accessToken')
@@ -211,6 +227,7 @@ const register = useCallback(async (name, email, password, metadata = {}) => {
         loading,
         login,
         loginRaw,   // ✅ FIXED: now available
+        loginWithToken,
         logout,
         refreshUser,
         register
