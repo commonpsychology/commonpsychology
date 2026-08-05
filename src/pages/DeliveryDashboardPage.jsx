@@ -445,6 +445,7 @@ useEffect(() => { load() }, [load])
           >
             {statusSaving ? '…' : available ? '🟢 Free' : '🔴 Busy'}
           </button>
+          <button className="logout-btn" onClick={() => navigate('/')}>🌐 Website</button>
           <button className="logout-btn" onClick={handleLogout}>Log out</button>
         </div>
       </div>
