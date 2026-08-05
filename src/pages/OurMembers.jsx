@@ -241,6 +241,14 @@ function normalizeName(s) {
   return (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+// Email is the only reliable unique identifier for "is this brick ME" —
+// names collide (multiple members can be named "Sanjeev Neupane"), emails
+// don't. Trimmed + lowercased so casing/whitespace differences don't break
+// the match.
+function normalizeEmail(s) {
+  return (s || "").toString().trim().toLowerCase();
+}
+
 function fitFontSize(ctx, text, maxWidth, startSize, minSize) {
   let size = startSize;
   while (size > minSize) {
@@ -290,6 +298,13 @@ export default function OurMembersPage({
       ? `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()
       : null);
   const currentUserName = currentUserNameProp ?? resolvedName ?? null;
+
+  // Names on the wall are NOT unique — multiple members can share the same
+  // full name. Matching the signed-in user's OWN brick must therefore be
+  // done by a unique identifier (email), never by name alone, or the glow
+  // could light up a stranger's tile instead of (or as well as) the real
+  // signed-in user's tile.
+  const currentUserEmail = user?.email ?? null;
   const isLoggedIn = !!currentUserName;
   const containerRef = useRef(null);
   const wallWrapRef = useRef(null);
@@ -506,14 +521,22 @@ export default function OurMembersPage({
 
       // 2) Bricks — running bond, beveled, engraved names
       cells.forEach((cell, i) => {
-        const name = pool[i];
+        const entry = pool[i];
+        if (!entry) return;
+        const name = typeof entry === "string" ? entry : entry.name;
+        const email = typeof entry === "string" ? null : entry.email;
         if (!name) return;
 
         const { w, h } = cell;
         let { x, y } = cell;
+        // Matched on EMAIL only — never on name — since the same display
+        // name can appear on multiple bricks. This guarantees the glow
+        // lands on exactly one tile: the signed-in user's own account,
+        // not a same-named stranger's.
         const isYou =
-          currentUserName &&
-          normalizeName(name) === normalizeName(currentUserName);
+          currentUserEmail &&
+          email &&
+          normalizeEmail(email) === normalizeEmail(currentUserEmail);
         const isHover = hoveredIndexRef.current === i;
         if (isHover) y -= 4; // lift on hover
 
@@ -599,7 +622,7 @@ export default function OurMembersPage({
 
       setShownCount(pool.filter(Boolean).length);
     },
-    [currentUserName, maxFontPx, minFontPx]
+    [currentUserName, currentUserEmail, maxFontPx, minFontPx]
   );
 
   // Track hover so a brick can lift + glow under the cursor.
@@ -689,23 +712,34 @@ export default function OurMembersPage({
         const rows = await fetchSample(sampleSize);
         if (isStale()) return;
 
+        // Each pool entry now carries { name, email } instead of a bare
+        // string — email decides "is this brick ME", name is only used
+        // for the rendered text. Requires the sample endpoint to return
+        // an `email` field per row (add it server-side if it's missing).
         let names = shuffleArray(
           rows
-            .map((row) => (row.full_name || "").toString().trim())
-            .filter(Boolean)
+            .map((row) => ({
+              name: (row.full_name || "").toString().trim(),
+              email: (row.email || "").toString().trim(),
+            }))
+            .filter((r) => r.name)
         );
 
         // The backend only returns a random SAMPLE, not the full member
-        // list — so a signed-in user's own name can easily be left out of
-        // any given sample, and their brick would never appear no matter
-        // how correct the highlight-matching logic is. Guarantee it's
-        // always present when we know who's logged in.
-        if (currentUserName) {
+        // list — so the signed-in user's own entry can easily be left out
+        // of any given sample, and their brick would never glow no matter
+        // how correct the matching logic is. Guarantee it's always present
+        // when we know who's logged in — matched by EMAIL, not name, since
+        // multiple members can share the same display name.
+        if (currentUserEmail) {
           const already = names.some(
-            (n) => normalizeName(n) === normalizeName(currentUserName)
+            (r) => normalizeEmail(r.email) === normalizeEmail(currentUserEmail)
           );
           if (!already) {
-            names = shuffleArray([currentUserName, ...names]);
+            names = shuffleArray([
+              { name: currentUserName || "You", email: currentUserEmail },
+              ...names,
+            ]);
           }
         }
 
@@ -720,7 +754,7 @@ export default function OurMembersPage({
         setErrorMsg(err.message || "The wall could not be loaded.");
       }
     },
-    [fetchCount, fetchSample, maxWords, minWords, sampleRatio, relayout, currentUserName]
+    [fetchCount, fetchSample, maxWords, minWords, sampleRatio, relayout, currentUserName, currentUserEmail]
   );
 
   useEffect(() => {
