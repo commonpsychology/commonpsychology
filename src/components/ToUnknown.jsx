@@ -286,7 +286,7 @@ export default function ToUnknown() {
             <span style={styles.eyebrowLine} />
           </div>
           <span style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontStyle: "italic", fontSize: "0.78rem", color: T.inkFaint, opacity: 0.85 }}>
-            older than memory, standing still
+           We discourse on life and everything
           </span>
         </div>
 
