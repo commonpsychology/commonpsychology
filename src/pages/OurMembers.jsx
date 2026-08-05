@@ -279,9 +279,17 @@ export default function OurMembersPage({
 }) {
   const { user } = useAuth();
   // Prefer the prop if explicitly passed in; otherwise fall back to the
-  // logged-in user's name from AuthContext. Adjust `user?.name` to whatever
-  // field your /auth/me response actually uses (e.g. user?.full_name).
-  const currentUserName = currentUserNameProp ?? user?.name ?? null;
+  // logged-in user's name from AuthContext. Checks the field names your
+  // API is actually likely to use, in order of likelihood — the wall's
+  // own directory rows use `full_name`, so that's checked first.
+  const resolvedName =
+    user?.full_name ??
+    user?.fullName ??
+    user?.name ??
+    (user?.first_name || user?.last_name
+      ? `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()
+      : null);
+  const currentUserName = currentUserNameProp ?? resolvedName ?? null;
   const isLoggedIn = !!currentUserName;
   const containerRef = useRef(null);
   const wallWrapRef = useRef(null);
