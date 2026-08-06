@@ -51,9 +51,9 @@ function useField(count, salt) {
 
 /* what waits beyond the threshold */
 const CONCEPTS = [
-  "Emotions", "Thoughts", "Souls", "Dreams", "Death",
+  "YOU","Emotions", "Thoughts", "Souls", "Dreams", "Death",
   "Truth", "Morals", "Memory", "Fear", "Hope",
-  "Time", "Silence", "Longing", "Wonder",
+  "Time", "Silence", "Longing", "Wonder","Unknown", "Suffering","Fear","Loneliness","Disorder","Uncertanity","Belief"
 ]
 
 function useConcepts() {
