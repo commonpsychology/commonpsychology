@@ -23,7 +23,7 @@ const HEADER_IMAGE = '/header.png'
 const HEADING_EN = 'Common Psychology'
 const HEADING_NP = 'साझा मनोविज्ञान'
 const SIGNATURE_IMAGE = '/sig.jpg'
-const SIGNATORY_NAME = 'संजीव न्यौपाने'
+const SIGNATORY_NAME = '.......'
 
 // ─── DYNAMIC NOTICE CONTENT (edit this per announcement) ───────────
 const NOTICE = {

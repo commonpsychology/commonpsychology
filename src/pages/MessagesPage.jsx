@@ -534,8 +534,8 @@ function injectCSS(id, css) {
 /* ── Data ── */
 const MESSAGES = [
   {
-    name:  'Sanjeev Neupane',
-    role:  'Executive Director',
+    name:  '',
+    role:  '',
     photo: '/images/staff/director.png',
     emoji: '🧑‍💼',
     message: `When I founded this Company, I carried a single conviction: that mental health is not a luxury, but a birthright. In Nepal and around the world, too many families suffer in silence — not because they lack strength, but because no one told them that asking for help is the bravest thing a person can do.
@@ -543,7 +543,7 @@ const MESSAGES = [
 Our center exists to change that. Every session we hold, every family we walk alongside, is a quiet act of revolution. We dont worry about you , you should, we help you how we can. We are building a Nepal  where the mind is treated with the same urgency as the body — with compassion, skill, and unwavering dignity. Saying all this, one value we keep close to our heart is, 'It's Your Choice'. If you feel we can help and can connect with you then only seek our help and follow. Dont ask and see whay we have, come to us, we will do what it takes . Our Common Goal: "Changing others by changing ownself, We are noone, We know nothing.".
 
 A closing word, spoken plainly: come to us only if you carry real time, real passion, and real need — not curiosity, and not because we are spoken of or trending. We hold to honest, standard fees, and where genuine hardship exists, we work with families to find a way through. If what we do here moves you — if you feel we deserve to grow and that this work should reach further — we welcome your support in whatever form you are able to give: as a service seeking customer who may or maynot be able to pay,  as a donor, an advocate, someone who tells others about us, or simply a returning member of this community. But if none of that stirs you, then we are, gently, not the place for you, also if not effective: we wont charge you,  and that is alright — because you do not need us and we were not effective for you. Come because you need to, or because you choose to walk beside someone who does — not on a whim, not for our name. And when you come, come without the weight of expectation, comparison, status, prejudice, past achievement, or borrowed belief. Leave all of that at the door. A day will come when you will want to know and when that days Bring only yourself. We are waiting here for you, Dare to be yourself.`,
-    sign: 'Sanjeev Neupane, Executive Director',
+    sign: '.......',
   },
   {
     name:  'Dr. Sanvika Lamichanne',
