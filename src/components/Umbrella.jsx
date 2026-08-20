@@ -136,8 +136,11 @@ export default function UmbrellaPage({ onNavigate }) {
             <stop offset="0%"   stopColor="#2a3d52"/>
             <stop offset="100%" stopColor="#131f2e"/>
           </linearGradient>
-          <filter id="softBlur"><feGaussianBlur stdDeviation="3"/></filter>
+            <filter id="softBlur"><feGaussianBlur stdDeviation="3"/></filter>
           <filter id="tinyBlur"><feGaussianBlur stdDeviation="1.2"/></filter>
+          <clipPath id="canopyClip">
+            <path d="M158,350 Q188,258 340,242 Q492,258 522,350 Z"/>
+          </clipPath>
         </defs>
 
         {/* Sky */}
@@ -296,9 +299,90 @@ export default function UmbrellaPage({ onNavigate }) {
           {/* Scalloped hem at y=350/375 */}
           <path d="M158,350 Q168,375 180,350 Q192,375 204,350 Q216,375 228,350 Q240,375 252,350 Q264,375 276,350 Q288,375 300,350 Q312,375 324,350 Q332,375 340,350 Q348,375 356,350 Q368,375 380,350 Q392,375 404,350 Q416,375 428,350 Q440,375 452,350 Q464,375 476,350 Q488,375 500,350 Q510,375 522,350"
                 fill="#0f3aa8" stroke="#0a2878" strokeWidth="1" opacity="0.95"/>
-          {/* Sheen overlay */}
+            {/* Sheen overlay */}
           <path d="M158,350 Q188,258 340,242 Q492,258 522,350" fill="url(#umbSheen)" opacity="0.9"/>
           <path d="M228,256 Q280,244 340,242" fill="none" stroke="#c8d8f8" strokeWidth="1.5" opacity="0.25" strokeLinecap="round"/>
+
+          {/* Faint interfaith symbols woven into the canopy fabric */}
+          <g clipPath="url(#canopyClip)" opacity="0.3">
+            <g stroke="#dbe9ff" fill="none" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
+
+              {/* Christianity — cross */}
+              <g transform="translate(196,300) scale(0.55)">
+                <line x1="50" y1="8" x2="50" y2="92"/>
+                <line x1="22" y1="34" x2="78" y2="34"/>
+              </g>
+
+              {/* Islam — crescent + star */}
+              <g transform="translate(240,270) scale(0.42)">
+                <path d="M62,15 A38,38 0 1 0 62,85 A30,30 0 1 1 62,15 Z"/>
+                <path d="M80,28 l3,7 7,1 -5,5 1,7 -6,-4 -6,4 1,-7 -5,-5 7,-1 z"/>
+              </g>
+
+              {/* Judaism — star of David */}
+              <g transform="translate(288,254) scale(0.4)">
+                <polygon points="50,10 88,72 12,72"/>
+                <polygon points="50,90 12,28 88,28"/>
+              </g>
+
+              {/* Hinduism — Om */}
+              <text x="340" y="268" textAnchor="middle" fontSize="26"
+                fontFamily="'Noto Sans Devanagari', serif" fill="#dbe9ff" stroke="none">ॐ</text>
+
+              {/* Buddhism — dharma wheel */}
+              <g transform="translate(390,255) scale(0.36)">
+                <circle cx="50" cy="50" r="36"/>
+                <circle cx="50" cy="50" r="6"/>
+                {Array.from({ length: 8 }, (_, i) => {
+                  const a = (i * 45 * Math.PI) / 180
+                  return (
+                    <line key={i} x1="50" y1="50"
+                      x2={50 + 34 * Math.cos(a)} y2={50 + 34 * Math.sin(a)} />
+                  )
+                })}
+              </g>
+
+              {/* Sikhism — khanda-style circle & blades */}
+              <g transform="translate(438,272) scale(0.38)">
+                <circle cx="50" cy="50" r="34"/>
+                <line x1="50" y1="12" x2="50" y2="88"/>
+                <line x1="22" y1="26" x2="66" y2="82"/>
+                <line x1="78" y1="26" x2="34" y2="82"/>
+              </g>
+
+              {/* Taoism — yin yang */}
+              <g transform="translate(478,304) scale(0.34)">
+                <circle cx="50" cy="50" r="36"/>
+                <path d="M50,14 A18,18 0 0 1 50,50 A18,18 0 0 0 50,86 A36,36 0 0 0 50,14 Z" fill="#dbe9ff" stroke="none"/>
+                <circle cx="50" cy="32" r="5"/>
+                <circle cx="50" cy="68" r="5" fill="#0f3490" stroke="none"/>
+              </g>
+
+              {/* Shinto — torii gate */}
+              <g transform="translate(220,326) scale(0.36)">
+                <line x1="22" y1="30" x2="22" y2="90"/>
+                <line x1="78" y1="30" x2="78" y2="90"/>
+                <path d="M10,28 Q50,10 90,28"/>
+                <line x1="16" y1="42" x2="84" y2="42"/>
+              </g>
+
+              {/* Bahá'í — nine-pointed star */}
+              <g transform="translate(340,326) scale(0.3)">
+                <polygon points="50,12 55.47,34.97 74.43,20.89 63.86,42 87.43,43.4 65.76,52.78 82.9,69 60.29,62.26 63,85.7 50,66 37,85.7 39.71,62.26 17.1,69 34.24,52.78 12.57,43.4 36.14,42 25.57,20.89 44.53,34.97"/>
+              </g>
+
+              {/* Jainism — ahimsa hand */}
+              <g transform="translate(458,326) scale(0.34)">
+                <path d="M50,14 C34,14 26,26 26,40 C26,58 38,66 38,80 L62,80 C62,66 74,58 74,40 C74,26 66,14 50,14 Z"/>
+                <line x1="42" y1="26" x2="42" y2="42"/>
+                <line x1="50" y1="22" x2="50" y2="42"/>
+                <line x1="58" y1="26" x2="58" y2="42"/>
+                <circle cx="50" cy="62" r="9"/>
+              </g>
+
+            </g>
+          </g>
+
           {/* Tip finial */}
           <ellipse cx="340" cy="241" rx="8"   ry="6.5" fill="#7aaaf2"/>
           <ellipse cx="340" cy="241" rx="3.5" ry="3"   fill="#ddeeff"/>
