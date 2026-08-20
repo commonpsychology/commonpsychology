@@ -168,10 +168,41 @@ const HEART_CSS = `
     50%     { transform: scale(1.05) translateY(-1px); }
   }
 
-  @media (min-width: 1024px) {
+   @media (min-width: 1024px) {
     .hero-clock-wrapper {
       display: block !important;
     }
+  }
+
+  /* ══════════════════════════════════════
+     FAITH WATERMARK
+  ══════════════════════════════════════ */
+  .hero-faith-watermark {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.09;
+    mix-blend-mode: soft-light;
+    overflow: hidden;
+  }
+  .hero-faith-watermark svg {
+    width: 100%;
+    height: 100%;
+  }
+  .hfw-symbol {
+    stroke: #bfe6ff;
+    fill: none;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hfw-symbol.filled {
+    fill: #bfe6ff;
+    stroke: none;
+  }
+  @media (max-width: 768px) {
+    .hero-faith-watermark { opacity: 0.06; }
   }
 
   /* ══════════════════════════════════════
@@ -558,6 +589,145 @@ function MapPopup({ onClose, c }) {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   FAITH WATERMARK — 10 major world religions, faint background
+══════════════════════════════════════════════════════════════ */
+function FaithWatermark() {
+  const icons = [
+    { x: 60,  y: 40,  s: 0.7,  render: <ChristianityIcon /> },
+    { x: 220, y: 110, s: 0.6,  render: <IslamIcon /> },
+    { x: 380, y: 30,  s: 0.65, render: <JudaismIcon /> },
+    { x: 520, y: 140, s: 0.75, render: <HinduismIcon /> },
+    { x: 680, y: 45,  s: 0.7,  render: <BuddhismIcon /> },
+    { x: 90,  y: 230, s: 0.65, render: <SikhismIcon /> },
+    { x: 300, y: 260, s: 0.6,  render: <TaoismIcon /> },
+    { x: 470, y: 300, s: 0.7,  render: <ShintoIcon /> },
+    { x: 630, y: 220, s: 0.6,  render: <BahaiIcon /> },
+    { x: 200, y: 380, s: 0.65, render: <JainismIcon /> },
+  ]
+
+  return (
+    <div className="hero-faith-watermark" aria-hidden="true">
+      <svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice">
+        {icons.map((icon, i) => (
+          <g key={i} transform={`translate(${icon.x},${icon.y}) scale(${icon.s})`}>
+            {icon.render}
+          </g>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+function ChristianityIcon() {
+  return (
+    <g className="hfw-symbol">
+      <line x1="50" y1="8"  x2="50" y2="92" />
+      <line x1="22" y1="34" x2="78" y2="34" />
+    </g>
+  )
+}
+
+function IslamIcon() {
+  return (
+    <g className="hfw-symbol">
+      <path d="M62,15 A38,38 0 1 0 62,85 A30,30 0 1 1 62,15 Z" />
+      <path d="M80,28 l3,7 7,1 -5,5 1,7 -6,-4 -6,4 1,-7 -5,-5 7,-1 z" />
+    </g>
+  )
+}
+
+function JudaismIcon() {
+  return (
+    <g className="hfw-symbol">
+      <polygon points="50,10 88,72 12,72" />
+      <polygon points="50,90 12,28 88,28" />
+    </g>
+  )
+}
+
+function HinduismIcon() {
+  return (
+    <text x="50" y="72" textAnchor="middle"
+      fontSize="72" fontFamily="'Noto Sans Devanagari', serif"
+      className="hfw-symbol filled">ॐ</text>
+  )
+}
+
+function BuddhismIcon() {
+  const spokes = Array.from({ length: 8 }, (_, i) => {
+    const a = (i * 45 * Math.PI) / 180
+    return (
+      <line key={i} x1="50" y1="50"
+        x2={50 + 34 * Math.cos(a)} y2={50 + 34 * Math.sin(a)} />
+    )
+  })
+  return (
+    <g className="hfw-symbol">
+      <circle cx="50" cy="50" r="36" />
+      <circle cx="50" cy="50" r="6" />
+      {spokes}
+    </g>
+  )
+}
+
+function SikhismIcon() {
+  return (
+    <g className="hfw-symbol">
+      <circle cx="50" cy="50" r="34" />
+      <line x1="50" y1="12" x2="50" y2="88" />
+      <line x1="22" y1="26" x2="66" y2="82" />
+      <line x1="78" y1="26" x2="34" y2="82" />
+    </g>
+  )
+}
+
+function TaoismIcon() {
+  return (
+    <g className="hfw-symbol">
+      <circle cx="50" cy="50" r="36" />
+      <path d="M50,14 A18,18 0 0 1 50,50 A18,18 0 0 0 50,86 A36,36 0 0 0 50,14 Z" className="filled" />
+      <circle cx="50" cy="32" r="5" />
+      <circle cx="50" cy="68" r="5" fill="#0a1628" stroke="none" />
+    </g>
+  )
+}
+
+function ShintoIcon() {
+  return (
+    <g className="hfw-symbol">
+      <line x1="22" y1="30" x2="22" y2="90" />
+      <line x1="78" y1="30" x2="78" y2="90" />
+      <path d="M10,28 Q50,10 90,28" />
+      <line x1="16" y1="42" x2="84" y2="42" />
+    </g>
+  )
+}
+
+function BahaiIcon() {
+  const pts = "50,12 55.47,34.97 74.43,20.89 63.86,42 87.43,43.4 65.76,52.78 82.9,69 60.29,62.26 63,85.7 50,66 37,85.7 39.71,62.26 17.1,69 34.24,52.78 12.57,43.4 36.14,42 25.57,20.89 44.53,34.97"
+  return <polygon className="hfw-symbol" points={pts} />
+}
+
+function JainismIcon() {
+  return (
+    <g className="hfw-symbol">
+      <path d="M50,14 C34,14 26,26 26,40 C26,58 38,66 38,80 L62,80 C62,66 74,58 74,40 C74,26 66,14 50,14 Z" />
+      <line x1="42" y1="26" x2="42" y2="42" />
+      <line x1="50" y1="22" x2="50" y2="42" />
+      <line x1="58" y1="26" x2="58" y2="42" />
+      <circle cx="50" cy="62" r="9" />
+      {Array.from({ length: 6 }, (_, i) => {
+        const a = (i * 60 * Math.PI) / 180
+        return (
+          <line key={i} x1="50" y1="62"
+            x2={50 + 9 * Math.cos(a)} y2={62 + 9 * Math.sin(a)} />
+        )
+      })}
+    </g>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════
    HEART VISUAL
 ══════════════════════════════════════════════════════════════ */
 function HeartVisual({ onParentClick, onTeenClick, onAssessClick, c }) {
@@ -785,8 +955,9 @@ export default function Hero() {
     : `❤️  ${siteStats.families}+ families healed`
   const dynPillRating   = `${siteStats.pillRating} ★ rated`
 
-  return (
+return (
     <section className="hero">
+      <FaithWatermark />
 
       {/* ══ LEFT ══ */}
       <div className="hero-content">
