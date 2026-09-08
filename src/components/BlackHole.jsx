@@ -4,13 +4,14 @@ import { useMemo } from "react";
  * BlackHole
  * A pure CSS/SVG animated black hole — accretion disk (blue-to-white),
  * a near-side arc that passes in front of the event horizon, gravitational
- * lensing glow, and words being pulled in and stretched apart by gravity.
+ * lensing glow, and small "planets" (labeled spheres) of varying size
+ * spiraling in and getting stretched apart by gravity before vanishing.
  * No external dependencies. Drop it into any React project.
  *
  * Props:
  *  - title, subtitle: optional overlay text (omit both for a pure visual)
  *  - size: diameter of the event horizon in px (default 220)
- *  - words: array of strings shown spiraling into the hole
+ *  - words: labels for the planets being pulled in
  *           (default: ["extremist", "anger", "guilt", "pride"])
  */
 export default function BlackHole({
@@ -43,26 +44,55 @@ export default function BlackHole({
     []
   );
 
-  // Words spiral in from random angles/distances, stretch (spaghettify),
+  // Relative size per label — bigger words read as bigger planets.
+  const WORD_SCALE = { extremist: 1.3, anger: 1.1, guilt: 0.95, pride: 0.8 };
+
+  // Mixed coloring inspired by real solar-system planets (Mercury grey,
+  // Venus tan, Earth blue, Mars rust, Jupiter banded tan, Saturn pale gold,
+  // Uranus icy cyan, Neptune deep blue) — assigned across the falling
+  // planets so the mix feels varied rather than tied to word meaning.
+  const SOLAR_PALETTE = [
+    { light: "#e6e6e6", base: "#9c9c9c", dark: "#3a3a3a" }, // Mercury
+    { light: "#f5deb3", base: "#d9a441", dark: "#6b4a13" }, // Venus
+    { light: "#8fd3ff", base: "#2a6f97", dark: "#0a2a3a" }, // Earth
+    { light: "#ff9a76", base: "#b3462c", dark: "#4a1a0d" }, // Mars
+    { light: "#f3d9b1", base: "#c9975a", dark: "#6e4a24" }, // Jupiter
+    { light: "#f7e7c4", base: "#d9c48a", dark: "#7a6a3d" }, // Saturn
+    { light: "#cdfffb", base: "#7fd8d0", dark: "#2a5a55" }, // Uranus
+    { light: "#8fb2ff", base: "#3355c9", dark: "#101f4a" }, // Neptune
+  ];
+
+  // Planets spiral in from random angles/distances, stretch (spaghettify),
   // then vanish at the horizon. Cycle the word list so it feels continuous.
-  const fallingWords = useMemo(() => {
-    const count = 9;
-    const radius = size * 1.5;
+  const fallingPlanets = useMemo(() => {
+    const count = 8;
+    const radius = size * 1.55;
+    const coreSize = size * 0.15;
     return Array.from({ length: count }, (_, i) => {
+      const word = words[i % words.length];
+      const scale = WORD_SCALE[word.toLowerCase()] ?? 1;
+      const palette = SOLAR_PALETTE[i % SOLAR_PALETTE.length];
       const angle = (Math.PI * 2 * i) / count + Math.random() * 0.6;
       const sx = Math.cos(angle) * radius;
       const sy = Math.sin(angle) * radius;
       const rot = (angle * 180) / Math.PI + 90;
+      const jitter = 0.85 + Math.random() * 0.3;
+      const planetSize = coreSize * scale * jitter;
       return {
         id: i,
-        text: words[i % words.length],
+        text: word,
         sx,
         sy,
         rot,
-        delay: (i * 1.6) % 9,
-        duration: 7 + Math.random() * 3,
+        planetSize,
+        light: palette.light,
+        base: palette.base,
+        dark: palette.dark,
+        delay: (i * 1.9) % 10,
+        duration: 8 + Math.random() * 3,
       };
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size, words]);
 
   return (
@@ -108,20 +138,29 @@ export default function BlackHole({
             sitting in a higher z-index so it visibly crosses in front of the hole */}
         <div className="bh-disk-front" style={{ width: size * 2, height: size * 0.66 }} />
 
-        {fallingWords.map((w) => (
-          <span
-            key={w.id}
-            className="bh-word"
+        {fallingPlanets.map((p) => (
+          <div
+            key={p.id}
+            className="bh-planet-wrap"
             style={{
-              "--sx": `${w.sx}px`,
-              "--sy": `${w.sy}px`,
-              "--rot": `${w.rot}deg`,
-              animationDelay: `${w.delay}s`,
-              animationDuration: `${w.duration}s`,
+              "--sx": `${p.sx}px`,
+              "--sy": `${p.sy}px`,
+              "--rot": `${p.rot}deg`,
+              animationDelay: `${p.delay}s`,
+              animationDuration: `${p.duration}s`,
             }}
           >
-            {w.text}
-          </span>
+            <span
+              className="bh-planet"
+              style={{
+                width: p.planetSize,
+                height: p.planetSize,
+                background: `radial-gradient(circle at 30% 30%, ${p.light} 0%, ${p.base} 55%, ${p.dark} 100%)`,
+                boxShadow: `0 0 ${p.planetSize * 0.6}px ${p.planetSize * 0.15}px ${p.base}66`,
+              }}
+            />
+            <span className="bh-planet-label">{p.text}</span>
+          </div>
         ))}
 
         {(title || subtitle) && (
@@ -257,35 +296,57 @@ export default function BlackHole({
           50%      { box-shadow: 0 0 12px 3px rgba(210,240,255,1),  0 0 30px 9px rgba(0,191,255,0.45); }
         }
 
-        /* words pulled in by gravity, spaghettified as they near the horizon */
-        .bh-word {
+        /* planets pulled in by gravity, spaghettified as they near the horizon */
+        .bh-planet-wrap {
           position: absolute;
           top: 50%;
           left: 50%;
           z-index: 7;
-          white-space: nowrap;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
           pointer-events: none;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          font-size: 0.85rem;
-          letter-spacing: 0.02em;
-          color: rgba(255, 232, 225, 0.85);
-          text-shadow: 0 0 6px rgba(255, 200, 190, 0.5);
-          animation: bh-fallword linear infinite;
+          animation-name: bh-fallplanet;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+          /* keep each planet at its 0% (outer, invisible) position while it
+             waits out its staggered delay, instead of snapping to the
+             black hole's center for that time */
+          animation-fill-mode: backwards;
         }
-        @keyframes bh-fallword {
+        .bh-planet {
+          display: block;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .bh-planet-label {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          font-size: 0.7rem;
+          letter-spacing: 0.02em;
+          color: rgba(255, 255, 255, 0.8);
+          text-shadow: 0 0 5px rgba(0,0,0,0.8);
+          white-space: nowrap;
+        }
+        @keyframes bh-fallplanet {
           0% {
             transform: translate(-50%, -50%) translate(var(--sx), var(--sy)) scale(1);
             opacity: 0;
           }
-          8% { opacity: 0.9; }
-          75% {
-            opacity: 0.55;
-            transform: translate(-50%, -50%) translate(calc(var(--sx) * 0.12), calc(var(--sy) * 0.12))
-              rotate(calc(var(--rot) * 0.3)) scaleX(1.7) scaleY(0.55);
+          8% { opacity: 1; }
+          70% {
+            opacity: 0.9;
+            transform: translate(-50%, -50%) translate(calc(var(--sx) * 0.18), calc(var(--sy) * 0.18))
+              rotate(calc(var(--rot) * 0.2)) scale(0.85);
+          }
+          90% {
+            opacity: 0.7;
+            transform: translate(-50%, -50%) translate(calc(var(--sx) * 0.05), calc(var(--sy) * 0.05))
+              rotate(calc(var(--rot) * 0.4)) scaleX(1.8) scaleY(0.4);
           }
           100% {
             transform: translate(-50%, -50%) translate(0, 0) rotate(calc(var(--rot) * 0.6))
-              scaleX(0.05) scaleY(0.2);
+              scaleX(0.05) scaleY(0.15);
             opacity: 0;
           }
         }
@@ -315,7 +376,7 @@ export default function BlackHole({
 
         @media (prefers-reduced-motion: reduce) {
           .bh-star, .bh-streak, .bh-lensing, .bh-disk-back, .bh-disk-front,
-          .bh-photon-ring, .bh-word {
+          .bh-photon-ring, .bh-planet-wrap {
             animation: none !important;
           }
         }
