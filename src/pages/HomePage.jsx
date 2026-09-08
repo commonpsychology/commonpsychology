@@ -22,6 +22,7 @@ import BalanceBowl from '../components/BalanceBowl'
 import NoticePopup      from '../components/NoticePopup'
 import NamasteLoader    from '../components/NamasteLoader'
 import PollPopup        from '../components/Pollpopup'
+import BlackHole from '../components/BlackHole'
 import DailyReturnHook  from '../components/DailyReturnHook'
 import ImageSlider from '../components/ImageSlider'
 import NoticeSection from '../components/NoticeSection'
@@ -92,6 +93,7 @@ export default function HomePage() {
       <Balance />
       <Therapists />
       <ToUnknown />
+<BlackHole />
       <Assessment />
       <Donate />
       <BalanceBowl />
